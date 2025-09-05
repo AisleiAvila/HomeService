@@ -31,7 +31,9 @@
       [currentUser]="user()"
       (viewDetails)="viewDetails.emit($event)"
       (openChat)="openChat.emit($event)"
-      (payNow)="payNow.emit($event)">
+      (payNow)="payNow.emit($event)"
+      (approveQuote)="handleQuoteResponse($event, true)"
+      (rejectQuote)="handleQuoteResponse($event, false)">
     </app-service-list>
   </div>
 

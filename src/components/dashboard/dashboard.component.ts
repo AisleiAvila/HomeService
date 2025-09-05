@@ -78,7 +78,7 @@ export class DashboardComponent {
         },
         { 
           label: this.i18n.translate('totalEarnings'), 
-          value: '$' + earnings.toFixed(2),
+          value: this.i18n.language() === 'pt' ? `R$${earnings.toFixed(2)}` : `$${earnings.toFixed(2)}`,
           icon: 'fas fa-dollar-sign text-emerald-500'
         },
       ];
@@ -86,4 +86,8 @@ export class DashboardComponent {
 
     return [];
   });
+  
+  handleQuoteResponse(request: ServiceRequest, approved: boolean) {
+    this.dataService.respondToQuote(request.id, approved);
+  }
 }
