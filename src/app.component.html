@@ -129,6 +129,14 @@
            <h2 class="text-2xl font-semibold text-gray-800">{{ currentViewLabel() }}</h2>
            <div class="flex items-center space-x-4">
               <app-language-switcher theme="dark" />
+               <!-- Push Notification Button -->
+              @if(pushNotificationService.permission() === 'default') {
+                <button (click)="pushNotificationService.requestPermissionAndSubscribe()" 
+                        class="text-gray-600 hover:text-gray-800 focus:outline-none"
+                        [title]="'enablePushNotifications' | i18n">
+                  <i class="fas fa-bell-plus fa-lg"></i>
+                </button>
+              }
               <div class="relative">
                  <button (click)="showNotifications.set(!showNotifications())" class="relative text-gray-600 hover:text-gray-800 focus:outline-none">
                     <i class="fas fa-bell fa-lg"></i>
@@ -153,7 +161,7 @@
         <!-- Content Area -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100">
            @switch (currentView()) {
-             @case ('dashboard') { <app-dashboard [user]="currentUser()!" (viewDetails)="handleViewDetails($event)" (openChat)="handleOpenChat($event)" (payNow)="handlePayNow($event)"/> }
+             @case ('dashboard') { <app-dashboard [user]="currentUser()!" (viewDetails)="handleViewDetails($event)" (openChat)="handleOpenChat($event)" (payNow)="handlePayNow($event)" (scheduleRequest)="handleScheduleRequest($event)"/> }
              @case ('admin') { <app-admin-dashboard /> }
              @case ('newRequest') { <app-service-request-form [client]="currentUser()!" (requestSubmitted)="setView('dashboard')"/> }
              @case ('schedule') { <app-schedule [user]="currentUser()!" (viewDetails)="handleViewDetails($event)"/> }
@@ -236,5 +244,13 @@
         </main>
       </div>
     </div>
+  }
+  
+  @if(schedulingRequest(); as request) {
+    <app-scheduler 
+      [serviceRequest]="request"
+      (close)="closeScheduler()"
+      (appointmentConfirmed)="handleAppointmentConfirmed($event)"
+    />
   }
 </div>

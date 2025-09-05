@@ -1,0 +1,41 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+    <h3 class="text-xl font-bold mb-4">{{ 'scheduleAppointmentFor' | i18n }} "{{ serviceRequest().title }}"</h3>
+    
+    <div class="space-y-4">
+      <!-- Professional Selection -->
+      <div>
+        <label for="professional" class="block text-sm font-medium text-gray-700">{{ 'selectProfessional' | i18n }}</label>
+        <select id="professional" name="professional"
+                [(ngModel)]="selectedProfessionalId"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+          <option [ngValue]="null" disabled>{{ 'selectAProfessional' | i18n }}</option>
+          @for(pro of availableProfessionals(); track pro.id) {
+            <option [ngValue]="pro.id">{{ pro.name }} ({{ pro.specialties?.join(', ') }})</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Date and Time Selection -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="date" class="block text-sm font-medium text-gray-700">{{ 'selectDate' | i18n }}</label>
+          <input type="date" id="date" name="date" [(ngModel)]="selectedDate"
+                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
+        <div>
+          <label for="time" class="block text-sm font-medium text-gray-700">{{ 'selectTime' | i18n }}</label>
+          <input type="time" id="time" name="time" [(ngModel)]="selectedTime"
+                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
+      </div>
+    </div>
+    
+    <div class="mt-6 flex justify-end space-x-3">
+      <button (click)="close.emit()" class="px-4 py-2 rounded-md bg-gray-200">{{ 'cancel' | i18n }}</button>
+      <button (click)="confirmAppointment()" [disabled]="!canConfirm()" class="px-4 py-2 rounded-md bg-indigo-600 text-white disabled:bg-indigo-300">
+        {{ 'confirmSchedule' | i18n }}
+      </button>
+    </div>
+  </div>
+</div>

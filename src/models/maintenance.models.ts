@@ -2,7 +2,7 @@
 export type UserRole = 'client' | 'professional' | 'admin';
 export type UserStatus = 'Pending' | 'Active' | 'Rejected';
 export type ServiceCategory = 'Plumbing' | 'Electrical' | 'Painting' | 'Gardening' | 'General Repair' | string;
-export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
+export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Scheduled' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
 export type PaymentStatus = 'Paid' | 'Unpaid';
 
 export interface Address {

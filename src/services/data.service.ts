@@ -2,6 +2,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus } from '../models/maintenance.models';
 import { NotificationService } from './notification.service';
+import { PushNotificationService, PushNotificationPayload } from './push-notification.service';
 import { I18nService } from './i18n.service';
 
 @Injectable({
@@ -9,6 +10,7 @@ import { I18nService } from './i18n.service';
 })
 export class DataService {
   private notificationService = inject(NotificationService);
+  private pushNotificationService = inject(PushNotificationService);
   private i18n = inject(I18nService);
 
   private userIdCounter = 10;
@@ -138,6 +140,16 @@ export class DataService {
   approveClient(userId: number) {
     this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Active' } : u));
     this.notificationService.addNotification(this.i18n.translate('clientAccountApproved'));
+
+    // Send push notification to the approved client
+    const user = this.getUserById(userId);
+    if (user) {
+        const payload: PushNotificationPayload = {
+            title: this.i18n.translate('pushAccountApprovedTitle'),
+            body: this.i18n.translate('pushAccountApprovedBody', { name: user.name })
+        };
+        this.pushNotificationService.sendNotification(payload);
+    }
   }
 
   rejectClient(userId: number) {
@@ -149,6 +161,16 @@ export class DataService {
     this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, cost: amount, status: 'Quoted' } : r));
     const amountStr = this.i18n.language() === 'pt' ? `R$${amount.toFixed(2)}` : `$${amount.toFixed(2)}`;
     this.notificationService.addNotification(this.i18n.translate('quoteSubmittedNotification', {id: requestId, amount: amountStr}));
+
+    // Send push notification to the client
+    const request = this.getServiceRequestById(requestId);
+    if (request) {
+        const payload: PushNotificationPayload = {
+            title: this.i18n.translate('pushQuoteReceivedTitle'),
+            body: this.i18n.translate('pushQuoteReceivedBody', { title: request.title, amount: amountStr })
+        };
+        this.pushNotificationService.sendNotification(payload);
+    }
   }
   
   respondToQuote(requestId: number, approved: boolean) {
@@ -156,13 +178,52 @@ export class DataService {
     this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, status } : r));
     const statusStr = approved ? this.i18n.translate('approvedStatus') : this.i18n.translate('rejectedStatus');
     this.notificationService.addNotification(this.i18n.translate('quoteResponseNotification', {id: requestId, status: statusStr}));
+
+    // Send push notification to the professional
+    const request = this.getServiceRequestById(requestId);
+    if (request && request.professionalId) {
+        const payload: PushNotificationPayload = {
+            title: this.i18n.translate('pushQuoteResponseTitle'),
+            body: this.i18n.translate('pushQuoteResponseBody', { title: request.title, status: statusStr })
+        };
+        this.pushNotificationService.sendNotification(payload);
+    }
   }
 
   assignProfessional(requestId: number, professionalId: number) {
     this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, professionalId, status: 'Assigned', scheduledDate: new Date(new Date().setDate(new Date().getDate() + 7)) } : r)); // schedule for a week later
     this.notificationService.addNotification(this.i18n.translate('professionalAssignedNotification', {id: requestId}));
+     // Send push notification to the professional
+    const request = this.getServiceRequestById(requestId);
+    if (request) {
+        const payload: PushNotificationPayload = {
+            title: this.i18n.translate('pushJobAssignedTitle'),
+            body: this.i18n.translate('pushJobAssignedBody', { title: request.title })
+        };
+        this.pushNotificationService.sendNotification(payload);
+    }
   }
   
+  scheduleAppointment(requestId: number, professionalId: number, dateTime: Date) {
+    this._serviceRequests.update(requests => 
+      requests.map(r => 
+        r.id === requestId 
+          ? { ...r, professionalId, scheduledDate: dateTime, status: 'Scheduled' } 
+          : r
+      )
+    );
+    const request = this.getServiceRequestById(requestId);
+    if (request) {
+      this.notificationService.addNotification(this.i18n.translate('appointmentScheduledNotification', { title: request.title }));
+      // Send push notification to the professional
+      const payload: PushNotificationPayload = {
+          title: this.i18n.translate('pushAppointmentScheduledTitle'),
+          body: this.i18n.translate('pushAppointmentScheduledBody', { title: request.title, date: dateTime.toLocaleString() })
+      };
+      this.pushNotificationService.sendNotification(payload);
+    }
+  }
+
   updateUser(userId: number, updates: Partial<User>) {
     this._users.update(users => users.map(u => u.id === userId ? { ...u, ...updates } : u));
     this.notificationService.addNotification(this.i18n.translate('profileUpdatedNotification', { id: userId }));
