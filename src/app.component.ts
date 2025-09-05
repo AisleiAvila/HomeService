@@ -11,7 +11,7 @@ import { PushNotificationService } from './services/push-notification.service';
 
 // Models
 import { User, ServiceRequest } from './models/maintenance.models';
-import { ServiceRequestPayload } from './components/service-request-form/service-request-form.component';
+import { ServiceRequestPayload } from './models/maintenance.models';
 import { LoginPayload } from './components/login/login.component';
 import { RegisterPayload } from './components/register/register.component';
 

@@ -63,3 +63,12 @@ export interface Notification {
   timestamp: Date;
   read: boolean;
 }
+
+// FIX: Added ServiceRequestPayload to models to avoid circular dependencies.
+export interface ServiceRequestPayload {
+  title: string;
+  description: string;
+  category: ServiceCategory;
+  address: Address;
+  requested_date: string;
+}
