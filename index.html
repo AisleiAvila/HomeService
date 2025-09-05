@@ -43,6 +43,23 @@
     display: none !important;
   }
 }
+
+/* Custom FullCalendar grid styles for better visibility */
+.fc-theme-standard td, .fc-theme-standard th {
+  border-color: #d1d5db; /* A more visible darker gray (Tailwind gray-300) */
+}
+
+/* Make calendar day numbers more visible */
+.fc-daygrid-day-number {
+  color: #374151; /* A darker gray (Tailwind gray-700) */
+  font-weight: 500;
+}
+
+/* Make calendar title more visible */
+.fc-toolbar-title {
+  color: #1f2937; /* Tailwind gray-800 */
+  font-weight: 600;
+}
 </style>
 <script type="importmap">
 {
