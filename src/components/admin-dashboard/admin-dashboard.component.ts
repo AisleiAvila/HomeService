@@ -1,4 +1,3 @@
-
 import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
@@ -124,7 +123,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
         @case ('financials') {
             <div class="space-y-6">
                 <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
                      <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-green-100">
                        <i class="fas fa-check-double text-2xl text-green-500"></i>
@@ -135,11 +134,20 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                     </div>
                   </div>
                   <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
+                     <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-cyan-100">
+                       <i class="fas fa-percent text-2xl text-cyan-500"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-gray-500 text-sm font-medium">Impostos (7%)</h3>
+                      <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalTaxes) }}</p>
+                    </div>
+                  </div>
+                  <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
                      <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-emerald-100">
                        <i class="fas fa-dollar-sign text-2xl text-emerald-500"></i>
                     </div>
                     <div>
-                      <h3 class="text-gray-500 text-sm font-medium">Receita Total</h3>
+                      <h3 class="text-gray-500 text-sm font-medium">Receita Total (c/ impostos)</h3>
                       <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalRevenue) }}</p>
                     </div>
                   </div>
@@ -148,7 +156,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                        <i class="fas fa-file-invoice-dollar text-2xl text-yellow-500"></i>
                     </div>
                     <div>
-                      <h3 class="text-gray-500 text-sm font-medium">Valor Pendente</h3>
+                      <h3 class="text-gray-500 text-sm font-medium">Valor Pendente (c/ impostos)</h3>
                       <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().outstandingAmount) }}</p>
                     </div>
                   </div>
@@ -160,39 +168,41 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profissional</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data de Conclusão</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status do Pagamento</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor (Base)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Imposto (7%)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total c/ Imposto</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pagamento</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @for (request of financialRequests(); track request.id) {
+                            @for (item of financialRequestsWithTax(); track item.id) {
                                 <tr>
-                                    <td class="px-6 py-4 text-sm font-mono text-gray-500">#{{ request.id }}</td>
-                                    <td class="px-6 py-4">
-                                      <div class="text-sm font-medium text-gray-900">{{ request.title }}</div>
-                                      <div class="text-sm text-gray-500">{{ request.category }}</div>
+                                    <td class="px-4 py-4 text-sm font-mono text-gray-500">#{{ item.id }}</td>
+                                    <td class="px-4 py-4">
+                                      <div class="text-sm font-medium text-gray-900">{{ item.title }}</div>
+                                      <div class="text-sm text-gray-500">{{ item.category }}</div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ getClientName(request.clientId) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ getProfessionalName(request.professionalId) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.scheduledDate | date:'mediumDate' }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ formatCost(request.cost) }}</td>
-                                    <td class="px-6 py-4 text-sm">
+                                    <td class="px-4 py-4 text-sm text-gray-500">{{ getClientName(item.clientId) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.scheduledDate | date:'mediumDate' }}</td>
+                                    <td class="px-4 py-4 text-sm text-gray-500">{{ formatCost(item.cost) }}</td>
+                                    <td class="px-4 py-4 text-sm text-gray-500">{{ formatCost(item.tax) }}</td>
+                                    <td class="px-4 py-4 text-sm font-semibold text-gray-800">{{ formatCost(item.totalWithTax) }}</td>
+                                    <td class="px-4 py-4 text-sm">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                              [class.bg-green-100]="request.paymentStatus === 'Paid'"
-                                              [class.text-green-800]="request.paymentStatus === 'Paid'"
-                                              [class.bg-yellow-100]="request.paymentStatus !== 'Paid'"
-                                              [class.text-yellow-800]="request.paymentStatus !== 'Paid'">
-                                            {{ request.paymentStatus }}
+                                              [class.bg-green-100]="item.paymentStatus === 'Paid'"
+                                              [class.text-green-800]="item.paymentStatus === 'Paid'"
+                                              [class.bg-yellow-100]="item.paymentStatus !== 'Paid'"
+                                              [class.text-yellow-800]="item.paymentStatus !== 'Paid'">
+                                            {{ item.paymentStatus }}
                                         </span>
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Nenhum serviço concluído ainda.</td></tr>
+                                <tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Nenhum serviço concluído ainda.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -450,6 +460,8 @@ export class AdminDashboardComponent {
   dataService = inject(DataService);
   notificationService = inject(NotificationService);
 
+  private readonly TAX_RATE = 0.07; // 7%
+
   activeTab = signal<AdminTab>('quotes');
   quotingRequest = signal<ServiceRequest | null>(null);
   viewingQuote = signal<ServiceRequest | null>(null);
@@ -472,7 +484,6 @@ export class AdminDashboardComponent {
   editProfessionalEmail = signal('');
   editProfessionalSpecialties = signal<ServiceCategory[]>([]);
 
-
   allRequests = this.dataService.serviceRequests;
   allUsers = this.dataService.users;
   categories = this.dataService.categories;
@@ -482,19 +493,38 @@ export class AdminDashboardComponent {
   financialRequests = computed(() => this.allRequests().filter(r => r.status === 'Completed'));
   professionals = computed(() => this.allUsers().filter(u => u.role === 'professional'));
 
+  financialRequestsWithTax = computed(() => {
+    return this.financialRequests().map(request => {
+      const cost = request.cost ?? 0;
+      const tax = cost * this.TAX_RATE;
+      const totalWithTax = cost + tax;
+      return {
+        ...request,
+        tax,
+        totalWithTax
+      };
+    });
+  });
+
   financialStats = computed(() => {
-    const completed = this.financialRequests();
-    const totalRevenue = completed
-        .filter(r => r.paymentStatus === 'Paid' && r.cost)
-        .reduce((sum, r) => sum + r.cost!, 0);
-    const outstandingAmount = completed
-        .filter(r => r.paymentStatus === 'Unpaid' && r.cost)
-        .reduce((sum, r) => sum + r.cost!, 0);
+    const requestsWithTax = this.financialRequestsWithTax();
+    
+    const totalRevenue = requestsWithTax
+        .filter(r => r.paymentStatus === 'Paid')
+        .reduce((sum, r) => sum + r.totalWithTax, 0);
+        
+    const outstandingAmount = requestsWithTax
+        .filter(r => r.paymentStatus === 'Unpaid')
+        .reduce((sum, r) => sum + r.totalWithTax, 0);
+
+    const totalTaxes = requestsWithTax
+        .reduce((sum, r) => sum + r.tax, 0);
     
     return {
-        completedCount: completed.length,
+        completedCount: requestsWithTax.length,
         totalRevenue: totalRevenue,
-        outstandingAmount: outstandingAmount
+        outstandingAmount: outstandingAmount,
+        totalTaxes: totalTaxes
     };
   });
 
@@ -511,7 +541,7 @@ export class AdminDashboardComponent {
   }
 
   formatCost(cost: number | null): string {
-      if (cost) {
+      if (cost != null) {
         return '$' + cost.toFixed(2);
       }
       return 'N/A';
