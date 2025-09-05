@@ -1,26 +1,28 @@
-export type Role = 'client' | 'professional' | 'admin';
-export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
-export type PaymentStatus = 'Paid' | 'Unpaid';
+export type UserRole = 'client' | 'professional' | 'admin';
+export type UserStatus = 'Active' | 'Pending' | 'Rejected';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  avatarUrl: string;
+  specialties?: ServiceCategory[];
+  address?: Address;
+}
+
 export type ServiceCategory = 'Plumbing' | 'Electrical' | 'Painting' | 'Gardening' | 'General Repair';
-export type UserStatus = 'Active' | 'Pending';
+
+export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
+
+export type PaymentStatus = 'Paid' | 'Unpaid';
 
 export interface Address {
   street: string;
   city: string;
   state: string;
   zipCode: string;
-}
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: Role;
-  avatarUrl: string;
-  specialties?: ServiceCategory[];
-  phone: string;
-  password?: string;
-  status: UserStatus;
 }
 
 export interface ServiceRequest {
@@ -33,9 +35,9 @@ export interface ServiceRequest {
   requestedDate: Date;
   scheduledDate: Date | null;
   status: ServiceStatus;
-  address: Address;
   cost: number | null;
   paymentStatus: PaymentStatus;
+  address: Address;
 }
 
 export interface ChatMessage {

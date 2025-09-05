@@ -1,5 +1,5 @@
-import { Injectable, signal, inject } from '@angular/core';
-import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus } from '../models/maintenance.models';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus, UserRole, PaymentStatus, Address, UserStatus } from '../models/maintenance.models';
 import { NotificationService } from './notification.service';
 
 @Injectable({
@@ -7,50 +7,79 @@ import { NotificationService } from './notification.service';
 })
 export class DataService {
   private notificationService = inject(NotificationService);
+  private idCounters = {
+    users: 5,
+    requests: 10,
+    messages: 20
+  };
 
-  private _users = signal<User[]>([
-    { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=1', status: 'Active', phone: '555-0101', password: 'password123' },
-    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', specialties: ['Plumbing'], avatarUrl: 'https://i.pravatar.cc/150?u=2', status: 'Active', phone: '555-0102', password: 'password123' },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', specialties: ['Electrical', 'General Repair'], avatarUrl: 'https://i.pravatar.cc/150?u=3', status: 'Active', phone: '555-0103', password: 'password123' },
-    { id: 4, name: 'Diana Prince', email: 'diana@email.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=4', status: 'Active', phone: '555-0104', password: 'password123' },
-    { id: 5, name: 'Eve Adams', email: 'eve@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=5', status: 'Active', phone: '555-0105', password: 'password123' },
-    { id: 6, name: 'Frank Wright', email: 'frank@email.com', role: 'professional', specialties: ['Painting'], avatarUrl: 'https://i.pravatar.cc/150?u=6', status: 'Active', phone: '555-0106', password: 'password123' },
+  private _categories = signal<ServiceCategory[]>([
+    'Plumbing', 'Electrical', 'Painting', 'Gardening', 'General Repair'
   ]);
-
-  private _serviceRequests = signal<ServiceRequest[]>([
-    { id: 101, clientId: 1, professionalId: 2, title: 'Leaky Faucet in Kitchen', description: 'The kitchen sink faucet has been dripping constantly for two days.', category: 'Plumbing', requestedDate: new Date('2024-05-20'), scheduledDate: new Date('2024-05-22T10:00:00'), status: 'In Progress', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' }, cost: 150.00, paymentStatus: 'Unpaid' },
-    { id: 102, clientId: 1, professionalId: 3, title: 'Install new ceiling fan', description: 'Need a new ceiling fan installed in the living room.', category: 'Electrical', requestedDate: new Date('2024-05-18'), scheduledDate: new Date('2024-05-24T14:00:00'), status: 'Assigned', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' }, cost: 250.00, paymentStatus: 'Unpaid' },
-    { id: 103, clientId: 5, professionalId: null, title: 'Paint the bedroom walls', description: 'The master bedroom needs a fresh coat of paint. Color is light blue.', category: 'Painting', requestedDate: new Date('2024-05-21'), scheduledDate: null, status: 'Pending', address: { street: '456 Oak Ave', city: 'Springfield', state: 'IL', zipCode: '62701' }, cost: null, paymentStatus: 'Unpaid' },
-    { id: 104, clientId: 5, professionalId: 2, title: 'Clogged drain in bathroom', description: 'The shower drain is completely clogged.', category: 'Plumbing', requestedDate: new Date('2024-04-15'), scheduledDate: new Date('2024-04-18'), status: 'Completed', address: { street: '456 Oak Ave', city: 'Springfield', state: 'IL', zipCode: '62701' }, cost: 95.50, paymentStatus: 'Paid' },
-  ]);
-  
-  private _messages = signal<ChatMessage[]>([
-    { id: 1, serviceRequestId: 101, senderId: 1, text: 'Hi Bob, are you on your way?', timestamp: new Date() },
-    { id: 2, serviceRequestId: 101, senderId: 2, text: 'Yes, I should be there in about 15 minutes.', timestamp: new Date() }
-  ]);
-
-  private _categories = signal<ServiceCategory[]>(['Plumbing', 'Electrical', 'Painting', 'Gardening', 'General Repair']);
-
-  users = this._users.asReadonly();
-  serviceRequests = this._serviceRequests.asReadonly();
-  messages = this._messages.asReadonly();
   categories = this._categories.asReadonly();
 
+  private _users = signal<User[]>([
+    { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', status: 'Active', avatarUrl: 'https://picsum.photos/seed/alice/200' },
+    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/seed/bob/200', specialties: ['Plumbing', 'General Repair'] },
+    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/seed/charlie/200', specialties: ['Electrical', 'Painting'] },
+    { id: 4, name: 'Diana Prince', email: 'admin@email.com', role: 'admin', status: 'Active', avatarUrl: 'https://picsum.photos/seed/diana/200' },
+    { id: 5, name: 'Pending Pro', email: 'pending@pro.com', role: 'client', status: 'Pending', avatarUrl: 'https://picsum.photos/seed/pending/200' },
+  ]);
+  users = this._users.asReadonly();
+
+  private _serviceRequests = signal<ServiceRequest[]>([
+    { id: 1, clientId: 1, professionalId: 2, title: 'Leaky Faucet', description: 'My kitchen sink faucet is dripping constantly.', category: 'Plumbing', requestedDate: new Date('2024-05-10'), scheduledDate: new Date('2024-05-15'), status: 'Completed', cost: 150, paymentStatus: 'Paid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
+    { id: 2, clientId: 1, professionalId: 3, title: 'Install Ceiling Fan', description: 'Need a new ceiling fan installed in the living room.', category: 'Electrical', requestedDate: new Date('2024-05-12'), scheduledDate: new Date('2024-05-18'), status: 'In Progress', cost: 250, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
+    { id: 3, clientId: 1, professionalId: null, title: 'Paint Bedroom', description: 'The master bedroom needs a new coat of paint.', category: 'Painting', requestedDate: new Date('2024-05-20'), scheduledDate: null, status: 'Quoted', cost: 800, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
+    { id: 4, clientId: 1, professionalId: null, title: 'Garden Weeding', description: 'The front garden is overgrown with weeds.', category: 'Gardening', requestedDate: new Date('2024-05-25'), scheduledDate: null, status: 'Pending', cost: null, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
+    { id: 5, clientId: 1, professionalId: 2, title: 'Fix broken door hinge', description: 'The hinge on the bathroom door is broken and needs to be replaced.', category: 'General Repair', requestedDate: new Date('2024-06-01'), scheduledDate: new Date('2024-06-05'), status: 'Assigned', cost: 75, paymentStatus: 'Unpaid', address: { street: '456 Oak Ave', city: 'Springfield', state: 'IL', zipCode: '62704' } },
+  ]);
+  serviceRequests = this._serviceRequests.asReadonly();
+
+  private _messages = signal<ChatMessage[]>([
+    { id: 1, serviceRequestId: 2, senderId: 1, text: 'Hi, when can you start?', timestamp: new Date() },
+    { id: 2, serviceRequestId: 2, senderId: 3, text: 'I can be there tomorrow at 10 AM.', timestamp: new Date() },
+  ]);
+  messages = this._messages.asReadonly();
+
+  // --- Getters ---
   getUserById(id: number): User | undefined {
     return this.users().find(u => u.id === id);
   }
 
   getServiceRequestById(id: number): ServiceRequest | undefined {
-    return this.serviceRequests().find(s => s.id === id);
+    return this.serviceRequests().find(r => r.id === id);
+  }
+  
+  getMessagesForService(serviceRequestId: number): ChatMessage[] {
+    return this.messages().filter(m => m.serviceRequestId === serviceRequestId).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
-  getMessagesForService(serviceRequestId: number): ChatMessage[] {
-    return this.messages().filter(m => m.serviceRequestId === serviceRequestId);
+  getProfessionalsByCategory(category: ServiceCategory): User[] {
+    return this.users().filter(u => u.role === 'professional' && u.specialties?.includes(category));
+  }
+
+  // --- Mutations ---
+
+  addServiceRequest(request: Omit<ServiceRequest, 'id' | 'professionalId' | 'scheduledDate' | 'status' | 'cost' | 'paymentStatus'>) {
+    this.idCounters.requests++;
+    const newRequest: ServiceRequest = {
+      ...request,
+      id: this.idCounters.requests,
+      professionalId: null,
+      scheduledDate: null,
+      status: 'Pending',
+      cost: null,
+      paymentStatus: 'Unpaid',
+    };
+    this._serviceRequests.update(requests => [...requests, newRequest]);
+    this.notificationService.addNotification(`New request "${newRequest.title}" submitted.`);
   }
 
   addMessage(serviceRequestId: number, senderId: number, text: string) {
+    this.idCounters.messages++;
     const newMessage: ChatMessage = {
-      id: Math.max(...this.messages().map(m => m.id), 0) + 1,
+      id: this.idCounters.messages,
       serviceRequestId,
       senderId,
       text,
@@ -59,248 +88,78 @@ export class DataService {
     this._messages.update(messages => [...messages, newMessage]);
   }
 
-  addServiceRequest(request: Omit<ServiceRequest, 'id' | 'professionalId' | 'status' | 'scheduledDate' | 'cost' | 'paymentStatus'>) {
-    const newRequest: ServiceRequest = {
-      ...request,
-      id: Math.max(...this.serviceRequests().map(r => r.id), 0) + 1,
-      professionalId: null,
-      status: 'Pending',
-      scheduledDate: null,
-      cost: null,
-      paymentStatus: 'Unpaid'
-    };
-    this._serviceRequests.update(requests => [...requests, newRequest]);
-    this.notificationService.addNotification(`Admin: New service request "${newRequest.title}" needs a quote.`);
+  approveClient(userId: number) {
+    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Active' as UserStatus } : u));
+    this.notificationService.addNotification(`Client account approved.`);
+  }
+  
+  rejectClient(userId: number) {
+    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Rejected' as UserStatus } : u));
+    this.notificationService.addNotification(`Client account rejected.`);
   }
 
-  updateUser(id: number, updates: Partial<Pick<User, 'name' | 'email' | 'specialties' | 'avatarUrl'>>) {
-    if (updates.email) {
-      const trimmedEmail = updates.email.trim().toLowerCase();
-      if (trimmedEmail) {
-        const emailExists = this.users().some(u => u.email.toLowerCase() === trimmedEmail && u.id !== id);
-        if (emailExists) {
-            this.notificationService.addNotification(`Erro: O e-mail "${updates.email}" já está em uso.`);
-            return; // Stop the update
-        }
-        updates.email = updates.email.trim();
-      }
-    }
-
-    this._users.update(users => users.map(user => user.id === id ? { ...user, ...updates } : user));
-    this.notificationService.addNotification('Profile updated successfully.');
-  }
-
-  updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
-    this._serviceRequests.update(requests => 
-      requests.map(req => {
-        if (req.id === id) {
-          const originalStatus = req.status;
-          const updatedReq = { ...req, ...updates };
-          
-          if (updatedReq.status === 'Completed' && originalStatus !== 'Completed') {
-              this.notificationService.addNotification(`Service "${updatedReq.title}" is complete. Payment is now due.`);
-          }
-
-          return updatedReq;
-        }
-        return req;
-      })
-    );
-  }
-
-  assignProfessional(requestId: number, professionalId: number) {
-    const request = this.getServiceRequestById(requestId);
-    if (!request) {
-      this.notificationService.addNotification(`Error: Service request #${requestId} not found.`);
-      return;
-    }
-    const professional = this.getUserById(professionalId);
-     if (!professional) {
-      this.notificationService.addNotification(`Error: Professional with ID #${professionalId} not found.`);
-      return;
-    }
-
-    this.updateServiceRequest(requestId, {
-      professionalId: professionalId,
-      status: 'Assigned',
-      scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
-    });
-
-    this.notificationService.addNotification(`Client: Your service "${request.title}" has been scheduled.`);
-    this.notificationService.addNotification(`Professional: You have a new assignment: "${request.title}".`);
-    this.notificationService.addNotification(`Admin: ${professional.name} assigned to "${request.title}".`);
-  }
-
-  submitQuote(requestId: number, cost: number) {
-    this.updateServiceRequest(requestId, { cost, status: 'Quoted' });
-    const request = this.getServiceRequestById(requestId);
-    if(request) {
-        this.notificationService.addNotification(`Client: A quote of $${cost.toFixed(2)} is ready for your service "${request.title}".`);
-    }
+  submitQuote(requestId: number, amount: number) {
+    this._serviceRequests.update(reqs => reqs.map(r => r.id === requestId ? { ...r, cost: amount, status: 'Quoted' as ServiceStatus } : r));
+    this.notificationService.addNotification(`Quote of $${amount} submitted for request #${requestId}.`);
   }
 
   respondToQuote(requestId: number, approved: boolean) {
-    const request = this.getServiceRequestById(requestId);
-    if (!request) return;
-
-    if (approved) {
-      this.updateServiceRequest(requestId, { status: 'Approved' });
-      this.notificationService.addNotification(`Admin: Quote for "${request.title}" was approved by the client.`);
-    } else {
-      this.updateServiceRequest(requestId, { status: 'Cancelled' });
-      this.notificationService.addNotification(`Admin: Quote for "${request.title}" was rejected by the client.`);
-    }
-  }
-  
-  processPayment(requestId: number) {
-     const request = this.getServiceRequestById(requestId);
-     if (request && request.cost) {
-        this.updateServiceRequest(requestId, { paymentStatus: 'Paid' });
-        this.notificationService.addNotification(`Payment of $${request.cost.toFixed(2)} for "${request.title}" was successful. Thank you!`);
-        this.notificationService.addNotification(`Admin: Payment received for service #${requestId}.`);
-     }
-  }
-  
-  getProfessionalsByCategory(category: ServiceCategory): User[] {
-    return this.users().filter(u => u.role === 'professional' && u.specialties?.includes(category));
-  }
-
-  addCategory(name: string): void {
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      this.notificationService.addNotification('Category name cannot be empty.');
-      return;
-    }
-    const existing = this.categories().find(c => c.toLowerCase() === trimmedName.toLowerCase());
-    if (existing) {
-      this.notificationService.addNotification(`Category "${trimmedName}" already exists.`);
-      return;
-    }
-    this._categories.update(cats => [...cats, trimmedName as ServiceCategory].sort());
-    this.notificationService.addNotification(`Category "${trimmedName}" added successfully.`);
-  }
-
-  updateCategory(oldName: ServiceCategory, newName: string): void {
-    const trimmedNewName = newName.trim();
-    if (!trimmedNewName) {
-      this.notificationService.addNotification('Category name cannot be empty.');
-      return;
-    }
-    if (oldName.toLowerCase() !== trimmedNewName.toLowerCase()) {
-      const existing = this.categories().find(c => c.toLowerCase() === trimmedNewName.toLowerCase());
-      if (existing) {
-        this.notificationService.addNotification(`Category "${trimmedNewName}" already exists.`);
-        return;
+    this._serviceRequests.update(reqs => reqs.map(r => {
+      if (r.id === requestId) {
+        return { ...r, status: (approved ? 'Approved' : 'Pending') as ServiceStatus };
       }
-    }
-    // FIX: Cast the new category name to ServiceCategory to maintain type safety in the signal.
-    this._categories.update(cats => cats.map(c => c === oldName ? trimmedNewName as ServiceCategory : c).sort());
-    this._users.update(users => users.map(u => {
-        if (u.role === 'professional' && u.specialties?.includes(oldName)) {
-            // FIX: Cast the new category name to ServiceCategory to ensure the user's specialties array maintains the correct type.
-            const newSpecialties = u.specialties.map(s => s === oldName ? trimmedNewName as ServiceCategory : s);
-            return { ...u, specialties: newSpecialties };
-        }
-        return u;
+      return r;
     }));
-    this._serviceRequests.update(requests => requests.map(r => r.category === oldName ? { ...r, category: trimmedNewName as ServiceCategory } : r));
-    this.notificationService.addNotification(`Category "${oldName}" updated to "${trimmedNewName}".`);
+    this.notificationService.addNotification(`Quote for request #${requestId} has been ${approved ? 'approved' : 'rejected'}.`);
+  }
+  
+  assignProfessional(requestId: number, professionalId: number) {
+    this._serviceRequests.update(reqs => reqs.map(r => {
+      if (r.id === requestId) {
+        return { ...r, professionalId, status: 'Assigned' as ServiceStatus, scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) }; // schedule 3 days out
+      }
+      return r;
+    }));
+    this.notificationService.addNotification(`Professional assigned to request #${requestId}.`);
+  }
+  
+  updateUser(userId: number, updates: Partial<User>) {
+    this._users.update(users => users.map(u => u.id === userId ? { ...u, ...updates } : u));
+    this.notificationService.addNotification(`Profile for user #${userId} updated.`);
   }
 
-  deleteCategory(name: ServiceCategory): void {
-    const isUsed = this.serviceRequests().some(r => r.category === name);
-    if (isUsed) {
-      this.notificationService.addNotification(`Não é possível excluir a categoria "${name}", pois ela está vinculada a uma ou mais solicitações de serviço.`);
-      return;
+  addCategory(categoryName: ServiceCategory) {
+    if (!this._categories().includes(categoryName)) {
+      this._categories.update(cats => [...cats, categoryName]);
+      this.notificationService.addNotification(`Category "${categoryName}" added.`);
     }
-    this._users.update(users => users.map(u => {
-        if (u.role === 'professional' && u.specialties?.includes(name)) {
-            const newSpecialties = u.specialties.filter(s => s !== name);
-            return { ...u, specialties: newSpecialties };
-        }
-        return u;
-    }));
-    this._categories.update(cats => cats.filter(c => c !== name));
-    this.notificationService.addNotification(`Category "${name}" deleted successfully.`);
   }
 
-  addProfessional(name: string, email: string, specialties: ServiceCategory[]): void {
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
+  updateCategory(oldName: ServiceCategory, newName: ServiceCategory) {
+    this._categories.update(cats => cats.map(c => c === oldName ? newName : c));
+    this._serviceRequests.update(reqs => reqs.map(r => r.category === oldName ? { ...r, category: newName } : r));
+    this._users.update(users => users.map(u => ({ ...u, specialties: u.specialties?.map(s => s === oldName ? newName : s) })));
+    this.notificationService.addNotification(`Category "${oldName}" updated to "${newName}".`);
+  }
 
-    if (!trimmedName || !trimmedEmail || !specialties || specialties.length === 0) {
-      this.notificationService.addNotification('Erro: Todos os campos são obrigatórios e pelo menos uma especialidade deve ser selecionada.');
-      return;
-    }
-
-    const emailExists = this.users().some(u => u.email.toLowerCase() === trimmedEmail.toLowerCase());
-    if (emailExists) {
-      this.notificationService.addNotification(`Erro: O e-mail "${trimmedEmail}" já está em uso.`);
-      return;
-    }
-
-    const newProfessional: User = {
-      id: Math.max(...this.users().map(u => u.id), 0) + 1,
-      name: trimmedName,
-      email: trimmedEmail,
+  deleteCategory(categoryName: ServiceCategory) {
+    // Basic deletion, doesn't handle re-assigning requests or specialties
+    this._categories.update(cats => cats.filter(c => c !== categoryName));
+    this.notificationService.addNotification(`Category "${categoryName}" deleted.`);
+  }
+  
+  addProfessional(name: string, email: string, specialties: ServiceCategory[]) {
+    this.idCounters.users++;
+    const newUser: User = {
+      id: this.idCounters.users,
+      name,
+      email,
       role: 'professional',
       status: 'Active',
+      avatarUrl: `https://picsum.photos/seed/${name.split(' ')[0]}/200`,
       specialties,
-      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`,
-      phone: '555-0199',
-      password: 'password123'
     };
-
-    this._users.update(users => [...users, newProfessional]);
-    this.notificationService.addNotification(`Profissional "${trimmedName}" cadastrado com sucesso.`);
-  }
-
-  // --- Client Registration Workflow ---
-  registerClient(data: Pick<User, 'name' | 'email' | 'phone' | 'password'>): boolean {
-    const emailExists = this._users().some(u => u.email.toLowerCase() === data.email.toLowerCase());
-    if (emailExists) {
-      this.notificationService.addNotification(`Error: The email "${data.email}" is already in use.`);
-      return false;
-    }
-
-    const newUser: User = {
-      id: Math.max(...this.users().map(u => u.id), 0) + 1,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      password: data.password,
-      role: 'client',
-      status: 'Pending',
-      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`
-    };
-
     this._users.update(users => [...users, newUser]);
-    this.notificationService.addNotification(`Admin: New client registration for "${data.name}" requires approval.`);
-    return true;
-  }
-
-  approveClient(userId: number): void {
-    let clientName = '';
-    this._users.update(users => users.map(user => {
-      if (user.id === userId) {
-        clientName = user.name;
-        return { ...user, status: 'Active' };
-      }
-      return user;
-    }));
-    this.notificationService.addNotification(`Client: Welcome, ${clientName}! Your registration has been approved.`);
-    this.notificationService.addNotification(`Admin: Registration for ${clientName} has been approved.`);
-  }
-
-  rejectClient(userId: number): void {
-    let clientName = '';
-    this._users.update(users => users.filter(user => {
-      if (user.id === userId) {
-        clientName = user.name;
-        return false;
-      }
-      return true;
-    }));
-    this.notificationService.addNotification(`Admin: Registration for ${clientName} has been rejected.`);
+    this.notificationService.addNotification(`Professional "${name}" added.`);
   }
 }
