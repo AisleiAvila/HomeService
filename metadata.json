@@ -1,0 +1,5 @@
+{
+  "name": "Home Service Pro",
+  "description": "An application for managing home maintenance services, connecting clients with professionals. Features include service requests, scheduling, and chat.",
+  "requestFramePermissions": []
+}
