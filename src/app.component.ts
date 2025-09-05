@@ -14,8 +14,9 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { ScheduleComponent } from './components/schedule/schedule.component';
 import { SearchComponent } from './components/search/search.component';
 import { ServiceRequestFormComponent } from './components/service-request-form/service-request-form.component';
+import { RegisterComponent } from './components/register/register.component';
 
-type View = 'dashboard' | 'new_request' | 'schedule' | 'search' | 'profile' | 'admin';
+type View = 'dashboard' | 'new_request' | 'schedule' | 'search' | 'profile' | 'admin' | 'register';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,7 @@ type View = 'dashboard' | 'new_request' | 'schedule' | 'search' | 'profile' | 'a
     ScheduleComponent,
     SearchComponent,
     ServiceRequestFormComponent,
+    RegisterComponent,
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,15 +41,18 @@ export class AppComponent {
   private dataService = inject(DataService);
   private notificationService = inject(NotificationService);
 
-  allUsers = this.dataService.users;
+  allUsers = computed(() => this.dataService.users().filter(u => u.status === 'Active'));
   
-  // Hold the ID of the current user in a signal
-  currentUserId = signal<number>(this.allUsers()[0]?.id ?? 1);
+  // A null ID means the user is logged out
+  currentUserId = signal<number | null>(null);
 
-  // Derive the current user object from the ID and the master user list
   currentUser = computed(() => {
-    return this.allUsers().find(u => u.id === this.currentUserId()) ?? null;
+    const id = this.currentUserId();
+    if (id === null) return null;
+    return this.dataService.users().find(u => u.id === id) ?? null;
   });
+
+  isLoggedIn = computed(() => !!this.currentUser());
 
   currentView = signal<View>('dashboard');
   
@@ -77,40 +82,44 @@ export class AppComponent {
   });
 
   currentViewLabel = computed(() => {
-    const view = this.availableViews().find(v => v.id === this.currentView());
     if (this.currentView() === 'profile') return 'My Profile';
+    if (this.currentView() === 'register') return 'Client Registration';
+    const view = this.availableViews().find(v => v.id === this.currentView());
     return view ? view.label : 'Dashboard';
   });
 
-  changeUser(event: Event) {
-    const selectElement = event.target as HTMLSelectElement;
-    const userId = parseInt(selectElement.value, 10);
-    this.currentUserId.set(userId);
-    
-    // Now we can use the computed signal to check the role
-    if (this.currentUser()?.role === 'admin') {
+  // --- Authentication Simulation ---
+  loginAs(userId: string) {
+    const id = parseInt(userId, 10);
+    if (!isNaN(id)) {
+      this.currentUserId.set(id);
+      const user = this.currentUser();
+      if (user?.role === 'admin') {
         this.setView('admin');
-    } else {
+      } else {
         this.setView('dashboard');
+      }
     }
+  }
+
+  logout() {
+    this.currentUserId.set(null);
     this.closeModals();
   }
 
+  // --- View and Modal Management ---
   setView(view: View) {
     this.currentView.set(view);
   }
-
-  handleViewDetails(request: ServiceRequest) {
-    this.viewingRequest.set(request);
+  
+  handleRegistrationComplete() {
+    this.notificationService.addNotification("Thank you for registering! Your account is pending approval.");
+    this.currentView.set('dashboard'); // Go back to the "login" screen
   }
 
-  handleOpenChat(request: ServiceRequest) {
-    this.chattingRequest.set(request);
-  }
-
-  handlePayNow(request: ServiceRequest) {
-    this.requestForPayment.set(request);
-  }
+  handleViewDetails(request: ServiceRequest) { this.viewingRequest.set(request); }
+  handleOpenChat(request: ServiceRequest) { this.chattingRequest.set(request); }
+  handlePayNow(request: ServiceRequest) { this.requestForPayment.set(request); }
   
   submitPayment() {
       const request = this.requestForPayment();
@@ -120,35 +129,29 @@ export class AppComponent {
       this.closeModals();
   }
 
-  formatCost(cost: number | null): string {
-    if (cost) {
-      return '$' + cost.toFixed(2);
-    }
-    return '$0.00';
-  }
-
   closeModals() {
     this.viewingRequest.set(null);
     this.chattingRequest.set(null);
     this.requestForPayment.set(null);
   }
+  
+  // --- Formatting Helpers ---
+  formatCost(cost: number | null): string {
+    return cost ? '$' + cost.toFixed(2) : '$0.00';
+  }
 
   formatAddress(address: Address): string {
-    return address.street + ', ' + address.city + ', ' + address.state + ' ' + address.zipCode;
+    return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
   }
 
   statusClass(status: string): string {
-    const baseClass = 'px-2 py-1 text-xs font-semibold rounded-full';
-    const colorClasses: { [key: string]: string } = {
-      'Pending': 'bg-yellow-100 text-yellow-800',
-      'Quoted': 'bg-cyan-100 text-cyan-800',
-      'Approved': 'bg-indigo-100 text-indigo-800',
-      'Assigned': 'bg-blue-100 text-blue-800',
-      'In Progress': 'bg-purple-100 text-purple-800',
-      'Completed': 'bg-green-100 text-green-800',
+    const base = 'px-2 py-1 text-xs font-semibold rounded-full';
+    const colors: Record<string, string> = {
+      'Pending': 'bg-yellow-100 text-yellow-800', 'Quoted': 'bg-cyan-100 text-cyan-800',
+      'Approved': 'bg-indigo-100 text-indigo-800', 'Assigned': 'bg-blue-100 text-blue-800',
+      'In Progress': 'bg-purple-100 text-purple-800', 'Completed': 'bg-green-100 text-green-800',
       'Cancelled': 'bg-gray-100 text-gray-800',
     };
-    const colorClass = colorClasses[status] || 'bg-gray-100 text-gray-800';
-    return baseClass + ' ' + colorClass;
+    return `${base} ${colors[status] ?? 'bg-gray-100 text-gray-800'}`;
   }
 }
