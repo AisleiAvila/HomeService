@@ -1,72 +1,60 @@
-<div class="p-4 sm:p-6 bg-gray-50 h-full overflow-y-auto">
-  <h2 class="text-2xl font-bold text-gray-800 mb-6">
-    Search Results for "<span class="text-indigo-600">{{ query() }}</span>"
-  </h2>
+<div class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-6">Search Service Requests</h1>
 
-  @if (searchResults().requests.length === 0 && searchResults().users.length === 0) {
-    <div class="text-center py-12">
-      <div class="mx-auto h-12 w-12 text-gray-400">
-         <i class="fa-solid fa-magnifying-glass-minus fa-3x"></i>
+  <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Search Term -->
+      <div>
+        <label for="searchTerm" class="block text-sm font-medium text-gray-700">Search Term</label>
+        <input 
+          type="text" 
+          id="searchTerm"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+          placeholder="e.g., leaky faucet, painting"
+        >
       </div>
-      <h3 class="mt-4 text-lg font-semibold text-gray-900">No results found</h3>
-      <p class="mt-1 text-sm text-gray-500">
-        Try searching for something else.
-      </p>
+      <!-- Category Filter -->
+      <div>
+        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+        <select 
+          id="category"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          [ngModel]="categoryFilter()"
+          (ngModelChange)="categoryFilter.set($event)"
+        >
+          <option value="">All Categories</option>
+          @for (category of categories(); track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+      <!-- Status Filter -->
+      <div>
+        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+        <select 
+          id="status"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          [ngModel]="statusFilter()"
+          (ngModelChange)="statusFilter.set($event)"
+        >
+          <option value="">All Statuses</option>
+          @for (status of statuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
     </div>
-  } @else {
-    <div class="space-y-8">
-      <!-- Service Requests Results -->
-      @if (searchResults().requests.length > 0) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-4">Service Requests ({{ searchResults().requests.length }})</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            @for (request of searchResults().requests; track request.id) {
-              <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-                <div class="p-5">
-                  <h4 class="text-md font-semibold text-gray-900 truncate">{{ request.title }}</h4>
-                  <p class="text-sm text-gray-600 mt-1 mb-3 h-10 overflow-hidden">{{ request.description }}</p>
-                  <div class="text-xs text-gray-500 space-y-1">
-                    <div class="flex items-center">
-                      <i class="fa-solid fa-user w-4 mr-2"></i>
-                      <span>Client: {{ getClientName(request.clientId) }}</span>
-                    </div>
-                    <div class="flex items-center">
-                      <i class="fa-solid fa-user-cog w-4 mr-2"></i>
-                      <span>Pro: {{ getProfessionalName(request.professionalId) }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="bg-gray-50 p-3 flex justify-end border-t">
-                  <button (click)="viewDetails.emit(request)" class="px-3 py-1 text-sm font-medium text-indigo-600 bg-indigo-100 rounded-md hover:bg-indigo-200">
-                    View Details
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
+  </div>
+  
+  <h2 class="text-2xl font-semibold mb-4">Results ({{ filteredRequests().length }})</h2>
 
-      <!-- Users Results -->
-      @if (searchResults().users.length > 0) {
-        <div>
-          <h3 class="text-xl font-semibold text-gray-700 mb-4">Users ({{ searchResults().users.length }})</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @for (user of searchResults().users; track user.id) {
-              <div class="bg-white rounded-lg shadow border border-gray-200 p-5 flex items-center space-x-4">
-                <img [src]="user.avatarUrl" [alt]="user.name" class="h-12 w-12 rounded-full">
-                <div>
-                  <h4 class="font-semibold text-gray-900">{{ user.name }}</h4>
-                  <p class="text-sm text-gray-500 capitalize">{{ user.role }}</p>
-                  @if (user.specialty) {
-                    <p class="text-xs text-indigo-600 mt-1">{{ user.specialty }}</p>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      }
+  @if (filteredRequests().length > 0) {
+    <app-service-list [serviceRequests]="filteredRequests()" [currentUser]="user()"></app-service-list>
+  } @else {
+    <div class="text-center py-12 bg-white rounded-lg shadow-md">
+      <p class="text-gray-500">No results found for your search criteria.</p>
     </div>
   }
 </div>
