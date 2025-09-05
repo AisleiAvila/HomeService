@@ -2,17 +2,22 @@
     <!-- Header & Navigation -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <h1 class="text-3xl font-bold text-gray-800">Painel do Administrador</h1>
-        <div class="mt-4 sm:mt-0 flex space-x-1 bg-gray-200 p-1 rounded-lg">
+        <div class="mt-4 sm:mt-0 flex flex-wrap gap-1 bg-gray-200 p-1 rounded-lg">
             @for (view of views; track view.id) {
                 <button 
                     (click)="setView(view.id)"
-                    class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+                    class="px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center relative"
                     [class.bg-white]="currentView() === view.id"
                     [class.text-gray-800]="currentView() === view.id"
                     [class.text-gray-500]="currentView() !== view.id"
                     [class.hover:bg-white]="currentView() !== view.id">
                     <i [class]="view.icon" class="mr-2"></i>
-                    {{ view.label }}
+                    <span>{{ view.label }}</span>
+                    @if(view.id === 'approvals' && pendingApprovalCount() > 0) {
+                      <span class="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-gray-200">
+                        {{ pendingApprovalCount() }}
+                      </span>
+                    }
                 </button>
             }
         </div>
@@ -80,248 +85,313 @@
                 </div>
             </div>
         }
-         @case ('professionals') {
+        @case ('approvals') {
+           <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Aprovações de Cadastro Pendentes</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @if (pendingRegistrations().length === 0) {
+                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum cadastro pendente.</td></tr>
+                            } @else {
+                                @for (user of pendingRegistrations(); track user.id) {
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.phone }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                                            <button (click)="approveClient(user.id)" class="text-green-600 hover:text-green-900">Aprovar</button>
+                                            <button (click)="rejectClient(user.id)" class="text-red-600 hover:text-red-900">Rejeitar</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        @case ('finances') {
+             <div class="space-y-6">
+                <!-- Financial Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow"><h4 class="text-sm text-gray-500">Serviços Concluídos</h4><p class="text-2xl font-bold">{{ financialStats().completedServices }}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow"><h4 class="text-sm text-gray-500">Receita Total</h4><p class="text-2xl font-bold text-green-600">{{ formatCost(financialStats().totalRevenue) }}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow"><h4 class="text-sm text-gray-500">Total de Impostos (7%)</h4><p class="text-2xl font-bold text-blue-600">{{ formatCost(financialStats().totalTax) }}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow"><h4 class="text-sm text-gray-500">Valor Pendente</h4><p class="text-2xl font-bold text-red-600">{{ formatCost(financialStats().outstandingAmount) }}</p></div>
+                </div>
+                <!-- Financial Details Table -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                      <h2 class="text-xl font-semibold">Detalhes Financeiros</h2>
+                      <button (click)="exportToCSV()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        <i class="fas fa-file-csv"></i> Exportar para CSV
+                      </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                           <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">ID</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Cliente</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Profissional</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Serviço</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Valor Base</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Imposto (7%)</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Total</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Pagamento</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for(req of completedRequests(); track req.id){
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-2 text-sm">{{ req.id }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ getClientName(req.clientId) }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ getProfessionalName(req.professionalId) }}</td>
+                                    <td class="px-4 py-2 text-sm font-semibold">{{ req.title }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ formatCost(req.cost) }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ formatCost(req.cost ? req.cost * 0.07 : 0) }}</td>
+                                    <td class="px-4 py-2 text-sm font-bold">{{ formatCost(req.cost ? req.cost * 1.07 : 0) }}</td>
+                                    <td class="px-4 py-2 text-sm"><span [class.text-green-600]="req.paymentStatus === 'Paid'" [class.text-red-600]="req.paymentStatus !== 'Paid'">{{ req.paymentStatus === 'Paid' ? 'Pago' : 'Pendente' }}</span></td>
+                                    <td class="px-4 py-2 text-sm"><button (click)="generateInvoice(req)" class="text-blue-600 hover:underline">Gerar Fatura</button></td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
+        }
+        @case ('professionals') {
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="flex justify-between items-center mb-4">
                   <h2 class="text-xl font-semibold">Gerenciar Profissionais</h2>
-                   <button (click)="showAddProfessionalForm.set(true)" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium">
-                      <i class="fas fa-plus mr-2"></i>Adicionar Profissional
-                   </button>
+                  <button (click)="showAddProfessionalForm.set(true)" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Adicionar Profissional
+                  </button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profissional</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Especialidades</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profissional</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidades</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @for (pro of professionals(); track pro.id) {
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <img class="h-10 w-10 rounded-full" [src]="pro.avatarUrl" alt="">
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ pro.name }}</div>
-                                                <div class="text-sm text-gray-500">{{ pro.email }}</div>
-                                            </div>
+                           @for (pro of professionals(); track pro.id) {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <img [src]="pro.avatarUrl" class="h-10 w-10 rounded-full mr-4">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ pro.name }}</div>
+                                            <div class="text-sm text-gray-500">{{ pro.email }}</div>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex flex-wrap gap-1">
-                                            @if(pro.specialties) {
-                                                @for (spec of pro.specialties; track spec) {
-                                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">{{ spec }}</span>
-                                                }
-                                            }
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button (click)="startEditProfessional(pro)" class="text-indigo-600 hover:text-indigo-900">Editar</button>
-                                    </td>
-                                </tr>
-                            }
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {{ (pro.specialties || []).join(', ') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  <button (click)="startEditProfessional(pro)" class="text-indigo-600 hover:text-indigo-900">Editar</button>
+                                </td>
+                            </tr>
+                           }
                         </tbody>
                     </table>
                 </div>
             </div>
         }
         @case ('categories') {
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-semibold mb-4">Gerenciar Categorias de Serviço</h2>
-                <div class="flex gap-2 mb-4">
-                    <input [(ngModel)]="newCategory" placeholder="Nome da nova categoria" class="flex-grow p-2 border rounded-md">
-                    <button (click)="addCategory()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Adicionar</button>
-                </div>
-                <ul class="space-y-2">
-                    @for (cat of allCategories(); track cat) {
-                        <li class="p-3 border rounded-md flex justify-between items-center hover:bg-gray-50">
-                            @if (editingCategory() === cat) {
-                                <input [(ngModel)]="editingCategoryName" class="p-1 border rounded-md flex-grow">
-                                <div class="flex space-x-2 ml-2">
-                                    <button (click)="saveCategoryEdit()" class="text-green-600 hover:text-green-800"><i class="fas fa-check"></i></button>
-                                    <button (click)="editingCategory.set(null)" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
-                                </div>
-                            } @else {
-                                <span>{{ cat }}</span>
-                                <div class="flex space-x-3">
-                                    <button (click)="startEditCategory(cat)" class="text-gray-500 hover:text-blue-600"><i class="fas fa-pencil-alt"></i></button>
-                                    <button (click)="deleteCategory(cat)" class="text-gray-500 hover:text-red-600"><i class="fas fa-trash"></i></button>
-                                </div>
-                            }
-                        </li>
-                    }
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Add Category -->
+              <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Adicionar Nova Categoria</h2>
+                <form #addCatForm="ngForm" (ngSubmit)="addCategory()">
+                  <label for="newCategory" class="block text-sm font-medium text-gray-700">Nome da Categoria</label>
+                  <input type="text" id="newCategory" name="newCategory" [(ngModel)]="newCategory" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                  <button type="submit" [disabled]="addCatForm.invalid" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300">Adicionar</button>
+                </form>
+              </div>
+              <!-- Category List -->
+              <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Categorias de Serviço</h2>
+                <ul class="divide-y divide-gray-200">
+                  @for (cat of allCategories(); track cat) {
+                    <li class="py-3 flex justify-between items-center">
+                      @if (editingCategory() === cat) {
+                        <input type="text" [(ngModel)]="editingCategoryName" class="flex-grow rounded-md border-gray-300 shadow-sm">
+                        <div class="flex items-center space-x-2 ml-4">
+                           <button (click)="saveCategoryEdit()" class="text-green-600 hover:text-green-800"><i class="fas fa-check"></i></button>
+                           <button (click)="editingCategory.set(null)" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                        </div>
+                      } @else {
+                        <span class="text-sm font-medium text-gray-800">{{ cat }}</span>
+                        <div class="flex items-center space-x-4">
+                          <button (click)="startEditCategory(cat)" class="text-blue-600 hover:text-blue-800"><i class="fas fa-pencil-alt"></i></button>
+                          <button (click)="deleteCategory(cat)" class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                      }
+                    </li>
+                  }
                 </ul>
+              </div>
             </div>
-        }
-        @case('finances') {
-          <div class="space-y-6">
-             <!-- Financial Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="bg-white p-6 rounded-lg shadow-md"><h3 class="text-gray-500 text-sm font-medium">Serviços Concluídos</h3><p class="text-3xl font-bold text-gray-800 mt-1">{{ financialStats().completedServices }}</p></div>
-              <div class="bg-white p-6 rounded-lg shadow-md"><h3 class="text-gray-500 text-sm font-medium">Receita Total (c/ imposto)</h3><p class="text-3xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalRevenue) }}</p></div>
-              <div class="bg-white p-6 rounded-lg shadow-md"><h3 class="text-gray-500 text-sm font-medium">Valor Pendente (c/ imposto)</h3><p class="text-3xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().outstandingAmount) }}</p></div>
-              <div class="bg-white p-6 rounded-lg shadow-md"><h3 class="text-gray-500 text-sm font-medium">Total de Impostos</h3><p class="text-3xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalTax) }}</p></div>
-            </div>
-            <!-- Financial Details Table -->
-            <div class="bg-white p-6 rounded-lg shadow-md">
-               <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Detalhes Financeiros</h2>
-                    <button (click)="exportToCSV()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium">
-                        <i class="fas fa-file-csv mr-2"></i>Exportar para CSV
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor Base</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Imposto (7%)</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pagamento</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @for (req of completedRequests(); track req.id) {
-                                <tr>
-                                    <td class="px-4 py-4"><div class="text-sm font-medium text-gray-900">{{ req.title }}</div><div class="text-sm text-gray-500">{{ getClientName(req.clientId) }}</div></td>
-                                    <td class="px-4 py-4 text-sm text-gray-500">{{ formatCost(req.cost) }}</td>
-                                    <td class="px-4 py-4 text-sm text-gray-500">{{ formatCost(req.cost ? req.cost * 0.07 : 0) }}</td>
-                                    <td class="px-4 py-4 text-sm font-semibold text-gray-900">{{ formatCost(req.cost ? req.cost * 1.07 : 0) }}</td>
-                                    <td class="px-4 py-4"><span [class.text-green-600]="req.paymentStatus === 'Paid'" [class.text-red-600]="req.paymentStatus !== 'Paid'">{{ req.paymentStatus === 'Paid' ? 'Pago' : 'Pendente' }}</span></td>
-                                    <td class="px-4 py-4"><button (click)="generateInvoice(req)" class="text-indigo-600 hover:text-indigo-900 text-sm">Gerar Fatura</button></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-          </div>
         }
     }
 </div>
 
-<!-- Modals -->
-@if (quoteRequest(); as request) {
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full" (click)="$event.stopPropagation()">
-        <h3 class="text-2xl font-bold mb-2">Detalhes da Cotação</h3>
-        <p class="text-gray-600 mb-6">Para: <span class="font-semibold">{{ request.title }}</span></p>
-        <div class="space-y-3 p-4 bg-gray-50 rounded-md border">
-            <p><strong>Cliente:</strong> {{ getClientName(request.clientId) }}</p>
-            <p><strong>Descrição:</strong> {{ request.description }}</p>
-        </div>
+<!-- MODALS -->
 
-        @if (request.status === 'Pending') {
-          <div class="mt-6">
-            <label for="quoteAmount" class="block text-sm font-medium text-gray-700">Valor da Cotação (R$)</label>
-            <input type="number" id="quoteAmount" [(ngModel)]="quoteAmount" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="ex: 150.00">
-          </div>
-        } @else {
-           <div class="mt-6 text-center bg-blue-50 p-4 rounded-lg">
-            <p class="text-sm text-blue-700">Cotação Enviada</p>
-            <p class="text-3xl font-bold text-blue-900">{{ formatCost(request.cost) }}</p>
-          </div>
-        }
-         <div class="mt-8 flex justify-end space-x-3">
-            <button (click)="quoteRequest.set(null)" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
-            @if (request.status === 'Pending') {
-              <button (click)="submitQuote()" [disabled]="!quoteAmount() || quoteAmount() <= 0" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300">Enviar Cotação</button>
-            }
-             @if (request.status === 'Quoted') {
-              <button (click)="respondToQuote(request.id, false)" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Rejeitar</button>
-              <button (click)="respondToQuote(request.id, true)" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Aprovar</button>
-             }
-          </div>
+<!-- Quote Modal -->
+@if (quoteRequest(); as request) {
+  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+      <h3 class="text-xl font-bold mb-4">Cotação para: {{ request.title }}</h3>
+      <p class="text-sm text-gray-600 mb-4">{{ request.description }}</p>
+      <label class="block text-sm font-medium text-gray-700">Valor da Cotação (BRL)</label>
+      <input type="number" [(ngModel)]="quoteAmount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+      <div class="mt-6 flex justify-between">
+        <div>
+           @if (request.status === 'Quoted') {
+            <button (click)="respondToQuote(request.id, false)" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 mr-2">Rejeitar</button>
+            <button (click)="respondToQuote(request.id, true)" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Aprovar</button>
+           }
+        </div>
+        <div>
+           <button (click)="quoteRequest.set(null)" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button>
+           <button (click)="submitQuote()" class="px-4 py-2 bg-blue-600 text-white rounded-md ml-2">Enviar</button>
+        </div>
       </div>
     </div>
+  </div>
 }
 
+<!-- Assign Professional Modal -->
 @if (assignmentRequest(); as request) {
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
-        <h3 class="text-2xl font-bold mb-2">Atribuir Profissional</h3>
-        <p class="text-gray-600 mb-6">Para: <span class="font-semibold">{{ request.title }}</span> ({{ request.category }})</p>
-        
-        <label for="professionalSelect" class="block text-sm font-medium text-gray-700">Selecione um Profissional</label>
-        <select id="professionalSelect" [(ngModel)]="assigningProfessionalId" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
-            <option [ngValue]="null" disabled>-- Escolha um --</option>
-            @for (pro of getProfessionalsForRequest(request.category); track pro.id) {
-                <option [value]="pro.id">{{ pro.name }}</option>
-            }
-        </select>
-        @if (getProfessionalsForRequest(request.category).length === 0) {
-            <p class="text-sm text-red-600 mt-2">Nenhum profissional encontrado para esta categoria.</p>
+   <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+      <h3 class="text-xl font-bold mb-4">Atribuir Profissional</h3>
+      <p class="text-sm mb-4">Selecione um profissional para: <strong>{{ request.title }}</strong></p>
+      <select [(ngModel)]="assigningProfessionalId" class="block w-full rounded-md border-gray-300 shadow-sm">
+        <option [ngValue]="null" disabled>Selecione um profissional</option>
+        @for (pro of getProfessionalsForRequest(request.category); track pro.id) {
+          <option [value]="pro.id">{{ pro.name }}</option>
         }
-
-         <div class="mt-8 flex justify-end space-x-3">
-            <button (click)="assignmentRequest.set(null)" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancelar</button>
-            <button (click)="assignProfessional()" [disabled]="!assigningProfessionalId()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">Atribuir</button>
-          </div>
+      </select>
+       <div class="mt-6 flex justify-end space-x-2">
+         <button (click)="assignmentRequest.set(null)" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button>
+         <button (click)="assignProfessional()" class="px-4 py-2 bg-blue-600 text-white rounded-md">Atribuir</button>
       </div>
     </div>
+  </div>
 }
 
 <!-- Add/Edit Professional Modal -->
-@if(showAddProfessionalForm() || editingProfessional()) {
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full">
-        <h3 class="text-2xl font-bold mb-6">{{ editingProfessional() ? 'Editar Profissional' : 'Adicionar Novo Profissional' }}</h3>
-        <div class="space-y-4">
-           <input [ngModel]="editingProfessional() ? editingProfessionalName() : newProfessionalName()" (ngModelChange)="editingProfessional() ? editingProfessionalName.set($event) : newProfessionalName.set($event)" placeholder="Nome Completo" class="w-full p-2 border rounded-md">
-           <input [ngModel]="editingProfessional() ? editingProfessionalEmail() : newProfessionalEmail()" (ngModelChange)="editingProfessional() ? editingProfessionalEmail.set($event) : newProfessionalEmail.set($event)" placeholder="Endereço de E-mail" type="email" class="w-full p-2 border rounded-md">
+@if (showAddProfessionalForm() || editingProfessional()) {
+  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+      <h3 class="text-xl font-bold mb-4">{{ editingProfessional() ? 'Editar Profissional' : 'Adicionar Novo Profissional' }}</h3>
+      <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium">Nome</label>
+            <input type="text" [ngModel]="editingProfessional() ? editingProfessionalName() : newProfessionalName()" (ngModelChange)="editingProfessional() ? editingProfessionalName.set($event) : newProfessionalName.set($event)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
         </div>
-        <div class="mt-4">
-          <h4 class="font-medium mb-2">Especialidades</h4>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-md">
-             @for(cat of allCategories(); track cat) {
-              <label class="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 cursor-pointer">
-                <input type="checkbox" 
-                       [checked]="(editingProfessional() ? editingProfessionalSpecialties() : newProfessionalSpecialties()).includes(cat)" 
-                       (change)="editingProfessional() ? toggleEditProfessionalSpecialty(cat, $event) : toggleNewProfessionalSpecialty(cat, $event)">
-                <span>{{ cat }}</span>
-              </label>
-             }
-          </div>
+        <div>
+            <label class="block text-sm font-medium">E-mail</label>
+            <input type="email" [ngModel]="editingProfessional() ? editingProfessionalEmail() : newProfessionalEmail()" (ngModelChange)="editingProfessional() ? editingProfessionalEmail.set($event) : newProfessionalEmail.set($event)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
         </div>
-        <div class="mt-8 flex justify-end space-x-2">
-            <button (click)="editingProfessional() ? cancelEditProfessional() : resetNewProfessionalForm()" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button>
-            <button (click)="editingProfessional() ? saveProfessionalEdit() : addProfessional()" class="px-4 py-2 bg-green-600 text-white rounded-md">Salvar</button>
+        <div>
+            <label class="block text-sm font-medium">Especialidades</label>
+            <div class="mt-2 grid grid-cols-2 gap-2">
+                @for(cat of allCategories(); track cat) {
+                    <label class="flex items-center">
+                        <input type="checkbox"
+                               [checked]="editingProfessional() ? editingProfessionalSpecialties().includes(cat) : newProfessionalSpecialties().includes(cat)"
+                               (change)="editingProfessional() ? toggleEditProfessionalSpecialty(cat, $event) : toggleNewProfessionalSpecialty(cat, $event)"
+                               class="h-4 w-4 rounded border-gray-300">
+                        <span class="ml-2 text-sm">{{ cat }}</span>
+                    </label>
+                }
+            </div>
         </div>
+      </div>
+      <div class="mt-6 flex justify-end space-x-2">
+         <button (click)="editingProfessional() ? cancelEditProfessional() : resetNewProfessionalForm()" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button>
+         <button (click)="editingProfessional() ? saveProfessionalEdit() : addProfessional()" class="px-4 py-2 bg-blue-600 text-white rounded-md">{{ editingProfessional() ? 'Salvar Alterações' : 'Adicionar Profissional' }}</button>
+      </div>
     </div>
   </div>
 }
 
 <!-- Invoice Modal -->
-@if (invoiceRequest(); as request) {
+@if(invoiceRequest(); as request) {
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
       <div #invoiceContent class="p-8 invoice-content">
-          <h2 class="text-2xl font-bold text-gray-800">Fatura</h2>
-          <p class="text-gray-500">Para o serviço: {{ request.title }}</p>
-          <div class="grid grid-cols-2 gap-8 mt-8">
-              <div><h3 class="font-semibold">Cliente:</h3><p>{{ getClientName(request.clientId) }}</p></div>
-              <div><h3 class="font-semibold">Profissional:</h3><p>{{ getProfessionalName(request.professionalId) }}</p></div>
-          </div>
-          <table class="w-full mt-8 text-left">
-              <thead><tr class="bg-gray-100"><th class="p-2">Descrição</th><th class="p-2 text-right">Valor</th></tr></thead>
-              <tbody>
-                  <tr><td class="p-2 border-b">Valor Base</td><td class="p-2 border-b text-right">{{ formatCost(request.cost) }}</td></tr>
-                  <tr><td class="p-2 border-b">Imposto (7%)</td><td class="p-2 border-b text-right">{{ formatCost(request.cost ? request.cost * 0.07 : 0) }}</td></tr>
-                  <tr class="font-bold"><td class="p-2">Total</td><td class="p-2 text-right">{{ formatCost(request.cost ? request.cost * 1.07 : 0) }}</td></tr>
-              </tbody>
-          </table>
+        <div class="flex justify-between items-center border-b pb-4 mb-6">
+            <h1 class="text-3xl font-bold">Fatura</h1>
+            <div class="text-right">
+                <h2 class="text-xl font-semibold">FixItNow Inc.</h2>
+                <p class="text-sm text-gray-500">123 Service Lane, Springfield</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase">Faturado Para</h3>
+                <p class="font-bold">{{ getClientName(request.clientId) }}</p>
+                <p>{{ request.address.street }}, {{ request.address.city }}</p>
+            </div>
+             <div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase">Serviço Realizado Por</h3>
+                <p class="font-bold">{{ getProfessionalName(request.professionalId) }}</p>
+            </div>
+        </div>
+        <table class="w-full mb-8">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="p-2 text-left font-semibold">Descrição do Serviço</th>
+                    <th class="p-2 text-right font-semibold">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b">
+                    <td class="p-2">{{ request.title }}</td>
+                    <td class="p-2 text-right">{{ formatCost(request.cost) }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="p-2 text-right font-semibold">Subtotal:</td>
+                    <td class="p-2 text-right">{{ formatCost(request.cost) }}</td>
+                </tr>
+                <tr>
+                    <td class="p-2 text-right font-semibold">Imposto (7%):</td>
+                    <td class="p-2 text-right">{{ formatCost(request.cost ? request.cost * 0.07 : 0) }}</td>
+                </tr>
+                 <tr class="bg-gray-100">
+                    <td class="p-2 text-right font-bold text-xl">Total Geral:</td>
+                    <td class="p-2 text-right font-bold text-xl">{{ formatCost(request.cost ? request.cost * 1.07 : 0) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="text-center text-sm text-gray-500">Obrigado por escolher nossos serviços!</div>
       </div>
-       <div class="p-4 bg-gray-50 flex justify-end space-x-2 no-print">
+      <div class="p-4 bg-gray-50 flex justify-end space-x-2 no-print">
           <button (click)="invoiceRequest.set(null)" class="px-4 py-2 bg-gray-200 rounded-md">Fechar</button>
           <button (click)="printInvoice()" class="px-4 py-2 bg-blue-600 text-white rounded-md">Imprimir</button>
-       </div>
+      </div>
     </div>
   </div>
 }

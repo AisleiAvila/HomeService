@@ -9,12 +9,12 @@ export class DataService {
   private notificationService = inject(NotificationService);
 
   private _users = signal<User[]>([
-    { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=1' },
-    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', specialties: ['Plumbing'], avatarUrl: 'https://i.pravatar.cc/150?u=2' },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', specialties: ['Electrical', 'General Repair'], avatarUrl: 'https://i.pravatar.cc/150?u=3' },
-    { id: 4, name: 'Diana Prince', email: 'diana@email.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=4' },
-    { id: 5, name: 'Eve Adams', email: 'eve@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=5' },
-    { id: 6, name: 'Frank Wright', email: 'frank@email.com', role: 'professional', specialties: ['Painting'], avatarUrl: 'https://i.pravatar.cc/150?u=6' },
+    { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=1', status: 'Active', phone: '555-0101', password: 'password123' },
+    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', specialties: ['Plumbing'], avatarUrl: 'https://i.pravatar.cc/150?u=2', status: 'Active', phone: '555-0102', password: 'password123' },
+    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', specialties: ['Electrical', 'General Repair'], avatarUrl: 'https://i.pravatar.cc/150?u=3', status: 'Active', phone: '555-0103', password: 'password123' },
+    { id: 4, name: 'Diana Prince', email: 'diana@email.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=4', status: 'Active', phone: '555-0104', password: 'password123' },
+    { id: 5, name: 'Eve Adams', email: 'eve@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=5', status: 'Active', phone: '555-0105', password: 'password123' },
+    { id: 6, name: 'Frank Wright', email: 'frank@email.com', role: 'professional', specialties: ['Painting'], avatarUrl: 'https://i.pravatar.cc/150?u=6', status: 'Active', phone: '555-0106', password: 'password123' },
   ]);
 
   private _serviceRequests = signal<ServiceRequest[]>([
@@ -97,7 +97,6 @@ export class DataService {
           const originalStatus = req.status;
           const updatedReq = { ...req, ...updates };
           
-          // Notification for when service is completed
           if (updatedReq.status === 'Completed' && originalStatus !== 'Completed') {
               this.notificationService.addNotification(`Service "${updatedReq.title}" is complete. Payment is now due.`);
           }
@@ -124,11 +123,9 @@ export class DataService {
     this.updateServiceRequest(requestId, {
       professionalId: professionalId,
       status: 'Assigned',
-      // Schedule 2 days from now
       scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
     });
 
-    // Centralized notifications
     this.notificationService.addNotification(`Client: Your service "${request.title}" has been scheduled.`);
     this.notificationService.addNotification(`Professional: You have a new assignment: "${request.title}".`);
     this.notificationService.addNotification(`Admin: ${professional.name} assigned to "${request.title}".`);
@@ -179,7 +176,7 @@ export class DataService {
       this.notificationService.addNotification(`Category "${trimmedName}" already exists.`);
       return;
     }
-    this._categories.update(cats => [...cats, trimmedName].sort());
+    this._categories.update(cats => [...cats, trimmedName as ServiceCategory].sort());
     this.notificationService.addNotification(`Category "${trimmedName}" added successfully.`);
   }
 
@@ -196,10 +193,12 @@ export class DataService {
         return;
       }
     }
-    this._categories.update(cats => cats.map(c => c === oldName ? trimmedNewName : c).sort());
+    // FIX: Cast the new category name to ServiceCategory to maintain type safety in the signal.
+    this._categories.update(cats => cats.map(c => c === oldName ? trimmedNewName as ServiceCategory : c).sort());
     this._users.update(users => users.map(u => {
         if (u.role === 'professional' && u.specialties?.includes(oldName)) {
-            const newSpecialties = u.specialties.map(s => s === oldName ? trimmedNewName : s);
+            // FIX: Cast the new category name to ServiceCategory to ensure the user's specialties array maintains the correct type.
+            const newSpecialties = u.specialties.map(s => s === oldName ? trimmedNewName as ServiceCategory : s);
             return { ...u, specialties: newSpecialties };
         }
         return u;
@@ -245,11 +244,63 @@ export class DataService {
       name: trimmedName,
       email: trimmedEmail,
       role: 'professional',
+      status: 'Active',
       specialties,
-      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`
+      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`,
+      phone: '555-0199',
+      password: 'password123'
     };
 
     this._users.update(users => [...users, newProfessional]);
     this.notificationService.addNotification(`Profissional "${trimmedName}" cadastrado com sucesso.`);
+  }
+
+  // --- Client Registration Workflow ---
+  registerClient(data: Pick<User, 'name' | 'email' | 'phone' | 'password'>): boolean {
+    const emailExists = this._users().some(u => u.email.toLowerCase() === data.email.toLowerCase());
+    if (emailExists) {
+      this.notificationService.addNotification(`Error: The email "${data.email}" is already in use.`);
+      return false;
+    }
+
+    const newUser: User = {
+      id: Math.max(...this.users().map(u => u.id), 0) + 1,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      password: data.password,
+      role: 'client',
+      status: 'Pending',
+      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`
+    };
+
+    this._users.update(users => [...users, newUser]);
+    this.notificationService.addNotification(`Admin: New client registration for "${data.name}" requires approval.`);
+    return true;
+  }
+
+  approveClient(userId: number): void {
+    let clientName = '';
+    this._users.update(users => users.map(user => {
+      if (user.id === userId) {
+        clientName = user.name;
+        return { ...user, status: 'Active' };
+      }
+      return user;
+    }));
+    this.notificationService.addNotification(`Client: Welcome, ${clientName}! Your registration has been approved.`);
+    this.notificationService.addNotification(`Admin: Registration for ${clientName} has been approved.`);
+  }
+
+  rejectClient(userId: number): void {
+    let clientName = '';
+    this._users.update(users => users.filter(user => {
+      if (user.id === userId) {
+        clientName = user.name;
+        return false;
+      }
+      return true;
+    }));
+    this.notificationService.addNotification(`Admin: Registration for ${clientName} has been rejected.`);
   }
 }
