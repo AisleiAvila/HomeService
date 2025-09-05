@@ -1,3 +1,4 @@
+
 import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
@@ -258,7 +259,8 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                   <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">E-mail</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidade</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidades</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
                   </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -269,10 +271,15 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                             <div class="text-sm font-medium text-gray-900">{{ pro.name }}</div>
                           </td>
                           <td class="px-6 py-4 text-sm text-gray-500">{{ pro.email }}</td>
-                          <td class="px-6 py-4 text-sm text-gray-500">{{ pro.specialty }}</td>
+                          <td class="px-6 py-4 text-sm text-gray-500">{{ pro.specialties?.join(', ') }}</td>
+                          <td class="px-6 py-4 text-sm font-medium">
+                            <button (click)="openEditProfessionalModal(pro)" class="text-indigo-600 hover:text-indigo-900">
+                              <i class="fas fa-pencil-alt mr-1"></i>Editar
+                            </button>
+                          </td>
                       </tr>
                   } @empty {
-                      <tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum profissional cadastrado.</td></tr>
+                      <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhum profissional cadastrado.</td></tr>
                   }
               </tbody>
             </table>
@@ -355,19 +362,82 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
               </div>
               <div>
-                <label for="proSpecialty" class="block text-sm font-medium text-gray-700">Especialidade</label>
-                <select id="proSpecialty" name="proSpecialty" [(ngModel)]="newProfessionalSpecialty" required
-                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">
-                    <option [ngValue]="null" disabled>Selecione uma especialidade</option>
-                    @for (cat of categories(); track cat) {
-                      <option [value]="cat">{{ cat }}</option>
-                    }
-                </select>
+                <fieldset>
+                  <legend class="block text-sm font-medium text-gray-700 mb-2">Especialidades</legend>
+                   <div class="grid grid-cols-2 gap-2">
+                      @for (cat of categories(); track cat) {
+                        <div class="flex items-start">
+                          <div class="flex items-center h-5">
+                            <input [id]="'new-pro-cat-' + cat" type="checkbox" 
+                                   [checked]="isNewProSpecialtyChecked(cat)"
+                                   (change)="onNewProSpecialtyChange(cat, $event)"
+                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                          </div>
+                          <div class="ml-2 text-sm">
+                            <label [for]="'new-pro-cat-' + cat" class="font-medium text-gray-700">{{ cat }}</label>
+                          </div>
+                        </div>
+                      }
+                  </div>
+                   @if (newProfessionalSpecialties().length === 0) {
+                      <p class="text-red-500 text-xs mt-2">Pelo menos uma especialidade é obrigatória.</p>
+                   }
+                </fieldset>
               </div>
             </div>
             <div class="mt-8 flex justify-end space-x-3">
               <button type="button" (click)="closeAddProfessionalModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md">Cancelar</button>
-              <button type="submit" [disabled]="addProForm.invalid" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">Salvar</button>
+              <button type="submit" [disabled]="addProForm.invalid || newProfessionalSpecialties().length === 0" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <!-- Edit Professional Modal -->
+    @if (editingProfessional(); as pro) {
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+          <h3 class="text-2xl font-bold mb-4">Editar Profissional</h3>
+          <form #editProForm="ngForm" (ngSubmit)="handleUpdateProfessional()">
+            <div class="space-y-4">
+              <div>
+                <label for="editProName" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                <input type="text" id="editProName" name="editProName" [(ngModel)]="editProfessionalName" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+              </div>
+              <div>
+                <label for="editProEmail" class="block text-sm font-medium text-gray-700">E-mail</label>
+                <input type="email" id="editProEmail" name="editProEmail" [(ngModel)]="editProfessionalEmail" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+              </div>
+              <div>
+                <fieldset>
+                  <legend class="block text-sm font-medium text-gray-700 mb-2">Especialidades</legend>
+                   <div class="grid grid-cols-2 gap-2">
+                      @for (cat of categories(); track cat) {
+                        <div class="flex items-start">
+                          <div class="flex items-center h-5">
+                            <input [id]="'edit-pro-cat-' + cat" type="checkbox" 
+                                   [checked]="isEditProSpecialtyChecked(cat)"
+                                   (change)="onEditProSpecialtyChange(cat, $event)"
+                                   class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
+                          </div>
+                          <div class="ml-2 text-sm">
+                            <label [for]="'edit-pro-cat-' + cat" class="font-medium text-gray-700">{{ cat }}</label>
+                          </div>
+                        </div>
+                      }
+                  </div>
+                   @if (editProfessionalSpecialties().length === 0) {
+                      <p class="text-red-500 text-xs mt-2">Pelo menos uma especialidade é obrigatória.</p>
+                   }
+                </fieldset>
+              </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-3">
+              <button type="button" (click)="closeEditProfessionalModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md">Cancelar</button>
+              <button type="submit" [disabled]="editProForm.invalid || editProfessionalSpecialties().length === 0" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">Salvar Alterações</button>
             </div>
           </form>
         </div>
@@ -394,7 +464,13 @@ export class AdminDashboardComponent {
   showAddProfessionalModal = signal(false);
   newProfessionalName = signal('');
   newProfessionalEmail = signal('');
-  newProfessionalSpecialty = signal<ServiceCategory | null>(null);
+  newProfessionalSpecialties = signal<ServiceCategory[]>([]);
+
+  // Signals for Edit Professional Modal
+  editingProfessional = signal<User | null>(null);
+  editProfessionalName = signal('');
+  editProfessionalEmail = signal('');
+  editProfessionalSpecialties = signal<ServiceCategory[]>([]);
 
 
   allRequests = this.dataService.serviceRequests;
@@ -523,24 +599,95 @@ export class AdminDashboardComponent {
   openAddProfessionalModal() {
     this.newProfessionalName.set('');
     this.newProfessionalEmail.set('');
-    this.newProfessionalSpecialty.set(this.categories().length > 0 ? this.categories()[0] : null);
+    this.newProfessionalSpecialties.set([]);
     this.showAddProfessionalModal.set(true);
   }
 
   closeAddProfessionalModal() {
     this.showAddProfessionalModal.set(false);
   }
+  
+  onNewProSpecialtyChange(category: ServiceCategory, event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.newProfessionalSpecialties.update(current => {
+      if (isChecked) {
+        return [...current, category];
+      } else {
+        return current.filter(c => c !== category);
+      }
+    });
+  }
+
+  isNewProSpecialtyChecked(category: ServiceCategory): boolean {
+    return this.newProfessionalSpecialties().includes(category);
+  }
 
   handleAddProfessional() {
     const name = this.newProfessionalName();
     const email = this.newProfessionalEmail();
-    const specialty = this.newProfessionalSpecialty();
+    const specialties = this.newProfessionalSpecialties();
+    
+    this.dataService.addProfessional(name, email, specialties);
+    
+    // Close modal only on success, which is handled by the service's validation
+    if (name && email && specialties.length > 0 && !this.dataService.users().some(u => u.email === email)) {
+        this.closeAddProfessionalModal();
+    }
+  }
 
-    if (!name || !email || !specialty) {
-      this.notificationService.addNotification('Por favor, preencha todos os campos.');
+  // Methods for Edit Professional Modal
+  openEditProfessionalModal(pro: User) {
+    this.editingProfessional.set(pro);
+    this.editProfessionalName.set(pro.name);
+    this.editProfessionalEmail.set(pro.email);
+    this.editProfessionalSpecialties.set(pro.specialties ? [...pro.specialties] : []);
+  }
+
+  closeEditProfessionalModal() {
+    this.editingProfessional.set(null);
+  }
+  
+  onEditProSpecialtyChange(category: ServiceCategory, event: Event) {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    this.editProfessionalSpecialties.update(current => {
+      if (isChecked) {
+        return [...current, category];
+      } else {
+        return current.filter(c => c !== category);
+      }
+    });
+  }
+
+  isEditProSpecialtyChecked(category: ServiceCategory): boolean {
+    return this.editProfessionalSpecialties().includes(category);
+  }
+
+  handleUpdateProfessional() {
+    const pro = this.editingProfessional();
+    if (!pro) return;
+
+    const name = this.editProfessionalName().trim();
+    const email = this.editProfessionalEmail().trim();
+    const specialties = this.editProfessionalSpecialties();
+
+    if (!name || !email || specialties.length === 0) {
+      this.notificationService.addNotification('Erro: Todos os campos são obrigatórios.');
       return;
     }
-    this.dataService.addProfessional(name, email, specialty);
-    this.closeAddProfessionalModal();
+
+    const updates: Partial<Pick<User, 'name' | 'email' | 'specialties'>> = {};
+    if (name !== pro.name) updates.name = name;
+    if (email !== pro.email) updates.email = email;
+    if (JSON.stringify(specialties.sort()) !== JSON.stringify(pro.specialties?.sort() ?? [])) {
+      updates.specialties = specialties;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      this.dataService.updateUser(pro.id, updates);
+    } else {
+      this.notificationService.addNotification('Nenhuma alteração detectada.');
+    }
+
+    this.closeEditProfessionalModal();
   }
 }
