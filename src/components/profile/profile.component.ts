@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, signal, inject, effect, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal, inject, effect, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User, ServiceCategory } from '../../models/maintenance.models';
@@ -15,93 +15,179 @@ import { NotificationService } from '../../services/notification.service';
 export class ProfileComponent {
   user = input.required<User>();
   
-  dataService = inject(DataService);
-  notificationService = inject(NotificationService);
-  categories = this.dataService.categories;
+  private dataService = inject(DataService);
+  private notificationService = inject(NotificationService);
 
-  editableName = signal('');
-  editableSpecialties = signal<ServiceCategory[]>([]);
+  allCategories = this.dataService.categories;
+
+  // Form state signals
+  name = signal('');
+  email = signal('');
+  specialties = signal<ServiceCategory[]>([]);
+  isChanged = signal(false);
+
+  // Signals and ViewChild for camera functionality
+  videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
+  showCameraModal = signal(false);
+  private videoStream = signal<MediaStream | null>(null);
 
   constructor() {
+    // When user input changes, reset the form state
     effect(() => {
-      // When the user input changes, reset the editable fields
-      const currentUser = this.user();
-      this.editableName.set(currentUser.name);
-      this.editableSpecialties.set(currentUser.specialties ? [...currentUser.specialties] : []);
+      this.resetForm();
+    }, { allowSignalWrites: true });
+
+    // Effect to manage the camera stream based on the modal's visibility
+    effect(() => {
+      const videoEl = this.videoElement()?.nativeElement;
+      if (this.showCameraModal() && videoEl) {
+        this.startCameraStream(videoEl);
+      } else {
+        // Cleanup: Stop the stream when the modal is closed or component is destroyed
+        this.stopCameraStream();
+      }
     });
   }
 
-  hasChanges = computed(() => {
+  resetForm(): void {
     const currentUser = this.user();
-    const nameChanged = this.editableName() !== currentUser.name;
-    const specialtiesChanged = JSON.stringify(this.editableSpecialties().sort()) !== JSON.stringify(currentUser.specialties?.sort() ?? []);
-    return nameChanged || specialtiesChanged;
-  });
-
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-          this.notificationService.addNotification('Error: Please select a valid image file (PNG, JPG, GIF).');
-          return;
-      }
-
-      // Validate file size (e.g., 2MB limit)
-      if (file.size > 2 * 1024 * 1024) {
-          this.notificationService.addNotification('Error: File is too large. Maximum size is 2MB.');
-          return;
-      }
-      
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const base64String = e.target.result;
-        this.dataService.updateUser(this.user().id, { avatarUrl: base64String });
-        this.notificationService.addNotification('Profile picture updated successfully.');
-      };
-      reader.readAsDataURL(file);
-    }
+    this.name.set(currentUser.name);
+    this.email.set(currentUser.email);
+    this.specialties.set(currentUser.specialties ? [...currentUser.specialties] : []);
+    this.isChanged.set(false);
   }
 
   onSpecialtyChange(category: ServiceCategory, event: Event) {
     const isChecked = (event.target as HTMLInputElement).checked;
-    this.editableSpecialties.update(current => {
+    this.specialties.update(current => {
       if (isChecked) {
         return [...current, category];
       } else {
         return current.filter(c => c !== category);
       }
     });
+    this.checkIfChanged();
   }
 
-  isChecked(category: ServiceCategory): boolean {
-    return this.editableSpecialties().includes(category);
+  isSpecialtyChecked(category: ServiceCategory): boolean {
+    return this.specialties().includes(category);
   }
 
-  saveChanges() {
-    if (this.user().role === 'professional' && this.editableSpecialties().length === 0) {
-      this.notificationService.addNotification('Erro: Um profissional deve ter pelo menos uma especialidade.');
+  checkIfChanged(): void {
+    const currentUser = this.user();
+    const nameChanged = this.name() !== currentUser.name;
+    const emailChanged = this.email() !== currentUser.email;
+    
+    let specialtiesChanged = false;
+    if (currentUser.role === 'professional') {
+        const currentSpecialties = currentUser.specialties?.sort() ?? [];
+        const newSpecialties = this.specialties().sort();
+        specialtiesChanged = JSON.stringify(newSpecialties) !== JSON.stringify(currentSpecialties);
+    }
+    
+    this.isChanged.set(nameChanged || emailChanged || specialtiesChanged);
+  }
+
+  saveProfile(): void {
+    if (!this.isChanged()) {
+      this.notificationService.addNotification("No changes detected.");
+      return;
+    }
+    
+    const currentUser = this.user();
+    const updates: Partial<Pick<User, 'name' | 'email' | 'specialties'>> = {};
+
+    const newName = this.name().trim();
+    if (newName && newName !== currentUser.name) updates.name = newName;
+
+    const newEmail = this.email().trim();
+    if (newEmail && newEmail !== currentUser.email) updates.email = newEmail;
+
+    if (currentUser.role === 'professional') {
+      const currentSpecialties = currentUser.specialties?.sort() ?? [];
+      const newSpecialties = this.specialties().sort();
+      const specialtiesChanged = JSON.stringify(newSpecialties) !== JSON.stringify(currentSpecialties);
+      if(specialtiesChanged) updates.specialties = this.specialties();
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      this.dataService.updateUser(currentUser.id, updates);
+    } else {
+      this.notificationService.addNotification("No changes detected.");
+      this.isChanged.set(false);
+    }
+  }
+
+  // --- Avatar Update Methods ---
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      this.notificationService.addNotification('Erro: Formato de arquivo inválido. Use JPG, PNG ou GIF.');
       return;
     }
 
-    if (this.hasChanges()) {
-      const updates: Partial<Pick<User, 'name' | 'specialties'>> = {};
-      const currentUser = this.user();
-      if (this.editableName() !== currentUser.name) {
-        updates.name = this.editableName();
-      }
-      if (JSON.stringify(this.editableSpecialties().sort()) !== JSON.stringify(currentUser.specialties?.sort() ?? [])) {
-        updates.specialties = this.editableSpecialties();
-      }
-      this.dataService.updateUser(currentUser.id, updates);
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      this.notificationService.addNotification('Erro: A imagem é muito grande. O tamanho máximo é 2MB.');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const avatarUrl = reader.result as string;
+      this.dataService.updateUser(this.user().id, { avatarUrl });
+    };
+    reader.readAsDataURL(file);
   }
 
-  cancelChanges() {
-    const currentUser = this.user();
-    this.editableName.set(currentUser.name);
-    this.editableSpecialties.set(currentUser.specialties ? [...currentUser.specialties] : []);
+  async openCameraModal() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      this.notificationService.addNotification('Erro: A câmera não é suportada neste navegador.');
+      return;
+    }
+    this.showCameraModal.set(true);
+  }
+
+  private async startCameraStream(videoEl: HTMLVideoElement) {
+    if (this.videoStream()) return; // Already streaming
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      this.videoStream.set(stream);
+      videoEl.srcObject = stream;
+      videoEl.play(); // Explicitly play the video
+    } catch (err) {
+      console.error("Error accessing camera: ", err);
+      this.notificationService.addNotification('Erro: Não foi possível acessar a câmera. Verifique as permissões.');
+      this.closeCameraModal();
+    }
+  }
+  
+  private stopCameraStream() {
+    this.videoStream()?.getTracks().forEach(track => track.stop());
+    this.videoStream.set(null);
+  }
+
+  closeCameraModal() {
+    this.showCameraModal.set(false);
+  }
+
+  capturePhoto() {
+    const videoEl = this.videoElement()?.nativeElement;
+    if (!videoEl || videoEl.paused || videoEl.ended) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const context = canvas.getContext('2d');
+    context?.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    const avatarUrl = canvas.toDataURL('image/jpeg');
+    this.dataService.updateUser(this.user().id, { avatarUrl });
+    this.closeCameraModal();
   }
 }
