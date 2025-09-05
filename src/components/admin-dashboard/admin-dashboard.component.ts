@@ -172,9 +172,50 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
             </div>
         }
         @case ('categories') {
-          <div class="bg-white p-6 rounded-lg shadow">
+          <div class="bg-white p-6 rounded-lg shadow max-w-3xl mx-auto">
              <h2 class="text-xl font-semibold text-gray-800 mb-4">Manage Service Categories</h2>
-            <!-- Category Management UI from previous step -->
+             
+             <!-- Add New Category Form -->
+             <div class="mb-6 p-4 border rounded-md bg-gray-50">
+                <form #addCategoryForm="ngForm" (ngSubmit)="handleAddCategory()" class="flex items-center space-x-4">
+                  <div class="flex-grow">
+                      <label for="newCategoryName" class="sr-only">New Category Name</label>
+                      <input type="text" id="newCategoryName" name="newCategoryName" 
+                             [(ngModel)]="newCategoryName" required
+                             placeholder="Enter new category name"
+                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                  </div>
+                  <button type="submit" [disabled]="!addCategoryForm.valid"
+                          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">
+                      <i class="fas fa-plus mr-2"></i>Add
+                  </button>
+                </form>
+             </div>
+
+             <!-- Existing Categories List -->
+             <ul class="divide-y divide-gray-200">
+                @for (category of categories(); track category) {
+                  <li class="py-3 flex items-center justify-between">
+                    @if (editingCategory()?.originalName === category) {
+                        <!-- Edit Mode -->
+                        <div class="flex-grow flex items-center space-x-2">
+                           <input type="text" [(ngModel)]="editingCategory().newName" class="flex-grow px-2 py-1 border border-indigo-300 rounded-md">
+                           <button (click)="handleUpdateCategory()" class="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600"><i class="fas fa-check"></i></button>
+                           <button (click)="handleCancelEdit()" class="px-3 py-1 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600"><i class="fas fa-times"></i></button>
+                        </div>
+                    } @else {
+                        <!-- View Mode -->
+                        <span class="text-gray-700">{{ category }}</span>
+                        <div class="space-x-3">
+                            <button (click)="handleEditCategory(category)" class="text-sm text-blue-600 hover:text-blue-800"><i class="fas fa-pencil-alt mr-1"></i>Edit</button>
+                            <button (click)="handleDeleteCategory(category)" class="text-sm text-red-600 hover:text-red-800"><i class="fas fa-trash-alt mr-1"></i>Delete</button>
+                        </div>
+                    }
+                  </li>
+                } @empty {
+                   <li class="py-4 text-center text-gray-500">No categories found.</li>
+                }
+             </ul>
           </div>
         }
       }
@@ -201,6 +242,20 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
             </div>
         </div>
     }
+
+    <!-- Delete Category Confirmation Modal -->
+    @if (categoryToDelete(); as category) {
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+          <h3 class="text-2xl font-bold mb-4 text-red-700">Confirm Deletion</h3>
+          <p class="text-gray-600">Are you sure you want to delete the category <strong class="font-semibold">"{{ category }}"</strong>? This action cannot be undone.</p>
+          <div class="mt-8 flex justify-end space-x-3">
+            <button (click)="cancelDelete()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+            <button (click)="confirmDelete()" class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Delete</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -211,6 +266,12 @@ export class AdminDashboardComponent {
   activeTab = signal<AdminTab>('quotes');
   quotingRequest = signal<ServiceRequest | null>(null);
   quoteCost = signal<number | null>(null);
+
+  // Signals for Category Management
+  newCategoryName = signal('');
+  editingCategory = signal<{ originalName: ServiceCategory; newName: string } | null>(null);
+  categoryToDelete = signal<ServiceCategory | null>(null);
+
 
   allRequests = this.dataService.serviceRequests;
   allUsers = this.dataService.users;
@@ -280,5 +341,43 @@ export class AdminDashboardComponent {
       this.dataService.submitQuote(request.id, this.quoteCost()!);
       this.closeQuoteModal();
     }
+  }
+
+  // Category Management Methods
+  handleAddCategory() {
+    this.dataService.addCategory(this.newCategoryName());
+    this.newCategoryName.set('');
+  }
+
+  handleEditCategory(category: ServiceCategory) {
+    this.editingCategory.set({ originalName: category, newName: category });
+  }
+
+  handleCancelEdit() {
+    this.editingCategory.set(null);
+  }
+
+  handleUpdateCategory() {
+    const edit = this.editingCategory();
+    if (edit) {
+      this.dataService.updateCategory(edit.originalName, edit.newName);
+      this.editingCategory.set(null);
+    }
+  }
+
+  handleDeleteCategory(category: ServiceCategory) {
+    this.categoryToDelete.set(category);
+  }
+
+  confirmDelete() {
+    const category = this.categoryToDelete();
+    if (category) {
+      this.dataService.deleteCategory(category);
+    }
+    this.categoryToDelete.set(null);
+  }
+
+  cancelDelete() {
+    this.categoryToDelete.set(null);
   }
 }
