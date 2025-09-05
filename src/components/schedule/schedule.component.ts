@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, computed, output, inject, ElementRef, viewChild, afterNextRender, effect, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed, output, inject, viewChild, ElementRef, afterNextRender, effect, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User, ServiceRequest, ServiceStatus, ServiceCategory } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
@@ -16,13 +16,13 @@ import dayGridPlugin from '@fullcalendar/daygrid';
     class: 'h-full flex flex-col bg-white p-4 sm:p-6 rounded-lg shadow-md fade-in'
   }
 })
-export class ScheduleComponent {
+export class ScheduleComponent implements OnDestroy {
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
   private dataService = inject(DataService);
 
-  calendarEl = viewChild.required<ElementRef<HTMLElement>>('calendarEl');
-  private calendarInstance = signal<Calendar | null>(null);
+  calendarEl = viewChild.required<ElementRef<HTMLDivElement>>('calendarEl');
+  private calendar = signal<Calendar | null>(null);
 
   private readonly serviceStatusColors: Record<ServiceStatus, string> = {
     'Pending': '#f59e0b', // amber-500
@@ -47,7 +47,7 @@ export class ScheduleComponent {
     return [];
   });
 
-  calendarEvents = computed<EventInput[]>(() => {
+  private calendarEvents = computed<EventInput[]>(() => {
     return this.userServices().map((service: ServiceRequest) => ({
       title: service.title,
       date: this.formatDate(service.scheduledDate!),
@@ -75,9 +75,9 @@ export class ScheduleComponent {
         events: this.calendarEvents(),
         eventContent: (arg) => {
           const category = arg.event.extendedProps.category;
-          const iconHtml = '<i class="' + this.getIconForCategory(category) + ' fa-fw mr-2 text-xs"></i>';
+          const iconHtml = `<i class="${this.getIconForCategory(category)} fa-fw mr-2 text-xs"></i>`;
           return {
-            html: '<div class="flex items-center overflow-hidden whitespace-nowrap">' + iconHtml + '<span class="font-semibold">' + arg.event.title + '</span></div>'
+            html: `<div class="flex items-center overflow-hidden whitespace-nowrap">${iconHtml}<span class="font-semibold">${arg.event.title}</span></div>`
           };
         },
         eventClick: (clickInfo: EventClickArg) => {
@@ -89,23 +89,25 @@ export class ScheduleComponent {
         }
       });
       calendar.render();
-      this.calendarInstance.set(calendar);
+      this.calendar.set(calendar);
       
-      // FIX: Sometimes flexbox layouts need an extra cycle to settle.
-      // We schedule a single updateSize() call to ensure the calendar
-      // resizes to its container after the layout is stable.
-      setTimeout(() => {
-        calendar.updateSize();
-      }, 0);
+      // Fix for rendering issue where grid doesn't appear initially
+      setTimeout(() => calendar.updateSize(), 0);
     });
 
+    // Effect to reactively update events when the source data changes
     effect(() => {
-        const instance = this.calendarInstance();
-        if (instance) {
-            instance.getEventSources().forEach(source => source.remove());
-            instance.addEventSource(this.calendarEvents());
-        }
+      const cal = this.calendar();
+      const events = this.calendarEvents();
+      if (cal) {
+        cal.getEventSources().forEach(source => source.remove());
+        cal.addEventSource(events);
+      }
     });
+  }
+
+  ngOnDestroy() {
+    this.calendar()?.destroy();
   }
   
   private getIconForCategory(category: ServiceCategory): string {
