@@ -143,6 +143,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Professional</th>
@@ -154,6 +155,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                         <tbody class="bg-white divide-y divide-gray-200">
                             @for (request of financialRequests(); track request.id) {
                                 <tr>
+                                    <td class="px-6 py-4 text-sm font-mono text-gray-500">#{{ request.id }}</td>
                                     <td class="px-6 py-4">
                                       <div class="text-sm font-medium text-gray-900">{{ request.title }}</div>
                                       <div class="text-sm text-gray-500">{{ request.category }}</div>
@@ -173,7 +175,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
+                                <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -328,18 +330,7 @@ export class AdminDashboardComponent {
   assignProfessional(request: ServiceRequest, professionalId: string) {
     if (professionalId) {
         const profId = parseInt(professionalId, 10);
-        this.dataService.updateServiceRequest(request.id, {
-            professionalId: profId,
-            status: 'Assigned',
-            // Schedule 2 days from now
-            scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
-        });
-        
-        // Notify the client that their service has been scheduled.
-        this.notificationService.addNotification(`Client: Your service "${request.title}" has been scheduled.`);
-        
-        // Notify the admin that the assignment was successful.
-        this.notificationService.addNotification(`Admin: Assignment successful for request #${request.id}.`);
+        this.dataService.assignProfessional(request.id, profId);
     }
   }
   
