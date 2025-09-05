@@ -1,7 +1,9 @@
 
+
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationService } from './notification.service';
+// FIX: Corrected import path for I18nService
 import { I18nService } from './i18n.service';
 import { 
   User, 

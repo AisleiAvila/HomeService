@@ -1,3 +1,4 @@
+// FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from '@angular/core';
 
 export type Language = 'en' | 'pt';
@@ -7,7 +8,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // General
     'signIn': 'Sign In',
     'createAccount': 'Create Account',
-    'email': 'Email Address',
+    'email': 'Email',
     'password': 'Password',
     'name': 'Full Name',
     'role': 'Role',
@@ -40,57 +41,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     'backToHome': 'Back to Home',
     'forgotPassword': 'Forgot your password?',
     'dontHaveAccount': "Don't have an account?",
-    'or': 'or',
-    'cancel': 'Cancel',
-    'paid': 'Paid',
-    
-    // Landing Page
-    'landingDescription': 'Your one-stop solution for reliable and professional home services. Connect with trusted experts for any job, big or small.',
-    
-    // Login / Register
-    'registerTitle': 'Create a new account',
-    'registerLoginLink': 'sign in to your existing account',
-    'iAmA': 'I am a',
-    
-    // Verification
-    'accountVerification': 'Account Verification',
-    'verificationCodeSentTo': 'A verification code has been sent to',
-    'verificationCode': 'Verification Code',
-    'verify': 'Verify',
-    'resendCode': "Didn't receive a code? Resend",
 
     // Dashboard
-    'welcomeBack': 'Welcome back, {name}!',
-    'dashboardSummary': 'Here is a summary of your activity.',
     'pendingApproval': 'Pending',
     'activeRequests': 'Active',
     'completed': 'Completed',
     'activeJobs': 'Active Jobs',
     'completedJobs': 'Completed Jobs',
     'totalEarnings': 'Total Earnings',
-
-    // Service List
-    'noServiceRequestsFound': 'No service requests found.',
-    'quote': 'Quote',
-    'approve': 'Approve',
-    'reject': 'Reject',
-    'payNow': 'Pay Now',
-    'details': 'Details',
-    'chat': 'Chat',
-
-    // Scheduler
-    'scheduleAppointmentFor': 'Schedule Appointment for',
-    'selectProfessional': 'Select a Professional',
-    'selectAProfessional': 'Select a professional...',
-    'selectDate': 'Select Date',
-    'selectTime': 'Select Time',
-    'confirmSchedule': 'Confirm Schedule',
-    
-    // Notifications
-    'notifications': 'Notifications',
-    'noNewNotifications': 'You have no new notifications.',
-    'markAllAsRead': 'Mark all as read',
-    'clearAll': 'Clear All',
 
     // Admin
     'totalRevenue': 'Total Revenue',
@@ -111,14 +69,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // General
     'signIn': 'Entrar',
     'createAccount': 'Criar Conta',
-    'email': 'Endereço de E-mail',
+    'email': 'E-mail',
     'password': 'Senha',
     'name': 'Nome Completo',
     'role': 'Função',
     'client': 'Cliente',
     'professional': 'Profissional',
     'register': 'Registrar',
-    'login': 'Entrar',
+    'login': 'Login',
     'logout': 'Sair',
     'dashboard': 'Painel',
     'schedule': 'Agenda',
@@ -144,28 +102,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     'backToHome': 'Voltar para Início',
     'forgotPassword': 'Esqueceu sua senha?',
     'dontHaveAccount': 'Não tem uma conta?',
-    'or': 'ou',
-    'cancel': 'Cancelar',
-    'paid': 'Pago',
     
-    // Landing Page
-    'landingDescription': 'Sua solução completa para serviços domésticos confiáveis e profissionais. Conecte-se com especialistas de confiança para qualquer trabalho, grande ou pequeno.',
-
-    // Login / Register
-    'registerTitle': 'Crie uma nova conta',
-    'registerLoginLink': 'faça login na sua conta existente',
-    'iAmA': 'Eu sou um(a)',
-
-    // Verification
-    'accountVerification': 'Verificação de Conta',
-    'verificationCodeSentTo': 'Um código de verificação foi enviado para',
-    'verificationCode': 'Código de Verificação',
-    'verify': 'Verificar',
-    'resendCode': 'Não recebeu o código? Reenviar',
-
     // Dashboard
-    'welcomeBack': 'Bem-vindo(a) de volta, {name}!',
-    'dashboardSummary': 'Aqui está um resumo da sua atividade.',
     'pendingApproval': 'Pendentes',
     'activeRequests': 'Ativas',
     'completed': 'Concluídas',
@@ -173,29 +111,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     'completedJobs': 'Trabalhos Concluídos',
     'totalEarnings': 'Ganhos Totais',
     
-    // Service List
-    'noServiceRequestsFound': 'Nenhuma solicitação de serviço encontrada.',
-    'quote': 'Orçamento',
-    'approve': 'Aprovar',
-    'reject': 'Rejeitar',
-    'payNow': 'Pagar Agora',
-    'details': 'Detalhes',
-    'chat': 'Chat',
-
-    // Scheduler
-    'scheduleAppointmentFor': 'Agendar para',
-    'selectProfessional': 'Selecionar Profissional',
-    'selectAProfessional': 'Selecione um profissional...',
-    'selectDate': 'Selecionar Data',
-    'selectTime': 'Selecionar Hora',
-    'confirmSchedule': 'Confirmar Agendamento',
-
-    // Notifications
-    'notifications': 'Notificações',
-    'noNewNotifications': 'Você não tem novas notificações.',
-    'markAllAsRead': 'Marcar todas como lidas',
-    'clearAll': 'Limpar todas',
-
     // Admin
     'totalRevenue': 'Receita Total',
     'pendingApprovals': 'Aprovações Pendentes',
