@@ -7,6 +7,21 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css' rel='stylesheet' />
+<style>
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.notification-enter {
+  animation: fadeInDown 0.4s ease-out;
+}
+</style>
 <script type="importmap">
 {
   "imports": {

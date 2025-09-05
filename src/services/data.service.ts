@@ -79,27 +79,30 @@ export class DataService {
   }
 
   updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
-    let notifyClient = false;
-    let notificationMessage = '';
-
     this._serviceRequests.update(requests => 
       requests.map(req => {
         if (req.id === id) {
           const originalStatus = req.status;
           const updatedReq = { ...req, ...updates };
+          
+          // Notification for when service is completed
           if (updatedReq.status === 'Completed' && originalStatus !== 'Completed') {
-              notifyClient = true;
-              notificationMessage = `Service "${updatedReq.title}" is complete. Payment is now due.`;
+              this.notificationService.addNotification(`Service "${updatedReq.title}" is complete. Payment is now due.`);
           }
+          
+          // Notification for when professional is assigned
+          if (updatedReq.status === 'Assigned' && originalStatus === 'Approved') {
+              this.notificationService.addNotification(`Client: Your service "${updatedReq.title}" is scheduled!`);
+              if (updatedReq.professionalId) {
+                this.notificationService.addNotification(`Professional: You have a new assignment: "${updatedReq.title}".`);
+              }
+          }
+
           return updatedReq;
         }
         return req;
       })
     );
-
-    if (notifyClient) {
-        this.notificationService.addNotification(notificationMessage);
-    }
   }
 
   submitQuote(requestId: number, cost: number) {

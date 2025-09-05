@@ -1,4 +1,5 @@
 
+
 import { Injectable, signal } from '@angular/core';
 import { Notification } from '../models/maintenance.models';
 
@@ -27,6 +28,12 @@ export class NotificationService {
   markAsRead(notificationId: number) {
     this.notifications.update(notifications => 
       notifications.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    );
+  }
+
+  markAllAsRead() {
+    this.notifications.update(notifications => 
+      notifications.map(n => n.read ? n : { ...n, read: true })
     );
   }
 
