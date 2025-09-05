@@ -10,11 +10,11 @@ export class DataService {
 
   private _users = signal<User[]>([
     { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=1' },
-    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', specialty: 'Plumbing', avatarUrl: 'https://i.pravatar.cc/150?u=2' },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', specialty: 'Electrical', avatarUrl: 'https://i.pravatar.cc/150?u=3' },
+    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', specialties: ['Plumbing'], avatarUrl: 'https://i.pravatar.cc/150?u=2' },
+    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', specialties: ['Electrical', 'General Repair'], avatarUrl: 'https://i.pravatar.cc/150?u=3' },
     { id: 4, name: 'Diana Prince', email: 'diana@email.com', role: 'admin', avatarUrl: 'https://i.pravatar.cc/150?u=4' },
     { id: 5, name: 'Eve Adams', email: 'eve@email.com', role: 'client', avatarUrl: 'https://i.pravatar.cc/150?u=5' },
-    { id: 6, name: 'Frank Wright', email: 'frank@email.com', role: 'professional', specialty: 'Painting', avatarUrl: 'https://i.pravatar.cc/150?u=6' },
+    { id: 6, name: 'Frank Wright', email: 'frank@email.com', role: 'professional', specialties: ['Painting'], avatarUrl: 'https://i.pravatar.cc/150?u=6' },
   ]);
 
   private _serviceRequests = signal<ServiceRequest[]>([
@@ -73,7 +73,19 @@ export class DataService {
     this.notificationService.addNotification(`Admin: New service request "${newRequest.title}" needs a quote.`);
   }
 
-  updateUser(id: number, updates: Partial<Pick<User, 'name' | 'specialty'>>) {
+  updateUser(id: number, updates: Partial<Pick<User, 'name' | 'email' | 'specialties' | 'avatarUrl'>>) {
+    if (updates.email) {
+      const trimmedEmail = updates.email.trim().toLowerCase();
+      if (trimmedEmail) {
+        const emailExists = this.users().some(u => u.email.toLowerCase() === trimmedEmail && u.id !== id);
+        if (emailExists) {
+            this.notificationService.addNotification(`Erro: O e-mail "${updates.email}" já está em uso.`);
+            return; // Stop the update
+        }
+        updates.email = updates.email.trim();
+      }
+    }
+
     this._users.update(users => users.map(user => user.id === id ? { ...user, ...updates } : user));
     this.notificationService.addNotification('Profile updated successfully.');
   }
@@ -153,7 +165,7 @@ export class DataService {
   }
   
   getProfessionalsByCategory(category: ServiceCategory): User[] {
-    return this.users().filter(u => u.role === 'professional' && u.specialty === category);
+    return this.users().filter(u => u.role === 'professional' && u.specialties?.includes(category));
   }
 
   addCategory(name: string): void {
@@ -185,7 +197,13 @@ export class DataService {
       }
     }
     this._categories.update(cats => cats.map(c => c === oldName ? trimmedNewName : c).sort());
-    this._users.update(users => users.map(u => u.specialty === oldName ? { ...u, specialty: trimmedNewName as ServiceCategory } : u));
+    this._users.update(users => users.map(u => {
+        if (u.role === 'professional' && u.specialties?.includes(oldName)) {
+            const newSpecialties = u.specialties.map(s => s === oldName ? trimmedNewName : s);
+            return { ...u, specialties: newSpecialties };
+        }
+        return u;
+    }));
     this._serviceRequests.update(requests => requests.map(r => r.category === oldName ? { ...r, category: trimmedNewName as ServiceCategory } : r));
     this.notificationService.addNotification(`Category "${oldName}" updated to "${trimmedNewName}".`);
   }
@@ -196,17 +214,23 @@ export class DataService {
       this.notificationService.addNotification(`Não é possível excluir a categoria "${name}", pois ela está vinculada a uma ou mais solicitações de serviço.`);
       return;
     }
-    this._users.update(users => users.map(u => u.specialty === name ? { ...u, specialty: null } : u));
+    this._users.update(users => users.map(u => {
+        if (u.role === 'professional' && u.specialties?.includes(name)) {
+            const newSpecialties = u.specialties.filter(s => s !== name);
+            return { ...u, specialties: newSpecialties };
+        }
+        return u;
+    }));
     this._categories.update(cats => cats.filter(c => c !== name));
     this.notificationService.addNotification(`Category "${name}" deleted successfully.`);
   }
 
-  addProfessional(name: string, email: string, specialty: ServiceCategory): void {
+  addProfessional(name: string, email: string, specialties: ServiceCategory[]): void {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName || !trimmedEmail || !specialty) {
-      this.notificationService.addNotification('Erro: Todos os campos são obrigatórios.');
+    if (!trimmedName || !trimmedEmail || !specialties || specialties.length === 0) {
+      this.notificationService.addNotification('Erro: Todos os campos são obrigatórios e pelo menos uma especialidade deve ser selecionada.');
       return;
     }
 
@@ -221,7 +245,7 @@ export class DataService {
       name: trimmedName,
       email: trimmedEmail,
       role: 'professional',
-      specialty,
+      specialties,
       avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`
     };
 

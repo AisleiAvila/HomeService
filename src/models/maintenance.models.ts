@@ -17,7 +17,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatarUrl?: string;
-  specialty?: ServiceCategory | null; // For professionals
+  specialties?: ServiceCategory[]; // For professionals
 }
 
 export interface ServiceRequest {
