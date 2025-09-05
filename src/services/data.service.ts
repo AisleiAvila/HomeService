@@ -89,20 +89,37 @@ export class DataService {
           if (updatedReq.status === 'Completed' && originalStatus !== 'Completed') {
               this.notificationService.addNotification(`Service "${updatedReq.title}" is complete. Payment is now due.`);
           }
-          
-          // Notification for when professional is assigned
-          if (updatedReq.status === 'Assigned' && originalStatus === 'Approved') {
-              // The client notification is now handled by the component that initiated the assignment.
-              if (updatedReq.professionalId) {
-                this.notificationService.addNotification(`Professional: You have a new assignment: "${updatedReq.title}".`);
-              }
-          }
 
           return updatedReq;
         }
         return req;
       })
     );
+  }
+
+  assignProfessional(requestId: number, professionalId: number) {
+    const request = this.getServiceRequestById(requestId);
+    if (!request) {
+      this.notificationService.addNotification(`Error: Service request #${requestId} not found.`);
+      return;
+    }
+    const professional = this.getUserById(professionalId);
+     if (!professional) {
+      this.notificationService.addNotification(`Error: Professional with ID #${professionalId} not found.`);
+      return;
+    }
+
+    this.updateServiceRequest(requestId, {
+      professionalId: professionalId,
+      status: 'Assigned',
+      // Schedule 2 days from now
+      scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
+    });
+
+    // Centralized notifications
+    this.notificationService.addNotification(`Client: Your service "${request.title}" has been scheduled.`);
+    this.notificationService.addNotification(`Professional: You have a new assignment: "${request.title}".`);
+    this.notificationService.addNotification(`Admin: ${professional.name} assigned to "${request.title}".`);
   }
 
   submitQuote(requestId: number, cost: number) {
