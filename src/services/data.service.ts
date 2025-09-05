@@ -200,4 +200,32 @@ export class DataService {
     this._categories.update(cats => cats.filter(c => c !== name));
     this.notificationService.addNotification(`Category "${name}" deleted successfully.`);
   }
+
+  addProfessional(name: string, email: string, specialty: ServiceCategory): void {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedEmail || !specialty) {
+      this.notificationService.addNotification('Erro: Todos os campos são obrigatórios.');
+      return;
+    }
+
+    const emailExists = this.users().some(u => u.email.toLowerCase() === trimmedEmail.toLowerCase());
+    if (emailExists) {
+      this.notificationService.addNotification(`Erro: O e-mail "${trimmedEmail}" já está em uso.`);
+      return;
+    }
+
+    const newProfessional: User = {
+      id: Math.max(...this.users().map(u => u.id), 0) + 1,
+      name: trimmedName,
+      email: trimmedEmail,
+      role: 'professional',
+      specialty,
+      avatarUrl: `https://i.pravatar.cc/150?u=${Math.random().toString(36).substring(2)}`
+    };
+
+    this._users.update(users => [...users, newProfessional]);
+    this.notificationService.addNotification(`Profissional "${trimmedName}" cadastrado com sucesso.`);
+  }
 }

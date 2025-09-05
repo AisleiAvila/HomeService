@@ -5,7 +5,7 @@ import { ServiceRequest, User, ServiceCategory, Address } from '../../models/mai
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../services/notification.service';
 
-type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
+type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories' | 'users';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -19,16 +19,19 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
       <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
            <button (click)="setTab('quotes')" [class.border-indigo-500]="activeTab() === 'quotes'" [class.text-indigo-600]="activeTab() === 'quotes'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-            Pending Quotes
+            Cotações
           </button>
           <button (click)="setTab('assignment')" [class.border-indigo-500]="activeTab() === 'assignment'" [class.text-indigo-600]="activeTab() === 'assignment'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-            Pending Assignment
+            Atribuição Pendente
           </button>
           <button (click)="setTab('financials')" [class.border-indigo-500]="activeTab() === 'financials'" [class.text-indigo-600]="activeTab() === 'financials'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
             Finanças
           </button>
           <button (click)="setTab('categories')" [class.border-indigo-500]="activeTab() === 'categories'" [class.text-indigo-600]="activeTab() === 'categories'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-            Manage Categories
+            Gerenciar Categorias
+          </button>
+          <button (click)="setTab('users')" [class.border-indigo-500]="activeTab() === 'users'" [class.text-indigo-600]="activeTab() === 'users'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+            Gerenciar Usuários
           </button>
         </nav>
       </div>
@@ -37,31 +40,44 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
       @switch (activeTab()) {
         @case ('quotes') {
           <div class="bg-white p-6 rounded-lg shadow">
-             <h2 class="text-xl font-semibold text-gray-800 mb-4">Requests Awaiting Quote</h2>
+             <h2 class="text-xl font-semibold text-gray-800 mb-4">Gerenciar Cotações</h2>
              <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Request</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ação</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @for (request of pendingQuoteRequests(); track request.id) {
+                    @for (request of quoteRequests(); track request.id) {
                         <tr>
                             <td class="px-6 py-4">
                                 <div class="text-sm font-medium text-gray-900">{{ request.title }}</div>
                                 <div class="text-sm text-gray-500">{{ request.category }}</div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ getClientName(request.clientId) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatAddress(request.address) }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                      [class.bg-yellow-100]="request.status === 'Pending'"
+                                      [class.text-yellow-800]="request.status === 'Pending'"
+                                      [class.bg-cyan-100]="request.status === 'Quoted'"
+                                      [class.text-cyan-800]="request.status === 'Quoted'">
+                                    {{ request.status }}
+                                </span>
+                            </td>
                             <td class="px-6 py-4 text-sm font-medium">
-                                <button (click)="openQuoteModal(request)" class="text-indigo-600 hover:text-indigo-900">Create Quote</button>
+                                @if (request.status === 'Pending') {
+                                    <button (click)="openQuoteModal(request)" class="text-indigo-600 hover:text-indigo-900">Criar Cotação</button>
+                                }
+                                @if (request.status === 'Quoted') {
+                                    <button (click)="openQuoteDetailsModal(request)" class="text-indigo-600 hover:text-indigo-900">Ver Cotação</button>
+                                }
                             </td>
                         </tr>
                     } @empty {
-                        <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No requests awaiting a quote.</td></tr>
+                        <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Nenhuma cotação pendente.</td></tr>
                     }
                 </tbody>
              </table>
@@ -229,10 +245,43 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
              </ul>
           </div>
         }
+        @case ('users') {
+          <div class="bg-white p-6 rounded-lg shadow">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold text-gray-800">Gerenciar Profissionais</h2>
+              <button (click)="openAddProfessionalModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                <i class="fas fa-plus mr-2"></i>Adicionar Profissional
+              </button>
+            </div>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                  <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">E-mail</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidade</th>
+                  </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                  @for (pro of professionals(); track pro.id) {
+                      <tr>
+                          <td class="px-6 py-4 flex items-center">
+                            <img [src]="pro.avatarUrl" [alt]="pro.name" class="h-10 w-10 rounded-full mr-4">
+                            <div class="text-sm font-medium text-gray-900">{{ pro.name }}</div>
+                          </td>
+                          <td class="px-6 py-4 text-sm text-gray-500">{{ pro.email }}</td>
+                          <td class="px-6 py-4 text-sm text-gray-500">{{ pro.specialty }}</td>
+                      </tr>
+                  } @empty {
+                      <tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">Nenhum profissional cadastrado.</td></tr>
+                  }
+              </tbody>
+            </table>
+          </div>
+        }
       }
     </div>
 
-    <!-- Quote Modal -->
+    <!-- Quote Creation Modal -->
     @if (quotingRequest(); as quoteReq) {
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
@@ -254,6 +303,26 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
         </div>
     }
 
+    <!-- Quote Details Modal -->
+    @if (viewingQuote(); as quote) {
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="closeQuoteDetailsModal()">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full" (click)="$event.stopPropagation()">
+          <h3 class="text-2xl font-bold mb-4">Detalhes da Cotação</h3>
+          <div class="space-y-3 text-gray-700 border-t border-b py-4">
+            <p><strong class="w-32 inline-block">Título do Serviço:</strong> {{ quote.title }}</p>
+            <p><strong class="w-32 inline-block">Descrição:</strong> {{ quote.description }}</p>
+            <p><strong class="w-32 inline-block">Cliente:</strong> {{ getClientName(quote.clientId) }}</p>
+            <p><strong class="w-32 inline-block">Custo Cotado:</strong> <span class="font-bold text-lg text-green-600">{{ formatCost(quote.cost) }}</span></p>
+          </div>
+          <div class="mt-6 flex justify-end space-x-3">
+            <button (click)="closeQuoteDetailsModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Fechar</button>
+            <button (click)="handleQuoteResponse(false)" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Rejeitar</button>
+            <button (click)="handleQuoteResponse(true)" class="px-5 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Aprovar</button>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- Delete Category Confirmation Modal -->
     @if (categoryToDelete(); as category) {
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -267,6 +336,43 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
         </div>
       </div>
     }
+
+    <!-- Add Professional Modal -->
+    @if (showAddProfessionalModal()) {
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full" (click)="$event.stopPropagation()">
+          <h3 class="text-2xl font-bold mb-4">Adicionar Novo Profissional</h3>
+          <form #addProForm="ngForm" (ngSubmit)="handleAddProfessional()">
+            <div class="space-y-4">
+              <div>
+                <label for="proName" class="block text-sm font-medium text-gray-700">Nome Completo</label>
+                <input type="text" id="proName" name="proName" [(ngModel)]="newProfessionalName" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+              </div>
+              <div>
+                <label for="proEmail" class="block text-sm font-medium text-gray-700">E-mail</label>
+                <input type="email" id="proEmail" name="proEmail" [(ngModel)]="newProfessionalEmail" required
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+              </div>
+              <div>
+                <label for="proSpecialty" class="block text-sm font-medium text-gray-700">Especialidade</label>
+                <select id="proSpecialty" name="proSpecialty" [(ngModel)]="newProfessionalSpecialty" required
+                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">
+                    <option [ngValue]="null" disabled>Selecione uma especialidade</option>
+                    @for (cat of categories(); track cat) {
+                      <option [value]="cat">{{ cat }}</option>
+                    }
+                </select>
+              </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-3">
+              <button type="button" (click)="closeAddProfessionalModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md">Cancelar</button>
+              <button type="submit" [disabled]="addProForm.invalid" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -276,6 +382,7 @@ export class AdminDashboardComponent {
 
   activeTab = signal<AdminTab>('quotes');
   quotingRequest = signal<ServiceRequest | null>(null);
+  viewingQuote = signal<ServiceRequest | null>(null);
   quoteCost = signal<number | null>(null);
 
   // Signals for Category Management
@@ -283,14 +390,21 @@ export class AdminDashboardComponent {
   editingCategory = signal<{ originalName: ServiceCategory; newName: string } | null>(null);
   categoryToDelete = signal<ServiceCategory | null>(null);
 
+  // Signals for Add Professional Modal
+  showAddProfessionalModal = signal(false);
+  newProfessionalName = signal('');
+  newProfessionalEmail = signal('');
+  newProfessionalSpecialty = signal<ServiceCategory | null>(null);
+
 
   allRequests = this.dataService.serviceRequests;
   allUsers = this.dataService.users;
   categories = this.dataService.categories;
   
-  pendingQuoteRequests = computed(() => this.allRequests().filter(r => r.status === 'Pending'));
+  quoteRequests = computed(() => this.allRequests().filter(r => r.status === 'Pending' || r.status === 'Quoted'));
   pendingAssignmentRequests = computed(() => this.allRequests().filter(r => r.status === 'Approved'));
   financialRequests = computed(() => this.allRequests().filter(r => r.status === 'Completed'));
+  professionals = computed(() => this.allUsers().filter(u => u.role === 'professional'));
 
   financialStats = computed(() => {
     const completed = this.financialRequests();
@@ -351,6 +465,22 @@ export class AdminDashboardComponent {
     }
   }
 
+  openQuoteDetailsModal(request: ServiceRequest) {
+    this.viewingQuote.set(request);
+  }
+
+  closeQuoteDetailsModal() {
+    this.viewingQuote.set(null);
+  }
+
+  handleQuoteResponse(approved: boolean) {
+    const request = this.viewingQuote();
+    if (request) {
+      this.dataService.respondToQuote(request.id, approved);
+      this.closeQuoteDetailsModal();
+    }
+  }
+
   // Category Management Methods
   handleAddCategory() {
     this.dataService.addCategory(this.newCategoryName());
@@ -387,5 +517,30 @@ export class AdminDashboardComponent {
 
   cancelDelete() {
     this.categoryToDelete.set(null);
+  }
+
+  // Methods for Add Professional Modal
+  openAddProfessionalModal() {
+    this.newProfessionalName.set('');
+    this.newProfessionalEmail.set('');
+    this.newProfessionalSpecialty.set(this.categories().length > 0 ? this.categories()[0] : null);
+    this.showAddProfessionalModal.set(true);
+  }
+
+  closeAddProfessionalModal() {
+    this.showAddProfessionalModal.set(false);
+  }
+
+  handleAddProfessional() {
+    const name = this.newProfessionalName();
+    const email = this.newProfessionalEmail();
+    const specialty = this.newProfessionalSpecialty();
+
+    if (!name || !email || !specialty) {
+      this.notificationService.addNotification('Por favor, preencha todos os campos.');
+      return;
+    }
+    this.dataService.addProfessional(name, email, specialty);
+    this.closeAddProfessionalModal();
   }
 }
