@@ -1,8 +1,9 @@
 
+
+
 import { Component, ChangeDetectionStrategy, input, output, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// FIX: Correct import paths for models and services
 import { ServiceRequest, User } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
 import { I18nPipe } from '../../pipes/i18n.pipe';
@@ -22,7 +23,6 @@ export class SchedulerComponent {
   private dataService = inject(DataService);
 
   availableProfessionals = computed(() => {
-    // FIX: Access `getProfessionalsByCategory` which is now available on the correctly typed DataService.
     return this.dataService.getProfessionalsByCategory(this.serviceRequest().category);
   });
 

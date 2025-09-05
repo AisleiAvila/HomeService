@@ -1,8 +1,9 @@
 
+
+
 import { Component, ChangeDetectionStrategy, signal, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// FIX: Correct import paths for services and models
 import { DataService } from '../../services/data.service';
 import { User } from '../../models/maintenance.models';
 import { ServiceListComponent } from '../service-list/service-list.component';
@@ -19,7 +20,6 @@ export class SearchComponent {
   user = input.required<User>();
   private dataService = inject(DataService);
 
-  // FIX: Access signals which are now available on the correctly typed DataService.
   allRequests = this.dataService.serviceRequests;
   categories = this.dataService.categories;
   statuses = ['Pending', 'Assigned', 'In Progress', 'Completed', 'Cancelled'];
