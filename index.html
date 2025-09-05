@@ -21,6 +21,28 @@
 .notification-enter {
   animation: fadeInDown 0.4s ease-out;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .invoice-content, .invoice-content * {
+    visibility: visible;
+  }
+  .invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 1rem;
+    border: none;
+    box-shadow: none;
+  }
+  .no-print, .no-print * {
+    display: none !important;
+  }
+}
 </style>
 <script type="importmap">
 {
