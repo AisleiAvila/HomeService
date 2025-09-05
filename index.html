@@ -1,105 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home Service Pro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css' rel='stylesheet' />
-<style>
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+  <style>
+    /* Basic styles to prevent flash of unstyled content */
+    body { font-family: sans-serif; margin: 0; }
+    /* Styles for printing the invoice */
+    @media print {
+      body * { visibility: hidden; }
+      .invoice-content, .invoice-content * { visibility: visible; }
+      .invoice-content { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
+      .no-print { display: none !important; }
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+      "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+      "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+      "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+      "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+      "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+      "@angular/common": "https://next.esm.sh/@angular/common@^20.1.6-0?external=rxjs",
+      "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.1.6-0?external=rxjs",
+      "@angular/core": "https://next.esm.sh/@angular/core@^20.1.6-0?external=rxjs",
+      "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.1.6-0?external=rxjs",
+      "@angular/forms": "https://next.esm.sh/@angular/forms@^20.1.6-0?external=rxjs",
+      "@fullcalendar/core": "https://next.esm.sh/@fullcalendar/core@^6.1.19?external=rxjs",
+      "@fullcalendar/core/locales/pt-br": "https://next.esm.sh/@fullcalendar/core@^6.1.19/locales/pt-br?external=rxjs",
+      "@fullcalendar/daygrid": "https://next.esm.sh/@fullcalendar/daygrid@^6.1.19?external=rxjs",
+      "@fullcalendar/interaction": "https://next.esm.sh/@fullcalendar/interaction@^6.1.19?external=rxjs",
+      "@fullcalendar/timegrid": "https://next.esm.sh/@fullcalendar/timegrid@^6.1.19?external=rxjs",
+      "@fullcalendar/angular": "https://next.esm.sh/@fullcalendar/angular@^6.1.19?external=rxjs",
+      "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.4/+esm"
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.notification-enter {
-  animation: fadeInDown 0.4s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  .invoice-content, .invoice-content * {
-    visibility: visible;
-  }
-  .invoice-content {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 1rem;
-    border: none;
-    box-shadow: none;
-  }
-  .no-print, .no-print * {
-    display: none !important;
-  }
-}
-
-/* Custom FullCalendar grid styles for better visibility */
-.fc-theme-standard td, .fc-theme-standard th {
-  border-color: #d1d5db; /* A more visible darker gray (Tailwind gray-300) */
-}
-
-/* Make calendar day numbers more visible */
-.fc-daygrid-day-number {
-  color: #374151; /* A darker gray (Tailwind gray-700) */
-  font-weight: 500;
-}
-
-/* Make calendar title more visible */
-.fc-toolbar-title {
-  color: #1f2937; /* Tailwind gray-800 */
-  font-weight: 600;
-}
-</style>
-<script type="importmap">
-{
-  "imports": {
-    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
-    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
-    "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
-    "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
-    "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
-    "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
-    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.1.6-0?external=rxjs",
-    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.1.6-0?external=rxjs",
-    "@angular/core": "https://next.esm.sh/@angular/core@^20.1.6-0?external=rxjs",
-    "@angular/common": "https://next.esm.sh/@angular/common@^20.1.6-0?external=rxjs",
-    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.1.6-0?external=rxjs",
-    "@fullcalendar/core": "https://esm.sh/@fullcalendar/core@^6.1.15",
-    "@fullcalendar/angular": "https://esm.sh/@fullcalendar/angular@^6.1.15?deps=@angular/core,@angular/common",
-    "@fullcalendar/daygrid": "https://esm.sh/@fullcalendar/daygrid@^6.1.15?deps=@fullcalendar/core",
-    "@fullcalendar/timegrid": "https://esm.sh/@fullcalendar/timegrid@^6.1.15?deps=@fullcalendar/core",
-    "@fullcalendar/interaction": "https://esm.sh/@fullcalendar/interaction@^6.1.15?deps=@fullcalendar/core",
-    "@fullcalendar/core/locales/pt-br": "https://esm.sh/@fullcalendar/core@^6.1.15/locales/pt-br"
-  }
-}
-</script>
+  </script>
 </head>
-<body class="bg-gray-100">
+<body>
   <app-root></app-root>
 </body>
 </html>

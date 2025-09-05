@@ -1,0 +1,52 @@
+<div class="flex items-center justify-center min-h-full p-4 sm:p-6 lg:p-8 bg-gray-50">
+  <div class="w-full max-w-md space-y-8">
+    <div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {{ 'loginTitle' | i18n }}
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        {{ 'loginNoAccount' | i18n }}
+        <a href="#" (click)="$event.preventDefault(); createAccount.emit()" class="font-medium text-indigo-600 hover:text-indigo-500">
+          {{ 'loginCreateAccountLink' | i18n }}
+        </a>
+      </p>
+    </div>
+    <form class="mt-8 space-y-6" #loginForm="ngForm" (ngSubmit)="submitLogin()">
+      <div class="rounded-md shadow-sm -space-y-px">
+        <div>
+          <label for="email-address" class="sr-only">{{ 'emailAddress' | i18n }}</label>
+          <input id="email-address" name="email" type="email" autocomplete="email" required
+                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 bg-white placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                 [placeholder]="'emailAddress' | i18n"
+                 [ngModel]="email()" (ngModelChange)="email.set($event)">
+        </div>
+        <div>
+          <label for="password" class="sr-only">{{ 'password' | i18n }}</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required
+                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 bg-white placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                 [placeholder]="'password' | i18n"
+                 [ngModel]="password()" (ngModelChange)="password.set($event)">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="text-sm">
+          <a href="#" (click)="$event.preventDefault(); handleForgotPassword()" class="font-medium text-indigo-600 hover:text-indigo-500">
+            {{ 'loginForgotPassword' | i18n }}
+          </a>
+        </div>
+      </div>
+
+       <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+        <button type="submit" [disabled]="!loginForm.valid"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:bg-indigo-300">
+          {{ 'signIn' | i18n }}
+        </button>
+         <button type="button" (click)="cancel.emit()"
+                class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+          {{ 'cancel' | i18n }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

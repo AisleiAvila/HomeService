@@ -1,10 +1,12 @@
-import { Component, ChangeDetectionStrategy, input, signal, inject, effect, viewChild, ElementRef } from '@angular/core';
+
+import { Component, ChangeDetectionStrategy, input, effect, signal, inject, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { User, ServiceCategory } from '../../models/maintenance.models';
-import { DataService } from '../../services/data.service';
+import { User, Address, ServiceCategory } from '../../models/maintenance.models';
+import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { I18nService } from '../../services/i18n.service';
+import { DataService } from '../../services/data.service';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
@@ -17,180 +19,131 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 export class ProfileComponent {
   user = input.required<User>();
   
-  private dataService = inject(DataService);
+  private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private dataService = inject(DataService);
   private i18n = inject(I18nService);
 
-  allCategories = this.dataService.categories;
-
+  fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
+  
   // Form state signals
   name = signal('');
-  email = signal('');
+  phone = signal('');
+  address = signal<Address>({ street: '', city: '', state: '', zip_code: '' });
   specialties = signal<ServiceCategory[]>([]);
-  isChanged = signal(false);
-
-  // Signals and ViewChild for camera functionality
-  videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
-  showCameraModal = signal(false);
-  private videoStream = signal<MediaStream | null>(null);
-
+  
+  // UI state
+  isEditing = signal(false);
+  isCameraOpen = signal(false);
+  
+  allCategories = this.dataService.categories;
+  private cameraStream: MediaStream | null = null;
+  
   constructor() {
-    // When user input changes, reset the form state
     effect(() => {
-      this.resetForm();
-    }, { allowSignalWrites: true });
-
-    // Effect to manage the camera stream based on the modal's visibility
-    effect(() => {
-      const videoEl = this.videoElement()?.nativeElement;
-      if (this.showCameraModal() && videoEl) {
-        this.startCameraStream(videoEl);
-      } else {
-        // Cleanup: Stop the stream when the modal is closed or component is destroyed
-        this.stopCameraStream();
+      const currentUser = this.user();
+      if (currentUser) {
+        this.name.set(currentUser.name);
+        this.phone.set(currentUser.phone || '');
+        this.address.set(currentUser.address || { street: '', city: '', state: '', zip_code: '' });
+        this.specialties.set(currentUser.specialties || []);
       }
     });
   }
 
-  resetForm(): void {
-    const currentUser = this.user();
-    this.name.set(currentUser.name);
-    this.email.set(currentUser.email);
-    this.specialties.set(currentUser.specialties ? [...currentUser.specialties] : []);
-    this.isChanged.set(false);
+  toggleSpecialty(category: ServiceCategory) {
+    this.specialties.update(current => 
+      current.includes(category) 
+        ? current.filter(c => c !== category) 
+        : [...current, category]
+    );
   }
 
-  onSpecialtyChange(category: ServiceCategory, event: Event) {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    this.specialties.update(current => {
-      if (isChecked) {
-        return [...current, category];
-      } else {
-        return current.filter(c => c !== category);
-      }
-    });
-    this.checkIfChanged();
-  }
-
-  isSpecialtyChecked(category: ServiceCategory): boolean {
-    return this.specialties().includes(category);
-  }
-
-  checkIfChanged(): void {
-    const currentUser = this.user();
-    const nameChanged = this.name() !== currentUser.name;
-    const emailChanged = this.email() !== currentUser.email;
+  saveChanges() {
+    const originalUser = this.user();
+    const updatedUserData: Partial<User> = {};
+    let hasChanges = false;
     
-    let specialtiesChanged = false;
-    if (currentUser.role === 'professional') {
-        const currentSpecialties = currentUser.specialties?.sort() ?? [];
-        const newSpecialties = this.specialties().sort();
-        specialtiesChanged = JSON.stringify(newSpecialties) !== JSON.stringify(currentSpecialties);
+    if (this.name() !== originalUser.name) {
+      updatedUserData.name = this.name();
+      hasChanges = true;
     }
-    
-    this.isChanged.set(nameChanged || emailChanged || specialtiesChanged);
-  }
-
-  saveProfile(): void {
-    if (!this.isChanged()) {
-      this.notificationService.addNotification(this.i18n.translate('noChangesDetected'));
-      return;
+    if (this.phone() !== (originalUser.phone || '')) {
+      updatedUserData.phone = this.phone();
+      hasChanges = true;
     }
-    
-    const currentUser = this.user();
-    const updates: Partial<Pick<User, 'name' | 'email' | 'specialties'>> = {};
-
-    const newName = this.name().trim();
-    if (newName && newName !== currentUser.name) updates.name = newName;
-
-    const newEmail = this.email().trim();
-    if (newEmail && newEmail !== currentUser.email) updates.email = newEmail;
-
-    if (currentUser.role === 'professional') {
-      const currentSpecialties = currentUser.specialties?.sort() ?? [];
-      const newSpecialties = this.specialties().sort();
-      const specialtiesChanged = JSON.stringify(newSpecialties) !== JSON.stringify(currentSpecialties);
-      if(specialtiesChanged) updates.specialties = this.specialties();
+    if (JSON.stringify(this.address()) !== JSON.stringify(originalUser.address || {})) {
+        updatedUserData.address = this.address();
+        hasChanges = true;
     }
-    
-    if (Object.keys(updates).length > 0) {
-      this.dataService.updateUser(currentUser.id, updates);
+    if (this.user().role === 'professional' && JSON.stringify(this.specialties()) !== JSON.stringify(originalUser.specialties || [])) {
+        updatedUserData.specialties = this.specialties();
+        hasChanges = true;
+    }
+
+    if (hasChanges) {
+      this.authService.updateUserProfile(updatedUserData);
+      this.isEditing.set(false);
     } else {
       this.notificationService.addNotification(this.i18n.translate('noChangesDetected'));
-      this.isChanged.set(false);
     }
   }
 
-  // --- Avatar Update Methods ---
-
-  onFileSelected(event: Event) {
+  async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-
-    const file = input.files[0];
-
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      this.notificationService.addNotification(this.i18n.translate('errorInvalidFileFormat'));
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) { // 2MB limit
-      this.notificationService.addNotification(this.i18n.translate('errorImageTooLarge'));
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const avatarUrl = reader.result as string;
-      this.dataService.updateUser(this.user().id, { avatarUrl });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async openCameraModal() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      this.notificationService.addNotification(this.i18n.translate('errorCameraNotSupported'));
-      return;
-    }
-    this.showCameraModal.set(true);
-  }
-
-  private async startCameraStream(videoEl: HTMLVideoElement) {
-    if (this.videoStream()) return; // Already streaming
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      this.videoStream.set(stream);
-      videoEl.srcObject = stream;
-      videoEl.play(); // Explicitly play the video
-    } catch (err) {
-      console.error("Error accessing camera: ", err);
-      this.notificationService.addNotification(this.i18n.translate('errorAccessingCamera'));
-      this.closeCameraModal();
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        this.notificationService.addNotification(this.i18n.translate('errorInvalidFileFormat'));
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        this.notificationService.addNotification(this.i18n.translate('errorImageTooLarge'));
+        return;
+      }
+      await this.authService.uploadAvatar(file);
     }
   }
   
-  private stopCameraStream() {
-    this.videoStream()?.getTracks().forEach(track => track.stop());
-    this.videoStream.set(null);
-  }
-
-  closeCameraModal() {
-    this.showCameraModal.set(false);
+  async openCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.notificationService.addNotification(this.i18n.translate('errorCameraNotSupported'));
+      return;
+    }
+    try {
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (this.videoElement()) {
+        this.videoElement()!.nativeElement.srcObject = this.cameraStream;
+        this.isCameraOpen.set(true);
+      }
+    } catch (err) {
+      this.notificationService.addNotification(this.i18n.translate('errorAccessingCamera'));
+      console.error(err);
+    }
   }
 
   capturePhoto() {
-    const videoEl = this.videoElement()?.nativeElement;
-    if (!videoEl || videoEl.paused || videoEl.ended) return;
+    const video = this.videoElement()?.nativeElement;
+    if (!video) return;
 
     const canvas = document.createElement('canvas');
-    canvas.width = videoEl.videoWidth;
-    canvas.height = videoEl.videoHeight;
-    const context = canvas.getContext('2d');
-    context?.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')?.drawImage(video, 0, 0);
 
-    const avatarUrl = canvas.toDataURL('image/jpeg');
-    this.dataService.updateUser(this.user().id, { avatarUrl });
-    this.closeCameraModal();
+    canvas.toBlob(async (blob) => {
+      if (blob) {
+        const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
+        await this.authService.uploadAvatar(file);
+      }
+      this.closeCamera();
+    }, 'image/jpeg');
+  }
+
+  closeCamera() {
+    this.cameraStream?.getTracks().forEach(track => track.stop());
+    this.isCameraOpen.set(false);
   }
 }

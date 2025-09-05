@@ -7,10 +7,10 @@ import { Address } from '../models/maintenance.models';
 export class AddressAutocompleteService {
 
   private mockAddresses: Address[] = [
-    { street: '123 Main St', city: 'Anytown', state: 'CA', zipCode: '12345' },
-    { street: '456 Oak Ave', city: 'Someplace', state: 'NY', zipCode: '54321' },
-    { street: '789 Pine Ln', city: 'Elsewhere', state: 'TX', zipCode: '67890' },
-    { street: '101 Maple Dr', city: 'Anytown', state: 'CA', zipCode: '12346' },
+    { street: '123 Main St', city: 'Anytown', state: 'CA', zip_code: '12345' },
+    { street: '456 Oak Ave', city: 'Someplace', state: 'NY', zip_code: '54321' },
+    { street: '789 Pine Ln', city: 'Elsewhere', state: 'TX', zip_code: '67890' },
+    { street: '101 Maple Dr', city: 'Anytown', state: 'CA', zip_code: '12346' },
   ];
 
   constructor() { }

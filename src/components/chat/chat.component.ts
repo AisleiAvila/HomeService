@@ -1,77 +1,78 @@
-import { Component, ChangeDetectionStrategy, input, computed, signal, ElementRef, viewChild, afterNextRender, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+
+import { Component, ChangeDetectionStrategy, input, output, inject, computed, viewChild, ElementRef, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ServiceRequest, User, ChatMessage } from '../../models/maintenance.models';
+import { User, ServiceRequest, ChatMessage } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
-import { I18nService } from '../../services/i18n.service';
-import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe, DatePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './chat.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    class: 'h-full'
-  }
 })
 export class ChatComponent {
   serviceRequest = input.required<ServiceRequest>();
   currentUser = input.required<User>();
-  
-  messagesContainer = viewChild<ElementRef>('messagesContainer');
-  newMessage = signal('');
+  close = output<void>();
 
-  dataService = inject(DataService);
-  i18n = inject(I18nService);
+  private dataService = inject(DataService);
+  
+  chatContainer = viewChild<ElementRef<HTMLDivElement>>('chatContainer');
+  
+  messages = computed(() => {
+    return this.dataService.chatMessages()
+      .filter(m => m.request_id === this.serviceRequest().id)
+      .map(m => {
+        const sender = this.dataService.users().find(u => u.id === m.sender_id);
+        return {
+          ...m,
+          sender_name: sender?.name || 'Unknown',
+          sender_avatar_url: sender?.avatar_url,
+          isCurrentUser: m.sender_id === this.currentUser().id
+        };
+      });
+  });
+
+  newMessageText = '';
 
   constructor() {
-    afterNextRender(() => {
+    effect(() => {
+      const request = this.serviceRequest();
+      if (request) {
+        this.dataService.fetchChatMessages(request.id);
+      }
+    });
+
+    effect(() => {
+      // Scroll to bottom when new messages arrive
+      this.messages(); // depend on messages
       this.scrollToBottom();
     });
   }
 
-  messages = computed(() => {
-    return this.dataService.getMessagesForService(this.serviceRequest().id);
-  });
-  
-  otherUser = computed(() => {
-      const request = this.serviceRequest();
-      const currentUserId = this.currentUser().id;
-      const otherUserId = request.clientId === currentUserId ? request.professionalId : request.clientId;
-      return otherUserId ? this.dataService.getUserById(otherUserId) : null;
-  });
-
   sendMessage() {
-    const text = this.newMessage().trim();
-    if (text) {
-      this.dataService.addMessage(this.serviceRequest().id, this.currentUser().id, text);
-      this.newMessage.set('');
-      
-      // Simulate reply from other user after a delay
-      this.simulateReply();
+    if (!this.newMessageText.trim()) return;
+    
+    this.dataService.addChatMessage(
+      this.serviceRequest().id,
+      this.currentUser().id,
+      this.newMessageText.trim()
+    );
 
-      // Defer scroll to allow DOM update
-      setTimeout(() => this.scrollToBottom(), 0);
-    }
-  }
-
-  private simulateReply() {
-    const other = this.otherUser();
-    if (other) {
-        setTimeout(() => {
-            const reply = this.i18n.translate('chatSimulatedReply');
-            this.dataService.addMessage(this.serviceRequest().id, other.id, reply);
-            setTimeout(() => this.scrollToBottom(), 0);
-        }, 1500);
-    }
+    this.newMessageText = '';
+    setTimeout(() => this.scrollToBottom(), 50);
   }
 
   private scrollToBottom(): void {
-    const el = this.messagesContainer()?.nativeElement;
-    if (el) {
-      el.scrollTop = el.scrollHeight;
+    try {
+      if (this.chatContainer()) {
+        const container = this.chatContainer()!.nativeElement;
+        container.scrollTop = container.scrollHeight;
+      }
+    } catch (err) { 
+      console.error("Could not scroll to bottom:", err);
     }
   }
 }
