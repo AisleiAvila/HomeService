@@ -2,65 +2,66 @@ import { Component, ChangeDetectionStrategy, output, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserRole } from '../../models/maintenance.models';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div class="flex items-center justify-center min-h-full p-4 sm:p-6 lg:p-8">
       <div class="w-full max-w-md space-y-8">
         <div>
           <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Criar uma nova conta
+            {{ 'registerTitle' | i18n }}
           </h2>
           <p class="mt-2 text-center text-sm text-gray-600">
-            Ou
+            {{ 'or' | i18n }}
             <a href="#" (click)="$event.preventDefault(); switchToLogin.emit()" class="font-medium text-indigo-600 hover:text-indigo-500">
-              faça login na sua conta existente
+              {{ 'registerLoginLink' | i18n }}
             </a>
           </p>
         </div>
         <form class="mt-8 space-y-6" #registerForm="ngForm" (ngSubmit)="register()">
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
-              <label for="name" class="sr-only">Nome</label>
+              <label for="name" class="sr-only">{{ 'fullName' | i18n }}</label>
               <input id="name" name="name" type="text" required
                      class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                     placeholder="Nome completo"
+                     [placeholder]="'fullName' | i18n"
                      [ngModel]="name()" (ngModelChange)="name.set($event)">
             </div>
             <div>
-              <label for="email-address" class="sr-only">Endereço de e-mail</label>
+              <label for="email-address" class="sr-only">{{ 'emailAddress' | i18n }}</label>
               <input id="email-address" name="email" type="email" autocomplete="email" required
                      class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                     placeholder="Endereço de e-mail"
+                     [placeholder]="'emailAddress' | i18n"
                      [ngModel]="email()" (ngModelChange)="email.set($event)">
             </div>
             <div>
-              <label for="password" class="sr-only">Senha</label>
+              <label for="password" class="sr-only">{{ 'password' | i18n }}</label>
               <input id="password" name="password" type="password" autocomplete="current-password" required
                      class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                     placeholder="Senha"
+                     [placeholder]="'password' | i18n"
                      [ngModel]="password()" (ngModelChange)="password.set($event)">
             </div>
           </div>
 
           <div class="flex items-center justify-between">
             <div class="text-sm">
-                <span class="font-medium text-gray-900">Eu sou um:</span>
+                <span class="font-medium text-gray-900">{{ 'iAmA' | i18n }}:</span>
                 <div class="mt-2 space-y-2">
                     <div class="flex items-center">
                         <input id="role-client" name="role" type="radio" value="client"
                                (change)="role.set('client')" [checked]="role() === 'client'"
                                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
-                        <label for="role-client" class="ml-3 block text-sm font-medium text-gray-700">Cliente</label>
+                        <label for="role-client" class="ml-3 block text-sm font-medium text-gray-700">{{ 'client' | i18n }}</label>
                     </div>
                     <div class="flex items-center">
                         <input id="role-professional" name="role" type="radio" value="professional"
                                (change)="role.set('professional')" [checked]="role() === 'professional'"
                                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
-                        <label for="role-professional" class="ml-3 block text-sm font-medium text-gray-700">Profissional</label>
+                        <label for="role-professional" class="ml-3 block text-sm font-medium text-gray-700">{{ 'professional' | i18n }}</label>
                     </div>
                 </div>
             </div>
@@ -69,11 +70,11 @@ import { UserRole } from '../../models/maintenance.models';
           <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <button type="submit" [disabled]="!registerForm.valid"
                     class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:bg-indigo-300 disabled:cursor-not-allowed">
-              Registrar
+              {{ 'register' | i18n }}
             </button>
             <button type="button" (click)="switchToLanding.emit()"
                     class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
-              Cancelar
+              {{ 'cancel' | i18n }}
             </button>
           </div>
         </form>

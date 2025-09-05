@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { User } from '../../models/maintenance.models';
 import { ServiceListComponent } from '../service-list/service-list.component';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, ServiceListComponent],
+  imports: [CommonModule, FormsModule, ServiceListComponent, I18nPipe],
   templateUrl: './search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -8,15 +8,15 @@
       </div>
       <div>
         <h2 class="text-lg font-bold text-gray-800">{{ other.name }}</h2>
-        <p class="text-sm text-gray-500">Discussing: {{ serviceRequest().title }}</p>
+        <p class="text-sm text-gray-500">{{ 'chatDiscussing' | i18n }}: {{ serviceRequest().title }}</p>
       </div>
     } @else {
        <div class="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center">
          <i class="fas fa-user-slash text-gray-500"></i>
        </div>
        <div>
-        <h2 class="text-lg font-bold text-gray-800">No Professional Assigned</h2>
-        <p class="text-sm text-gray-500">Discussing: {{ serviceRequest().title }}</p>
+        <h2 class="text-lg font-bold text-gray-800">{{ 'noProfessionalAssigned' | i18n }}</h2>
+        <p class="text-sm text-gray-500">{{ 'chatDiscussing' | i18n }}: {{ serviceRequest().title }}</p>
       </div>
     }
   </div>
@@ -51,7 +51,7 @@
         type="text"
         [(ngModel)]="newMessage"
         name="newMessage"
-        placeholder="Type your message..."
+        [placeholder]="'chatPlaceholder' | i18n"
         class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
         autocomplete="off"
       >

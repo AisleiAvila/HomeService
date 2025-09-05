@@ -4,29 +4,32 @@ import { FormsModule } from '@angular/forms';
 import { DataService } from '../../services/data.service';
 import { NotificationService } from '../../services/notification.service';
 import { User, ServiceRequest, ServiceCategory, ServiceStatus } from '../../models/maintenance.models';
+import { I18nService } from '../../services/i18n.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 type AdminView = 'overview' | 'requests' | 'approvals' | 'professionals' | 'categories' | 'finances';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: './admin-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent {
   private dataService = inject(DataService);
   private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
 
   currentView = signal<AdminView>('overview');
-  readonly views: { id: AdminView; label: string; icon: string }[] = [
-    { id: 'overview', label: 'Visão Geral', icon: 'fas fa-chart-pie' },
-    { id: 'requests', label: 'Solicitações', icon: 'fas fa-tasks' },
-    { id: 'approvals', label: 'Aprovações', icon: 'fas fa-user-check' },
-    { id: 'finances', label: 'Finanças', icon: 'fas fa-file-invoice-dollar' },
-    { id: 'professionals', label: 'Profissionais', icon: 'fas fa-users-cog' },
-    { id: 'categories', label: 'Categorias', icon: 'fas fa-tags' },
-  ];
+  readonly views = computed(() => [
+    { id: 'overview' as AdminView, label: this.i18n.translate('overview'), icon: 'fas fa-chart-pie' },
+    { id: 'requests' as AdminView, label: this.i18n.translate('requests'), icon: 'fas fa-tasks' },
+    { id: 'approvals' as AdminView, label: this.i18n.translate('approvals'), icon: 'fas fa-user-check' },
+    { id: 'finances' as AdminView, label: this.i18n.translate('finances'), icon: 'fas fa-file-invoice-dollar' },
+    { id: 'professionals' as AdminView, label: this.i18n.translate('professionals'), icon: 'fas fa-users-cog' },
+    { id: 'categories' as AdminView, label: this.i18n.translate('categories'), icon: 'fas fa-tags' },
+  ]);
 
   allRequests = this.dataService.serviceRequests;
   allUsers = this.dataService.users;
@@ -46,10 +49,10 @@ export class AdminDashboardComponent {
       .reduce((sum, r) => sum + r.cost! * 1.07, 0);
 
     return [
-      { label: 'Receita Total', value: this.formatCost(totalEarnings), icon: 'fas fa-dollar-sign text-green-500', bgColor: 'bg-green-100' },
-      { label: 'Aprovações Pendentes', value: this.pendingApprovalCount(), icon: 'fas fa-user-clock text-orange-500', bgColor: 'bg-orange-100' },
-      { label: 'Serviços Ativos', value: requests.filter(r => r.status === 'In Progress').length, icon: 'fas fa-running text-blue-500', bgColor: 'bg-blue-100' },
-      { label: 'Total de Profissionais', value: this.professionals().length, icon: 'fas fa-users text-purple-500', bgColor: 'bg-purple-100' }
+      { label: this.i18n.translate('totalRevenue'), value: this.formatCost(totalEarnings), icon: 'fas fa-dollar-sign text-green-500', bgColor: 'bg-green-100' },
+      { label: this.i18n.translate('pendingApprovals'), value: this.pendingApprovalCount(), icon: 'fas fa-user-clock text-orange-500', bgColor: 'bg-orange-100' },
+      { label: this.i18n.translate('activeServices'), value: requests.filter(r => r.status === 'In Progress').length, icon: 'fas fa-running text-blue-500', bgColor: 'bg-blue-100' },
+      { label: this.i18n.translate('totalProfessionals'), value: this.professionals().length, icon: 'fas fa-users text-purple-500', bgColor: 'bg-purple-100' }
     ];
   });
   
@@ -77,13 +80,13 @@ export class AdminDashboardComponent {
 
 
   setView(view: AdminView) { this.currentView.set(view); }
-  getClientName(clientId: number): string { return this.allUsers().find(u => u.id === clientId)?.name ?? 'Cliente Desconhecido'; }
-  getProfessionalName(proId: number | null): string { return proId ? (this.allUsers().find(u => u.id === proId)?.name ?? 'Não atribuído') : 'Não atribuído'; }
+  getClientName(clientId: number): string { return this.allUsers().find(u => u.id === clientId)?.name ?? this.i18n.translate('unknownClient'); }
+  getProfessionalName(proId: number | null): string { return proId ? (this.allUsers().find(u => u.id === proId)?.name ?? this.i18n.translate('unassigned')) : this.i18n.translate('unassigned'); }
   getProfessionalsForRequest(category: ServiceCategory): User[] { return this.dataService.getProfessionalsByCategory(category); }
 
   // --- Client Approval Logic ---
   approveClient(userId: number) { this.dataService.approveClient(userId); }
-  rejectClient(userId: number) { if (confirm('Tem certeza de que deseja rejeitar este cadastro?')) { this.dataService.rejectClient(userId); } }
+  rejectClient(userId: number) { if (confirm(this.i18n.translate('confirmRejectRegistration'))) { this.dataService.rejectClient(userId); } }
 
   // --- Quote & Request Logic ---
   selectRequestForQuote(request: ServiceRequest) { this.quoteAmount.set(request.cost); this.quoteRequest.set(request); }
@@ -95,12 +98,10 @@ export class AdminDashboardComponent {
   assignProfessional() { const req = this.assignmentRequest(), proId = this.assigningProfessionalId(); if (req && proId) { this.dataService.assignProfessional(req.id, proId); this.assignmentRequest.set(null); } }
   
   // --- Category Management ---
-  // FIX: The dataService.addCategory method expects a `ServiceCategory`, but a new category name from an input is a `string`. A type assertion resolves the compile-time error.
   addCategory() { const name = this.newCategory().trim(); if (name) { this.dataService.addCategory(name as ServiceCategory); this.newCategory.set(''); } }
   startEditCategory(cat: ServiceCategory) { this.editingCategoryName.set(cat); this.editingCategory.set(cat); }
-  // FIX: The dataService.updateCategory method expects a `ServiceCategory`, but an edited category name from an input is a `string`. A type assertion resolves the compile-time error.
   saveCategoryEdit() { const oldN = this.editingCategory(), newN = this.editingCategoryName().trim(); if (oldN && newN) { this.dataService.updateCategory(oldN, newN as ServiceCategory); this.editingCategory.set(null); } }
-  deleteCategory(cat: ServiceCategory) { if (confirm(`Tem certeza de que deseja excluir a categoria "${cat}"?`)) { this.dataService.deleteCategory(cat); } }
+  deleteCategory(cat: ServiceCategory) { if (confirm(this.i18n.translate('confirmDeleteCategory', { category: cat }))) { this.dataService.deleteCategory(cat); } }
   
   // --- Professional Management ---
   toggleNewProfessionalSpecialty(cat: ServiceCategory, event: Event) { const checked = (event.target as HTMLInputElement).checked; this.newProfessionalSpecialties.update(curr => checked ? [...curr, cat] : curr.filter(c => c !== cat)); }
@@ -114,10 +115,15 @@ export class AdminDashboardComponent {
   // --- Finances ---
   completedRequests = computed(() => this.allRequests().filter(r => r.status === 'Completed'));
   financialStats = computed(() => { const completed = this.completedRequests(), taxRate = 0.07; const totalRevenue = completed.filter(r => r.paymentStatus === 'Paid' && r.cost).reduce((s, r) => s + r.cost! * (1 + taxRate), 0); const outstanding = completed.filter(r => r.paymentStatus === 'Unpaid' && r.cost).reduce((s, r) => s + r.cost! * (1 + taxRate), 0); const totalTax = completed.filter(r => r.cost).reduce((s, r) => s + r.cost! * taxRate, 0); return { completedServices: completed.length, totalRevenue, outstandingAmount: outstanding, totalTax }; });
-  formatCost(cost: number | null): string { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cost ?? 0); }
+  formatCost(cost: number | null): string {
+    const lang = this.i18n.language();
+    const currency = lang === 'pt' ? 'BRL' : 'USD';
+    const locale = lang === 'pt' ? 'pt-BR' : 'en-US';
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currency }).format(cost ?? 0);
+  }
   generateInvoice(req: ServiceRequest) { this.invoiceRequest.set(req); }
   printInvoice() { window.print(); }
   private escapeCsvCell(cell: any): string { const str = String(cell ?? ''); return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str; }
-  exportToCSV() { const completed = this.completedRequests(); if (completed.length === 0) { this.notificationService.addNotification("Não há dados para exportar."); return; } const taxRate = 0.07; const headers = ['ID', 'Cliente', 'Profissional', 'Serviço', 'Data Conclusão', 'Status Pag.', 'Valor Base', 'Imposto (7%)', 'Valor Total']; const rows = completed.map(req => [req.id, this.getClientName(req.clientId), this.getProfessionalName(req.professionalId), req.title, req.scheduledDate ? new Date(req.scheduledDate).toLocaleDateString('pt-BR') : 'N/A', req.paymentStatus === 'Paid' ? 'Pago' : 'Pendente', (req.cost ?? 0).toFixed(2), ((req.cost ?? 0) * taxRate).toFixed(2), ((req.cost ?? 0) * (1 + taxRate)).toFixed(2)].map(this.escapeCsvCell).join(',')); const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n'); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `relatorio_financeiro_${new Date().toISOString().slice(0,10)}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); this.notificationService.addNotification("Relatório exportado."); }
+  exportToCSV() { const completed = this.completedRequests(); if (completed.length === 0) { this.notificationService.addNotification(this.i18n.translate('noDataToExport')); return; } const taxRate = 0.07; const headers = [this.i18n.translate('csvId'), this.i18n.translate('csvClient'), this.i18n.translate('csvProfessional'), this.i18n.translate('csvService'), this.i18n.translate('csvCompletionDate'), this.i18n.translate('csvPaymentStatus'), this.i18n.translate('csvBaseValue'), this.i18n.translate('csvTax'), this.i18n.translate('csvTotalValue')]; const rows = completed.map(req => [req.id, this.getClientName(req.clientId), this.getProfessionalName(req.professionalId), req.title, req.scheduledDate ? new Date(req.scheduledDate).toLocaleDateString(this.i18n.language() === 'pt' ? 'pt-BR' : 'en-US') : 'N/A', req.paymentStatus === 'Paid' ? this.i18n.translate('paid') : this.i18n.translate('unpaid'), (req.cost ?? 0).toFixed(2), ((req.cost ?? 0) * taxRate).toFixed(2), ((req.cost ?? 0) * (1 + taxRate)).toFixed(2)].map(this.escapeCsvCell).join(',')); const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n'); const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent)); link.setAttribute("download", `financial_report_${new Date().toISOString().slice(0,10)}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); this.notificationService.addNotification(this.i18n.translate('reportExported')); }
   statusClass(status: ServiceStatus): string { const colors: Record<ServiceStatus, string> = { 'Pending': 'bg-yellow-100 text-yellow-800', 'Quoted': 'bg-cyan-100 text-cyan-800', 'Approved': 'bg-indigo-100 text-indigo-800', 'Assigned': 'bg-blue-100 text-blue-800', 'In Progress': 'bg-purple-100 text-purple-800', 'Completed': 'bg-green-100 text-green-800', 'Cancelled': 'bg-gray-100 text-gray-800', }; return `px-2 py-1 text-xs font-semibold rounded-full ${colors[status]}`; }
 }

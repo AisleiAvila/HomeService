@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { User, ServiceCategory, ServiceRequest } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-service-request-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: './service-request-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

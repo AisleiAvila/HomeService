@@ -1,12 +1,14 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus, UserRole, PaymentStatus, Address, UserStatus } from '../models/maintenance.models';
 import { NotificationService } from './notification.service';
+import { I18nService } from './i18n.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
   private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
   private idCounters = {
     users: 5,
     requests: 10,
@@ -73,7 +75,7 @@ export class DataService {
       paymentStatus: 'Unpaid',
     };
     this._serviceRequests.update(requests => [...requests, newRequest]);
-    this.notificationService.addNotification(`New request "${newRequest.title}" submitted.`);
+    this.notificationService.addNotification(this.i18n.translate('requestSubmittedNotification', { title: newRequest.title }));
   }
 
   addMessage(serviceRequestId: number, senderId: number, text: string) {
@@ -90,17 +92,17 @@ export class DataService {
 
   approveClient(userId: number) {
     this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Active' as UserStatus } : u));
-    this.notificationService.addNotification(`Client account approved.`);
+    this.notificationService.addNotification(this.i18n.translate('clientAccountApproved'));
   }
   
   rejectClient(userId: number) {
     this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Rejected' as UserStatus } : u));
-    this.notificationService.addNotification(`Client account rejected.`);
+    this.notificationService.addNotification(this.i18n.translate('clientAccountRejected'));
   }
 
   submitQuote(requestId: number, amount: number) {
     this._serviceRequests.update(reqs => reqs.map(r => r.id === requestId ? { ...r, cost: amount, status: 'Quoted' as ServiceStatus } : r));
-    this.notificationService.addNotification(`Quote of $${amount} submitted for request #${requestId}.`);
+    this.notificationService.addNotification(this.i18n.translate('quoteSubmittedNotification', { amount, id: requestId }));
   }
 
   respondToQuote(requestId: number, approved: boolean) {
@@ -110,7 +112,8 @@ export class DataService {
       }
       return r;
     }));
-    this.notificationService.addNotification(`Quote for request #${requestId} has been ${approved ? 'approved' : 'rejected'}.`);
+    const status = approved ? this.i18n.translate('approvedStatus') : this.i18n.translate('rejectedStatus');
+    this.notificationService.addNotification(this.i18n.translate('quoteResponseNotification', { id: requestId, status }));
   }
   
   assignProfessional(requestId: number, professionalId: number) {
@@ -120,18 +123,18 @@ export class DataService {
       }
       return r;
     }));
-    this.notificationService.addNotification(`Professional assigned to request #${requestId}.`);
+    this.notificationService.addNotification(this.i18n.translate('professionalAssignedNotification', { id: requestId }));
   }
   
   updateUser(userId: number, updates: Partial<User>) {
     this._users.update(users => users.map(u => u.id === userId ? { ...u, ...updates } : u));
-    this.notificationService.addNotification(`Profile for user #${userId} updated.`);
+    this.notificationService.addNotification(this.i18n.translate('profileUpdatedNotification', { id: userId }));
   }
 
   addCategory(categoryName: ServiceCategory) {
     if (!this._categories().includes(categoryName)) {
       this._categories.update(cats => [...cats, categoryName]);
-      this.notificationService.addNotification(`Category "${categoryName}" added.`);
+      this.notificationService.addNotification(this.i18n.translate('categoryAddedNotification', { category: categoryName }));
     }
   }
 
@@ -139,13 +142,13 @@ export class DataService {
     this._categories.update(cats => cats.map(c => c === oldName ? newName : c));
     this._serviceRequests.update(reqs => reqs.map(r => r.category === oldName ? { ...r, category: newName } : r));
     this._users.update(users => users.map(u => ({ ...u, specialties: u.specialties?.map(s => s === oldName ? newName : s) })));
-    this.notificationService.addNotification(`Category "${oldName}" updated to "${newName}".`);
+    this.notificationService.addNotification(this.i18n.translate('categoryUpdatedNotification', { oldName, newName }));
   }
 
   deleteCategory(categoryName: ServiceCategory) {
     // Basic deletion, doesn't handle re-assigning requests or specialties
     this._categories.update(cats => cats.filter(c => c !== categoryName));
-    this.notificationService.addNotification(`Category "${categoryName}" deleted.`);
+    this.notificationService.addNotification(this.i18n.translate('categoryDeletedNotification', { category: categoryName }));
   }
   
   addProfessional(name: string, email: string, specialties: ServiceCategory[]) {
@@ -160,6 +163,6 @@ export class DataService {
       specialties,
     };
     this._users.update(users => [...users, newUser]);
-    this.notificationService.addNotification(`Professional "${name}" added.`);
+    this.notificationService.addNotification(this.i18n.translate('professionalAddedNotification', { name }));
   }
 }
