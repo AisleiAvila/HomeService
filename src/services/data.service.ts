@@ -1,20 +1,16 @@
-
-
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationService } from './notification.service';
-// FIX: Corrected import path for I18nService
-import { I18nService } from './i18n.service';
-import { 
-  User, 
-  ServiceRequest, 
-  ChatMessage, 
-  ServiceCategory, 
-  UserRole, 
-  PaymentStatus 
+import { AuthService } from './auth.service';
+import {
+  User,
+  ServiceRequest,
+  ChatMessage,
+  ServiceCategory,
+  ServiceStatus,
+  PaymentStatus,
+  ServiceRequestPayload,
 } from '../models/maintenance.models';
-import { ServiceRequestPayload } from '../components/service-request-form/service-request-form.component';
-import { PostgrestError } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
@@ -22,58 +18,147 @@ import { PostgrestError } from '@supabase/supabase-js';
 export class DataService {
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
-  private i18n = inject(I18nService);
+  private authService = inject(AuthService);
 
   // Signals for storing application data
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
   readonly chatMessages = signal<ChatMessage[]>([]);
+  // FIX: Make categories a signal so it can be updated from admin dashboard
   readonly categories = signal<ServiceCategory[]>(['Plumbing', 'Electrical', 'Cleaning', 'Gardening', 'Painting']);
 
-  // Computed signal for professionals
-  readonly professionals = computed(() => this.users().filter(u => u.role === 'professional' && u.status === 'Active'));
-
-  private handleError(error: PostgrestError | null, context: string) {
-    if (error) {
-      console.error(`Error in ${context}:`, error);
-      this.notificationService.addNotification(`Error in ${context}: ${error.message}`);
-    }
+  constructor() {
+    this.listenToServiceRequestChanges();
+    this.listenToUserChanges();
   }
 
   async loadInitialData(currentUser: User) {
     await this.fetchUsers();
     await this.fetchServiceRequests(currentUser);
-    // Chat messages could be loaded on-demand when a chat is opened
   }
-  
+
   clearData() {
     this.users.set([]);
     this.serviceRequests.set([]);
     this.chatMessages.set([]);
   }
-
-  async fetchUsers() {
+  
+  private async fetchUsers() {
     const { data, error } = await this.supabase.client.from('users').select('*');
-    this.handleError(error, 'fetching users');
-    if (data) {
+    if (error) {
+      this.notificationService.addNotification('Error fetching users: ' + error.message);
+    } else {
       this.users.set(data as User[]);
     }
   }
 
-  async fetchServiceRequests(currentUser: User) {
+  private async fetchServiceRequests(currentUser: User) {
     let query = this.supabase.client.from('service_requests').select('*');
 
     if (currentUser.role === 'client') {
-      query = query.eq('client_id', currentUser.id);
+      query = query.eq('client_auth_id', currentUser.auth_id);
     } else if (currentUser.role === 'professional') {
-      query = query.eq('professional_id', currentUser.id);
+      query = query.or(`professional_auth_id.eq.${currentUser.auth_id},professional_id.is.null`);
     }
-    // Admin sees all requests
+    // Admin sees all
 
-    const { data, error } = await query.order('requested_date', { ascending: false });
-    this.handleError(error, 'fetching service requests');
-    if (data) {
-      this.serviceRequests.set(data as ServiceRequest[]);
+    const { data, error } = await query;
+
+    if (error) {
+        this.notificationService.addNotification('Error fetching service requests: ' + error.message);
+    } else if (data) {
+        const users = this.users();
+        const requests = (data as any[]).map(r => ({
+          ...r,
+          client_name: users.find(u => u.id === r.client_id)?.name || 'Unknown',
+          professional_name: users.find(u => u.id === r.professional_id)?.name || 'Unassigned',
+        }));
+        this.serviceRequests.set(requests);
+    }
+  }
+  
+  async addServiceRequest(payload: ServiceRequestPayload) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) return;
+
+    const newRequestData = {
+        client_id: currentUser.id,
+        client_auth_id: currentUser.auth_id,
+        title: payload.title,
+        description: payload.description,
+        category: payload.category,
+        street: payload.address.street,
+        city: payload.address.city,
+        state: payload.address.state,
+        zip_code: payload.address.zip_code,
+        requested_date: new Date().toISOString(),
+        status: 'Pending',
+        payment_status: 'Unpaid'
+    };
+    
+    const { error } = await this.supabase.client
+        .from('service_requests')
+        .insert(newRequestData);
+    
+    if (error) {
+        this.notificationService.addNotification('Error creating service request: ' + error.message);
+    } else {
+        this.notificationService.addNotification('Service request created successfully!');
+    }
+  }
+  
+  async updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
+     const { error } = await this.supabase.client
+        .from('service_requests')
+        .update(updates)
+        .eq('id', id);
+
+    if (error) {
+        this.notificationService.addNotification('Error updating request: ' + error.message);
+    }
+  }
+  
+  getServiceRequestById(id: number): ServiceRequest | undefined {
+    return this.serviceRequests().find(r => r.id === id);
+  }
+
+  respondToQuote(requestId: number, approved: boolean) {
+    const status: ServiceStatus = approved ? 'Approved' : 'Pending';
+    this.updateServiceRequest(requestId, { status });
+    this.notificationService.addNotification(`Quote for request #${requestId} has been ${approved ? 'approved' : 'rejected'}.`);
+  }
+
+  async scheduleServiceRequest(requestId: number, professionalId: number, date: Date) {
+    const professional = this.users().find(u => u.id === professionalId);
+    if (!professional) return;
+    
+    const updates = {
+      professional_id: professionalId,
+      professional_auth_id: professional.auth_id,
+      scheduled_date: date.toISOString(),
+      status: 'Scheduled' as ServiceStatus
+    };
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(`Request #${requestId} scheduled successfully.`);
+  }
+  
+  async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
+    await this.updateServiceRequest(requestId, { payment_status: paymentStatus });
+  }
+
+  getProfessionalsByCategory(category: ServiceCategory): User[] {
+    return this.users().filter(u => u.role === 'professional' && u.specialties?.includes(category) && u.status === 'Active');
+  }
+  
+  async updateUser(id: number, updates: Partial<User>) {
+    const { error } = await this.supabase.client
+        .from('users')
+        .update(updates)
+        .eq('id', id);
+    if (error) {
+        this.notificationService.addNotification(`Error updating user: ${error.message}`);
+    } else {
+        this.notificationService.addNotification(`User updated successfully.`);
     }
   }
 
@@ -84,114 +169,52 @@ export class DataService {
       .eq('request_id', requestId)
       .order('timestamp', { ascending: true });
     
-    this.handleError(error, `fetching messages for request ${requestId}`);
-    if (data) {
-      this.chatMessages.update(currentMessages => {
-        const otherMessages = currentMessages.filter(m => m.request_id !== requestId);
-        return [...otherMessages, ...(data as ChatMessage[])];
-      });
+    if (error) {
+      this.notificationService.addNotification('Error fetching messages: ' + error.message);
+    } else {
+      this.chatMessages.set(data as ChatMessage[]);
     }
   }
   
-  getServiceRequestById(id: number): ServiceRequest | undefined {
-    return this.serviceRequests().find(r => r.id === id);
-  }
-
-  getProfessionalsByCategory(category: ServiceCategory): User[] {
-    return this.professionals().filter(p => p.specialties?.includes(category));
-  }
-
-  async respondToQuote(requestId: number, approved: boolean) {
-    const newStatus = approved ? 'Approved' : 'Pending'; // Or 'Cancelled' depending on flow
-    const { data, error } = await this.supabase.client
-      .from('service_requests')
-      .update({ status: newStatus })
-      .eq('id', requestId)
-      .select()
-      .single();
-
-    this.handleError(error, 'responding to quote');
-    if (data) {
-      this.serviceRequests.update(requests => 
-        requests.map(r => r.id === requestId ? { ...r, status: newStatus } : r)
-      );
-      this.notificationService.addNotification(`Quote for request #${requestId} has been ${approved ? 'approved' : 'rejected'}.`);
-    }
-  }
-  
-  async scheduleServiceRequest(requestId: number, professionalId: number, date: Date) {
-      const { data, error } = await this.supabase.client
-        .from('service_requests')
-        .update({ 
-          professional_id: professionalId,
-          scheduled_date: date.toISOString(),
-          status: 'Scheduled'
-        })
-        .eq('id', requestId)
-        .select()
-        .single();
-      
-      this.handleError(error, 'scheduling request');
-      if(data) {
-        this.serviceRequests.update(reqs => reqs.map(r => r.id === requestId ? data as ServiceRequest : r));
-        this.notificationService.addNotification(`Request #${requestId} has been scheduled.`);
-      }
-  }
-
-  async addServiceRequest(payload: ServiceRequestPayload) {
-    const { data, error } = await this.supabase.client
-      .from('service_requests')
-      .insert([payload])
-      .select()
-      .single();
-    
-    this.handleError(error, 'creating service request');
-    if (data) {
-      this.serviceRequests.update(reqs => [data as ServiceRequest, ...reqs]);
-      this.notificationService.addNotification('New service request created successfully!');
-    }
-  }
-
   async addChatMessage(requestId: number, senderId: number, text: string) {
-    const { data, error } = await this.supabase.client
+    const currentUser = this.authService.appUser();
+    if (!currentUser) return;
+    
+    const newMessage = {
+      request_id: requestId,
+      sender_id: senderId,
+      sender_auth_id: currentUser.auth_id,
+      text: text,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const { error } = await this.supabase.client
       .from('chat_messages')
-      .insert([{ request_id: requestId, sender_id: senderId, text }])
-      .select()
-      .single();
-
-    this.handleError(error, 'sending chat message');
-    if(data) {
-        this.chatMessages.update(msgs => [...msgs, data as ChatMessage]);
+      .insert(newMessage);
+      
+    if (error) {
+        this.notificationService.addNotification('Error sending message: ' + error.message);
     }
   }
   
-  async updatePaymentStatus(requestId: number, status: PaymentStatus) {
-    const { data, error } = await this.supabase.client
-      .from('service_requests')
-      .update({ payment_status: status })
-      .eq('id', requestId)
-      .select()
-      .single();
-
-    this.handleError(error, 'updating payment status');
-    if (data) {
-      this.serviceRequests.update(reqs => reqs.map(r => r.id === requestId ? data as ServiceRequest : r));
-      this.notificationService.addNotification(`Payment status for request #${requestId} updated to ${status}.`);
-    }
+  private listenToServiceRequestChanges() {
+    this.supabase.client
+        .channel('public:service_requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'service_requests' }, () => {
+            const user = this.authService.appUser();
+            if (user) {
+                this.fetchServiceRequests(user);
+            }
+        })
+        .subscribe();
   }
 
-  async updateUserStatus(userId: number, status: 'Active' | 'Rejected') {
-    const { data, error } = await this.supabase.client
-        .from('users')
-        .update({ status })
-        .eq('id', userId)
-        .select()
-        .single();
-    
-    this.handleError(error, 'updating user status');
-    if (data) {
-        this.users.update(users => users.map(u => u.id === userId ? data as User : u));
-        this.notificationService.addNotification(`User ${data.name} has been ${status.toLowerCase()}.`);
-    }
+  private listenToUserChanges() {
+    this.supabase.client
+        .channel('public:users')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+            this.fetchUsers();
+        })
+        .subscribe();
   }
 }
