@@ -59,16 +59,16 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
             
                   <!-- Description -->
                   <p class="max-w-xl text-lg text-indigo-100">
-                    Your one-stop solution for professional home maintenance and repair services. Connect with trusted experts for plumbing, electrical, painting, and more.
+                    A sua solução completa para serviços de manutenção e reparação residencial. Conecte-se com especialistas de confiança para tudo o que precisar.
                   </p>
             
                   <!-- Buttons -->
                   <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <button type="button" (click)="authState.set('login')" class="w-full sm:w-auto bg-white text-indigo-600 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105">
-                      Sign In
+                      Entrar
                     </button>
                     <button type="button" (click)="authState.set('register')" class="w-full sm:w-auto bg-transparent border-2 border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-indigo-600 transition-colors duration-300 transform hover:scale-105">
-                      Create Account
+                      Criar Conta
                     </button>
                   </div>
                 </div>
@@ -78,40 +78,45 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
               <div class="flex items-center justify-center min-h-full p-4">
                 <div class="w-full max-w-md space-y-8">
                   <div>
-                    <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">Sign in to your account</h2>
+                    <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">Faça login em sua conta</h2>
                     <p class="mt-2 text-center text-sm text-gray-600">
-                      Or <a href="#" (click)="$event.preventDefault(); authState.set('register')" class="font-medium text-indigo-600 hover:text-indigo-500">start your 14-day free trial</a>
+                      Ou <a href="#" (click)="$event.preventDefault(); authState.set('register')" class="font-medium text-indigo-600 hover:text-indigo-500">crie uma nova conta</a>
                     </p>
                   </div>
                   <form class="mt-8 space-y-6" (ngSubmit)="login()">
                     <div class="rounded-md shadow-sm -space-y-px">
                       <div>
-                        <label for="email" class="sr-only">Email address</label>
+                        <label for="email" class="sr-only">Endereço de e-mail</label>
                         <input id="email" name="email" type="email" autocomplete="email" required [(ngModel)]="loginEmail"
                                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Email address">
+                               placeholder="Endereço de e-mail">
                       </div>
                       <div>
-                        <label for="password" class="sr-only">Password</label>
+                        <label for="password" class="sr-only">Senha</label>
                         <input id="password" name="password" type="password" autocomplete="current-password" required
                                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Password">
+                               placeholder="Senha">
                       </div>
                     </div>
                     @if(loginError()){
                       <p class="text-sm text-red-600">{{ loginError() }}</p>
                     }
-                    <div>
-                      <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Sign in
-                      </button>
+                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                        <button type="button" (click)="authState.set('landing')"
+                                class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto">
+                          Cancelar
+                        </button>
+                        <button type="submit"
+                                class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto">
+                          Entrar
+                        </button>
                     </div>
                   </form>
                 </div>
               </div>
             }
             @case ('register') {
-              <app-register (registered)="handleRegistration($event)" (switchToLogin)="authState.set('login')"/>
+              <app-register (registered)="handleRegistration($event)" (switchToLogin)="authState.set('login')" (switchToLanding)="authState.set('landing')"/>
             }
             @case ('verify') {
               <app-verification [email]="verificationEmail()" (verified)="handleVerification($event)" (resendCode)="resendVerificationCode()"/>
@@ -274,18 +279,18 @@ export class AppComponent {
     const user = this.dataService.users().find(u => u.email.toLowerCase() === this.loginEmail.toLowerCase());
     if (user) {
       if (user.status === 'Pending') {
-        this.loginError.set("Your account is pending approval.");
+        this.loginError.set("Sua conta está com aprovação pendente.");
         return;
       }
       if (user.status === 'Rejected') {
-        this.loginError.set("Your account has been rejected.");
+        this.loginError.set("Sua conta foi rejeitada.");
         return;
       }
       this.currentUser.set(user);
       this.currentView.set(user.role === 'admin' ? 'admin' : 'dashboard');
-      this.notificationService.addNotification(`Welcome back, ${user.name}!`);
+      this.notificationService.addNotification(`Bem-vindo(a) de volta, ${user.name}!`);
     } else {
-      this.loginError.set("Invalid credentials.");
+      this.loginError.set("Credenciais inválidas.");
     }
   }
 
