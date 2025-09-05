@@ -89,7 +89,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                           <td class="px-6 py-4 text-sm text-gray-500">{{ getClientName(assignReq.clientId) }}</td>
                           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatAddress(assignReq.address) }}</td>
                           <td class="px-6 py-4 text-sm font-medium">
-                              <select #assignSelect (change)="assignProfessional(assignReq.id, assignSelect.value)" class="py-1 px-2 border border-gray-300 rounded-md">
+                              <select #assignSelect (change)="assignProfessional(assignReq, assignSelect.value)" class="py-1 px-2 border border-gray-300 rounded-md">
                                   <option value="" disabled selected>Select...</option>
                                   @for (prof of getProfessionalsForRequest(assignReq.category); track prof.id) {
                                       <option [value]="prof.id">{{ prof.name }}</option>
@@ -144,6 +144,9 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Professional</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Completed</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Status</th>
                             </tr>
@@ -151,7 +154,13 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                         <tbody class="bg-white divide-y divide-gray-200">
                             @for (request of financialRequests(); track request.id) {
                                 <tr>
-                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ request.title }}</td>
+                                    <td class="px-6 py-4">
+                                      <div class="text-sm font-medium text-gray-900">{{ request.title }}</div>
+                                      <div class="text-sm text-gray-500">{{ request.category }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ getClientName(request.clientId) }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ getProfessionalName(request.professionalId) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ request.scheduledDate | date:'mediumDate' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">{{ formatCost(request.cost) }}</td>
                                     <td class="px-6 py-4 text-sm">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -164,7 +173,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
+                                <tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -299,6 +308,10 @@ export class AdminDashboardComponent {
 
   setTab(tab: AdminTab) { this.activeTab.set(tab); }
   getClientName(clientId: number): string { return this.allUsers().find(u => u.id === clientId)?.name || 'N/A'; }
+  getProfessionalName(professionalId: number | null): string {
+    if (!professionalId) return 'N/A';
+    return this.allUsers().find(u => u.id === professionalId)?.name || 'N/A';
+  }
   getProfessionalsForRequest(category: ServiceCategory): User[] { return this.dataService.getProfessionalsByCategory(category); }
 
   formatAddress(address: Address): string {
@@ -312,17 +325,21 @@ export class AdminDashboardComponent {
       return 'N/A';
   }
 
-  assignProfessional(requestId: number, professionalId: string) {
+  assignProfessional(request: ServiceRequest, professionalId: string) {
     if (professionalId) {
         const profId = parseInt(professionalId, 10);
-        this.dataService.updateServiceRequest(requestId, {
+        this.dataService.updateServiceRequest(request.id, {
             professionalId: profId,
             status: 'Assigned',
             // Schedule 2 days from now
             scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
         });
-        // The notification logic is now handled by the dataService.
-        this.notificationService.addNotification(`Admin: Assignment successful for request #${requestId}.`);
+        
+        // Notify the client that their service has been scheduled.
+        this.notificationService.addNotification(`Client: Your service "${request.title}" has been scheduled.`);
+        
+        // Notify the admin that the assignment was successful.
+        this.notificationService.addNotification(`Admin: Assignment successful for request #${request.id}.`);
     }
   }
   

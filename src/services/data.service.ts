@@ -92,7 +92,7 @@ export class DataService {
           
           // Notification for when professional is assigned
           if (updatedReq.status === 'Assigned' && originalStatus === 'Approved') {
-              this.notificationService.addNotification(`Client: Your service "${updatedReq.title}" is scheduled!`);
+              // The client notification is now handled by the component that initiated the assignment.
               if (updatedReq.professionalId) {
                 this.notificationService.addNotification(`Professional: You have a new assignment: "${updatedReq.title}".`);
               }
