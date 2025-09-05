@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { User, ServiceRequest, UserRole, Address } from './models/maintenance.models';
 import { DataService } from './services/data.service';
 import { NotificationService } from './services/notification.service';
+import { I18nService } from './services/i18n.service';
+import { I18nPipe } from './pipes/i18n.pipe';
 
 // Components
 import { RegisterComponent } from './components/register/register.component';
@@ -17,6 +19,7 @@ import { ScheduleComponent } from './components/schedule/schedule.component';
 import { SearchComponent } from './components/search/search.component';
 import { NotificationCenterComponent } from './components/notification-center/notification-center.component';
 import { ServiceListComponent } from './components/service-list/service-list.component';
+import { LanguageSwitcherComponent } from './components/language-switcher/language-switcher.component';
 
 type AppView = 'dashboard' | 'newRequest' | 'details' | 'chat' | 'profile' | 'schedule' | 'search' | 'admin';
 type AuthState = 'landing' | 'login' | 'register' | 'verify';
@@ -38,13 +41,18 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
     SearchComponent,
     NotificationCenterComponent,
     ServiceListComponent,
+    LanguageSwitcherComponent,
+    I18nPipe,
   ],
   template: `
     <!-- Main App Container -->
     <div class="h-screen w-screen bg-gray-100 font-sans antialiased">
       @if (!currentUser()) {
         <!-- Auth Flow -->
-        <main class="h-full w-full">
+        <main class="h-full w-full relative">
+          <div class="absolute top-4 right-4 z-10">
+            <app-language-switcher />
+          </div>
           @switch (authState()) {
             @case ('landing') {
               <div class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4">
@@ -59,16 +67,16 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
             
                   <!-- Description -->
                   <p class="max-w-xl text-lg text-indigo-100">
-                    A sua solução completa para serviços de manutenção e reparação residencial. Conecte-se com especialistas de confiança para tudo o que precisar.
+                    {{ 'landingDescription' | i18n }}
                   </p>
             
                   <!-- Buttons -->
                   <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <button type="button" (click)="authState.set('login')" class="w-full sm:w-auto bg-white text-indigo-600 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105">
-                      Entrar
+                      {{ 'signIn' | i18n }}
                     </button>
                     <button type="button" (click)="authState.set('register')" class="w-full sm:w-auto bg-transparent border-2 border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-indigo-600 transition-colors duration-300 transform hover:scale-105">
-                      Criar Conta
+                      {{ 'createAccount' | i18n }}
                     </button>
                   </div>
                 </div>
@@ -78,24 +86,24 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
               <div class="flex items-center justify-center min-h-full p-4">
                 <div class="w-full max-w-md space-y-8">
                   <div>
-                    <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">Faça login em sua conta</h2>
+                    <h2 class="mt-6 text-center text-3xl font-bold text-gray-900">{{ 'loginTitle' | i18n }}</h2>
                     <p class="mt-2 text-center text-sm text-gray-600">
-                      Ou <a href="#" (click)="$event.preventDefault(); authState.set('register')" class="font-medium text-indigo-600 hover:text-indigo-500">crie uma nova conta</a>
+                      {{ 'or' | i18n }} <a href="#" (click)="$event.preventDefault(); authState.set('register')" class="font-medium text-indigo-600 hover:text-indigo-500">{{ 'loginCreateAccountLink' | i18n }}</a>
                     </p>
                   </div>
                   <form class="mt-8 space-y-6" (ngSubmit)="login()">
                     <div class="rounded-md shadow-sm -space-y-px">
                       <div>
-                        <label for="email" class="sr-only">Endereço de e-mail</label>
+                        <label for="email" class="sr-only">{{ 'emailPlaceholder' | i18n }}</label>
                         <input id="email" name="email" type="email" autocomplete="email" required [(ngModel)]="loginEmail"
                                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Endereço de e-mail">
+                               [placeholder]="'emailPlaceholder' | i18n">
                       </div>
                       <div>
-                        <label for="password" class="sr-only">Senha</label>
+                        <label for="password" class="sr-only">{{ 'passwordPlaceholder' | i18n }}</label>
                         <input id="password" name="password" type="password" autocomplete="current-password" required
                                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                               placeholder="Senha">
+                               [placeholder]="'passwordPlaceholder' | i18n">
                       </div>
                     </div>
                     @if(loginError()){
@@ -104,11 +112,11 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
                     <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                         <button type="button" (click)="authState.set('landing')"
                                 class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto">
-                          Cancelar
+                          {{ 'cancel' | i18n }}
                         </button>
                         <button type="submit"
                                 class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto">
-                          Entrar
+                          {{ 'signIn' | i18n }}
                         </button>
                     </div>
                   </form>
@@ -129,7 +137,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
           <!-- Sidebar -->
           <aside class="w-64 bg-gray-800 text-white flex flex-col transition-all duration-300">
             <div class="p-4 border-b border-gray-700">
-              <h1 class="text-xl font-bold">Manutenção App</h1>
+              <h1 class="text-xl font-bold">Home Service Pro</h1>
             </div>
             <nav class="flex-grow p-2">
               @for(item of navItems(); track item.view) {
@@ -144,7 +152,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
               <a href="#" (click)="$event.preventDefault(); logout()"
                  class="flex items-center w-full px-4 py-2 mt-2 text-sm font-semibold text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white">
                 <i class="fas fa-sign-out-alt fa-fw mr-3"></i>
-                <span>Sair</span>
+                <span>{{ 'logout' | i18n }}</span>
               </a>
             </div>
           </aside>
@@ -155,6 +163,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
             <header class="bg-white shadow-md p-4 flex justify-between items-center z-10">
                <h2 class="text-2xl font-semibold text-gray-800">{{ currentViewLabel() }}</h2>
                <div class="flex items-center space-x-4">
+                  <app-language-switcher />
                   <div class="relative">
                      <button (click)="showNotifications.set(!showNotifications())" class="relative text-gray-600 hover:text-gray-800 focus:outline-none">
                         <i class="fas fa-bell fa-lg"></i>
@@ -192,7 +201,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <h3 class="text-3xl font-bold text-gray-800">{{ request.title }}</h3>
-                                <p class="text-sm text-gray-500">Request #{{ request.id }}</p>
+                                <p class="text-sm text-gray-500">{{ 'request' | i18n }} #{{ request.id }}</p>
                             </div>
                             <span [class]="statusClass(request.status)">{{ request.status }}</span>
                         </div>
@@ -201,11 +210,11 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
                             <!-- Left Column -->
                             <div class="md:col-span-2 space-y-6">
                                 <div>
-                                    <h4 class="font-semibold text-gray-700">Description</h4>
+                                    <h4 class="font-semibold text-gray-700">{{ 'description' | i18n }}</h4>
                                     <p class="text-gray-600 mt-1">{{ request.description }}</p>
                                 </div>
                                  <div>
-                                    <h4 class="font-semibold text-gray-700">Address</h4>
+                                    <h4 class="font-semibold text-gray-700">{{ 'address' | i18n }}</h4>
                                     <p class="text-gray-600 mt-1">{{ formatAddress(request.address) }}</p>
                                 </div>
                             </div>
@@ -213,18 +222,18 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
                             <!-- Right Column -->
                             <div class="space-y-4">
                                 <div class="bg-gray-50 p-4 rounded-lg">
-                                    <h4 class="font-semibold text-gray-700 mb-2">Details</h4>
+                                    <h4 class="font-semibold text-gray-700 mb-2">{{ 'details' | i18n }}</h4>
                                     <ul class="text-sm text-gray-600 space-y-2">
-                                        <li class="flex justify-between"><span>Category:</span> <span class="font-medium">{{ request.category }}</span></li>
-                                        <li class="flex justify-between"><span>Requested:</span> <span class="font-medium">{{ request.requestedDate | date: 'mediumDate' }}</span></li>
-                                        <li class="flex justify-between"><span>Scheduled:</span> <span class="font-medium">{{ request.scheduledDate ? (request.scheduledDate | date: 'mediumDate') : 'Not set' }}</span></li>
+                                        <li class="flex justify-between"><span>{{ 'category' | i18n }}:</span> <span class="font-medium">{{ request.category }}</span></li>
+                                        <li class="flex justify-between"><span>{{ 'requested' | i18n }}:</span> <span class="font-medium">{{ request.requestedDate | date: 'mediumDate' }}</span></li>
+                                        <li class="flex justify-between"><span>{{ 'scheduled' | i18n }}:</span> <span class="font-medium">{{ request.scheduledDate ? (request.scheduledDate | date: 'mediumDate') : ('notSet' | i18n) }}</span></li>
                                     </ul>
                                 </div>
                                 <div class="bg-gray-50 p-4 rounded-lg">
-                                    <h4 class="font-semibold text-gray-700 mb-2">Financials</h4>
+                                    <h4 class="font-semibold text-gray-700 mb-2">{{ 'financials' | i18n }}</h4>
                                      <ul class="text-sm text-gray-600 space-y-2">
-                                        <li class="flex justify-between"><span>Cost:</span> <span class="font-medium">{{ request.cost ? (request.cost | currency) : 'Not quoted' }}</span></li>
-                                        <li class="flex justify-between"><span>Payment:</span> <span class="font-medium">{{ request.paymentStatus }}</span></li>
+                                        <li class="flex justify-between"><span>{{ 'cost' | i18n }}:</span> <span class="font-medium">{{ request.cost ? (request.cost | currency) : ('notQuoted' | i18n) }}</span></li>
+                                        <li class="flex justify-between"><span>{{ 'payment' | i18n }}:</span> <span class="font-medium">{{ request.paymentStatus }}</span></li>
                                     </ul>
                                 </div>
                             </div>
@@ -232,12 +241,12 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
 
                         <div class="mt-8 border-t pt-6">
                             <button (click)="setView('dashboard')" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-                                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                                <i class="fas fa-arrow-left mr-2"></i>{{ 'backToDashboard' | i18n }}
                             </button>
                         </div>
                     </div>
                    } @else {
-                     <p>Pedido de serviço não encontrado.</p>
+                     <p>{{ 'serviceRequestNotFound' | i18n }}</p>
                    }
                  }
                }
@@ -252,6 +261,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
 export class AppComponent {
   private dataService = inject(DataService);
   private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
 
   // Auth state
   authState = signal<AuthState>('landing');
@@ -279,18 +289,18 @@ export class AppComponent {
     const user = this.dataService.users().find(u => u.email.toLowerCase() === this.loginEmail.toLowerCase());
     if (user) {
       if (user.status === 'Pending') {
-        this.loginError.set("Sua conta está com aprovação pendente.");
+        this.loginError.set(this.i18n.translate('accountPending'));
         return;
       }
       if (user.status === 'Rejected') {
-        this.loginError.set("Sua conta foi rejeitada.");
+        this.loginError.set(this.i18n.translate('accountRejected'));
         return;
       }
       this.currentUser.set(user);
       this.currentView.set(user.role === 'admin' ? 'admin' : 'dashboard');
-      this.notificationService.addNotification(`Bem-vindo(a) de volta, ${user.name}!`);
+      this.notificationService.addNotification(this.i18n.translate('welcomeBack', { name: user.name }));
     } else {
-      this.loginError.set("Credenciais inválidas.");
+      this.loginError.set(this.i18n.translate('invalidCredentials'));
     }
   }
 
@@ -300,20 +310,20 @@ export class AppComponent {
   }
 
   handleRegistration(event: { email: string; role: UserRole }) {
-    this.notificationService.addNotification("Registration successful! Please check your email to verify your account.");
+    this.notificationService.addNotification(this.i18n.translate('registrationSuccess'));
     this.verificationEmail.set(event.email);
     this.authState.set('verify');
   }
 
   handleVerification(code: string) {
-    this.notificationService.addNotification("Account verified! Please log in.");
+    this.notificationService.addNotification(this.i18n.translate('accountVerified'));
     // In a real app, we'd add the user to the dataService here.
     // For now, we just switch to login.
     this.authState.set('login');
   }
 
   resendVerificationCode() {
-    this.notificationService.addNotification(`Verification code resent to ${this.verificationEmail()}.`);
+    this.notificationService.addNotification(this.i18n.translate('verificationCodeResent', { email: this.verificationEmail() }));
   }
 
   // --- Navigation & View Logic ---
@@ -322,20 +332,20 @@ export class AppComponent {
     if (!user) return [];
 
     const baseNav = [
-      { view: 'dashboard' as AppView, label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
-      { view: 'schedule' as AppView, label: 'Schedule', icon: 'fas fa-calendar-alt' },
-      { view: 'search' as AppView, label: 'Search', icon: 'fas fa-search' },
-      { view: 'profile' as AppView, label: 'Profile', icon: 'fas fa-user-circle' },
+      { view: 'dashboard' as AppView, label: this.i18n.translate('dashboard'), icon: 'fas fa-tachometer-alt' },
+      { view: 'schedule' as AppView, label: this.i18n.translate('schedule'), icon: 'fas fa-calendar-alt' },
+      { view: 'search' as AppView, label: this.i18n.translate('search'), icon: 'fas fa-search' },
+      { view: 'profile' as AppView, label: this.i18n.translate('profile'), icon: 'fas fa-user-circle' },
     ];
     
     if (user.role === 'client') {
-      return [{ view: 'newRequest' as AppView, label: 'New Request', icon: 'fas fa-plus-circle' }, ...baseNav];
+      return [{ view: 'newRequest' as AppView, label: this.i18n.translate('newRequest'), icon: 'fas fa-plus-circle' }, ...baseNav];
     }
     if (user.role === 'professional') {
       return baseNav;
     }
     if (user.role === 'admin') {
-      return [{ view: 'admin' as AppView, label: 'Admin Panel', icon: 'fas fa-shield-alt' }];
+      return [{ view: 'admin' as AppView, label: this.i18n.translate('adminPanel'), icon: 'fas fa-shield-alt' }];
     }
     return [];
   });
@@ -343,13 +353,13 @@ export class AppComponent {
   currentViewLabel = computed(() => {
     const view = this.currentView();
     if (view === 'details' && this.selectedServiceRequest()) {
-      return `Details for: ${this.selectedServiceRequest()?.title}`;
+      return this.i18n.translate('detailsFor', { title: this.selectedServiceRequest()?.title ?? '' });
     }
      if (view === 'chat' && this.selectedServiceRequest()) {
-      return `Chat for: ${this.selectedServiceRequest()?.title}`;
+      return this.i18n.translate('chatFor', { title: this.selectedServiceRequest()?.title ?? '' });
     }
     const navItem = this.navItems().find(item => item.view === view);
-    return navItem ? navItem.label : 'Dashboard';
+    return navItem ? navItem.label : this.i18n.translate('dashboard');
   });
 
   setView(view: AppView) {
@@ -369,7 +379,7 @@ export class AppComponent {
 
   handlePayNow(request: ServiceRequest) {
     // In a real app, this would integrate with a payment gateway.
-    this.notificationService.addNotification(`Payment process started for "${request.title}".`);
+    this.notificationService.addNotification(this.i18n.translate('paymentProcessStarted', { title: request.title }));
   }
 
   formatAddress(address: Address): string {

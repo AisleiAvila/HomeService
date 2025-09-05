@@ -7,10 +7,10 @@
         <img class="h-32 w-32 rounded-full object-cover shadow-lg" [src]="user().avatarUrl" [alt]="user().name">
         <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
           <div class="flex space-x-6">
-            <button (click)="fileInput.click()" title="Carregar foto" class="text-white text-3xl hover:text-gray-300">
+            <button (click)="fileInput.click()" [title]="'uploadPhoto' | i18n" class="text-white text-3xl hover:text-gray-300">
               <i class="fas fa-upload"></i>
             </button>
-            <button (click)="openCameraModal()" title="Usar câmera" class="text-white text-3xl hover:text-gray-300">
+            <button (click)="openCameraModal()" [title]="'useCamera' | i18n" class="text-white text-3xl hover:text-gray-300">
               <i class="fas fa-camera"></i>
             </button>
           </div>
@@ -28,7 +28,7 @@
         <div class="space-y-6">
           <!-- Name -->
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+            <label for="name" class="block text-sm font-medium text-gray-700">{{ 'fullName' | i18n }}</label>
             <input type="text" id="name" name="name" 
                    [ngModel]="name()" (ngModelChange)="name.set($event); checkIfChanged()" 
                    required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
@@ -36,7 +36,7 @@
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+            <label for="email" class="block text-sm font-medium text-gray-700">{{ 'emailAddress' | i18n }}</label>
             <input type="email" id="email" name="email" 
                    [ngModel]="email()" (ngModelChange)="email.set($event); checkIfChanged()" 
                    required email class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
@@ -46,7 +46,7 @@
           @if (user().role === 'professional') {
             <div>
               <fieldset>
-                <legend class="block text-sm font-medium text-gray-700 mb-2">My Specialties</legend>
+                <legend class="block text-sm font-medium text-gray-700 mb-2">{{ 'mySpecialties' | i18n }}</legend>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                   @for (cat of allCategories(); track cat) {
                     <div class="flex items-start">
@@ -69,8 +69,8 @@
 
         <!-- Action Buttons -->
         <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-3">
-          <button type="button" (click)="resetForm()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
-          <button type="submit" [disabled]="profileForm.invalid || !isChanged()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">Save Changes</button>
+          <button type="button" (click)="resetForm()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">{{ 'cancel' | i18n }}</button>
+          <button type="submit" [disabled]="profileForm.invalid || !isChanged()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">{{ 'saveChanges' | i18n }}</button>
         </div>
       </form>
     </div>
@@ -81,14 +81,14 @@
 @if (showCameraModal()) {
   <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
     <div class="bg-white p-4 rounded-lg shadow-xl text-center">
-      <h3 class="text-xl font-semibold mb-4">Capturar Foto</h3>
+      <h3 class="text-xl font-semibold mb-4">{{ 'capturePhoto' | i18n }}</h3>
       <video #videoElement autoplay playsinline class="rounded-md w-full max-w-lg h-auto bg-gray-900"></video>
       <div class="mt-4 flex justify-center space-x-4">
         <button (click)="capturePhoto()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2">
           <i class="fas fa-camera"></i>
-          <span>Capturar</span>
+          <span>{{ 'capture' | i18n }}</span>
         </button>
-        <button (click)="closeCameraModal()" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancelar</button>
+        <button (click)="closeCameraModal()" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">{{ 'cancel' | i18n }}</button>
       </div>
     </div>
   </div>

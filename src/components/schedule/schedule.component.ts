@@ -2,9 +2,11 @@ import { Component, ChangeDetectionStrategy, input, computed, output, inject, vi
 import { CommonModule } from '@angular/common';
 import { User, ServiceRequest, ServiceStatus, ServiceCategory } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
+import { I18nService } from '../../services/i18n.service';
 
 import { Calendar, EventInput, EventClickArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 
 @Component({
   selector: 'app-schedule',
@@ -20,6 +22,7 @@ export class ScheduleComponent implements OnDestroy {
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
   private dataService = inject(DataService);
+  private i18n = inject(I18nService);
 
   calendarEl = viewChild.required<ElementRef<HTMLDivElement>>('calendarEl');
   private calendar = signal<Calendar | null>(null);
@@ -62,9 +65,11 @@ export class ScheduleComponent implements OnDestroy {
 
   constructor() {
     afterNextRender(() => {
+      const initialLang = this.i18n.language();
       const calendar = new Calendar(this.calendarEl().nativeElement, {
         plugins: [dayGridPlugin],
         initialView: 'dayGridMonth',
+        locale: initialLang === 'pt' ? ptBrLocale : 'en',
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
@@ -103,6 +108,15 @@ export class ScheduleComponent implements OnDestroy {
         cal.getEventSources().forEach(source => source.remove());
         cal.addEventSource(events);
       }
+    });
+
+    // Effect to update calendar locale when language changes
+    effect(() => {
+        const cal = this.calendar();
+        const lang = this.i18n.language();
+        if (cal) {
+            cal.setOption('locale', lang === 'pt' ? ptBrLocale : 'en');
+        }
     });
   }
 

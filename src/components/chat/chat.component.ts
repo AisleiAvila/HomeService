@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ServiceRequest, User, ChatMessage } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
+import { I18nService } from '../../services/i18n.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: './chat.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -21,8 +23,8 @@ export class ChatComponent {
   messagesContainer = viewChild<ElementRef>('messagesContainer');
   newMessage = signal('');
 
-  // FIX: Replaced constructor injection with the inject() function for modern dependency injection.
   dataService = inject(DataService);
+  i18n = inject(I18nService);
 
   constructor() {
     afterNextRender(() => {
@@ -59,7 +61,7 @@ export class ChatComponent {
     const other = this.otherUser();
     if (other) {
         setTimeout(() => {
-            const reply = "Thanks for the message, I will get back to you shortly.";
+            const reply = this.i18n.translate('chatSimulatedReply');
             this.dataService.addMessage(this.serviceRequest().id, other.id, reply);
             setTimeout(() => this.scrollToBottom(), 0);
         }, 1500);

@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div>
-    <h2 class="text-2xl font-bold text-gray-800">Welcome back, {{ user().name }}!</h2>
-    <p class="text-gray-500">Here's a summary of your service requests.</p>
+    <h2 class="text-2xl font-bold text-gray-800">{{ 'welcomeBack' | i18n:{ name: user().name } }}</h2>
+    <p class="text-gray-500">{{ 'dashboardSummary' | i18n }}</p>
   </div>
   
   <!-- Stats Cards -->
@@ -25,7 +25,7 @@
 
   <!-- Service Lists -->
   <div>
-    <h3 class="text-xl font-semibold text-gray-800 mb-4">Active Requests</h3>
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ 'activeRequests' | i18n }}</h3>
     <app-service-list 
       [serviceRequests]="activeRequests()"
       [currentUser]="user()"
@@ -36,7 +36,7 @@
   </div>
 
   <div>
-    <h3 class="text-xl font-semibold text-gray-800 mb-4">Completed Requests</h3>
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">{{ 'completedRequests' | i18n }}</h3>
     <app-service-list 
       [serviceRequests]="completedRequests()"
       [currentUser]="user()"

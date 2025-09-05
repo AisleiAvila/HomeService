@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { User, ServiceCategory } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
 import { NotificationService } from '../../services/notification.service';
+import { I18nService } from '../../services/i18n.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: './profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -17,6 +19,7 @@ export class ProfileComponent {
   
   private dataService = inject(DataService);
   private notificationService = inject(NotificationService);
+  private i18n = inject(I18nService);
 
   allCategories = this.dataService.categories;
 
@@ -90,7 +93,7 @@ export class ProfileComponent {
 
   saveProfile(): void {
     if (!this.isChanged()) {
-      this.notificationService.addNotification("No changes detected.");
+      this.notificationService.addNotification(this.i18n.translate('noChangesDetected'));
       return;
     }
     
@@ -113,7 +116,7 @@ export class ProfileComponent {
     if (Object.keys(updates).length > 0) {
       this.dataService.updateUser(currentUser.id, updates);
     } else {
-      this.notificationService.addNotification("No changes detected.");
+      this.notificationService.addNotification(this.i18n.translate('noChangesDetected'));
       this.isChanged.set(false);
     }
   }
@@ -127,12 +130,12 @@ export class ProfileComponent {
     const file = input.files[0];
 
     if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      this.notificationService.addNotification('Erro: Formato de arquivo inválido. Use JPG, PNG ou GIF.');
+      this.notificationService.addNotification(this.i18n.translate('errorInvalidFileFormat'));
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) { // 2MB limit
-      this.notificationService.addNotification('Erro: A imagem é muito grande. O tamanho máximo é 2MB.');
+      this.notificationService.addNotification(this.i18n.translate('errorImageTooLarge'));
       return;
     }
 
@@ -146,7 +149,7 @@ export class ProfileComponent {
 
   async openCameraModal() {
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.notificationService.addNotification('Erro: A câmera não é suportada neste navegador.');
+      this.notificationService.addNotification(this.i18n.translate('errorCameraNotSupported'));
       return;
     }
     this.showCameraModal.set(true);
@@ -162,7 +165,7 @@ export class ProfileComponent {
       videoEl.play(); // Explicitly play the video
     } catch (err) {
       console.error("Error accessing camera: ", err);
-      this.notificationService.addNotification('Erro: Não foi possível acessar a câmera. Verifique as permissões.');
+      this.notificationService.addNotification(this.i18n.translate('errorAccessingCamera'));
       this.closeCameraModal();
     }
   }

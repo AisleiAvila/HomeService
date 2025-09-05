@@ -1,30 +1,30 @@
 <div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6">Search Service Requests</h1>
+  <h1 class="text-3xl font-bold mb-6">{{ 'searchServiceRequests' | i18n }}</h1>
 
   <div class="bg-white p-6 rounded-lg shadow-md mb-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <!-- Search Term -->
       <div>
-        <label for="searchTerm" class="block text-sm font-medium text-gray-700">Search Term</label>
+        <label for="searchTerm" class="block text-sm font-medium text-gray-700">{{ 'searchTerm' | i18n }}</label>
         <input 
           type="text" 
           id="searchTerm"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           [ngModel]="searchTerm()"
           (ngModelChange)="searchTerm.set($event)"
-          placeholder="e.g., leaky faucet, painting"
+          [placeholder]="'searchTermPlaceholder' | i18n"
         >
       </div>
       <!-- Category Filter -->
       <div>
-        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+        <label for="category" class="block text-sm font-medium text-gray-700">{{ 'category' | i18n }}</label>
         <select 
           id="category"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           [ngModel]="categoryFilter()"
           (ngModelChange)="categoryFilter.set($event)"
         >
-          <option value="">All Categories</option>
+          <option value="">{{ 'allCategories' | i18n }}</option>
           @for (category of categories(); track category) {
             <option [value]="category">{{ category }}</option>
           }
@@ -32,14 +32,14 @@
       </div>
       <!-- Status Filter -->
       <div>
-        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+        <label for="status" class="block text-sm font-medium text-gray-700">{{ 'status' | i18n }}</label>
         <select 
           id="status"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           [ngModel]="statusFilter()"
           (ngModelChange)="statusFilter.set($event)"
         >
-          <option value="">All Statuses</option>
+          <option value="">{{ 'allStatuses' | i18n }}</option>
           @for (status of statuses; track status) {
             <option [value]="status">{{ status }}</option>
           }
@@ -48,13 +48,13 @@
     </div>
   </div>
   
-  <h2 class="text-2xl font-semibold mb-4">Results ({{ filteredRequests().length }})</h2>
+  <h2 class="text-2xl font-semibold mb-4">{{ 'results' | i18n }} ({{ filteredRequests().length }})</h2>
 
   @if (filteredRequests().length > 0) {
     <app-service-list [serviceRequests]="filteredRequests()" [currentUser]="user()"></app-service-list>
   } @else {
     <div class="text-center py-12 bg-white rounded-lg shadow-md">
-      <p class="text-gray-500">No results found for your search criteria.</p>
+      <p class="text-gray-500">{{ 'noResultsFound' | i18n }}</p>
     </div>
   }
 </div>

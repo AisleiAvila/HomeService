@@ -1,11 +1,11 @@
 <div class="absolute top-16 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
   <div class="p-3 border-b flex justify-between items-center">
-    <h3 class="font-semibold text-gray-800">Notifications</h3>
+    <h3 class="font-semibold text-gray-800">{{ 'notifications' | i18n }}</h3>
     <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
   </div>
   <div class="max-h-96 overflow-y-auto">
     @if (notificationService.notifications().length === 0) {
-      <p class="text-center text-gray-500 p-6">No new notifications.</p>
+      <p class="text-center text-gray-500 p-6">{{ 'noNewNotifications' | i18n }}</p>
     } @else {
       <ul>
         @for (notification of notificationService.notifications(); track notification.id) {
@@ -47,11 +47,11 @@
     <div class="p-2 bg-gray-50 border-t text-center flex justify-around items-center">
         @if (hasUnreadNotifications()) {
           <button (click)="notificationService.markAllAsRead()" class="text-sm text-blue-600 hover:underline">
-            Mark all as read
+            {{ 'markAllAsRead' | i18n }}
           </button>
         }
       <button (click)="notificationService.clearAll()" class="text-sm text-gray-600 hover:underline">
-        Clear All
+        {{ 'clearAll' | i18n }}
       </button>
     </div>
   }
