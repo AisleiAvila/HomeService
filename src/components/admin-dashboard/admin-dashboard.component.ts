@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { DataService } from '../../services/data.service';
 import { ServiceRequest, User, ServiceCategory, Address } from '../../models/maintenance.models';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="space-y-8">
       <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
@@ -25,7 +25,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
             Pending Assignment
           </button>
           <button (click)="setTab('financials')" [class.border-indigo-500]="activeTab() === 'financials'" [class.text-indigo-600]="activeTab() === 'financials'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
-            Financials
+            Finanças
           </button>
           <button (click)="setTab('categories')" [class.border-indigo-500]="activeTab() === 'categories'" [class.text-indigo-600]="activeTab() === 'categories'" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
             Manage Categories
@@ -113,7 +113,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                        <i class="fas fa-check-double text-2xl text-green-500"></i>
                     </div>
                     <div>
-                      <h3 class="text-gray-500 text-sm font-medium">Completed Services</h3>
+                      <h3 class="text-gray-500 text-sm font-medium">Serviços Concluídos</h3>
                       <p class="text-2xl font-bold text-gray-800 mt-1">{{ financialStats().completedCount }}</p>
                     </div>
                   </div>
@@ -122,7 +122,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                        <i class="fas fa-dollar-sign text-2xl text-emerald-500"></i>
                     </div>
                     <div>
-                      <h3 class="text-gray-500 text-sm font-medium">Total Revenue</h3>
+                      <h3 class="text-gray-500 text-sm font-medium">Receita Total</h3>
                       <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalRevenue) }}</p>
                     </div>
                   </div>
@@ -131,7 +131,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                        <i class="fas fa-file-invoice-dollar text-2xl text-yellow-500"></i>
                     </div>
                     <div>
-                      <h3 class="text-gray-500 text-sm font-medium">Outstanding Amount</h3>
+                      <h3 class="text-gray-500 text-sm font-medium">Valor Pendente</h3>
                       <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().outstandingAmount) }}</p>
                     </div>
                   </div>
@@ -139,17 +139,17 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
 
                 <!-- Financials Table -->
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Financial Details</h2>
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Detalhes Financeiros</h2>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Professional</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date Completed</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Serviço</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profissional</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data de Conclusão</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status do Pagamento</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -175,7 +175,7 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
                                     </td>
                                 </tr>
                             } @empty {
-                                <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
+                                <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Nenhum serviço concluído ainda.</td></tr>
                             }
                         </tbody>
                     </table>
