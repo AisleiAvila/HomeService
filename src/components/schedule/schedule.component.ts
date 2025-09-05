@@ -1,8 +1,8 @@
 
 
+
 import { Component, ChangeDetectionStrategy, input, output, inject, effect, viewChild, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
-// FIX: Correct import paths for models and services
 import { User, ServiceRequest, ServiceStatus } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
 import { I18nService } from '../../services/i18n.service';
@@ -39,7 +39,6 @@ export class ScheduleComponent {
     runInInjectionContext(this.injector, () => {
       const dataService = inject(DataService);
       const requestId = Number(clickInfo.event.id);
-      // FIX: Access `getServiceRequestById` which is now available on the correctly typed DataService.
       const request = dataService.getServiceRequestById(requestId);
       if (request) {
         this.viewDetails.emit(request);
@@ -91,28 +90,23 @@ export class ScheduleComponent {
       }
 
       // Get new dynamic data from signals
-      // FIX: Access `serviceRequests` which is now available on the correctly typed DataService.
       const allRequests = this.dataService.serviceRequests();
       const currentUser = this.user();
       
       let userRequests: ServiceRequest[];
       if (currentUser.role === 'client') {
-        // FIX: Corrected property name from 'clientId' to 'client_id'
         userRequests = allRequests.filter(r => r.client_id === currentUser.id);
       } else if (currentUser.role === 'professional') {
-        // FIX: Corrected property name from 'professionalId' to 'professional_id'
         userRequests = allRequests.filter(r => r.professional_id === currentUser.id);
       } else {
         userRequests = allRequests;
       }
       
       const scheduledEvents = userRequests
-        // FIX: Corrected property name from 'scheduledDate' to 'scheduled_date'
         .filter(r => r.scheduled_date)
         .map(request => ({
           id: String(request.id),
           title: request.title,
-          // FIX: Corrected property name from 'scheduledDate' to 'scheduled_date'
           start: request.scheduled_date!,
           backgroundColor: this.statusColor(request.status),
           borderColor: this.statusColor(request.status),

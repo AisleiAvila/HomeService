@@ -1,8 +1,9 @@
 
+
+
 import { Component, ChangeDetectionStrategy, output, inject, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
-// FIX: Correct import path for the Notification model
 import { Notification } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 

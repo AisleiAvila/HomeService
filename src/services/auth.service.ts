@@ -1,141 +1,144 @@
 
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, effect } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationService } from './notification.service';
-import { User } from '../models/maintenance.models';
-import { User as SupabaseUser } from '@supabase/supabase-js';
+import { User, UserRole } from '../models/maintenance.models';
+import { PostgrestError, AuthError } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private supabase = inject(SupabaseService);
+  private supabaseService = inject(SupabaseService);
   private notificationService = inject(NotificationService);
 
-  private supabaseUser = this.supabase.currentUser;
+  // Signal for the detailed user profile from our 'users' table
   readonly appUser = signal<User | null>(null);
 
-  isLoggedIn = computed(() => !!this.appUser());
-
   constructor() {
-    this.supabase.client.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await this.fetchAppUser(session.user);
+    // Effect to fetch our custom user profile when the Supabase auth user changes
+    effect(async () => {
+      const authUser = this.supabaseService.currentUser();
+      if (authUser) {
+        const { data, error } = await this.supabaseService.client
+          .from('users')
+          .select('*')
+          .eq('auth_id', authUser.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching user profile:', error);
+          this.appUser.set(null);
+        } else {
+          this.appUser.set(data as User);
+        }
       } else {
         this.appUser.set(null);
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
-  async fetchAppUser(supabaseUser: SupabaseUser) {
-    const { data, error } = await this.supabase.client
-      .from('users')
-      .select('*')
-      .eq('auth_id', supabaseUser.id)
-      .single();
-    
-    if (error && error.code !== 'PGRST116') { // Ignore 'exact one row not found'
-      console.error('Error fetching app user:', error);
-      this.notificationService.addNotification('Failed to load user profile.');
-    } else {
-      this.appUser.set(data as User);
+  private handleError(error: AuthError | PostgrestError | null, context: string) {
+    if (error) {
+      console.error(`Error in ${context}:`, error);
+      this.notificationService.addNotification(error.message);
     }
   }
-  
+
   async login(email: string, password: string): Promise<void> {
-    const { error } = await this.supabase.client.auth.signInWithPassword({ email, password });
+    const { error } = await this.supabaseService.client.auth.signInWithPassword({
+      email,
+      password,
+    });
+    this.handleError(error, 'login');
+  }
+
+  async register(name: string, email: string, password: string, role: UserRole): Promise<void> {
+    const { data, error } = await this.supabaseService.client.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          role,
+        },
+      },
+    });
+    this.handleError(error, 'registering user');
+    if (data.user) {
+        this.notificationService.addNotification('Registration successful! Please check your email for a verification code.');
+    }
+  }
+
+  async verifyOtp(email: string, token: string): Promise<void> {
+    const { error } = await this.supabaseService.client.auth.verifyOtp({
+        email,
+        token,
+        type: 'signup'
+    });
     if (error) {
-      this.notificationService.addNotification(error.message);
+        this.handleError(error, 'verifying OTP');
+    } else {
+        this.notificationService.addNotification('Email verified successfully! You can now log in.');
     }
   }
 
   async resetPassword(email: string): Promise<void> {
-    const { error } = await this.supabase.client.auth.resetPasswordForEmail(email);
-    if (error) {
-      this.notificationService.addNotification(error.message);
-    } else {
-      this.notificationService.addNotification('Password reset link sent! Check your email.');
-    }
-  }
-
-  async register(name: string, email: string, password: string, role: 'client' | 'professional'): Promise<void> {
-    const { data, error } = await this.supabase.client.auth.signUp({ 
-      email, 
-      password,
-      options: {
-        data: {
-          name: name,
-          role: role,
-        }
-      }
+    const { error } = await this.supabaseService.client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin, // URL to redirect to after password reset
     });
-
     if (error) {
-      this.notificationService.addNotification(error.message);
-    } else if (data.user) {
-      this.notificationService.addNotification('Registration successful! Please check your email to verify your account.');
-      // The onAuthStateChange listener will handle fetching the app user after verification.
-    }
-  }
-
-  async verifyOtp(email: string, token: string) {
-    const { error } = await this.supabase.client.auth.verifyOtp({
-      email,
-      token,
-      type: 'signup',
-    });
-    if(error) {
-      this.notificationService.addNotification(error.message);
+      this.handleError(error, 'sending password reset email');
     } else {
-      this.notificationService.addNotification("Verification successful. You are now logged in.");
-      // onAuthStateChange will trigger and user profile will be fetched
+      this.notificationService.addNotification('Password reset link sent to your email.');
     }
   }
 
   async logout(): Promise<void> {
-    const { error } = await this.supabase.client.auth.signOut();
-    if (error) {
-      this.notificationService.addNotification(error.message);
-    }
+    const { error } = await this.supabaseService.client.auth.signOut();
+    this.handleError(error, 'logout');
   }
 
-  async updateUserProfile(updates: Partial<User>): Promise<void> {
+  async updateUserProfile(updatedData: Partial<User>): Promise<void> {
     const user = this.appUser();
     if (!user) return;
 
-    const { data, error } = await this.supabase.client
-      .from('users')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
+    const { data, error } = await this.supabaseService.client
+        .from('users')
+        .update(updatedData)
+        .eq('id', user.id)
+        .select()
+        .single();
     
-    if (error) {
-      this.notificationService.addNotification(error.message);
-    } else if(data) {
-      this.appUser.set(data as User);
-      this.notificationService.addNotification('Profile updated successfully!');
+    this.handleError(error, 'updating profile');
+    if (data) {
+        this.appUser.set(data as User);
+        this.notificationService.addNotification('Profile updated successfully!');
     }
   }
 
   async uploadAvatar(file: File): Promise<void> {
     const user = this.appUser();
     if (!user) return;
-
-    const filePath = `${user.auth_id}/${Date.now()}`;
-    const { error: uploadError } = await this.supabase.client.storage
-        .from('avatars')
-        .upload(filePath, file);
     
-    if (uploadError) {
-        this.notificationService.addNotification(`Upload error: ${uploadError.message}`);
-        return;
-    }
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.auth_id}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
 
-    const { data } = this.supabase.client.storage.from('avatars').getPublicUrl(filePath);
-    
-    if (data.publicUrl) {
-      await this.updateUserProfile({ avatar_url: data.publicUrl });
+    const { error: uploadError } = await this.supabaseService.client.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    this.handleError(uploadError, 'uploading avatar');
+
+    if (!uploadError) {
+        const { data } = this.supabaseService.client.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        if (data.publicUrl) {
+            await this.updateUserProfile({ avatar_url: `${data.publicUrl}?t=${new Date().getTime()}` });
+        }
     }
   }
 }
