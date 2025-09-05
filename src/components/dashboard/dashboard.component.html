@@ -33,7 +33,8 @@
       (openChat)="openChat.emit($event)"
       (payNow)="payNow.emit($event)"
       (approveQuote)="handleQuoteResponse($event, true)"
-      (rejectQuote)="handleQuoteResponse($event, false)">
+      (rejectQuote)="handleQuoteResponse($event, false)"
+      (scheduleRequest)="scheduleRequest.emit($event)">
     </app-service-list>
   </div>
 

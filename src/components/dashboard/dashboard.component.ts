@@ -18,6 +18,7 @@ export class DashboardComponent {
   viewDetails = output<ServiceRequest>();
   openChat = output<ServiceRequest>();
   payNow = output<ServiceRequest>();
+  scheduleRequest = output<ServiceRequest>();
   
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
@@ -49,7 +50,7 @@ export class DashboardComponent {
         },
         { 
           label: this.i18n.translate('activeRequests'), 
-          value: requests.filter(r => ['Assigned', 'In Progress'].includes(r.status)).length,
+          value: requests.filter(r => ['Assigned', 'In Progress', 'Scheduled'].includes(r.status)).length,
           icon: 'fas fa-cogs text-blue-500'
         },
         { 
@@ -68,7 +69,7 @@ export class DashboardComponent {
       return [
         { 
           label: this.i18n.translate('activeJobs'), 
-          value: requests.filter(r => ['Assigned', 'In Progress'].includes(r.status)).length,
+          value: requests.filter(r => ['Assigned', 'In Progress', 'Scheduled'].includes(r.status)).length,
           icon: 'fas fa-briefcase text-blue-500'
         },
         { 

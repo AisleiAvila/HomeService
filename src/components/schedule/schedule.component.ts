@@ -43,7 +43,7 @@ export class ScheduleComponent {
     });
   }
 
-  // Static options for stable initialization
+  // Static options for stable initialization, now including the event click handler.
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
@@ -59,7 +59,9 @@ export class ScheduleComponent {
       minute: '2-digit',
       meridiem: false,
       hour12: false
-    }
+    },
+    // The stable, context-aware event handler is now part of the initial config.
+    eventClick: this.handleEventClick 
   };
   
   private statusColor(status: ServiceStatus): string {
@@ -67,6 +69,7 @@ export class ScheduleComponent {
       'Pending': '#eab308',     // yellow-500
       'Quoted': '#06b6d4',      // cyan-500
       'Approved': '#6366f1',    // indigo-500
+      'Scheduled': '#14b8a6',   // teal-500
       'Assigned': '#3b82f6',    // blue-500
       'In Progress': '#8b5cf6', // purple-500
       'Completed': '#22c55e',   // green-500
@@ -76,6 +79,7 @@ export class ScheduleComponent {
   }
 
   constructor() {
+    // This effect now only handles dynamic data updates (events and locale).
     effect(() => {
       const calendarApi = this.calendarComponent()?.getApi();
       if (!calendarApi) {
@@ -110,8 +114,6 @@ export class ScheduleComponent {
       
       // Update calendar imperatively after it has been initialized
       calendarApi.setOption('locale', newLocale);
-      // Pass the stable, context-aware event handler reference
-      calendarApi.setOption('eventClick', this.handleEventClick);
       calendarApi.getEventSources().forEach(source => source.remove());
       calendarApi.addEventSource(scheduledEvents);
     });

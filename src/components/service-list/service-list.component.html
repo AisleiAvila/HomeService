@@ -28,6 +28,9 @@
                      <button (click)="approveQuote.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600">{{ 'approve' | i18n }}</button>
                      <button (click)="rejectQuote.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600">{{ 'reject' | i18n }}</button>
                    }
+                   @if(request.status === 'Approved') {
+                     <button (click)="scheduleRequest.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600">{{ 'schedule' | i18n }}</button>
+                   }
                    @if(request.status === 'Completed' && request.paymentStatus === 'Unpaid') {
                      <button (click)="payNow.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">{{ 'payNow' | i18n }}</button>
                    }

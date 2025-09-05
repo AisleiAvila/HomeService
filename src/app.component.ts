@@ -1,10 +1,11 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User, ServiceRequest, UserRole, Address } from './models/maintenance.models';
 import { DataService } from './services/data.service';
 import { NotificationService } from './services/notification.service';
 import { I18nService } from './services/i18n.service';
+import { PushNotificationService } from './services/push-notification.service';
 import { I18nPipe } from './pipes/i18n.pipe';
 
 // Components
@@ -20,6 +21,7 @@ import { SearchComponent } from './components/search/search.component';
 import { NotificationCenterComponent } from './components/notification-center/notification-center.component';
 import { ServiceListComponent } from './components/service-list/service-list.component';
 import { LanguageSwitcherComponent } from './components/language-switcher/language-switcher.component';
+import { SchedulerComponent } from './components/scheduler/scheduler.component';
 
 type AppView = 'dashboard' | 'newRequest' | 'details' | 'chat' | 'profile' | 'schedule' | 'search' | 'admin';
 type AuthState = 'landing' | 'login' | 'register' | 'verify';
@@ -42,6 +44,7 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
     NotificationCenterComponent,
     ServiceListComponent,
     LanguageSwitcherComponent,
+    SchedulerComponent,
     I18nPipe,
     DatePipe,
     CurrencyPipe,
@@ -49,9 +52,10 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private dataService = inject(DataService);
   private notificationService = inject(NotificationService);
+  pushNotificationService = inject(PushNotificationService);
   private i18n = inject(I18nService);
 
   // Auth state
@@ -66,6 +70,7 @@ export class AppComponent {
   selectedServiceRequest = signal<ServiceRequest | null>(null);
   showNotifications = signal(false);
   isSidebarCollapsed = signal(false);
+  schedulingRequest = signal<ServiceRequest | null>(null);
 
   unreadNotificationsCount = computed(() => this.notificationService.notifications().filter(n => !n.read).length);
 
@@ -73,10 +78,8 @@ export class AppComponent {
     return this.authState() === 'landing' ? 'light' : 'dark';
   });
 
-  constructor() {
-    // For development, auto-login as a specific user. e.g. 'client', 'professional', 'admin'
-    // this.loginEmail = 'admin@email.com';
-    // this.login();
+  ngOnInit() {
+    this.pushNotificationService.init();
   }
 
   // --- Auth Logic ---
@@ -196,11 +199,26 @@ export class AppComponent {
       'Pending': 'bg-yellow-100 text-yellow-800',
       'Quoted': 'bg-cyan-100 text-cyan-800',
       'Approved': 'bg-indigo-100 text-indigo-800',
+      'Scheduled': 'bg-teal-100 text-teal-800',
       'Assigned': 'bg-blue-100 text-blue-800',
       'In Progress': 'bg-purple-100 text-purple-800',
       'Completed': 'bg-green-100 text-green-800',
       'Cancelled': 'bg-gray-100 text-gray-800',
     };
     return baseClass + ' ' + (colorClasses[status] || 'bg-gray-100 text-gray-800');
+  }
+  
+  // --- Scheduler Modal Logic ---
+  handleScheduleRequest(request: ServiceRequest) {
+    this.schedulingRequest.set(request);
+  }
+  
+  closeScheduler() {
+    this.schedulingRequest.set(null);
+  }
+  
+  handleAppointmentConfirmed(event: { requestId: number, professionalId: number, date: Date }) {
+    this.dataService.scheduleAppointment(event.requestId, event.professionalId, event.date);
+    this.closeScheduler();
   }
 }
