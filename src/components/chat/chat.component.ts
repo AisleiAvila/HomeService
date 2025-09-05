@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, computed, signal, ElementRef, viewChild, afterNextRender, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ServiceRequest, User, ChatMessage } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
@@ -9,7 +9,7 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [CommonModule, FormsModule, I18nPipe, DatePipe],
   templateUrl: './chat.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {

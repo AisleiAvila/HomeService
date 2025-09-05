@@ -213,6 +213,7 @@ const translations: Record<Language, Record<string, string>> = {
     'thankYou': 'Obrigado por escolher nossos serviços!',
     'close': 'Fechar',
     'print': 'Imprimir',
+    'noEvents': 'Nenhum evento',
   },
   en: {
     // General
@@ -424,6 +425,7 @@ const translations: Record<Language, Record<string, string>> = {
     'thankYou': 'Thank you for choosing our services!',
     'close': 'Close',
     'print': 'Print',
+    'noEvents': 'No events',
   },
 };
 

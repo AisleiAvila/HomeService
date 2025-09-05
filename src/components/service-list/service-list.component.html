@@ -11,7 +11,7 @@
               <h4 class="text-lg font-bold text-gray-800 truncate">{{ request.title }}</h4>
               <p class="text-sm text-gray-500 mt-1">{{ formatAddress(request.address) }}</p>
               @if(request.status === 'Quoted' && request.cost) {
-                <p class="text-sm font-medium text-green-600">{{ 'quote' | i18n }}: $ {{ request.cost.toFixed(2) }}</p>
+                <p class="text-sm font-medium text-green-600">{{ 'quote' | i18n }}: {{ request.cost | currency:currencyCode() }}</p>
               }
             </div>
             <div class="mt-4 sm:mt-0 sm:ml-4 flex-shrink-0 flex flex-col items-start sm:items-end space-y-2">

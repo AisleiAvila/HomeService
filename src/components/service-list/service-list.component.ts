@@ -1,13 +1,14 @@
-import { Component, ChangeDetectionStrategy, input, output, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ChangeDetectionStrategy, input, output, inject, computed } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ServiceRequest, User, Address } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
 import { I18nPipe } from '../../pipes/i18n.pipe';
+import { I18nService } from '../../services/i18n.service';
 
 @Component({
   selector: 'app-service-list',
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [CommonModule, I18nPipe, CurrencyPipe],
   templateUrl: './service-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -22,6 +23,9 @@ export class ServiceListComponent {
   payNow = output<ServiceRequest>();
 
   private dataService = inject(DataService);
+  private i18n = inject(I18nService);
+
+  currencyCode = computed(() => this.i18n.translate('currency'));
 
   formatAddress(address: Address): string {
     return address.street + ', ' + address.city;
