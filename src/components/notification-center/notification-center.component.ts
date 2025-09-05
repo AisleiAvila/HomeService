@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, output, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
+import { Notification } from '../../models/maintenance.models';
 
 @Component({
   selector: 'app-notification-center',
@@ -10,7 +11,7 @@ import { NotificationService } from '../../services/notification.service';
     <div class="absolute top-16 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
       <div class="p-3 border-b flex justify-between items-center">
         <h3 class="font-semibold text-gray-800">Notifications</h3>
-        <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600">&times;</button>
+        <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
       </div>
       <div class="max-h-96 overflow-y-auto">
         @if (notificationService.notifications().length === 0) {
@@ -18,17 +19,48 @@ import { NotificationService } from '../../services/notification.service';
         } @else {
           <ul>
             @for (notification of notificationService.notifications(); track notification.id) {
-              <li class="border-b last:border-b-0 p-3 hover:bg-gray-50 transition-colors duration-150">
-                <p class="text-sm text-gray-700">{{ notification.message }}</p>
-                <p class="text-xs text-gray-400 mt-1">{{ notification.timestamp | date:'short' }}</p>
+              <li 
+                class="border-b last:border-b-0 transition-colors duration-150 cursor-pointer"
+                [class.bg-blue-50]="!notification.read"
+                [class.hover:bg-blue-100]="!notification.read"
+                [class.bg-white]="notification.read"
+                [class.hover:bg-gray-50]="notification.read"
+                [class.notification-enter]="isNew(notification)"
+                (click)="!notification.read && notificationService.markAsRead(notification.id)">
+                <div class="flex items-start space-x-3 p-3">
+                  <!-- Status dot -->
+                  <div class="w-2 h-2 mt-[5px] rounded-full flex-shrink-0"
+                       [class.bg-blue-500]="!notification.read"
+                       [class.bg-transparent]="notification.read">
+                  </div>
+                  <!-- Message content -->
+                  <div class="flex-1">
+                    <p class="text-sm"
+                       [class.font-medium]="!notification.read"
+                       [class.text-gray-800]="!notification.read"
+                       [class.text-gray-500]="notification.read">
+                      {{ notification.message }}
+                    </p>
+                    <p class="text-xs mt-1"
+                       [class.text-gray-500]="!notification.read"
+                       [class.text-gray-400]="notification.read">
+                      {{ notification.timestamp | date:'short' }}
+                    </p>
+                  </div>
+                </div>
               </li>
             }
           </ul>
         }
       </div>
       @if (notificationService.notifications().length > 0) {
-        <div class="p-2 bg-gray-50 border-t text-center">
-          <button (click)="notificationService.clearAll()" class="text-sm text-blue-600 hover:underline">
+        <div class="p-2 bg-gray-50 border-t text-center flex justify-around items-center">
+            @if (hasUnreadNotifications()) {
+              <button (click)="notificationService.markAllAsRead()" class="text-sm text-blue-600 hover:underline">
+                Mark all as read
+              </button>
+            }
+          <button (click)="notificationService.clearAll()" class="text-sm text-gray-600 hover:underline">
             Clear All
           </button>
         </div>
@@ -38,7 +70,22 @@ import { NotificationService } from '../../services/notification.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationCenterComponent {
-  // FIX: Replaced @Output decorator with the output() function for modern Angular best practices.
   close = output<void>();
   notificationService = inject(NotificationService);
+  
+  private readonly initialNotificationIds: ReadonlySet<number>;
+
+  constructor() {
+    // Capture IDs of notifications that exist when the component is created.
+    // Any notification added after this point is considered "new" and will be animated.
+    this.initialNotificationIds = new Set(this.notificationService.notifications().map(n => n.id));
+  }
+  
+  isNew(notification: Notification): boolean {
+    return !this.initialNotificationIds.has(notification.id);
+  }
+
+  hasUnreadNotifications = computed(() => 
+    this.notificationService.notifications().some(n => !n.read)
+  );
 }

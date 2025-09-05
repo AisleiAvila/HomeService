@@ -105,36 +105,70 @@ type AdminTab = 'quotes' | 'assignment' | 'financials' | 'categories';
           </div>
         }
         @case ('financials') {
-            <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Financials Overview</h2>
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @for (request of financialRequests(); track request.id) {
+            <div class="space-y-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
+                     <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-green-100">
+                       <i class="fas fa-check-double text-2xl text-green-500"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-gray-500 text-sm font-medium">Completed Services</h3>
+                      <p class="text-2xl font-bold text-gray-800 mt-1">{{ financialStats().completedCount }}</p>
+                    </div>
+                  </div>
+                  <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
+                     <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-emerald-100">
+                       <i class="fas fa-dollar-sign text-2xl text-emerald-500"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-gray-500 text-sm font-medium">Total Revenue</h3>
+                      <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().totalRevenue) }}</p>
+                    </div>
+                  </div>
+                  <div class="bg-white p-6 rounded-lg shadow flex items-center space-x-4">
+                     <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-yellow-100">
+                       <i class="fas fa-file-invoice-dollar text-2xl text-yellow-500"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-gray-500 text-sm font-medium">Outstanding Amount</h3>
+                      <p class="text-2xl font-bold text-gray-800 mt-1">{{ formatCost(financialStats().outstandingAmount) }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Financials Table -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Financial Details</h2>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ request.title }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-500">{{ formatCost(request.cost) }}</td>
-                                <td class="px-6 py-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                          [class.bg-green-100]="request.paymentStatus === 'Paid'"
-                                          [class.text-green-800]="request.paymentStatus === 'Paid'"
-                                          [class.bg-yellow-100]="request.paymentStatus !== 'Paid'"
-                                          [class.text-yellow-800]="request.paymentStatus !== 'Paid'">
-                                        {{ request.paymentStatus }}
-                                    </span>
-                                </td>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Status</th>
                             </tr>
-                        } @empty {
-                            <tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @for (request of financialRequests(); track request.id) {
+                                <tr>
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ request.title }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ formatCost(request.cost) }}</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                              [class.bg-green-100]="request.paymentStatus === 'Paid'"
+                                              [class.text-green-800]="request.paymentStatus === 'Paid'"
+                                              [class.bg-yellow-100]="request.paymentStatus !== 'Paid'"
+                                              [class.text-yellow-800]="request.paymentStatus !== 'Paid'">
+                                            {{ request.paymentStatus }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No completed services yet.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
         @case ('categories') {
@@ -186,6 +220,22 @@ export class AdminDashboardComponent {
   pendingAssignmentRequests = computed(() => this.allRequests().filter(r => r.status === 'Approved'));
   financialRequests = computed(() => this.allRequests().filter(r => r.status === 'Completed'));
 
+  financialStats = computed(() => {
+    const completed = this.financialRequests();
+    const totalRevenue = completed
+        .filter(r => r.paymentStatus === 'Paid' && r.cost)
+        .reduce((sum, r) => sum + r.cost!, 0);
+    const outstandingAmount = completed
+        .filter(r => r.paymentStatus === 'Unpaid' && r.cost)
+        .reduce((sum, r) => sum + r.cost!, 0);
+    
+    return {
+        completedCount: completed.length,
+        totalRevenue: totalRevenue,
+        outstandingAmount: outstandingAmount
+    };
+  });
+
   setTab(tab: AdminTab) { this.activeTab.set(tab); }
   getClientName(clientId: number): string { return this.allUsers().find(u => u.id === clientId)?.name || 'N/A'; }
   getProfessionalsForRequest(category: ServiceCategory): User[] { return this.dataService.getProfessionalsByCategory(category); }
@@ -207,12 +257,11 @@ export class AdminDashboardComponent {
         this.dataService.updateServiceRequest(requestId, {
             professionalId: profId,
             status: 'Assigned',
-            scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // Schedule 2 days from now
+            // Schedule 2 days from now
+            scheduledDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) 
         });
-        const request = this.dataService.getServiceRequestById(requestId);
-        if (request) {
-            this.notificationService.addNotification(`Client: Your service "${request.title}" is scheduled!`);
-        }
+        // The notification logic is now handled by the dataService.
+        this.notificationService.addNotification(`Admin: Assignment successful for request #${requestId}.`);
     }
   }
   
