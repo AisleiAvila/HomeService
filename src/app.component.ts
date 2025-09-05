@@ -135,24 +135,36 @@ type AuthState = 'landing' | 'login' | 'register' | 'verify';
         <!-- Logged-in View -->
         <div class="flex h-full">
           <!-- Sidebar -->
-          <aside class="w-64 bg-gray-800 text-white flex flex-col transition-all duration-300">
-            <div class="p-4 border-b border-gray-700">
-              <h1 class="text-xl font-bold">Home Service Pro</h1>
+          <aside [class]="'bg-gray-800 text-white flex flex-col transition-all duration-300 ' + (isSidebarCollapsed() ? 'w-20' : 'w-64')">
+            <div class="flex items-center border-b border-gray-700 p-4" [class.justify-between]="!isSidebarCollapsed()" [class.justify-center]="isSidebarCollapsed()">
+              @if(!isSidebarCollapsed()) {
+                <h1 class="text-xl font-bold text-nowrap">Home Service Pro</h1>
+              }
+              <button (click)="toggleSidebar()" class="text-gray-400 hover:text-white p-2 rounded-md focus:outline-none">
+                <i [class]="'fas ' + (isSidebarCollapsed() ? 'fa-angles-right' : 'fa-angles-left')"></i>
+              </button>
             </div>
+
             <nav class="flex-grow p-2">
               @for(item of navItems(); track item.view) {
                 <a href="#" (click)="$event.preventDefault(); setView(item.view)"
-                   [class]="'flex items-center px-4 py-2 mt-2 text-sm font-semibold rounded-lg transition-colors duration-200 ' + (currentView() === item.view ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white')">
-                  <i [class]="item.icon + ' fa-fw mr-3'"></i>
-                  <span>{{ item.label }}</span>
+                   [title]="isSidebarCollapsed() ? item.label : null"
+                   [class]="'flex items-center py-3 mt-2 text-sm font-semibold rounded-lg transition-colors duration-200 ' + (isSidebarCollapsed() ? 'justify-center px-2' : 'px-4') + (currentView() === item.view ? ' bg-gray-700 text-white' : ' text-gray-300 hover:bg-gray-700 hover:text-white')">
+                  <i [class]="item.icon + ' fa-fw text-lg'" [class.mr-3]="!isSidebarCollapsed()"></i>
+                  @if(!isSidebarCollapsed()) {
+                    <span>{{ item.label }}</span>
+                  }
                 </a>
               }
             </nav>
-            <div class="p-4 border-t border-gray-700">
+            <div class="p-2 border-t border-gray-700">
               <a href="#" (click)="$event.preventDefault(); logout()"
-                 class="flex items-center w-full px-4 py-2 mt-2 text-sm font-semibold text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white">
-                <i class="fas fa-sign-out-alt fa-fw mr-3"></i>
-                <span>{{ 'logout' | i18n }}</span>
+                 [title]="isSidebarCollapsed() ? ('logout' | i18n) : null"
+                 [class]="'flex items-center w-full py-3 mt-2 text-sm font-semibold rounded-lg hover:bg-gray-700 hover:text-white text-gray-300 ' + (isSidebarCollapsed() ? 'justify-center px-2' : 'px-4')">
+                <i class="fas fa-sign-out-alt fa-fw text-lg" [class.mr-3]="!isSidebarCollapsed()"></i>
+                @if(!isSidebarCollapsed()) {
+                  <span>{{ 'logout' | i18n }}</span>
+                }
               </a>
             </div>
           </aside>
@@ -274,6 +286,7 @@ export class AppComponent {
   currentView = signal<AppView>('dashboard');
   selectedServiceRequest = signal<ServiceRequest | null>(null);
   showNotifications = signal(false);
+  isSidebarCollapsed = signal(false);
 
   unreadNotificationsCount = computed(() => this.notificationService.notifications().filter(n => !n.read).length);
 
@@ -327,6 +340,10 @@ export class AppComponent {
   }
 
   // --- Navigation & View Logic ---
+  toggleSidebar() {
+    this.isSidebarCollapsed.update(collapsed => !collapsed);
+  }
+  
   navItems = computed(() => {
     const user = this.currentUser();
     if (!user) return [];
