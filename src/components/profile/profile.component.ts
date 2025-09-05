@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, signal, inject, effect, computed } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { User, ServiceCategory } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
@@ -7,7 +7,7 @@ import { DataService } from '../../services/data.service';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, TitleCasePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
