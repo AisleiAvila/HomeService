@@ -1,21 +1,8 @@
+// FIX: Create the data models for the application.
 export type UserRole = 'client' | 'professional' | 'admin';
-export type UserStatus = 'Active' | 'Pending' | 'Rejected';
-
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  avatarUrl: string;
-  specialties?: ServiceCategory[];
-  address?: Address;
-}
-
-export type ServiceCategory = 'Plumbing' | 'Electrical' | 'Painting' | 'Gardening' | 'General Repair';
-
+export type UserStatus = 'Pending' | 'Active' | 'Rejected';
+export type ServiceCategory = 'Plumbing' | 'Electrical' | 'Painting' | 'Gardening' | 'General Repair' | string;
 export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
-
 export type PaymentStatus = 'Paid' | 'Unpaid';
 
 export interface Address {
@@ -25,6 +12,17 @@ export interface Address {
   zipCode: string;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  status: UserStatus;
+  avatarUrl: string;
+  specialties?: ServiceCategory[];
+}
+
 export interface ServiceRequest {
   id: number;
   clientId: number;
@@ -32,12 +30,12 @@ export interface ServiceRequest {
   title: string;
   description: string;
   category: ServiceCategory;
+  address: Address;
+  status: ServiceStatus;
   requestedDate: Date;
   scheduledDate: Date | null;
-  status: ServiceStatus;
   cost: number | null;
   paymentStatus: PaymentStatus;
-  address: Address;
 }
 
 export interface ChatMessage {
