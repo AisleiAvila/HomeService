@@ -66,10 +66,14 @@ import { UserRole } from '../../models/maintenance.models';
             </div>
           </div>
 
-          <div>
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <button type="submit" [disabled]="!registerForm.valid"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed">
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm disabled:bg-indigo-300 disabled:cursor-not-allowed">
               Registrar
+            </button>
+            <button type="button" (click)="switchToLanding.emit()"
+                    class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm">
+              Cancelar
             </button>
           </div>
         </form>
@@ -81,6 +85,7 @@ import { UserRole } from '../../models/maintenance.models';
 export class RegisterComponent {
   registered = output<{email: string, role: UserRole}>();
   switchToLogin = output<void>();
+  switchToLanding = output<void>();
 
   name = signal('');
   email = signal('');
