@@ -1,16 +1,15 @@
-import { Component, ChangeDetectionStrategy, input, computed, output, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed, output, inject, ElementRef, viewChild, afterNextRender, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User, ServiceRequest, ServiceStatus, ServiceCategory } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
 
-import { FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, EventInput, EventClickArg } from '@fullcalendar/core';
+import { Calendar, EventInput, EventClickArg } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 
 @Component({
   selector: 'app-schedule',
   standalone: true,
-  imports: [CommonModule, FullCalendarModule],
+  imports: [CommonModule],
   templateUrl: './schedule.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -22,7 +21,9 @@ export class ScheduleComponent {
   viewDetails = output<ServiceRequest>();
   private dataService = inject(DataService);
 
-  // FIX: Added missing 'Quoted' and 'Approved' statuses to satisfy the Record<ServiceStatus, string> type.
+  calendarEl = viewChild.required<ElementRef<HTMLElement>>('calendarEl');
+  private calendarInstance = signal<Calendar | null>(null);
+
   private readonly serviceStatusColors: Record<ServiceStatus, string> = {
     'Pending': '#f59e0b', // amber-500
     'Quoted': '#06b6d4', // cyan-500
@@ -37,7 +38,6 @@ export class ScheduleComponent {
     const allServices = this.dataService.serviceRequests();
     const currentUser = this.user();
     if (currentUser.role === 'admin') {
-      // Admin sees all scheduled services
       return allServices.filter(s => s.scheduledDate);
     } else if (currentUser.role === 'client') {
       return allServices.filter(s => s.clientId === currentUser.id && s.scheduledDate);
@@ -59,6 +59,54 @@ export class ScheduleComponent {
       }
     }));
   });
+
+  constructor() {
+    afterNextRender(() => {
+      const calendar = new Calendar(this.calendarEl().nativeElement, {
+        plugins: [dayGridPlugin],
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,dayGridWeek,dayGridDay'
+        },
+        weekends: true,
+        height: '100%',
+        events: this.calendarEvents(),
+        eventContent: (arg) => {
+          const category = arg.event.extendedProps.category;
+          const iconHtml = '<i class="' + this.getIconForCategory(category) + ' fa-fw mr-2 text-xs"></i>';
+          return {
+            html: '<div class="flex items-center overflow-hidden whitespace-nowrap">' + iconHtml + '<span class="font-semibold">' + arg.event.title + '</span></div>'
+          };
+        },
+        eventClick: (clickInfo: EventClickArg) => {
+          const serviceId = parseInt(clickInfo.event.extendedProps.id, 10);
+          const service = this.dataService.getServiceRequestById(serviceId);
+          if (service) {
+            this.viewDetails.emit(service);
+          }
+        }
+      });
+      calendar.render();
+      this.calendarInstance.set(calendar);
+      
+      // FIX: Sometimes flexbox layouts need an extra cycle to settle.
+      // We schedule a single updateSize() call to ensure the calendar
+      // resizes to its container after the layout is stable.
+      setTimeout(() => {
+        calendar.updateSize();
+      }, 0);
+    });
+
+    effect(() => {
+        const instance = this.calendarInstance();
+        if (instance) {
+            instance.getEventSources().forEach(source => source.remove());
+            instance.addEventSource(this.calendarEvents());
+        }
+    });
+  }
   
   private getIconForCategory(category: ServiceCategory): string {
     const iconMap: Record<string, string> = {
@@ -70,32 +118,6 @@ export class ScheduleComponent {
     };
     return iconMap[category] || 'fas fa-toolbox';
   }
-  
-  calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin],
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,dayGridWeek,dayGridDay'
-    },
-    weekends: true,
-    height: '100%',
-    eventContent: (arg) => {
-      const category = arg.event.extendedProps.category;
-      const iconHtml = '<i class="' + this.getIconForCategory(category) + ' fa-fw mr-2 text-xs"></i>';
-      return {
-        html: '<div class="flex items-center overflow-hidden whitespace-nowrap">' + iconHtml + '<span class="font-semibold">' + arg.event.title + '</span></div>'
-      };
-    },
-    eventClick: (clickInfo: EventClickArg) => {
-      const serviceId = parseInt(clickInfo.event.extendedProps.id, 10);
-      const service = this.dataService.getServiceRequestById(serviceId);
-      if (service) {
-        this.viewDetails.emit(service);
-      }
-    }
-  };
   
   private formatDate(date: Date): string {
     return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
