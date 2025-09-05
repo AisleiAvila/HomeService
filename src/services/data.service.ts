@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus, UserRole, PaymentStatus, Address, UserStatus } from '../models/maintenance.models';
+// FIX: Implement the data service with mock data and methods.
+import { Injectable, signal, inject } from '@angular/core';
+import { User, ServiceRequest, ChatMessage, ServiceCategory, ServiceStatus } from '../models/maintenance.models';
 import { NotificationService } from './notification.service';
 import { I18nService } from './i18n.service';
 
@@ -9,42 +10,94 @@ import { I18nService } from './i18n.service';
 export class DataService {
   private notificationService = inject(NotificationService);
   private i18n = inject(I18nService);
-  private idCounters = {
-    users: 5,
-    requests: 10,
-    messages: 20
-  };
 
+  private userIdCounter = 10;
+  private requestIdCounter = 10;
+  private messageIdCounter = 10;
+
+  private _users = signal<User[]>([
+    { id: 1, name: 'Alice Johnson', email: 'client@email.com', phone: '111-222-3333', role: 'client', status: 'Active', avatarUrl: 'https://picsum.photos/id/1027/200/200' },
+    { id: 2, name: 'Bob Williams', email: 'professional@email.com', phone: '222-333-4444', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/id/1005/200/200', specialties: ['Plumbing', 'General Repair'] },
+    { id: 3, name: 'Charlie Brown', email: 'admin@email.com', phone: '333-444-5555', role: 'admin', status: 'Active', avatarUrl: 'https://picsum.photos/id/1025/200/200' },
+    { id: 4, name: 'Diana Miller', email: 'pro2@email.com', phone: '444-555-6666', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/id/1011/200/200', specialties: ['Electrical', 'Painting'] },
+    { id: 5, name: 'Eve Davis', email: 'client2@email.com', phone: '555-666-7777', role: 'client', status: 'Pending', avatarUrl: 'https://picsum.photos/id/1012/200/200' },
+    { id: 6, name: 'Frank White', email: 'pro3@email.com', phone: '666-777-8888', role: 'professional', status: 'Pending', avatarUrl: 'https://picsum.photos/id/1013/200/200', specialties: ['Gardening'] },
+  ]);
+
+  private _serviceRequests = signal<ServiceRequest[]>([
+    {
+      id: 1,
+      clientId: 1,
+      professionalId: 2,
+      title: 'Fix leaky faucet in bathroom',
+      description: 'The faucet in the master bathroom is constantly dripping. It seems to be coming from the base of the handle.',
+      category: 'Plumbing',
+      address: { street: '123 Main St', city: 'Anytown', state: 'CA', zipCode: '12345' },
+      status: 'In Progress',
+      requestedDate: new Date('2024-05-10'),
+      scheduledDate: new Date('2024-05-20'),
+      cost: 150,
+      paymentStatus: 'Unpaid'
+    },
+    {
+      id: 2,
+      clientId: 1,
+      professionalId: 4,
+      title: 'Paint the living room',
+      description: 'Need the living room walls painted. Color is a light beige. I have the paint already.',
+      category: 'Painting',
+      address: { street: '123 Main St', city: 'Anytown', state: 'CA', zipCode: '12345' },
+      status: 'Completed',
+      requestedDate: new Date('2024-04-15'),
+      scheduledDate: new Date('2024-04-25'),
+      cost: 450,
+      paymentStatus: 'Paid'
+    },
+    {
+      id: 3,
+      clientId: 5,
+      professionalId: null,
+      title: 'Install new ceiling fan',
+      description: 'I bought a new ceiling fan for the bedroom and need it installed. The old fixture needs to be removed.',
+      category: 'Electrical',
+      address: { street: '456 Oak Ave', city: 'Someplace', state: 'NY', zipCode: '54321' },
+      status: 'Pending',
+      requestedDate: new Date('2024-05-18'),
+      scheduledDate: null,
+      cost: null,
+      paymentStatus: 'Unpaid'
+    },
+    {
+      id: 4,
+      clientId: 1,
+      professionalId: null,
+      title: 'Garden maintenance',
+      description: 'The front yard garden needs weeding and mulching.',
+      category: 'Gardening',
+      address: { street: '123 Main St', city: 'Anytown', state: 'CA', zipCode: '12345' },
+      status: 'Quoted',
+      requestedDate: new Date('2024-05-19'),
+      scheduledDate: null,
+      cost: 200,
+      paymentStatus: 'Unpaid'
+    },
+  ]);
+
+  private _chatMessages = signal<ChatMessage[]>([
+    { id: 1, serviceRequestId: 1, senderId: 1, text: 'Hi Bob, when do you think you can start?', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)) },
+    { id: 2, serviceRequestId: 1, senderId: 2, text: 'Hi Alice, I can be there tomorrow morning around 9 AM.', timestamp: new Date() },
+  ]);
+  
   private _categories = signal<ServiceCategory[]>([
     'Plumbing', 'Electrical', 'Painting', 'Gardening', 'General Repair'
   ]);
-  categories = this._categories.asReadonly();
-
-  private _users = signal<User[]>([
-    { id: 1, name: 'Alice Johnson', email: 'alice@email.com', role: 'client', status: 'Active', avatarUrl: 'https://picsum.photos/seed/alice/200' },
-    { id: 2, name: 'Bob Williams', email: 'bob@email.com', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/seed/bob/200', specialties: ['Plumbing', 'General Repair'] },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@email.com', role: 'professional', status: 'Active', avatarUrl: 'https://picsum.photos/seed/charlie/200', specialties: ['Electrical', 'Painting'] },
-    { id: 4, name: 'Diana Prince', email: 'admin@email.com', role: 'admin', status: 'Active', avatarUrl: 'https://picsum.photos/seed/diana/200' },
-    { id: 5, name: 'Pending Pro', email: 'pending@pro.com', role: 'client', status: 'Pending', avatarUrl: 'https://picsum.photos/seed/pending/200' },
-  ]);
-  users = this._users.asReadonly();
-
-  private _serviceRequests = signal<ServiceRequest[]>([
-    { id: 1, clientId: 1, professionalId: 2, title: 'Leaky Faucet', description: 'My kitchen sink faucet is dripping constantly.', category: 'Plumbing', requestedDate: new Date('2024-05-10'), scheduledDate: new Date('2024-05-15'), status: 'Completed', cost: 150, paymentStatus: 'Paid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
-    { id: 2, clientId: 1, professionalId: 3, title: 'Install Ceiling Fan', description: 'Need a new ceiling fan installed in the living room.', category: 'Electrical', requestedDate: new Date('2024-05-12'), scheduledDate: new Date('2024-05-18'), status: 'In Progress', cost: 250, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
-    { id: 3, clientId: 1, professionalId: null, title: 'Paint Bedroom', description: 'The master bedroom needs a new coat of paint.', category: 'Painting', requestedDate: new Date('2024-05-20'), scheduledDate: null, status: 'Quoted', cost: 800, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
-    { id: 4, clientId: 1, professionalId: null, title: 'Garden Weeding', description: 'The front garden is overgrown with weeds.', category: 'Gardening', requestedDate: new Date('2024-05-25'), scheduledDate: null, status: 'Pending', cost: null, paymentStatus: 'Unpaid', address: { street: '123 Maple St', city: 'Springfield', state: 'IL', zipCode: '62704' } },
-    { id: 5, clientId: 1, professionalId: 2, title: 'Fix broken door hinge', description: 'The hinge on the bathroom door is broken and needs to be replaced.', category: 'General Repair', requestedDate: new Date('2024-06-01'), scheduledDate: new Date('2024-06-05'), status: 'Assigned', cost: 75, paymentStatus: 'Unpaid', address: { street: '456 Oak Ave', city: 'Springfield', state: 'IL', zipCode: '62704' } },
-  ]);
-  serviceRequests = this._serviceRequests.asReadonly();
-
-  private _messages = signal<ChatMessage[]>([
-    { id: 1, serviceRequestId: 2, senderId: 1, text: 'Hi, when can you start?', timestamp: new Date() },
-    { id: 2, serviceRequestId: 2, senderId: 3, text: 'I can be there tomorrow at 10 AM.', timestamp: new Date() },
-  ]);
-  messages = this._messages.asReadonly();
-
-  // --- Getters ---
+  
+  // Public readonly signals
+  readonly users = this._users.asReadonly();
+  readonly serviceRequests = this._serviceRequests.asReadonly();
+  readonly categories = this._categories.asReadonly();
+  
+  // Methods to interact with data
   getUserById(id: number): User | undefined {
     return this.users().find(u => u.id === id);
   }
@@ -52,78 +105,62 @@ export class DataService {
   getServiceRequestById(id: number): ServiceRequest | undefined {
     return this.serviceRequests().find(r => r.id === id);
   }
-  
+
   getMessagesForService(serviceRequestId: number): ChatMessage[] {
-    return this.messages().filter(m => m.serviceRequestId === serviceRequestId).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    return this._chatMessages().filter(m => m.serviceRequestId === serviceRequestId).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
-  getProfessionalsByCategory(category: ServiceCategory): User[] {
-    return this.users().filter(u => u.role === 'professional' && u.specialties?.includes(category));
-  }
-
-  // --- Mutations ---
-
-  addServiceRequest(request: Omit<ServiceRequest, 'id' | 'professionalId' | 'scheduledDate' | 'status' | 'cost' | 'paymentStatus'>) {
-    this.idCounters.requests++;
-    const newRequest: ServiceRequest = {
-      ...request,
-      id: this.idCounters.requests,
-      professionalId: null,
-      scheduledDate: null,
-      status: 'Pending',
-      cost: null,
-      paymentStatus: 'Unpaid',
-    };
-    this._serviceRequests.update(requests => [...requests, newRequest]);
-    this.notificationService.addNotification(this.i18n.translate('requestSubmittedNotification', { title: newRequest.title }));
-  }
-
-  addMessage(serviceRequestId: number, senderId: number, text: string) {
-    this.idCounters.messages++;
+  addMessage(serviceRequestId: number, senderId: number, text: string): void {
     const newMessage: ChatMessage = {
-      id: this.idCounters.messages,
+      id: this.messageIdCounter++,
       serviceRequestId,
       senderId,
       text,
       timestamp: new Date()
     };
-    this._messages.update(messages => [...messages, newMessage]);
+    this._chatMessages.update(messages => [...messages, newMessage]);
+  }
+  
+  addServiceRequest(requestData: Omit<ServiceRequest, 'id' | 'status' | 'professionalId' | 'scheduledDate' | 'cost' | 'paymentStatus'>) {
+    const newRequest: ServiceRequest = {
+      ...requestData,
+      id: this.requestIdCounter++,
+      status: 'Pending',
+      professionalId: null,
+      scheduledDate: null,
+      cost: null,
+      paymentStatus: 'Unpaid',
+    };
+    this._serviceRequests.update(requests => [newRequest, ...requests]);
+    this.notificationService.addNotification(this.i18n.translate('requestSubmittedNotification', {title: newRequest.title}));
   }
 
   approveClient(userId: number) {
-    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Active' as UserStatus } : u));
+    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Active' } : u));
     this.notificationService.addNotification(this.i18n.translate('clientAccountApproved'));
   }
-  
+
   rejectClient(userId: number) {
-    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Rejected' as UserStatus } : u));
+    this._users.update(users => users.map(u => u.id === userId ? { ...u, status: 'Rejected' } : u));
     this.notificationService.addNotification(this.i18n.translate('clientAccountRejected'));
   }
 
   submitQuote(requestId: number, amount: number) {
-    this._serviceRequests.update(reqs => reqs.map(r => r.id === requestId ? { ...r, cost: amount, status: 'Quoted' as ServiceStatus } : r));
-    this.notificationService.addNotification(this.i18n.translate('quoteSubmittedNotification', { amount, id: requestId }));
-  }
-
-  respondToQuote(requestId: number, approved: boolean) {
-    this._serviceRequests.update(reqs => reqs.map(r => {
-      if (r.id === requestId) {
-        return { ...r, status: (approved ? 'Approved' : 'Pending') as ServiceStatus };
-      }
-      return r;
-    }));
-    const status = approved ? this.i18n.translate('approvedStatus') : this.i18n.translate('rejectedStatus');
-    this.notificationService.addNotification(this.i18n.translate('quoteResponseNotification', { id: requestId, status }));
+    this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, cost: amount, status: 'Quoted' } : r));
+    const amountStr = this.i18n.language() === 'pt' ? `R$${amount.toFixed(2)}` : `$${amount.toFixed(2)}`;
+    this.notificationService.addNotification(this.i18n.translate('quoteSubmittedNotification', {id: requestId, amount: amountStr}));
   }
   
+  respondToQuote(requestId: number, approved: boolean) {
+    const status: ServiceStatus = approved ? 'Approved' : 'Pending'; // Back to pending if rejected
+    this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, status } : r));
+    const statusStr = approved ? this.i18n.translate('approvedStatus') : this.i18n.translate('rejectedStatus');
+    this.notificationService.addNotification(this.i18n.translate('quoteResponseNotification', {id: requestId, status: statusStr}));
+  }
+
   assignProfessional(requestId: number, professionalId: number) {
-    this._serviceRequests.update(reqs => reqs.map(r => {
-      if (r.id === requestId) {
-        return { ...r, professionalId, status: 'Assigned' as ServiceStatus, scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) }; // schedule 3 days out
-      }
-      return r;
-    }));
-    this.notificationService.addNotification(this.i18n.translate('professionalAssignedNotification', { id: requestId }));
+    this._serviceRequests.update(requests => requests.map(r => r.id === requestId ? { ...r, professionalId, status: 'Assigned', scheduledDate: new Date(new Date().setDate(new Date().getDate() + 7)) } : r)); // schedule for a week later
+    this.notificationService.addNotification(this.i18n.translate('professionalAssignedNotification', {id: requestId}));
   }
   
   updateUser(userId: number, updates: Partial<User>) {
@@ -131,38 +168,41 @@ export class DataService {
     this.notificationService.addNotification(this.i18n.translate('profileUpdatedNotification', { id: userId }));
   }
 
-  addCategory(categoryName: ServiceCategory) {
-    if (!this._categories().includes(categoryName)) {
-      this._categories.update(cats => [...cats, categoryName]);
-      this.notificationService.addNotification(this.i18n.translate('categoryAddedNotification', { category: categoryName }));
-    }
+  addCategory(category: ServiceCategory) {
+    if (this._categories().includes(category)) return;
+    this._categories.update(cats => [...cats, category]);
+    this.notificationService.addNotification(this.i18n.translate('categoryAddedNotification', {category: category}));
   }
 
   updateCategory(oldName: ServiceCategory, newName: ServiceCategory) {
+    if (this._categories().includes(newName)) return;
     this._categories.update(cats => cats.map(c => c === oldName ? newName : c));
-    this._serviceRequests.update(reqs => reqs.map(r => r.category === oldName ? { ...r, category: newName } : r));
-    this._users.update(users => users.map(u => ({ ...u, specialties: u.specialties?.map(s => s === oldName ? newName : s) })));
+    this._serviceRequests.update(reqs => reqs.map(r => r.category === oldName ? {...r, category: newName} : r));
+    this._users.update(users => users.map(u => ({...u, specialties: u.specialties?.map(s => s === oldName ? newName : s)})))
     this.notificationService.addNotification(this.i18n.translate('categoryUpdatedNotification', { oldName, newName }));
   }
-
-  deleteCategory(categoryName: ServiceCategory) {
-    // Basic deletion, doesn't handle re-assigning requests or specialties
-    this._categories.update(cats => cats.filter(c => c !== categoryName));
-    this.notificationService.addNotification(this.i18n.translate('categoryDeletedNotification', { category: categoryName }));
-  }
   
+  deleteCategory(category: ServiceCategory) {
+    this._categories.update(cats => cats.filter(c => c !== category));
+    // Optionally handle what happens to requests/professionals with this category. For now, we leave them.
+    this.notificationService.addNotification(this.i18n.translate('categoryDeletedNotification', { category }));
+  }
+
   addProfessional(name: string, email: string, specialties: ServiceCategory[]) {
-    this.idCounters.users++;
     const newUser: User = {
-      id: this.idCounters.users,
+      id: this.userIdCounter++,
       name,
       email,
       role: 'professional',
       status: 'Active',
-      avatarUrl: `https://picsum.photos/seed/${name.split(' ')[0]}/200`,
+      avatarUrl: 'https://picsum.photos/seed/' + name + '/200/200',
       specialties,
     };
     this._users.update(users => [...users, newUser]);
     this.notificationService.addNotification(this.i18n.translate('professionalAddedNotification', { name }));
+  }
+  
+  getProfessionalsByCategory(category: ServiceCategory): User[] {
+    return this.users().filter(u => u.role === 'professional' && u.status === 'Active' && u.specialties?.includes(category));
   }
 }

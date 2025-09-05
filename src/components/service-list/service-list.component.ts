@@ -2,11 +2,12 @@ import { Component, ChangeDetectionStrategy, input, output, inject } from '@angu
 import { CommonModule } from '@angular/common';
 import { ServiceRequest, User, Address } from '../../models/maintenance.models';
 import { DataService } from '../../services/data.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-service-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, I18nPipe],
   templateUrl: './service-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

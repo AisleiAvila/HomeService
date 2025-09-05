@@ -345,7 +345,10 @@ export class AppComponent {
       return baseNav;
     }
     if (user.role === 'admin') {
-      return [{ view: 'admin' as AppView, label: this.i18n.translate('adminPanel'), icon: 'fas fa-shield-alt' }];
+      return [
+        { view: 'admin' as AppView, label: this.i18n.translate('adminPanel'), icon: 'fas fa-shield-alt' },
+        { view: 'profile' as AppView, label: this.i18n.translate('profile'), icon: 'fas fa-user-circle' }
+      ];
     }
     return [];
   });

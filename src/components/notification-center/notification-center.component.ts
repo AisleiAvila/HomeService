@@ -2,11 +2,12 @@ import { Component, ChangeDetectionStrategy, output, inject, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/maintenance.models';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-notification-center',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, I18nPipe],
   templateUrl: './notification-center.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
