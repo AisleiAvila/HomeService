@@ -9,7 +9,7 @@
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-blue-600">{{ request.category }}</p>
               <h4 class="text-lg font-bold text-gray-800 truncate">{{ request.title }}</h4>
-              <p class="text-sm text-gray-500 mt-1">{{ formatAddress(request.address) }}</p>
+              <p class="text-sm text-gray-500 mt-1">{{ formatAddress(request) }}</p>
               @if(request.status === 'Quoted' && request.cost) {
                 <p class="text-sm font-medium text-green-600">{{ 'quote' | i18n }}: {{ request.cost | currency:currencyCode() }}</p>
               }
@@ -17,7 +17,7 @@
             <div class="mt-4 sm:mt-0 sm:ml-4 flex-shrink-0 flex flex-col items-start sm:items-end space-y-2">
               <span [class]="statusClass(request.status)">
                 {{ request.status }}
-                @if(request.paymentStatus === 'Paid') {
+                @if(request.payment_status === 'Paid') {
                   <span class="ml-2 font-bold text-green-700">({{ 'paid' | i18n }})</span>
                 }
               </span>
@@ -31,7 +31,7 @@
                    @if(request.status === 'Approved') {
                      <button (click)="scheduleRequest.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600">{{ 'schedule' | i18n }}</button>
                    }
-                   @if(request.status === 'Completed' && request.paymentStatus === 'Unpaid') {
+                   @if(request.status === 'Completed' && request.payment_status === 'Unpaid') {
                      <button (click)="payNow.emit(request)" class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">{{ 'payNow' | i18n }}</button>
                    }
                 }

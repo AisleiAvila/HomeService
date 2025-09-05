@@ -4,7 +4,7 @@
     <!-- Avatar with upload/camera options -->
     <div class="flex-shrink-0 mb-6 md:mb-0">
       <div class="relative group h-32 w-32">
-        <img class="h-32 w-32 rounded-full object-cover shadow-lg" [src]="user().avatarUrl" [alt]="user().name">
+        <img class="h-32 w-32 rounded-full object-cover shadow-lg" [src]="user().avatar_url" [alt]="user().name">
         <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
           <div class="flex space-x-6">
             <button (click)="fileInput.click()" [title]="'uploadPhoto' | i18n" class="text-white text-3xl hover:text-gray-300">

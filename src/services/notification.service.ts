@@ -1,6 +1,8 @@
 
 
+
 import { Injectable, signal } from '@angular/core';
+// FIX: Correct import path for the Notification model
 import { Notification } from '../models/maintenance.models';
 
 @Injectable({

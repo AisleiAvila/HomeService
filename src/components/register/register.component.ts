@@ -1,8 +1,17 @@
+
 import { Component, ChangeDetectionStrategy, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+// FIX: Correct import path for the UserRole model
 import { UserRole } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
 
 @Component({
   selector: 'app-register',
@@ -12,21 +21,21 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
-  registered = output<{email: string, role: UserRole}>();
+  registered = output<RegisterPayload>();
   switchToLogin = output<void>();
   switchToLanding = output<void>();
-
+  
   name = signal('');
   email = signal('');
   password = signal('');
   role = signal<UserRole>('client');
 
   register() {
-    if (this.name() && this.email() && this.password()) {
-      // In a real app, you'd call a service here.
-      // For this demo, we just emit the data.
-      console.log(`Registering ${this.email()} as ${this.role()}`);
-      this.registered.emit({ email: this.email(), role: this.role() });
-    }
+    this.registered.emit({
+      name: this.name(),
+      email: this.email(),
+      password: this.password(),
+      role: this.role()
+    });
   }
 }

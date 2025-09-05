@@ -55,7 +55,7 @@
                             @for(req of actionableRequests(); track req.id) {
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ req.title }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getClientName(req.clientId) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getClientName(req.client_id) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm"><span [class]="statusClass(req.status)">{{ req.status }}</span></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                         @if(req.status === 'Pending' || req.status === 'Quoted') {
@@ -94,8 +94,8 @@
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{req.id}}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ req.title }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getClientName(req.clientId) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getProfessionalName(req.professionalId) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getClientName(req.client_id) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ getProfessionalName(req.professional_id) }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm"><span [class]="statusClass(req.status)">{{ req.status }}</span></td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ req.cost ? (req.cost | currency) : 'N/A' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -170,10 +170,10 @@
                     @for(req of completedRequests(); track req.id) {
                     <tr>
                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ req.title }}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ getClientName(req.clientId) }}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ getProfessionalName(req.professionalId) }}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ req.scheduledDate | date }}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold" [class.text-green-600]="req.paymentStatus === 'Paid'" [class.text-orange-600]="req.paymentStatus === 'Unpaid'">{{ req.paymentStatus }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ getClientName(req.client_id) }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ getProfessionalName(req.professional_id) }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ req.scheduled_date | date }}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold" [class.text-green-600]="req.payment_status === 'Paid'" [class.text-orange-600]="req.payment_status === 'Unpaid'">{{ req.payment_status }}</td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-right">{{ formatCost(req.cost) }}</td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
                             <button (click)="generateInvoice(req)" class="text-indigo-600 hover:text-indigo-900">{{ 'generateInvoice' | i18n }}</button>
@@ -352,12 +352,12 @@
         <div class="grid grid-cols-2 gap-8 mb-8">
             <div>
                 <h4 class="font-semibold text-gray-600 mb-1">{{ 'billedTo' | i18n }}</h4>
-                <p>{{ getClientName(req.clientId) }}</p>
-                <p class="text-sm text-gray-500">{{ req.address.street }}, {{ req.address.city }}</p>
+                <p>{{ getClientName(req.client_id) }}</p>
+                <p class="text-sm text-gray-500">{{ req.street }}, {{ req.city }}</p>
             </div>
             <div>
                 <h4 class="font-semibold text-gray-600 mb-1">{{ 'serviceProvidedBy' | i18n }}</h4>
-                <p>{{ getProfessionalName(req.professionalId) }}</p>
+                <p>{{ getProfessionalName(req.professional_id) }}</p>
             </div>
         </div>
         <h3 class="font-semibold text-gray-600 mb-2">{{ 'serviceDescription' | i18n }}</h3>

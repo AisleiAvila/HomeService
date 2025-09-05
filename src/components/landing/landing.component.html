@@ -1,0 +1,19 @@
+<div class="flex flex-col items-center justify-center h-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white text-center p-8">
+  <div class="animate-fadeInUp">
+    <div class="mb-4">
+      <i class="fas fa-tools fa-4x"></i>
+    </div>
+    <h1 class="text-4xl font-bold mb-2">Home Service Pro</h1>
+    <p class="max-w-md mb-8 text-lg opacity-90">
+      {{ 'landingDescription' | i18n }}
+    </p>
+    <div class="space-y-4 sm:space-y-0 sm:space-x-4">
+      <button (click)="signIn.emit()" class="w-full sm:w-auto bg-white text-indigo-600 font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200">
+        {{ 'signIn' | i18n }}
+      </button>
+      <button (click)="createAccount.emit()" class="w-full sm:w-auto bg-transparent border-2 border-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200">
+        {{ 'createAccount' | i18n }}
+      </button>
+    </div>
+  </div>
+</div>
