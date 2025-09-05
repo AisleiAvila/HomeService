@@ -191,9 +191,9 @@ export class DataService {
   }
 
   deleteCategory(name: ServiceCategory): void {
-    const isUsed = this.serviceRequests().some(r => r.category === name && r.status !== 'Completed' && r.status !== 'Cancelled');
+    const isUsed = this.serviceRequests().some(r => r.category === name);
     if (isUsed) {
-      this.notificationService.addNotification(`Cannot delete category "${name}" as it is used in active service requests.`);
+      this.notificationService.addNotification(`Não é possível excluir a categoria "${name}", pois ela está vinculada a uma ou mais solicitações de serviço.`);
       return;
     }
     this._users.update(users => users.map(u => u.specialty === name ? { ...u, specialty: null } : u));
