@@ -95,9 +95,11 @@ export class AdminDashboardComponent {
   assignProfessional() { const req = this.assignmentRequest(), proId = this.assigningProfessionalId(); if (req && proId) { this.dataService.assignProfessional(req.id, proId); this.assignmentRequest.set(null); } }
   
   // --- Category Management ---
-  addCategory() { const name = this.newCategory().trim(); if (name) { this.dataService.addCategory(name); this.newCategory.set(''); } }
+  // FIX: The dataService.addCategory method expects a `ServiceCategory`, but a new category name from an input is a `string`. A type assertion resolves the compile-time error.
+  addCategory() { const name = this.newCategory().trim(); if (name) { this.dataService.addCategory(name as ServiceCategory); this.newCategory.set(''); } }
   startEditCategory(cat: ServiceCategory) { this.editingCategoryName.set(cat); this.editingCategory.set(cat); }
-  saveCategoryEdit() { const oldN = this.editingCategory(), newN = this.editingCategoryName().trim(); if (oldN && newN) { this.dataService.updateCategory(oldN, newN); this.editingCategory.set(null); } }
+  // FIX: The dataService.updateCategory method expects a `ServiceCategory`, but an edited category name from an input is a `string`. A type assertion resolves the compile-time error.
+  saveCategoryEdit() { const oldN = this.editingCategory(), newN = this.editingCategoryName().trim(); if (oldN && newN) { this.dataService.updateCategory(oldN, newN as ServiceCategory); this.editingCategory.set(null); } }
   deleteCategory(cat: ServiceCategory) { if (confirm(`Tem certeza de que deseja excluir a categoria "${cat}"?`)) { this.dataService.deleteCategory(cat); } }
   
   // --- Professional Management ---

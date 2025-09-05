@@ -19,7 +19,7 @@ import { NotificationCenterComponent } from './components/notification-center/no
 import { ServiceListComponent } from './components/service-list/service-list.component';
 
 type AppView = 'dashboard' | 'newRequest' | 'details' | 'chat' | 'profile' | 'schedule' | 'search' | 'admin';
-type AuthState = 'login' | 'register' | 'verify';
+type AuthState = 'landing' | 'login' | 'register' | 'verify';
 
 @Component({
   selector: 'app-root',
@@ -46,6 +46,34 @@ type AuthState = 'login' | 'register' | 'verify';
         <!-- Auth Flow -->
         <main class="h-full w-full">
           @switch (authState()) {
+            @case ('landing') {
+              <div class="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-500 to-blue-600 text-white p-4">
+                <div class="text-center space-y-6 animate-fade-in-up">
+                  <!-- Icon -->
+                  <div class="bg-white bg-opacity-20 p-6 rounded-full inline-block">
+                    <i class="fas fa-tools text-5xl text-white"></i>
+                  </div>
+            
+                  <!-- Title -->
+                  <h1 class="text-5xl font-bold tracking-tight">Home Service Pro</h1>
+            
+                  <!-- Description -->
+                  <p class="max-w-xl text-lg text-indigo-100">
+                    Your one-stop solution for professional home maintenance and repair services. Connect with trusted experts for plumbing, electrical, painting, and more.
+                  </p>
+            
+                  <!-- Buttons -->
+                  <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <button type="button" (click)="authState.set('login')" class="w-full sm:w-auto bg-white text-indigo-600 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105">
+                      Sign In
+                    </button>
+                    <button type="button" (click)="authState.set('register')" class="w-full sm:w-auto bg-transparent border-2 border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-indigo-600 transition-colors duration-300 transform hover:scale-105">
+                      Create Account
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
             @case ('login') {
               <div class="flex items-center justify-center min-h-full p-4">
                 <div class="w-full max-w-md space-y-8">
@@ -221,7 +249,7 @@ export class AppComponent {
   private notificationService = inject(NotificationService);
 
   // Auth state
-  authState = signal<AuthState>('login');
+  authState = signal<AuthState>('landing');
   currentUser = signal<User | null>(null);
   loginEmail = '';
   loginError = signal<string | null>(null);
@@ -263,7 +291,7 @@ export class AppComponent {
 
   logout() {
     this.currentUser.set(null);
-    this.authState.set('login');
+    this.authState.set('landing');
   }
 
   handleRegistration(event: { email: string; role: UserRole }) {
