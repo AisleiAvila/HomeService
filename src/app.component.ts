@@ -215,7 +215,14 @@ export class AppComponent {
   private notificationService = inject(NotificationService);
 
   allUsers = this.dataService.users;
-  currentUser = signal<User | null>(this.allUsers()[0] ?? null);
+  
+  // Hold the ID of the current user in a signal
+  currentUserId = signal<number>(this.allUsers()[0]?.id ?? 1);
+
+  // Derive the current user object from the ID and the master user list
+  currentUser = computed(() => {
+    return this.allUsers().find(u => u.id === this.currentUserId()) ?? null;
+  });
 
   currentView = signal<View>('dashboard');
   
@@ -253,9 +260,10 @@ export class AppComponent {
   changeUser(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const userId = parseInt(selectElement.value, 10);
-    const user = this.dataService.getUserById(userId);
-    this.currentUser.set(user || null);
-    if (user?.role === 'admin') {
+    this.currentUserId.set(userId);
+    
+    // Now we can use the computed signal to check the role
+    if (this.currentUser()?.role === 'admin') {
         this.setView('admin');
     } else {
         this.setView('dashboard');
