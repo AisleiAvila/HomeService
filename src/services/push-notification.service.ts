@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { NotificationService } from './notification.service';
 import { I18nService } from './i18n.service';
 
@@ -14,114 +14,58 @@ export interface PushNotificationPayload {
 export class PushNotificationService {
   private notificationService = inject(NotificationService);
   private i18n = inject(I18nService);
+  private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
 
-  private readonly VAPID_PUBLIC_KEY = 'BNo5YgA_w2GNL6k_4S_2NTVj-A45s84Mv3myCkaC-8t2j5b4eQJUn_y-13IWFg6x-zUjXNb5zCqj4naIoeAxaH8';
-
-  // Expose permission status as a signal for the UI
   permission = signal<NotificationPermission>('default');
 
-  constructor() {
-    // Set initial permission status
-    if ('Notification' in window) {
-      this.permission.set(Notification.permission);
-    }
-  }
+  async init(): Promise<void> {
+    // Set initial permission state without prompting
+    this.permission.set(Notification.permission);
 
-  /**
-   * Initializes the service by registering the service worker.
-   */
-  public init(): void {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      console.log('Service Worker and Push is supported');
-
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(swReg => {
-          console.log('Service Worker is registered', swReg);
-        })
-        .catch(error => {
-          console.error('Service Worker Error', error);
-        });
+      try {
+        this.serviceWorkerRegistration = await navigator.serviceWorker.register('./service-worker.js');
+        console.log('Service Worker registered successfully.');
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
     } else {
       console.warn('Push messaging is not supported');
     }
   }
 
-  /**
-   * Requests permission from the user and subscribes to push notifications.
-   */
-  public async requestPermissionAndSubscribe(): Promise<void> {
-    if (!('Notification' in window)) {
-      console.warn('This browser does not support desktop notification');
-      return;
+  async requestPermissionAndSubscribe(): Promise<void> {
+    if (this.permission() !== 'default') {
+      return; // Only prompt if permission is in the default state
     }
 
-    // Request permission
-    const currentPermission = await Notification.requestPermission();
-    this.permission.set(currentPermission);
-
-    if (currentPermission === 'granted') {
-      console.log('Notification permission granted.');
-      await this.subscribeUserToPush();
-    } else {
-      console.log('Notification permission denied.');
-      this.notificationService.addNotification(this.i18n.translate('pushNotificationsBlocked'));
-    }
-  }
-
-  /**
-   * Subscribes the user to the push service.
-   */
-  private async subscribeUserToPush(): Promise<void> {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.VAPID_PUBLIC_KEY),
-      });
-      console.log('User is subscribed:', subscription);
+      const userChoice = await window.Notification.requestPermission();
+      this.permission.set(userChoice); // Update state with user's choice
 
-      // In a real app, you'd send this subscription object to your backend server.
-      // For this demo, we'll just log it.
-      // await sendSubscriptionToServer(subscription);
-
-    } catch (err) {
-      console.error('Failed to subscribe the user: ', err);
-      this.notificationService.addNotification(this.i18n.translate('pushSubscriptionFailed'));
-    }
-  }
-
-  /**
-   * Simulates sending a push notification from the server.
-   * In this app, the "server" is the DataService. This method posts a message
-   * to the active service worker, which then displays the notification.
-   */
-  public sendNotification(payload: PushNotificationPayload): void {
-     if (this.permission() !== 'granted') {
-       console.log('Cannot send push notification, permission not granted.');
-       return;
-     }
-    
-    navigator.serviceWorker.ready.then(registration => {
-      // Check if there is a controller to avoid errors
-      if (registration.active) {
-        registration.active.postMessage(payload);
+      if (userChoice !== 'granted') {
+        this.notificationService.addNotification(this.i18n.translate('pushNotificationsBlocked'));
+        console.log('Push notification permission was denied.');
       } else {
-        console.warn('No active service worker to send message to.');
+        console.log('Push notification permission granted.');
+        // In a real app, you would typically create a push subscription here
       }
-    });
-  }
-  
-  /**
-   * Helper function to convert a VAPID key from base64 to a Uint8Array.
-   */
-  private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
+    } catch (error) {
+        console.error('Error requesting notification permission:', error);
     }
-    return outputArray;
+  }
+
+  sendNotification(payload: PushNotificationPayload): void {
+     if (this.permission() !== 'granted') {
+        console.warn('Cannot send notification, permission not granted.');
+        return;
+    }
+
+    if (this.serviceWorkerRegistration && this.serviceWorkerRegistration.active) {
+      this.serviceWorkerRegistration.active.postMessage(payload);
+    } else {
+      console.error('Service worker not active, cannot send notification.');
+      // In a real app, you might queue notifications until the SW is active.
+    }
   }
 }
