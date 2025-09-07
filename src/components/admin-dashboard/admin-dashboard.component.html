@@ -608,6 +608,184 @@
         }
       </div>
     </div>
+    } @case ('clients') {
+    <div class="bg-white rounded-lg shadow-md">
+      <div class="p-4 border-b">
+        <h3 class="text-xl font-semibold">{{ "manageClients" | i18n }}</h3>
+        <p class="text-gray-600 text-sm mt-1">
+          {{ "clientManagementDescription" | i18n }}
+        </p>
+      </div>
+      @if (clients().length > 0) {
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "name" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "email" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "phone" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "status" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "services" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "totalSpent" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "lastService" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {{ "actions" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (client of clients(); track client.id) { @if
+            (getClientStats(client.id); as stats) {
+            <tr>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                <div class="flex items-center">
+                  @if (client.avatar_url) {
+                  <img
+                    [src]="client.avatar_url"
+                    [alt]="client.name"
+                    class="h-8 w-8 rounded-full mr-3"
+                  />
+                  } @else {
+                  <div
+                    class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user text-gray-600 text-sm"></i>
+                  </div>
+                  }
+                  <div>
+                    <div class="font-medium">{{ client.name }}</div>
+                    @if (client.email_verified === false) {
+                    <div class="text-xs text-orange-600">
+                      {{ "emailNotVerified" | i18n }}
+                    </div>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ client.email }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ client.phone || "N/A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span
+                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  [class.bg-green-100]="client.status === 'Active'"
+                  [class.text-green-800]="client.status === 'Active'"
+                  [class.bg-yellow-100]="client.status === 'Pending'"
+                  [class.text-yellow-800]="client.status === 'Pending'"
+                  [class.bg-red-100]="client.status === 'Rejected'"
+                  [class.text-red-800]="client.status === 'Rejected'"
+                >
+                  {{ client.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <div class="text-center">
+                  <div class="font-medium">{{ stats.completedRequests }}</div>
+                  <div class="text-xs text-gray-400">
+                    {{ "of" | i18n }} {{ stats.totalRequests }}
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span class="font-medium text-green-600">
+                  {{ formatCost(stats.totalSpent) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                @if (stats.lastServiceDate) {
+                <span>{{ stats.lastServiceDate | date : "short" }}</span>
+                } @else {
+                <span class="text-gray-400">{{ "never" | i18n }}</span>
+                }
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"
+              >
+                @if (client.status === 'Active') {
+                <button
+                  (click)="deactivateClient(client.id)"
+                  class="text-red-600 hover:text-red-900"
+                  title="{{ 'deactivateClient' | i18n }}"
+                >
+                  <i class="fas fa-user-times"></i>
+                </button>
+                } @else if (client.status === 'Rejected') {
+                <button
+                  (click)="activateClient(client.id)"
+                  class="text-green-600 hover:text-green-900"
+                  title="{{ 'activateClient' | i18n }}"
+                >
+                  <i class="fas fa-user-check"></i>
+                </button>
+                } @if (client.status === 'Pending') {
+                <button
+                  (click)="activateClient(client.id)"
+                  class="text-green-600 hover:text-green-900 mr-2"
+                  title="{{ 'approveClient' | i18n }}"
+                >
+                  <i class="fas fa-check"></i>
+                </button>
+                <button
+                  (click)="deactivateClient(client.id)"
+                  class="text-red-600 hover:text-red-900"
+                  title="{{ 'rejectClient' | i18n }}"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+                }
+              </td>
+            </tr>
+            } }
+          </tbody>
+        </table>
+      </div>
+      } @else {
+      <div class="text-center py-12">
+        <i class="fas fa-user-friends text-4xl text-gray-400 mb-4"></i>
+        <h4 class="text-lg font-medium text-gray-900 mb-2">
+          {{ "noClientsFound" | i18n }}
+        </h4>
+        <p class="text-gray-500">
+          {{ "noClientsDescription" | i18n }}
+        </p>
+      </div>
+      }
+    </div>
     } }
   </div>
 </div>
