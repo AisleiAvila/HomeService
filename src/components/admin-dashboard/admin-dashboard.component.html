@@ -2,36 +2,61 @@
 <div class="flex flex-col h-full bg-gray-100">
   <!-- Navigation Tabs -->
   <div class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
-    <nav class="flex -mb-px space-x-6 px-4 sm:px-6">
-      @for (view of views(); track view.id) {
-      <button
-        (click)="setView(view.id)"
-        [class]="
-          'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ' +
-          (currentView() === view.id
-            ? 'border-indigo-500 text-indigo-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
-        "
-        class="flex items-center"
+    <!-- Mobile Dropdown Menu (visible only on very small screens) -->
+    <div class="block sm:hidden px-4 py-3">
+      <select
+        [value]="currentView()"
+        (change)="setView($any($event.target).value)"
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
       >
-        <i [class]="view.icon + ' mr-2'"></i>
-        {{ view.label }}
-        @if (view.id === 'approvals' && pendingApprovalCount() > 0) {
-        <span
-          class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
-        >
-          {{ pendingApprovalCount() }}
-        </span>
+        @for (view of views(); track view.id) {
+        <option [value]="view.id">
+          {{ view.label }}
+          @if (view.id === 'approvals' && pendingApprovalCount() > 0) { ({{
+            pendingApprovalCount()
+          }}) }
+        </option>
         }
-      </button>
-      }
+      </select>
+    </div>
+
+    <!-- Horizontal Scrollable Menu (visible on small+ screens) -->
+    <nav
+      class="hidden sm:flex overflow-x-auto -mb-px px-4 sm:px-6 scrollbar-hide"
+    >
+      <div class="flex space-x-4 sm:space-x-6 min-w-max">
+        @for (view of views(); track view.id) {
+        <button
+          (click)="setView(view.id)"
+          [class]="
+            'whitespace-nowrap py-3 px-3 sm:py-4 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 flex-shrink-0 min-w-[80px] sm:min-w-0 ' +
+            (currentView() === view.id
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
+          "
+          class="flex items-center justify-center sm:justify-start"
+        >
+          <i [class]="view.icon + ' sm:mr-2'" class="text-sm sm:text-base"></i>
+          <span class="hidden md:inline ml-1 sm:ml-0">{{ view.label }}</span>
+          @if (view.id === 'approvals' && pendingApprovalCount() > 0) {
+          <span
+            class="ml-1 sm:ml-2 inline-flex items-center px-1.5 py-0.5 sm:px-2.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+          >
+            {{ pendingApprovalCount() }}
+          </span>
+          }
+        </button>
+        }
+      </div>
     </nav>
   </div>
 
   <!-- Content Area -->
-  <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+  <div class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
     @switch (currentView()) { @case ('overview') {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6"
+    >
       @for (stat of stats(); track stat.label) {
       <div
         class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4"
