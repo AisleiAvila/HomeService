@@ -31,9 +31,9 @@ export class AdminDashboardComponent {
 
   constructor() {
     // Debug: Check if component is being instantiated
-    console.log('AdminDashboardComponent initialized');
-    console.log('Users:', this.dataService.users());
-    console.log('Requests:', this.dataService.serviceRequests());
+    console.log("AdminDashboardComponent initialized");
+    console.log("Users:", this.dataService.users());
+    console.log("Requests:", this.dataService.serviceRequests());
   }
 
   // UI State

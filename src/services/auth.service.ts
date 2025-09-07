@@ -73,14 +73,16 @@ export class AuthService {
         status: "Active",
         avatar_url: "https://i.pravatar.cc/100?img=1",
       };
-      
+
       this.appUser.set(adminUser);
-      this.notificationService.addNotification("Logged in as Admin (Development Mode)");
-      
+      this.notificationService.addNotification(
+        "Logged in as Admin (Development Mode)"
+      );
+
       return {
-        data: { 
-          user: { id: "admin-123", email: "admin@homeservice.com" } as any, 
-          session: { access_token: "dev-token" } as any 
+        data: {
+          user: { id: "admin-123", email: "admin@homeservice.com" } as any,
+          session: { access_token: "dev-token" } as any,
         },
         error: null,
       };
