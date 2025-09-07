@@ -153,6 +153,26 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectTime: "Select Time",
     confirmSchedule: "Confirm Schedule",
 
+    // Calendar specific terms
+    today: "Today",
+    month: "Month",
+    week: "Week",
+    day: "Day",
+    agenda: "Agenda",
+    allDay: "All Day",
+    noEventsForDay: "No events for this day",
+    moreEvents: "more events",
+
+    // Service Status translations
+    statusPending: "Pending",
+    statusQuoted: "Quoted",
+    statusApproved: "Approved",
+    statusScheduled: "Scheduled",
+    statusAssigned: "Assigned",
+    statusInProgress: "In Progress",
+    statusCompleted: "Completed",
+    statusCancelled: "Cancelled",
+
     // Notifications
     notifications: "Notifications",
     noNewNotifications: "You have no new notifications.",
@@ -441,6 +461,26 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectDate: "Selecionar Data",
     selectTime: "Selecionar Hora",
     confirmSchedule: "Confirmar Agendamento",
+
+    // Calendar specific terms
+    today: "Hoje",
+    month: "Mês",
+    week: "Semana",
+    day: "Dia",
+    agenda: "Agenda",
+    allDay: "Dia Todo",
+    noEventsForDay: "Nenhum evento para este dia",
+    moreEvents: "mais eventos",
+
+    // Service Status translations
+    statusPending: "Pendente",
+    statusQuoted: "Orçamentado",
+    statusApproved: "Aprovado",
+    statusScheduled: "Agendado",
+    statusAssigned: "Atribuído",
+    statusInProgress: "Em Andamento",
+    statusCompleted: "Concluído",
+    statusCancelled: "Cancelado",
 
     // Notifications
     notifications: "Notificações",
