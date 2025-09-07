@@ -26,7 +26,7 @@ export class AuthService {
 
       if (sUser) {
         console.log("👤 Usuário autenticado, buscando perfil...");
-        await this.fetchAppUser(sUser.id);
+        await this.fetchAppUser(sUser.id, true); // true = chamada automática
       } else {
         console.log("👤 Nenhum usuário logado");
         this.appUser.set(null);
@@ -35,7 +35,7 @@ export class AuthService {
     });
   }
 
-  private async fetchAppUser(userId: string) {
+  private async fetchAppUser(userId: string, isAutomatic: boolean = true) {
     console.log("🔍 Buscando usuário com auth_id:", userId);
 
     const { data, error } = await this.supabase.client
@@ -60,13 +60,21 @@ export class AuthService {
 
     // Verificar se o email foi verificado
     if (!user.email_verified) {
-      console.log(
-        "⚠️ Email NÃO verificado. Definindo pendingEmailConfirmation"
-      );
-      this.pendingEmailConfirmation.set(user.email);
-      this.appUser.set(null);
-      // Fazer logout para forçar verificação
-      await this.supabase.client.auth.signOut();
+      console.log("⚠️ Email NÃO verificado.");
+
+      if (isAutomatic) {
+        // Se é uma chamada automática (effect), apenas fazer logout silencioso
+        console.log("🔄 Chamada automática - fazendo logout silencioso");
+        await this.supabase.client.auth.signOut();
+        this.appUser.set(null);
+        // NÃO definir pendingEmailConfirmation para não redirecionar
+      } else {
+        // Se é uma chamada manual (verificação), redirecionar para tela de verificação
+        console.log("📧 Chamada manual - redirecionando para verificação");
+        this.pendingEmailConfirmation.set(user.email);
+        this.appUser.set(null);
+        await this.supabase.client.auth.signOut();
+      }
       return;
     }
 
@@ -448,8 +456,8 @@ export class AuthService {
       this.handleAuthError(error, "marking email as verified");
     } else {
       console.log("✅ Email marcado como verificado com sucesso");
-      // Recarregar o usuário
-      await this.fetchAppUser(authId);
+      // Recarregar o usuário (não é automático, é manual)
+      await this.fetchAppUser(authId, false);
     }
   }
 
