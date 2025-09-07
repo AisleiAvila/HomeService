@@ -36,6 +36,9 @@ export class AdminDashboardComponent {
     console.log("Requests:", this.dataService.serviceRequests());
   }
 
+  // Environment check
+  isProduction = false; // Could be injected from environment in production
+
   // UI State
   currentView = signal<
     | "overview"

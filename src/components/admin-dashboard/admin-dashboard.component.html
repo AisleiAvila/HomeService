@@ -1,9 +1,13 @@
 <!-- Admin Dashboard Main Container -->
 <div class="flex flex-col h-full bg-gray-100">
-  <!-- Debug Info -->
-  <div class="p-2 bg-yellow-100 text-xs" *ngIf="true">
-    Debug: Current View = {{ currentView() }}, Users = {{ allUsers().length }},
-    Requests = {{ allRequests().length }}
+  <!-- Development Info -->
+  <div
+    class="p-2 bg-blue-50 text-xs border-b border-blue-200"
+    *ngIf="!isProduction"
+  >
+    <strong>Admin Dashboard:</strong>
+    {{ allUsers().length }} users, {{ allRequests().length }} requests,
+    {{ actionableRequests().length }} pending actions
   </div>
 
   <!-- Navigation Tabs -->
