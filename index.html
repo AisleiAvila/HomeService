@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Service Pro</title>
-  <style>
-    /* Basic styles to prevent flash of unstyled content */
-    body { font-family: sans-serif; margin: 0; }
-    /* Styles for printing the invoice */
-    @media print {
-      body * { visibility: hidden; }
-      .invoice-content, .invoice-content * { visibility: visible; }
-      .invoice-content { position: absolute; left: 0; top: 0; width: 100%; padding: 1rem; }
-      .no-print { display: none !important; }
-    }
-  </style>
-  <script type="importmap">
-  {
-    "imports": {
-      "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
-      "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
-      "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
-      "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
-      "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
-      "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
-      "@angular/common": "https://next.esm.sh/@angular/common@^20.1.6-0?external=rxjs",
-      "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.1.6-0?external=rxjs",
-      "@angular/core": "https://next.esm.sh/@angular/core@^20.1.6-0?external=rxjs",
-      "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.1.6-0?external=rxjs",
-      "@angular/forms": "https://next.esm.sh/@angular/forms@^20.1.6-0?external=rxjs",
-      "@fullcalendar/core": "https://next.esm.sh/@fullcalendar/core@^6.1.19?external=rxjs",
-      "@fullcalendar/core/locales/pt-br": "https://next.esm.sh/@fullcalendar/core@^6.1.19/locales/pt-br?external=rxjs",
-      "@fullcalendar/daygrid": "https://next.esm.sh/@fullcalendar/daygrid@^6.1.19?external=rxjs",
-      "@fullcalendar/interaction": "https://next.esm.sh/@fullcalendar/interaction@^6.1.19?external=rxjs",
-      "@fullcalendar/timegrid": "https://next.esm.sh/@fullcalendar/timegrid@^6.1.19?external=rxjs",
-      "@fullcalendar/angular": "https://next.esm.sh/@fullcalendar/angular@^6.1.19?external=rxjs",
-      "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.4/+esm"
-    }
-  }
-  </script>
-</head>
-<body>
-  <app-root></app-root>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Service Pro</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      /* Basic styles to prevent flash of unstyled content */
+      body {
+        font-family: sans-serif;
+        margin: 0;
+      }
+      /* Styles for printing the invoice */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .invoice-content,
+        .invoice-content * {
+          visibility: visible;
+        }
+        .invoice-content {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          padding: 1rem;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+          "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+          "rxjs/ajax": "https://aistudiocdn.com/rxjs@^7.8.2/ajax?conditions=es2015",
+          "rxjs/webSocket": "https://aistudiocdn.com/rxjs@^7.8.2/webSocket?conditions=es2015",
+          "rxjs/testing": "https://aistudiocdn.com/rxjs@^7.8.2/testing?conditions=es2015",
+          "rxjs/fetch": "https://aistudiocdn.com/rxjs@^7.8.2/fetch?conditions=es2015",
+          "@angular/common": "https://next.esm.sh/@angular/common@^20.1.6-0?external=rxjs",
+          "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.1.6-0?external=rxjs",
+          "@angular/core": "https://next.esm.sh/@angular/core@^20.1.6-0?external=rxjs",
+          "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.1.6-0?external=rxjs",
+          "@angular/forms": "https://next.esm.sh/@angular/forms@^20.1.6-0?external=rxjs",
+          "@fullcalendar/core": "https://next.esm.sh/@fullcalendar/core@^6.1.19?external=rxjs",
+          "@fullcalendar/core/locales/pt-br": "https://next.esm.sh/@fullcalendar/core@^6.1.19/locales/pt-br?external=rxjs",
+          "@fullcalendar/daygrid": "https://next.esm.sh/@fullcalendar/daygrid@^6.1.19?external=rxjs",
+          "@fullcalendar/interaction": "https://next.esm.sh/@fullcalendar/interaction@^6.1.19?external=rxjs",
+          "@fullcalendar/timegrid": "https://next.esm.sh/@fullcalendar/timegrid@^6.1.19?external=rxjs",
+          "@fullcalendar/angular": "https://next.esm.sh/@fullcalendar/angular@^6.1.19?external=rxjs",
+          "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.4/+esm"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
 </html>

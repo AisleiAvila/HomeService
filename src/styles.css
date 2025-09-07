@@ -1,0 +1,33 @@
+/* Tailwind CSS directives - Using CDN instead to avoid build issues */
+/*
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+*/
+
+/* Custom styles to prevent flash of unstyled content */
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+/* Styles for printing the invoice */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .invoice-content,
+  .invoice-content * {
+    visibility: visible;
+  }
+  .invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

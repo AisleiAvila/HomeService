@@ -1,29 +1,117 @@
-import { Injectable, signal } from '@angular/core';
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-
-// IMPORTANT: In a real application, these should be stored in environment variables
-// and not hardcoded.
-const SUPABASE_URL = 'https://uqrvenlkquheajuveggv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc';
+// supabase.service.ts
+import { Injectable, signal } from "@angular/core";
+import {
+  AuthError,
+  createClient,
+  SupabaseClient,
+  User,
+} from "@supabase/supabase-js";
+import { environment } from "../environments/environment";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class SupabaseService {
-  // FIX: Provide a public Supabase client instance.
-  public readonly client: SupabaseClient;
-  
-  // FIX: Provide a signal for the current authenticated user.
-  readonly currentUser = signal<User | null>(null);
+  private supabase: SupabaseClient;
+  private _currentUser = signal<User | null>(null);
 
   constructor() {
-    // FIX: Initialize the Supabase client. This service was previously empty.
-    this.client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    this.supabase = createClient(
+      environment.supabaseUrl.toString().trim(),
+      environment.supabaseAnonKey
+    );
 
-    // FIX: Listen to auth state changes and update a signal.
-    // This makes user state reactive throughout the application.
-    this.client.auth.onAuthStateChange((_event, session) => {
-      this.currentUser.set(session?.user ?? null);
+    // Inicializar com usuário atual se existir
+    this.initializeCurrentUser();
+
+    // Listen for auth changes
+    this.client.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
+      this._currentUser.set(session?.user ?? null);
     });
+  }
+
+  async signIn(email: string, password: string) {
+    console.log("Attempting login for:", email);
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        console.error("Login error:", error.message);
+        return { data: null, error };
+      }
+
+      console.log("Login result:", { data, error });
+      return { data, error: null };
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return { data: null, error: err as AuthError };
+    }
+  }
+
+  get client() {
+    return this.supabase;
+  }
+
+  async signUp(email: string, password: string) {
+    const { data, error } = await this.supabase.auth.signUp({
+      email: email.trim(),
+      password,
+    });
+    return { data, error };
+  }
+
+  private async initializeCurrentUser() {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await this.client.auth.getUser();
+      if (error) {
+        console.error("Erro ao obter usuário inicial:", error);
+        this._currentUser.set(null);
+      } else {
+        this._currentUser.set(user);
+      }
+    } catch (error) {
+      console.error("Erro inesperado ao inicializar usuário:", error);
+      this._currentUser.set(null);
+    }
+  }
+
+  get currentUser() {
+    return this._currentUser.asReadonly();
+  }
+
+  // Método auxiliar para obter o usuário atual de forma síncrona
+  getCurrentUserSync(): User | null {
+    return this._currentUser();
+  }
+
+  // Método auxiliar para obter o usuário atual de forma assíncrona
+  async getCurrentUserAsync(): Promise<User | null> {
+    const {
+      data: { user },
+      error,
+    } = await this.client.auth.getUser();
+    if (error) {
+      console.error("Erro ao obter usuário:", error);
+      return null;
+    }
+    return user;
+  }
+
+  onAuthStateChange(callback: (user: User | null) => void) {
+    return this.supabase.auth.onAuthStateChange((event, session) => {
+      callback(session?.user || null);
+    });
+  }
+
+  async signOut() {
+    const { error } = await this.supabase.auth.signOut();
+    return { error };
   }
 }
