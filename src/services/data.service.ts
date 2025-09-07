@@ -23,8 +23,160 @@ export class DataService {
   private i18n = inject(I18nService);
 
   // Signals for storing application data
-  readonly users = signal<User[]>([]);
-  readonly serviceRequests = signal<ServiceRequest[]>([]);
+  readonly users = signal<User[]>([
+    // Mock data for development
+    {
+      id: 1,
+      auth_id: "admin-123",
+      name: "Admin User",
+      email: "admin@homeservice.com",
+      role: "admin",
+      status: "Active",
+      avatar_url: "https://i.pravatar.cc/100?img=1",
+    },
+    {
+      id: 2,
+      auth_id: "client-123",
+      name: "John Doe",
+      email: "john@example.com",
+      role: "client",
+      status: "Active",
+      avatar_url: "https://i.pravatar.cc/100?img=2",
+      phone: "+1 (555) 123-4567",
+    },
+    {
+      id: 3,
+      auth_id: "pro-123",
+      name: "Jane Smith",
+      email: "jane@example.com",
+      role: "professional",
+      status: "Pending",
+      avatar_url: "https://i.pravatar.cc/100?img=3",
+      phone: "+1 (555) 987-6543",
+      specialties: ["Plumbing", "Electrical"],
+    },
+    {
+      id: 4,
+      auth_id: "pro-456",
+      name: "Mike Johnson",
+      email: "mike@example.com",
+      role: "professional",
+      status: "Active",
+      avatar_url: "https://i.pravatar.cc/100?img=4",
+      phone: "+1 (555) 456-7890",
+      specialties: ["Cleaning", "Gardening"],
+    },
+  ]);
+
+  readonly serviceRequests = signal<ServiceRequest[]>([
+    // Mock data for development
+    {
+      id: 1,
+      client_id: 2,
+      professional_id: 4,
+      client_auth_id: "client-123",
+      professional_auth_id: "pro-456",
+      title: "Kitchen Sink Repair",
+      description: "Kitchen sink is leaking and needs immediate repair.",
+      category: "Plumbing",
+      street: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zip_code: "12345",
+      status: "Completed",
+      payment_status: "Paid",
+      requested_date: "2024-03-01T10:00:00Z",
+      scheduled_date: "2024-03-02T14:00:00Z",
+      cost: 150.00,
+      client_name: "John Doe",
+      professional_name: "Mike Johnson",
+    },
+    {
+      id: 2,
+      client_id: 2,
+      professional_id: null,
+      client_auth_id: "client-123",
+      professional_auth_id: null,
+      title: "Electrical Outlet Installation",
+      description: "Need to install new electrical outlets in the living room.",
+      category: "Electrical",
+      street: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zip_code: "12345",
+      status: "Pending",
+      payment_status: "Unpaid",
+      requested_date: "2024-03-05T09:00:00Z",
+      scheduled_date: null,
+      cost: null,
+      client_name: "John Doe",
+      professional_name: "Unassigned",
+    },
+    {
+      id: 3,
+      client_id: 2,
+      professional_id: 4,
+      client_auth_id: "client-123",
+      professional_auth_id: "pro-456",
+      title: "Deep House Cleaning",
+      description: "Weekly deep cleaning service for 3-bedroom house.",
+      category: "Cleaning",
+      street: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zip_code: "12345",
+      status: "In Progress",
+      payment_status: "Unpaid",
+      requested_date: "2024-03-03T08:00:00Z",
+      scheduled_date: "2024-03-06T10:00:00Z",
+      cost: 120.00,
+      client_name: "John Doe",
+      professional_name: "Mike Johnson",
+    },
+    {
+      id: 4,
+      client_id: 2,
+      professional_id: null,
+      client_auth_id: "client-123",
+      professional_auth_id: null,
+      title: "Garden Maintenance",
+      description: "Monthly garden maintenance and lawn care.",
+      category: "Gardening",
+      street: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zip_code: "12345",
+      status: "Quoted",
+      payment_status: "Unpaid",
+      requested_date: "2024-03-04T11:00:00Z",
+      scheduled_date: null,
+      cost: 80.00,
+      client_name: "John Doe",
+      professional_name: "Unassigned",
+    },
+    {
+      id: 5,
+      client_id: 2,
+      professional_id: 4,
+      client_auth_id: "client-123",
+      professional_auth_id: "pro-456",
+      title: "Living Room Painting",
+      description: "Paint living room walls with premium paint.",
+      category: "Painting",
+      street: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zip_code: "12345",
+      status: "Completed",
+      payment_status: "Paid",
+      requested_date: "2024-02-28T13:00:00Z",
+      scheduled_date: "2024-03-01T09:00:00Z",
+      cost: 300.00,
+      client_name: "John Doe",
+      professional_name: "Mike Johnson",
+    },
+  ]);
+
   readonly chatMessages = signal<ChatMessage[]>([]);
   // FIX: Make categories a signal so it can be updated from admin dashboard
   readonly categories = signal<ServiceCategory[]>([
@@ -214,7 +366,9 @@ export class DataService {
   }
 
   async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
-    await this.updateServiceRequest(requestId, { payment_status: paymentStatus });
+    await this.updateServiceRequest(requestId, {
+      payment_status: paymentStatus,
+    });
     this.notificationService.addNotification(
       this.i18n.translate("paymentStatusChanged", {
         id: requestId.toString(),
@@ -236,7 +390,7 @@ export class DataService {
     } else {
       // Refresh users data
       await this.fetchUsers();
-      
+
       // Notify about user updates
       if (updates.status) {
         this.notificationService.addNotification(
