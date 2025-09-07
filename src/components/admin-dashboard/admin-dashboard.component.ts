@@ -44,6 +44,7 @@ export class AdminDashboardComponent {
     | "finances"
     | "professionals"
     | "categories"
+    | "clients"
   >("overview");
   showAddProfessionalForm = signal(false);
   editingCategory = signal<string | null>(null);
@@ -101,6 +102,11 @@ export class AdminDashboardComponent {
       icon: "fas fa-users",
     },
     {
+      id: "clients" as const,
+      label: this.i18n.translate("clients"),
+      icon: "fas fa-user-friends",
+    },
+    {
       id: "categories" as const,
       label: this.i18n.translate("categories"),
       icon: "fas fa-tags",
@@ -129,6 +135,8 @@ export class AdminDashboardComponent {
       (u) => u.role === "professional" && u.status === "Active"
     )
   );
+
+  clients = computed(() => this.allUsers().filter((u) => u.role === "client"));
 
   completedRequests = computed(() =>
     this.allRequests().filter((r) => r.status === "Completed" && r.cost)
@@ -197,6 +205,7 @@ export class AdminDashboardComponent {
       | "finances"
       | "professionals"
       | "categories"
+      | "clients"
   ) {
     this.currentView.set(view);
   }
@@ -491,6 +500,48 @@ export class AdminDashboardComponent {
         this.i18n.translate("categoryDeleted", { category: categoryToDelete })
       );
     }
+  }
+
+  // Client management methods
+  activateClient(userId: number) {
+    this.dataService.updateUser(userId, { status: "Active" });
+    this.notificationService.addNotification(
+      this.i18n.translate("clientActivated", {
+        name: this.allUsers().find((u) => u.id === userId)?.name || "Cliente",
+      })
+    );
+  }
+
+  deactivateClient(userId: number) {
+    if (confirm(this.i18n.translate("confirmDeactivateClient"))) {
+      this.dataService.updateUser(userId, { status: "Rejected" });
+      this.notificationService.addNotification(
+        this.i18n.translate("clientDeactivated", {
+          name: this.allUsers().find((u) => u.id === userId)?.name || "Cliente",
+        })
+      );
+    }
+  }
+
+  getClientStats(clientId: number) {
+    const requests = this.allRequests().filter((r) => r.client_id === clientId);
+    const completedRequests = requests.filter((r) => r.status === "Completed");
+    const totalSpent = completedRequests.reduce(
+      (sum, r) => sum + (r.cost || 0),
+      0
+    );
+
+    return {
+      totalRequests: requests.length,
+      completedRequests: completedRequests.length,
+      totalSpent: totalSpent,
+      lastServiceDate:
+        requests.length > 0
+          ? Math.max(
+              ...requests.map((r) => new Date(r.requested_date).getTime())
+            )
+          : null,
+    };
   }
 
   // Financial methods

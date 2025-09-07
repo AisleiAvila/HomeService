@@ -202,6 +202,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     finances: "Finances",
     professionals: "Professionals",
     categories: "Categories",
+    clients: "Clients",
     pendingActions: "Pending Actions",
     request: "Request",
     actions: "Actions",
@@ -265,6 +266,27 @@ const allTranslations: Record<Language, Record<string, string>> = {
     categoryDeleted: "Category '{category}' deleted successfully",
     viewQuote: "View Quote",
     provideQuote: "Provide Quote",
+
+    // Client Management
+    manageClients: "Manage Clients",
+    clientManagementDescription:
+      "View and manage all registered clients in the system",
+    services: "Services",
+    totalSpent: "Total Spent",
+    lastService: "Last Service",
+    activateClient: "Activate Client",
+    deactivateClient: "Deactivate Client",
+    approveClient: "Approve Client",
+    rejectClient: "Reject Client",
+    confirmDeactivateClient: "Are you sure you want to deactivate this client?",
+    clientActivated: "Client {name} has been activated",
+    clientDeactivated: "Client {name} has been deactivated",
+    noClientsFound: "No Clients Found",
+    noClientsDescription:
+      "No clients have registered yet. Clients will appear here once they create accounts.",
+    emailNotVerified: "Email not verified",
+    of: "of",
+    never: "Never",
   },
   pt: {
     // General
@@ -471,6 +493,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     finances: "Finanças",
     professionals: "Profissionais",
     categories: "Categorias",
+    clients: "Clientes",
     pendingActions: "Ações Pendentes",
     request: "Solicitação",
     actions: "Ações",
@@ -536,6 +559,28 @@ const allTranslations: Record<Language, Record<string, string>> = {
     categoryDeleted: "Categoria '{category}' excluída com sucesso",
     viewQuote: "Ver Orçamento",
     provideQuote: "Fornecer Orçamento",
+
+    // Client Management
+    manageClients: "Gerenciar Clientes",
+    clientManagementDescription:
+      "Visualizar e gerenciar todos os clientes cadastrados no sistema",
+    services: "Serviços",
+    totalSpent: "Total Gasto",
+    lastService: "Último Serviço",
+    activateClient: "Ativar Cliente",
+    deactivateClient: "Desativar Cliente",
+    approveClient: "Aprovar Cliente",
+    rejectClient: "Rejeitar Cliente",
+    confirmDeactivateClient:
+      "Tem certeza de que deseja desativar este cliente?",
+    clientActivated: "Cliente {name} foi ativado",
+    clientDeactivated: "Cliente {name} foi desativado",
+    noClientsFound: "Nenhum Cliente Encontrado",
+    noClientsDescription:
+      "Ainda não há clientes cadastrados. Os clientes aparecerão aqui quando criarem contas.",
+    emailNotVerified: "Email não verificado",
+    of: "de",
+    never: "Nunca",
   },
 };
 
