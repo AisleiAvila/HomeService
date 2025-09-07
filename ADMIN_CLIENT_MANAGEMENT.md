@@ -52,7 +52,7 @@ Os administradores podem realizar as seguintes ações:
 - **Status Badge**: Cores diferentes para cada status (verde=Active, amarelo=Pending, vermelho=Rejected)
 - **Verificação de Email**: Indicador laranja quando o email não está verificado
 - **Avatar Padrão**: Ícone de usuário quando não há foto de perfil
-- **Valores Monetários**: Formatação em moeda local (R$ para português, $ para inglês)
+- **Valores Monetários**: Formatação em Euro (€) para todos os idiomas
 
 ## Arquivos Modificados
 

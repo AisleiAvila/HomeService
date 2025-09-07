@@ -1,97 +1,121 @@
 {
-  "hash": "f0814db1",
-  "configHash": "e5a2eea1",
+  "hash": "f66c7118",
+  "configHash": "660105fd",
   "lockfileHash": "784337d1",
-  "browserHash": "688297e7",
+  "browserHash": "18580759",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "83d05c7b",
+      "fileHash": "ec579520",
+      "needsInterop": false
+    },
+    "@angular/common/locales/en": {
+      "src": "../../../../../../node_modules/@angular/common/locales/en.js",
+      "file": "@angular_common_locales_en.js",
+      "fileHash": "4269d741",
+      "needsInterop": false
+    },
+    "@angular/common/locales/pt": {
+      "src": "../../../../../../node_modules/@angular/common/locales/pt.js",
+      "file": "@angular_common_locales_pt.js",
+      "fileHash": "7f77cf9d",
       "needsInterop": false
     },
     "@angular/compiler": {
       "src": "../../../../../../node_modules/@angular/compiler/fesm2022/compiler.mjs",
       "file": "@angular_compiler.js",
-      "fileHash": "f5378ca5",
+      "fileHash": "352820ce",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "fbc5293d",
+      "fileHash": "e68a61a4",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "856cebde",
+      "fileHash": "10b39ea4",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "afc57131",
+      "fileHash": "c19d7d1b",
       "needsInterop": false
     },
     "@fullcalendar/angular": {
       "src": "../../../../../../node_modules/@fullcalendar/angular/fesm2020/fullcalendar-angular.mjs",
       "file": "@fullcalendar_angular.js",
-      "fileHash": "315c3bd2",
+      "fileHash": "7d87a83a",
       "needsInterop": false
     },
     "@fullcalendar/core/locales/pt-br": {
       "src": "../../../../../../node_modules/@fullcalendar/core/locales/pt-br.js",
       "file": "@fullcalendar_core_locales_pt-br.js",
-      "fileHash": "b1dac21f",
+      "fileHash": "55bcf1e1",
       "needsInterop": false
     },
     "@fullcalendar/daygrid": {
       "src": "../../../../../../node_modules/@fullcalendar/daygrid/index.js",
       "file": "@fullcalendar_daygrid.js",
-      "fileHash": "d4337611",
+      "fileHash": "20991d56",
       "needsInterop": false
     },
     "@fullcalendar/interaction": {
       "src": "../../../../../../node_modules/@fullcalendar/interaction/index.js",
       "file": "@fullcalendar_interaction.js",
-      "fileHash": "cbb36001",
+      "fileHash": "42f4b0ea",
       "needsInterop": false
     },
     "@fullcalendar/timegrid": {
       "src": "../../../../../../node_modules/@fullcalendar/timegrid/index.js",
       "file": "@fullcalendar_timegrid.js",
-      "fileHash": "e71c4738",
+      "fileHash": "c1937441",
       "needsInterop": false
     },
     "@supabase/supabase-js": {
       "src": "../../../../../../node_modules/@supabase/supabase-js/dist/module/index.js",
       "file": "@supabase_supabase-js.js",
-      "fileHash": "7146ebe3",
+      "fileHash": "dc5da955",
+      "needsInterop": false
+    },
+    "@angular/common/locales/en-IE": {
+      "src": "../../../../../../node_modules/@angular/common/locales/en-IE.js",
+      "file": "@angular_common_locales_en-IE.js",
+      "fileHash": "2db3a906",
+      "needsInterop": false
+    },
+    "@angular/common/locales/de": {
+      "src": "../../../../../../node_modules/@angular/common/locales/de.js",
+      "file": "@angular_common_locales_de.js",
+      "fileHash": "b23bd55b",
       "needsInterop": false
     }
   },
   "chunks": {
+    "browser-HBAD7HAT": {
+      "file": "browser-HBAD7HAT.js"
+    },
+    "chunk-BXYYHKAZ": {
+      "file": "chunk-BXYYHKAZ.js"
+    },
     "browser-2A7DI5HU": {
       "file": "browser-2A7DI5HU.js"
     },
     "chunk-TNLRAHSL": {
       "file": "chunk-TNLRAHSL.js"
     },
-    "browser-HBAD7HAT": {
-      "file": "browser-HBAD7HAT.js"
+    "chunk-7EOS75FT": {
+      "file": "chunk-7EOS75FT.js"
     },
     "chunk-X6UXZXNC": {
       "file": "chunk-X6UXZXNC.js"
     },
     "chunk-OTOLDS3P": {
       "file": "chunk-OTOLDS3P.js"
-    },
-    "chunk-BXYYHKAZ": {
-      "file": "chunk-BXYYHKAZ.js"
-    },
-    "chunk-7EOS75FT": {
-      "file": "chunk-7EOS75FT.js"
     },
     "chunk-H2SRQSE4": {
       "file": "chunk-H2SRQSE4.js"

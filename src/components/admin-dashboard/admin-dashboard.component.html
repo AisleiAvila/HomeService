@@ -191,7 +191,7 @@
               <span [class]="statusClass(req.status)">{{ req.status }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ req.cost ? (req.cost | currency) : "N/A" }}
+              {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
             </td>
             <td
               class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"

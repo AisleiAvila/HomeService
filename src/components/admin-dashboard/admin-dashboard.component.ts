@@ -170,7 +170,7 @@ export class AdminDashboardComponent {
       {
         label: this.i18n.translate("totalRevenue"),
         value: this.formatCost(financialData.totalRevenue),
-        icon: "fas fa-dollar-sign",
+        icon: "fas fa-euro-sign",
         bgColor: "bg-green-100 text-green-600",
       },
       {
@@ -249,9 +249,7 @@ export class AdminDashboardComponent {
 
   formatCost(amount: number | null | undefined): string {
     if (!amount) return "N/A";
-    return this.i18n.language() === "pt"
-      ? `R$ ${amount.toFixed(2)}`
-      : `$ ${amount.toFixed(2)}`;
+    return `€ ${amount.toFixed(2)}`;
   }
 
   // Approval methods
