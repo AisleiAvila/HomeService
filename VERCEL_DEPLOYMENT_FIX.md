@@ -1,12 +1,22 @@
 # Vercel Deployment Fix - CommonJS Dependencies Warning
 
-## Problema Original
+## Problemas Resolvidos
+
+### 1. **CommonJS Dependencies Warning**
 
 Durante o deploy no Vercel, aparecia o seguinte warning:
 
 ```
 ▲ [WARNING] Module 'ws' used by 'node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js' is not ESM
   CommonJS or AMD dependencies can cause optimization bailouts.
+```
+
+### 2. **Vercel.json Schema Validation Error**
+
+Durante o build no Vercel, aparecia o seguinte erro:
+
+```
+The `vercel.json` schema validation failed with the following message: `functions` should NOT have fewer than 1 properties
 ```
 
 ## Soluções Implementadas
@@ -34,7 +44,7 @@ Adicionada a propriedade `allowedCommonJsDependencies` na configuração de buil
 
 ### 2. Configuração do Vercel (`vercel.json`)
 
-Criado arquivo de configuração específico para o Vercel:
+Criado arquivo de configuração específico para o Vercel (removida propriedade `functions` vazia para evitar erro de schema):
 
 ```json
 {
@@ -55,6 +65,8 @@ Criado arquivo de configuração específico para o Vercel:
 }
 ```
 
+**Nota:** Removida a propriedade `functions: {}` que causava erro de validação do schema do Vercel.
+
 ### 3. Script de Build Específico (`package.json`)
 
 Adicionado script específico para o Vercel:
@@ -73,7 +85,8 @@ Criado para otimizar o processo de build excluindo arquivos desnecessários.
 
 ## Resultado
 
-- ✅ Build executado sem warnings
+- ✅ Build executado sem warnings de CommonJS
+- ✅ Schema do vercel.json validado corretamente
 - ✅ Aplicação funcional no Vercel
 - ✅ Todos os módulos do Supabase funcionando corretamente
 
