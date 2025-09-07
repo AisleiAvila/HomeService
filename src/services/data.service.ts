@@ -193,11 +193,26 @@ export class DataService {
   }
 
   async loadInitialData(currentUser: User) {
+    // For admin users in development mode, keep the mock data
+    if (currentUser.role === "admin") {
+      console.log("Admin user detected, using mock data");
+      console.log("Mock users:", this.users().length);
+      console.log("Mock requests:", this.serviceRequests().length);
+      return;
+    }
+
     await this.fetchUsers();
     await this.fetchServiceRequests(currentUser);
   }
 
   clearData() {
+    // Don't clear mock data in development environment for admin users
+    const currentUser = this.authService.appUser();
+    if (currentUser?.email === "admin@homeservice.com") {
+      console.log("Skipping clearData for admin user in development");
+      return;
+    }
+
     this.users.set([]);
     this.serviceRequests.set([]);
     this.chatMessages.set([]);
