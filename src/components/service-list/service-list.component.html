@@ -5,18 +5,18 @@
       {{ "noServiceRequestsFound" | i18n }}
     </li>
     } @else { @for (request of serviceRequests(); track request.id) {
-    <li class="p-4 hover:bg-gray-50 transition-colors">
-      <div
-        class="flex flex-col sm:flex-row items-start sm:items-center justify-between"
-      >
+    <li class="p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+      <div class="flex flex-col space-y-3">
         <div class="flex-1 min-w-0">
           <p class="text-sm font-semibold text-blue-600">
             {{ request.category }}
           </p>
-          <h4 class="text-lg font-bold text-gray-800 truncate">
+          <h4 class="text-base sm:text-lg font-bold text-gray-800 break-words">
             {{ request.title }}
           </h4>
-          <p class="text-sm text-gray-500 mt-1">{{ formatAddress(request) }}</p>
+          <p class="text-xs sm:text-sm text-gray-500 mt-1 break-words">
+            {{ formatAddress(request) }}
+          </p>
           @if(request.status === 'Quoted' && request.cost) {
           <p class="text-sm font-medium text-green-600">
             {{ "quote" | i18n }}: €{{ request.cost | number : "1.2-2" }}
@@ -24,9 +24,9 @@
           }
         </div>
         <div
-          class="mt-4 sm:mt-0 sm:ml-4 flex-shrink-0 flex flex-col items-start sm:items-end space-y-2"
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0"
         >
-          <span [class]="statusClass(request.status)">
+          <span [class]="statusClass(request.status)" class="inline-block">
             {{ request.status }}
             @if(request.payment_status === 'Paid') {
             <span class="ml-2 font-bold text-green-700"
@@ -34,26 +34,26 @@
             >
             }
           </span>
-          <div class="flex space-x-2 mt-2">
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
             <!-- Client Actions -->
             @if(currentUser().role === 'client') { @if(request.status ===
             'Quoted') {
             <button
               (click)="approveQuote.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-green-500 rounded-md hover:bg-green-600 flex-1 sm:flex-none min-w-0"
             >
               {{ "approve" | i18n }}
             </button>
             <button
               (click)="rejectQuote.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600 flex-1 sm:flex-none min-w-0"
             >
               {{ "reject" | i18n }}
             </button>
             } @if(request.status === 'Approved') {
             <button
               (click)="scheduleRequest.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-teal-500 rounded-md hover:bg-teal-600 flex-1 sm:flex-none min-w-0"
             >
               {{ "schedule" | i18n }}
             </button>
@@ -61,20 +61,20 @@
             'Unpaid') {
             <button
               (click)="payNow.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 flex-1 sm:flex-none min-w-0"
             >
               {{ "payNow" | i18n }}
             </button>
             } }
             <button
               (click)="viewDetails.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 flex-1 sm:flex-none min-w-0"
             >
               {{ "details" | i18n }}
             </button>
             <button
               (click)="openChat.emit(request)"
-              class="px-3 py-1 text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800"
+              class="px-2 py-1 text-xs sm:text-sm font-medium text-white bg-gray-700 rounded-md hover:bg-gray-800 flex-1 sm:flex-none min-w-0"
             >
               {{ "chat" | i18n }}
             </button>

@@ -111,7 +111,9 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       (backToLanding)="handleBackToLanding()"
     />
     } @case ('app') { @if (currentUser(); as user) {
-    <div class="flex h-screen bg-gray-100 font-sans text-gray-800">
+    <div
+      class="flex h-screen bg-gray-100 font-sans text-gray-800 overflow-hidden"
+    >
       <!-- Sidebar -->
       <aside
         class="bg-gray-800 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out z-20"
@@ -218,26 +220,28 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       </aside>
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 flex flex-col overflow-hidden min-w-0">
         <header
-          class="bg-white shadow-sm p-4 flex justify-between items-center z-10 flex-shrink-0"
+          class="bg-white shadow-sm p-3 sm:p-4 flex justify-between items-center z-10 flex-shrink-0 min-w-0"
         >
           <button
             (click)="isSidebarOpen.set(!isSidebarOpen())"
-            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200"
+            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 flex-shrink-0"
           >
-            <i class="fas fa-bars text-xl"></i>
+            <i class="fas fa-bars text-lg sm:text-xl"></i>
           </button>
-          <h1 class="text-xl font-semibold text-gray-700 hidden md:block">
+          <h1
+            class="text-lg sm:text-xl font-semibold text-gray-700 hidden md:block truncate"
+          >
             {{ currentNav() | i18n }}
           </h1>
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <app-language-switcher theme="light" />
             <button
               (click)="isNotificationCenterOpen.set(true)"
               class="relative text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-full transition-colors duration-200"
             >
-              <i class="fas fa-bell text-xl"></i>
+              <i class="fas fa-bell text-lg sm:text-xl"></i>
               @if (hasUnreadNotifications()) {
               <span
                 class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"
@@ -247,7 +251,9 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100">
+        <main
+          class="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-6 bg-gray-100 min-w-0"
+        >
           @switch(currentNav()) { @case('dashboard') { @if(user.role ===
           'admin') {
           <app-admin-dashboard />
