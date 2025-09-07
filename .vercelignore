@@ -1,0 +1,15 @@
+node_modules
+.angular
+.git
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+coverage
+.nyc_output
+docs
+src/**/*.spec.ts
+src/**/*.test.ts
+e2e
+*.md
