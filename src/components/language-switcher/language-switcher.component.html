@@ -1,17 +1,17 @@
 <div class="relative">
   <button (click)="isOpen.set(!isOpen())"
           class="flex items-center space-x-2 p-2 rounded-full transition-colors duration-200"
-          [class.text-white]="theme() === 'light'"
-          [class.hover:bg-black/10]="theme() === 'light'"
-          [class.text-gray-600]="theme() === 'dark'"
-          [class.hover:bg-gray-200]="theme() === 'dark'">
+          [class.text-gray-700]="theme() === 'light'"
+          [class.hover:bg-gray-100]="theme() === 'light'"
+          [class.text-white]="theme() === 'dark'"
+          [class.hover:bg-black/10]="theme() === 'dark'">
     <i class="fas fa-globe"></i>
     <span class="uppercase text-sm font-medium">{{ i18n.language() }}</span>
   </button>
   @if (isOpen()) {
     <div class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5">
-      <a href="#" (click)="$event.preventDefault(); setLanguage('pt')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Português</a>
-      <a href="#" (click)="$event.preventDefault(); setLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">English</a>
+      <a href="#" (click)="$event.preventDefault(); setLanguage('pt')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ "portuguese" | i18n }}</a>
+      <a href="#" (click)="$event.preventDefault(); setLanguage('en')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{{ "english" | i18n }}</a>
     </div>
   }
 </div>

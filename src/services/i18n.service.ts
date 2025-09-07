@@ -126,6 +126,20 @@ const allTranslations: Record<Language, Record<string, string>> = {
     csvBaseValue: "Base Value",
     csvTax: "Tax (7%)",
     csvTotalValue: "Total Value",
+
+    // Additional translations for missing keys
+    appName: "MaintainApp",
+    appNameFull: "Home Service Pro",
+    newRequest: "New Request",
+    loadingUser: "Loading user...",
+    noMessages: "No messages yet. Start the conversation!",
+    typeMessage: "Type your message...",
+    searchServiceRequests: "Search Service Requests",
+    searchTerm: "Search Term",
+    searchTermPlaceholder: "Enter search term...",
+    allCategories: "All Categories",
+    completedRequests: "Completed Requests",
+    fullName: "Full Name",
   },
   pt: {
     // General
@@ -251,6 +265,20 @@ const allTranslations: Record<Language, Record<string, string>> = {
     csvBaseValue: "Valor Base",
     csvTax: "Imposto (7%)",
     csvTotalValue: "Valor Total",
+
+    // Additional translations for missing keys
+    appName: "MaintainApp",
+    appNameFull: "Home Service Pro",
+    newRequest: "Nova Solicitação",
+    loadingUser: "Carregando usuário...",
+    noMessages: "Ainda não há mensagens. Comece a conversa!",
+    typeMessage: "Digite sua mensagem...",
+    searchServiceRequests: "Buscar Solicitações de Serviço",
+    searchTerm: "Termo de Busca",
+    searchTermPlaceholder: "Digite o termo de busca...",
+    allCategories: "Todas as Categorias",
+    completedRequests: "Solicitações Concluídas",
+    fullName: "Nome Completo",
   },
 };
 
