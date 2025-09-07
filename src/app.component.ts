@@ -6,6 +6,7 @@ import {
   computed,
   effect,
   ViewChild,
+  OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
@@ -71,9 +72,17 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
     ModalComponent,
   ],
   template: `
+    <!-- CSS adicional para garantir responsividade -->
+    <style>
+      .mobile-safe {
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+    </style>
+
     <!-- Main view router -->
     @switch (view()) { @case ('landing') {
-    <div class="relative w-full h-full">
+    <div class="relative w-full h-full mobile-safe">
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
       </div>
@@ -112,16 +121,31 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
     />
     } @case ('app') { @if (currentUser(); as user) {
     <div
-      class="flex h-screen bg-gray-100 font-sans text-gray-800 overflow-hidden"
+      class="flex h-screen bg-gray-100 font-sans text-gray-800 overflow-hidden mobile-safe"
     >
+      <!-- Mobile Overlay -->
+      @if (isMobile() && isSidebarOpen()) {
+      <div
+        class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+        (click)="isSidebarOpen.set(false)"
+      ></div>
+      }
+
       <!-- Sidebar -->
       <aside
-        class="bg-gray-800 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out z-20"
-        [class.w-64]="isSidebarOpen()"
-        [class.w-16]="!isSidebarOpen()"
+        [class]="
+          'bg-gray-800 text-white flex flex-col transition-all duration-300 ease-in-out z-40 ' +
+          (isMobile()
+            ? isSidebarOpen()
+              ? 'fixed inset-y-0 left-0 w-64 transform translate-x-0'
+              : 'fixed inset-y-0 left-0 w-64 transform -translate-x-full'
+            : isSidebarOpen()
+            ? 'flex-shrink-0 w-64'
+            : 'flex-shrink-0 w-16')
+        "
       >
         <div
-          class="h-16 flex items-center text-2xl font-bold flex-shrink-0 px-4 transition-all duration-300"
+          class="h-16 flex items-center text-xl md:text-2xl font-bold flex-shrink-0 px-4 transition-all duration-300"
           [class.justify-center]="!isSidebarOpen()"
           [class.justify-start]="isSidebarOpen()"
         >
@@ -134,59 +158,55 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           }
         </div>
 
-        <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
           @for (item of navItems(); track item.id) {
           <a
             (click)="navigate(item.id)"
-            class="flex items-center text-sm rounded-md cursor-pointer transition-colors"
+            class="flex items-center text-sm md:text-base rounded-lg cursor-pointer transition-colors min-h-[48px]"
             [class.bg-gray-700]="currentNav() === item.id"
             [class.hover:bg-gray-700]="currentNav() !== item.id"
             [class.px-4]="isSidebarOpen()"
-            [class.py-2]="isSidebarOpen()"
-            [class.px-2]="!isSidebarOpen()"
+            [class.py-3]="isSidebarOpen()"
+            [class.px-3]="!isSidebarOpen()"
             [class.py-3]="!isSidebarOpen()"
             [class.justify-start]="isSidebarOpen()"
             [class.justify-center]="!isSidebarOpen()"
           >
-            <i class="w-6 text-center" [class]="item.icon"></i>
+            <i class="w-6 text-center text-lg" [class]="item.icon"></i>
             @if (isSidebarOpen()) {
             <span class="ml-3 truncate">{{ item.labelKey | i18n }}</span>
             }
           </a>
           } @if(user.role === 'client' && isSidebarOpen()) {
-          <div class="px-4 pt-4">
+          <div class="px-4 pt-6">
             <button
               (click)="openNewRequestForm()"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center min-h-[48px]"
             >
-              <i class="fas fa-plus mr-2"></i>
+              <i class="fas fa-plus mr-2 text-lg"></i>
               <span>{{ "newRequest" | i18n }}</span>
             </button>
           </div>
           } @if(user.role === 'client' && !isSidebarOpen()) {
-          <div class="px-2 pt-4">
+          <div class="px-2 pt-6">
             <button
               (click)="openNewRequestForm()"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-2 rounded-lg transition-colors duration-200 flex items-center justify-center min-h-[48px]"
               title="{{ 'newRequest' | i18n }}"
             >
-              <i class="fas fa-plus"></i>
+              <i class="fas fa-plus text-lg"></i>
             </button>
           </div>
           }
         </nav>
 
-        <div
-          class="border-t border-gray-700"
-          [class.p-4]="isSidebarOpen()"
-          [class.p-2]="!isSidebarOpen()"
-        >
+        <div class="border-t border-gray-700 p-4">
           @if (isSidebarOpen()) {
-          <div class="flex items-center">
+          <div class="flex items-center mb-4">
             <img
               [src]="user.avatar_url || 'https://i.pravatar.cc/40'"
               alt="User Avatar"
-              class="w-10 h-10 rounded-full object-cover"
+              class="w-12 h-12 rounded-full object-cover"
             />
             <div class="ml-3 truncate">
               <p class="text-sm font-semibold">{{ user.name }}</p>
@@ -195,24 +215,24 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           </div>
           <button
             (click)="handleLogout()"
-            class="w-full mt-4 text-left flex items-center px-4 py-2 text-sm rounded-md hover:bg-gray-700"
+            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px]"
           >
-            <i class="fas fa-sign-out-alt w-6 text-center"></i>
+            <i class="fas fa-sign-out-alt w-6 text-center text-lg"></i>
             <span class="ml-3">{{ "logout" | i18n }}</span>
           </button>
           } @else {
-          <div class="flex flex-col items-center space-y-2">
+          <div class="flex flex-col items-center space-y-3">
             <img
               [src]="user.avatar_url || 'https://i.pravatar.cc/40'"
               alt="User Avatar"
-              class="w-8 h-8 rounded-full object-cover"
+              class="w-10 h-10 rounded-full object-cover"
             />
             <button
               (click)="handleLogout()"
-              class="p-2 text-sm rounded-md hover:bg-gray-700"
+              class="p-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
               title="{{ 'logout' | i18n }}"
             >
-              <i class="fas fa-sign-out-alt"></i>
+              <i class="fas fa-sign-out-alt text-lg"></i>
             </button>
           </div>
           }
@@ -222,29 +242,70 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       <!-- Main Content -->
       <div class="flex-1 flex flex-col overflow-hidden min-w-0">
         <header
-          class="bg-white shadow-sm p-3 sm:p-4 flex justify-between items-center z-10 flex-shrink-0 min-w-0"
+          class="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10 flex-shrink-0 min-h-[60px]"
         >
-          <button
-            (click)="isSidebarOpen.set(!isSidebarOpen())"
-            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 flex-shrink-0"
-          >
-            <i class="fas fa-bars text-lg sm:text-xl"></i>
-          </button>
-          <h1
-            class="text-lg sm:text-xl font-semibold text-gray-700 hidden md:block truncate"
-          >
-            {{ currentNav() | i18n }}
-          </h1>
-          <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+          <!-- Left Section: Menu + Title -->
+          <div class="flex items-center space-x-3 flex-1 min-w-0">
+            <!-- Mobile Menu Button -->
+            <button
+              (click)="isSidebarOpen.set(!isSidebarOpen())"
+              class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 flex-shrink-0 md:hidden"
+              aria-label="Menu"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Desktop Toggle Button -->
+            <button
+              (click)="isSidebarOpen.set(!isSidebarOpen())"
+              class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 flex-shrink-0 hidden md:block"
+              aria-label="Toggle sidebar"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Page Title (visible on mobile too but smaller) -->
+            <h1 class="text-lg md:text-xl font-semibold text-gray-700 truncate">
+              {{ currentNav() | i18n }}
+            </h1>
+          </div>
+
+          <!-- Right Section: Controls -->
+          <div class="flex items-center space-x-2 flex-shrink-0">
             <app-language-switcher theme="light" />
             <button
               (click)="isNotificationCenterOpen.set(true)"
-              class="relative text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-full transition-colors duration-200"
+              class="relative text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-full transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Notificações"
             >
-              <i class="fas fa-bell text-lg sm:text-xl"></i>
+              <i class="fas fa-bell text-lg"></i>
               @if (hasUnreadNotifications()) {
               <span
-                class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"
+                class="absolute top-1 right-1 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-white"
               ></span>
               }
             </button>
@@ -252,7 +313,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
         </header>
 
         <main
-          class="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-6 bg-gray-100 min-w-0"
+          class="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0"
         >
           @switch(currentNav()) { @case('dashboard') { @if(user.role ===
           'admin') {
@@ -420,7 +481,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   // Services
   authService = inject(AuthService);
   dataService = inject(DataService);
@@ -433,7 +494,7 @@ export class AppComponent {
   currentNav = signal<Nav>("dashboard");
 
   // Modal State
-  isSidebarOpen = signal(true);
+  isSidebarOpen = signal(false); // Inicialmente fechado para mobile
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
   isNewRequestFormOpen = signal(false);
@@ -456,6 +517,12 @@ export class AppComponent {
   );
 
   authTheme = computed(() => (this.view() === "landing" ? "light" : "dark"));
+
+  // Detecção de mobile baseada na largura da tela
+  isMobile = computed(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768; // md breakpoint do Tailwind
+  });
 
   navItems = computed(() => {
     const userRole = this.currentUser()?.role;
@@ -528,7 +595,10 @@ export class AppComponent {
   }
   navigate(nav: Nav) {
     this.currentNav.set(nav);
-    this.isSidebarOpen.set(false);
+    // Fechar sidebar apenas no mobile após navegação
+    if (this.isMobile()) {
+      this.isSidebarOpen.set(false);
+    }
   }
 
   // --- Auth Handlers ---
@@ -728,5 +798,21 @@ export class AppComponent {
     console.log("🏠 Modal fechado, retornando para tela principal");
     this.showRegistrationModal.set(false);
     this.view.set("landing");
+  }
+
+  ngOnInit() {
+    // Inicializar estado do sidebar baseado no dispositivo
+    if (typeof window !== "undefined") {
+      this.isSidebarOpen.set(window.innerWidth >= 768);
+
+      // Listener para mudanças na largura da tela
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 768) {
+          this.isSidebarOpen.set(true);
+        } else {
+          this.isSidebarOpen.set(false);
+        }
+      });
+    }
   }
 }
