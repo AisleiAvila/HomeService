@@ -1,5 +1,10 @@
 <!-- Admin Dashboard Main Container -->
 <div class="flex flex-col h-full bg-gray-100">
+  <!-- Debug Info -->
+  <div class="p-2 bg-yellow-100 text-xs" *ngIf="true">
+    Debug: Current View = {{ currentView() }}, Users = {{ allUsers().length }}, Requests = {{ allRequests().length }}
+  </div>
+  
   <!-- Navigation Tabs -->
   <div class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
     <nav class="flex -mb-px space-x-6 px-4 sm:px-6">
@@ -543,8 +548,11 @@
               {{ "add" | i18n }}
             </button>
           </div>
-          @if (newCategory().trim() && allCategories().includes(newCategory().trim())) {
-          <p class="text-sm text-red-600">{{ "categoryAlreadyExists" | i18n }}</p>
+          @if (newCategory().trim() &&
+          allCategories().includes(newCategory().trim())) {
+          <p class="text-sm text-red-600">
+            {{ "categoryAlreadyExists" | i18n }}
+          </p>
           }
         </div>
       </div>
@@ -567,15 +575,15 @@
               (keydown.escape)="editingCategory.set(null)"
             />
             <div class="space-x-2 ml-2">
-              <button 
-                (click)="saveCategoryEdit()" 
+              <button
+                (click)="saveCategoryEdit()"
                 class="text-green-600 hover:text-green-800 p-1"
                 title="Save"
               >
                 <i class="fas fa-check"></i>
               </button>
-              <button 
-                (click)="editingCategory.set(null)" 
+              <button
+                (click)="editingCategory.set(null)"
                 class="text-gray-500 hover:text-gray-700 p-1"
                 title="Cancel"
               >

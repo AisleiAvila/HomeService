@@ -229,7 +229,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectProfessionalFor: "Select a professional for",
     assign: "Assign",
     editProfessional: "Edit Professional",
-    
+
     // Invoice
     invoice: "Invoice",
     billedTo: "Billed To",
@@ -240,12 +240,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     grandTotal: "Grand Total",
     thankYou: "Thank you for your business!",
     print: "Print",
-    
+
     // Messages and notifications
     quoteSubmitted: "Quote submitted for request #{id}",
     quoteApproved: "Quote approved for request #{id}",
     quoteRejected: "Quote rejected for request #{id}",
-    professionalAssigned: "Professional {professional} assigned to request #{id}",
+    professionalAssigned:
+      "Professional {professional} assigned to request #{id}",
     fillRequiredFields: "Please fill in all required fields",
     professionalAdded: "Professional {name} added successfully",
     professionalUpdated: "Professional {name} updated successfully",
@@ -455,7 +456,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     pendingActions: "Ações Pendentes",
     request: "Solicitação",
     actions: "Ações",
-    noRequestsNeedAttention: "Nenhuma solicitação precisa de atenção no momento",
+    noRequestsNeedAttention:
+      "Nenhuma solicitação precisa de atenção no momento",
     pendingRegistrations: "Registros de Profissionais Pendentes",
     noPendingRegistrations: "Nenhum registro pendente",
     phone: "Telefone",
@@ -480,7 +482,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     add: "Adicionar",
     serviceCategories: "Categorias de Serviço",
     delete: "Excluir",
-    
+
     // Quote and Assignment
     quoteFor: "Orçamento para",
     quoteValue: "Valor do Orçamento",
@@ -489,7 +491,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectProfessionalFor: "Selecione um profissional para",
     assign: "Atribuir",
     editProfessional: "Editar Profissional",
-    
+
     // Invoice
     invoice: "Fatura",
     billedTo: "Faturado para",
@@ -500,12 +502,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     grandTotal: "Total Geral",
     thankYou: "Obrigado pelo seu negócio!",
     print: "Imprimir",
-    
+
     // Messages and notifications
     quoteSubmitted: "Orçamento enviado para solicitação #{id}",
     quoteApproved: "Orçamento aprovado para solicitação #{id}",
     quoteRejected: "Orçamento rejeitado para solicitação #{id}",
-    professionalAssigned: "Profissional {professional} atribuído à solicitação #{id}",
+    professionalAssigned:
+      "Profissional {professional} atribuído à solicitação #{id}",
     fillRequiredFields: "Por favor, preencha todos os campos obrigatórios",
     professionalAdded: "Profissional {name} adicionado com sucesso",
     professionalUpdated: "Profissional {name} atualizado com sucesso",

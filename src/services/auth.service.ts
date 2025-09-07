@@ -61,6 +61,31 @@ export class AuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
     console.log("AuthService - Tentando login com:", email);
 
+    // Development mode: Allow direct admin login
+    if (email === "admin@homeservice.com" && password === "admin123") {
+      console.log("Development login: Admin user");
+      const adminUser: User = {
+        id: 1,
+        auth_id: "admin-123",
+        name: "Admin User",
+        email: "admin@homeservice.com",
+        role: "admin",
+        status: "Active",
+        avatar_url: "https://i.pravatar.cc/100?img=1",
+      };
+      
+      this.appUser.set(adminUser);
+      this.notificationService.addNotification("Logged in as Admin (Development Mode)");
+      
+      return {
+        data: { 
+          user: { id: "admin-123", email: "admin@homeservice.com" } as any, 
+          session: { access_token: "dev-token" } as any 
+        },
+        error: null,
+      };
+    }
+
     try {
       // Validação básica
       if (!email || !password) {

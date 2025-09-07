@@ -214,7 +214,9 @@ export class DataService {
   }
 
   async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
-    await this.updateServiceRequest(requestId, { payment_status: paymentStatus });
+    await this.updateServiceRequest(requestId, {
+      payment_status: paymentStatus,
+    });
     this.notificationService.addNotification(
       this.i18n.translate("paymentStatusChanged", {
         id: requestId.toString(),
@@ -236,7 +238,7 @@ export class DataService {
     } else {
       // Refresh users data
       await this.fetchUsers();
-      
+
       // Notify about user updates
       if (updates.status) {
         this.notificationService.addNotification(
