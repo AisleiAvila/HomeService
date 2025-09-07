@@ -10,155 +10,14 @@ import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "../../services/i18n.service";
 import { NotificationService } from "../../services/notification.service";
-import { User, ServiceCategory } from "../../models/maintenance.models";
+import { User, ServiceCategory, ServiceRequest } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-admin-dashboard",
   standalone: true,
   imports: [CommonModule, FormsModule, I18nPipe],
-  template: `
-    <div class="space-y-6">
-      <!-- Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @for (stat of stats(); track stat.label) {
-        <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
-          <div class="bg-indigo-100 text-indigo-600 rounded-full p-3 mr-4">
-            <i class="text-2xl" [class]="stat.icon"></i>
-          </div>
-          <div>
-            <p class="text-sm font-medium text-gray-500">{{ stat.label }}</p>
-            <p class="text-2xl font-bold text-gray-800">{{ stat.value }}</p>
-          </div>
-        </div>
-        }
-      </div>
-
-      <!-- Main Content Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Pending Professional Approvals -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            {{ "pendingApprovals" | i18n }}
-          </h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Email
-                  </th>
-                  <th scope="col" class="relative px-6 py-3">
-                    <span class="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                @for (user of pendingProfessionals(); track user.id) {
-                <tr>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                  >
-                    {{ user.name }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ user.email }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2"
-                  >
-                    <button
-                      (click)="handleApproval(user, true)"
-                      class="text-green-600 hover:text-green-900"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      (click)="handleApproval(user, false)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Reject
-                    </button>
-                  </td>
-                </tr>
-                } @empty {
-                <tr>
-                  <td
-                    colspan="3"
-                    class="px-6 py-4 text-center text-sm text-gray-500"
-                  >
-                    No pending approvals.
-                  </td>
-                </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Category Management & Reporting -->
-        <div class="space-y-6">
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-              Manage Categories
-            </h3>
-            <ul class="space-y-2 mb-4">
-              @for (category of categories(); track category) {
-              <li
-                class="flex justify-between items-center bg-gray-50 p-2 rounded"
-              >
-                <span class="text-sm text-gray-700">{{ category }}</span>
-                <button
-                  (click)="deleteCategory(category)"
-                  class="text-red-500 hover:text-red-700"
-                >
-                  <i class="fas fa-trash-alt"></i>
-                </button>
-              </li>
-              }
-            </ul>
-            <div class="flex space-x-2">
-              <input
-                type="text"
-                [(ngModel)]="newCategory"
-                placeholder="New category name"
-                class="flex-grow w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-              <button
-                (click)="addCategory()"
-                [disabled]="!newCategory()"
-                class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-              Financial Reporting
-            </h3>
-            <button
-              (click)="exportFinancialsAsCSV()"
-              class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
-            >
-              <i class="fas fa-file-csv mr-2"></i>
-              <span>Export Financials (CSV)</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent {
@@ -166,109 +25,396 @@ export class AdminDashboardComponent {
   private i18n = inject(I18nService);
   private notificationService = inject(NotificationService);
 
-  newCategory = signal("");
+  // UI State
+  currentView = signal<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'categories'>('overview');
+  showAddProfessionalForm = signal(false);
+  editingCategory = signal<string | null>(null);
+  editingCategoryName = signal("");
 
+  // Form data
+  newCategory = signal("");
+  newProfessionalName = signal("");
+  newProfessionalEmail = signal("");
+  newProfessionalSpecialties = signal<string[]>([]);
+  
+  // Edit professional data
+  editingProfessional = signal<User | null>(null);
+  editingProfessionalName = signal("");
+  editingProfessionalEmail = signal("");
+  editingProfessionalSpecialties = signal<string[]>([]);
+
+  // Quote and assignment data
+  quoteRequest = signal<ServiceRequest | null>(null);
+  quoteAmount = signal<number | null>(null);
+  assignmentRequest = signal<ServiceRequest | null>(null);
+  assigningProfessionalId = signal<number | null>(null);
+  invoiceRequest = signal<ServiceRequest | null>(null);
+
+  // Data sources
   allUsers = this.dataService.users;
   allRequests = this.dataService.serviceRequests;
-  categories = this.dataService.categories;
+  allCategories = this.dataService.categories;
 
-  pendingProfessionals = computed(() =>
-    this.allUsers().filter(
-      (u) => u.role === "professional" && u.status === "Pending"
+  // Computed properties for different views
+  views = computed(() => [
+    { id: 'overview' as const, label: this.i18n.translate('overview'), icon: 'fas fa-tachometer-alt' },
+    { id: 'requests' as const, label: this.i18n.translate('requests'), icon: 'fas fa-list' },
+    { id: 'approvals' as const, label: this.i18n.translate('approvals'), icon: 'fas fa-user-check' },
+    { id: 'finances' as const, label: this.i18n.translate('finances'), icon: 'fas fa-chart-line' },
+    { id: 'professionals' as const, label: this.i18n.translate('professionals'), icon: 'fas fa-users' },
+    { id: 'categories' as const, label: this.i18n.translate('categories'), icon: 'fas fa-tags' }
+  ]);
+
+  pendingRegistrations = computed(() =>
+    this.allUsers().filter(u => u.role === 'professional' && u.status === 'Pending')
+  );
+
+  pendingApprovalCount = computed(() => this.pendingRegistrations().length);
+
+  actionableRequests = computed(() =>
+    this.allRequests().filter(r => 
+      r.status === 'Pending' || r.status === 'Quoted' || r.status === 'Approved'
     )
   );
+
+  professionals = computed(() =>
+    this.allUsers().filter(u => u.role === 'professional' && u.status === 'Active')
+  );
+
+  completedRequests = computed(() =>
+    this.allRequests().filter(r => r.status === 'Completed' && r.cost)
+  );
+
+  financialStats = computed(() => {
+    const completed = this.completedRequests();
+    const totalRevenue = completed
+      .filter(r => r.payment_status === 'Paid')
+      .reduce((sum, r) => sum + (r.cost || 0), 0);
+    
+    const totalTax = totalRevenue * 0.07;
+    const outstandingAmount = completed
+      .filter(r => r.payment_status === 'Unpaid')
+      .reduce((sum, r) => sum + (r.cost || 0), 0);
+
+    return {
+      completedServices: completed.length,
+      totalRevenue,
+      totalTax,
+      outstandingAmount
+    };
+  });
 
   stats = computed(() => {
     const requests = this.allRequests();
     const users = this.allUsers();
-
-    const totalRevenue = requests
-      .filter((r) => r.payment_status === "Paid" && r.cost)
-      .reduce((sum, r) => sum + r.cost!, 0);
+    const financialData = this.financialStats();
 
     return [
       {
         label: this.i18n.translate("totalRevenue"),
-        value:
-          this.i18n.language() === "pt"
-            ? `R$${totalRevenue.toFixed(2)}`
-            : `$${totalRevenue.toFixed(2)}`,
+        value: this.formatCost(financialData.totalRevenue),
         icon: "fas fa-dollar-sign",
+        bgColor: "bg-green-100 text-green-600"
       },
       {
         label: this.i18n.translate("pendingApprovals"),
-        value: this.pendingProfessionals().length,
+        value: this.pendingApprovalCount(),
         icon: "fas fa-user-clock",
+        bgColor: "bg-orange-100 text-orange-600"
       },
       {
         label: this.i18n.translate("activeServices"),
-        value: requests.filter((r) => r.status === "In Progress").length,
+        value: requests.filter(r => r.status === "In Progress").length,
         icon: "fas fa-cogs",
+        bgColor: "bg-blue-100 text-blue-600"
       },
       {
         label: this.i18n.translate("totalProfessionals"),
-        value: users.filter(
-          (u) => u.role === "professional" && u.status === "Active"
-        ).length,
+        value: users.filter(u => u.role === "professional" && u.status === "Active").length,
         icon: "fas fa-users-cog",
+        bgColor: "bg-indigo-100 text-indigo-600"
       },
     ];
   });
 
-  handleApproval(user: User, isApproved: boolean) {
-    if (!isApproved) {
-      if (!confirm(this.i18n.translate("confirmRejectRegistration"))) {
-        return;
-      }
-    }
-    const newStatus = isApproved ? "Active" : "Rejected";
-    this.dataService.updateUser(user.id, { status: newStatus });
+  // Navigation methods
+  setView(view: 'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'categories') {
+    this.currentView.set(view);
+  }
 
-    // Add specific notification for professional approval/rejection
-    const actionKey = isApproved
-      ? "professionalApproved"
-      : "professionalRejected";
+  // Helper methods
+  getClientName(clientId: number): string {
+    return this.allUsers().find(u => u.id === clientId)?.name || this.i18n.translate('unknownClient');
+  }
+
+  getProfessionalName(professionalId: number | null): string {
+    if (!professionalId) return this.i18n.translate('unassigned');
+    return this.allUsers().find(u => u.id === professionalId)?.name || this.i18n.translate('unassigned');
+  }
+
+  statusClass(status: string): string {
+    const statusClasses = {
+      'Pending': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800',
+      'Quoted': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800',
+      'Approved': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800',
+      'In Progress': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800',
+      'Completed': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800',
+      'Cancelled': 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800'
+    };
+    return statusClasses[status as keyof typeof statusClasses] || 'inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+  }
+
+  formatCost(amount: number | null | undefined): string {
+    if (!amount) return 'N/A';
+    return this.i18n.language() === 'pt' 
+      ? `R$ ${amount.toFixed(2)}` 
+      : `$ ${amount.toFixed(2)}`;
+  }
+
+  // Approval methods
+  approveClient(userId: number) {
+    this.dataService.updateUser(userId, { status: 'Active' });
     this.notificationService.addNotification(
-      this.i18n.translate(actionKey, { name: user.name })
+      this.i18n.translate('professionalApproved', { 
+        name: this.allUsers().find(u => u.id === userId)?.name || 'Professional' 
+      })
     );
+  }
+
+  rejectClient(userId: number) {
+    if (confirm(this.i18n.translate('confirmRejectRegistration'))) {
+      this.dataService.updateUser(userId, { status: 'Rejected' });
+      this.notificationService.addNotification(
+        this.i18n.translate('professionalRejected', { 
+          name: this.allUsers().find(u => u.id === userId)?.name || 'Professional' 
+        })
+      );
+    }
+  }
+
+  // Quote methods
+  selectRequestForQuote(request: ServiceRequest) {
+    this.quoteRequest.set(request);
+    this.quoteAmount.set(request.cost || null);
+  }
+
+  submitQuote() {
+    const request = this.quoteRequest();
+    const amount = this.quoteAmount();
+    
+    if (!request || !amount || amount <= 0) return;
+
+    this.dataService.updateServiceRequest(request.id, {
+      cost: amount,
+      status: 'Quoted'
+    });
+
+    this.notificationService.addNotification(
+      this.i18n.translate('quoteSubmitted', { id: request.id.toString() })
+    );
+
+    this.quoteRequest.set(null);
+    this.quoteAmount.set(null);
+  }
+
+  respondToQuote(requestId: number, approved: boolean) {
+    const status = approved ? 'Approved' : 'Pending';
+    this.dataService.updateServiceRequest(requestId, { status });
+    
+    this.notificationService.addNotification(
+      approved 
+        ? this.i18n.translate('quoteApproved', { id: requestId.toString() })
+        : this.i18n.translate('quoteRejected', { id: requestId.toString() })
+    );
+  }
+
+  // Assignment methods
+  selectRequestForAssignment(request: ServiceRequest) {
+    this.assignmentRequest.set(request);
+    this.assigningProfessionalId.set(null);
+  }
+
+  getProfessionalsForRequest(category: string): User[] {
+    return this.professionals().filter(p => 
+      p.specialties?.includes(category) || !p.specialties?.length
+    );
+  }
+
+  assignProfessional() {
+    const request = this.assignmentRequest();
+    const professionalId = this.assigningProfessionalId();
+    
+    if (!request || !professionalId) return;
+
+    this.dataService.updateServiceRequest(request.id, {
+      professional_id: professionalId,
+      status: 'Assigned'
+    });
+
+    this.notificationService.addNotification(
+      this.i18n.translate('professionalAssigned', { 
+        id: request.id.toString(),
+        professional: this.getProfessionalName(professionalId)
+      })
+    );
+
+    this.assignmentRequest.set(null);
+    this.assigningProfessionalId.set(null);
+  }
+
+  // Professional management
+  toggleNewProfessionalSpecialty(category: string, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current = this.newProfessionalSpecialties();
+    
+    if (checked) {
+      this.newProfessionalSpecialties.set([...current, category]);
+    } else {
+      this.newProfessionalSpecialties.set(current.filter(s => s !== category));
+    }
+  }
+
+  addProfessional() {
+    const name = this.newProfessionalName().trim();
+    const email = this.newProfessionalEmail().trim();
+    const specialties = this.newProfessionalSpecialties();
+
+    if (!name || !email) {
+      this.notificationService.addNotification(this.i18n.translate('fillRequiredFields'));
+      return;
+    }
+
+    // In a real app, this would call an API to create the professional
+    this.notificationService.addNotification(
+      this.i18n.translate('professionalAdded', { name })
+    );
+
+    this.resetNewProfessionalForm();
+  }
+
+  resetNewProfessionalForm() {
+    this.showAddProfessionalForm.set(false);
+    this.newProfessionalName.set('');
+    this.newProfessionalEmail.set('');
+    this.newProfessionalSpecialties.set([]);
+  }
+
+  startEditProfessional(professional: User) {
+    this.editingProfessional.set(professional);
+    this.editingProfessionalName.set(professional.name);
+    this.editingProfessionalEmail.set(professional.email);
+    this.editingProfessionalSpecialties.set(professional.specialties || []);
+  }
+
+  toggleEditProfessionalSpecialty(category: string, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    const current = this.editingProfessionalSpecialties();
+    
+    if (checked) {
+      this.editingProfessionalSpecialties.set([...current, category]);
+    } else {
+      this.editingProfessionalSpecialties.set(current.filter(s => s !== category));
+    }
+  }
+
+  saveProfessionalEdit() {
+    const professional = this.editingProfessional();
+    if (!professional) return;
+
+    const updates = {
+      name: this.editingProfessionalName(),
+      email: this.editingProfessionalEmail(),
+      specialties: this.editingProfessionalSpecialties()
+    };
+
+    this.dataService.updateUser(professional.id, updates);
+    
+    this.notificationService.addNotification(
+      this.i18n.translate('professionalUpdated', { name: updates.name })
+    );
+
+    this.cancelEditProfessional();
+  }
+
+  cancelEditProfessional() {
+    this.editingProfessional.set(null);
+    this.editingProfessionalName.set('');
+    this.editingProfessionalEmail.set('');
+    this.editingProfessionalSpecialties.set([]);
+  }
+
+  // Category management
+  startEditCategory(category: string) {
+    this.editingCategory.set(category);
+    this.editingCategoryName.set(category);
+  }
+
+  saveCategoryEdit() {
+    const oldCategory = this.editingCategory();
+    const newName = this.editingCategoryName().trim();
+    
+    if (!oldCategory || !newName || newName === oldCategory) {
+      this.editingCategory.set(null);
+      return;
+    }
+
+    if (this.allCategories().includes(newName)) {
+      this.notificationService.addNotification(this.i18n.translate('categoryAlreadyExists'));
+      return;
+    }
+
+    // Update category in the list
+    this.allCategories.update(cats => 
+      cats.map(cat => cat === oldCategory ? newName : cat)
+    );
+
+    this.notificationService.addNotification(
+      this.i18n.translate('categoryUpdated', { old: oldCategory, new: newName })
+    );
+
+    this.editingCategory.set(null);
+    this.editingCategoryName.set('');
   }
 
   addCategory() {
     const cat = this.newCategory().trim();
-    if (cat && !this.categories().includes(cat)) {
-      this.categories.update((cats) => [...cats, cat]);
+    if (cat && !this.allCategories().includes(cat)) {
+      this.allCategories.update(cats => [...cats, cat]);
       this.newCategory.set("");
-      // In a real app, this would be a service call to persist the change.
-      this.notificationService.addNotification(`Category "${cat}" added.`);
+      this.notificationService.addNotification(
+        this.i18n.translate('categoryAdded', { category: cat })
+      );
+    } else if (this.allCategories().includes(cat)) {
+      this.notificationService.addNotification(this.i18n.translate('categoryAlreadyExists'));
     }
   }
 
   deleteCategory(categoryToDelete: ServiceCategory) {
-    if (
-      confirm(
-        this.i18n.translate("confirmDeleteCategory", {
-          category: categoryToDelete,
-        })
-      )
-    ) {
-      this.categories.update((cats) =>
-        cats.filter((c) => c !== categoryToDelete)
-      );
-      // In a real app, this would be a service call to persist the change.
+    if (confirm(this.i18n.translate("confirmDeleteCategory", { category: categoryToDelete }))) {
+      this.allCategories.update(cats => cats.filter(c => c !== categoryToDelete));
       this.notificationService.addNotification(
-        `Category "${categoryToDelete}" deleted.`
+        this.i18n.translate('categoryDeleted', { category: categoryToDelete })
       );
     }
   }
 
+  // Financial methods
+  exportToCSV() {
+    this.exportFinancialsAsCSV();
+  }
+
+  generateInvoice(request: ServiceRequest) {
+    this.invoiceRequest.set(request);
+  }
+
+  printInvoice() {
+    window.print();
+  }
+
   exportFinancialsAsCSV() {
-    const completedRequests = this.allRequests().filter(
-      (r) => r.status === "Completed" && r.cost
-    );
+    const completedRequests = this.completedRequests();
     if (completedRequests.length === 0) {
-      this.notificationService.addNotification(
-        this.i18n.translate("noDataToExport")
-      );
+      this.notificationService.addNotification(this.i18n.translate("noDataToExport"));
       return;
     }
 
@@ -286,30 +432,25 @@ export class AdminDashboardComponent {
     ];
 
     const rows = completedRequests.map((r) => {
-      const client =
-        this.allUsers().find((u) => u.id === r.client_id)?.name ||
-        i18n.translate("unknownClient");
-      const professional =
-        this.allUsers().find((u) => u.id === r.professional_id)?.name ||
-        i18n.translate("unassigned");
-      const tax = r.cost! * 0.07;
-      const total = r.cost! + tax;
+      const client = this.getClientName(r.client_id);
+      const professional = this.getProfessionalName(r.professional_id);
+      const tax = (r.cost || 0) * 0.07;
+      const total = (r.cost || 0) + tax;
 
       return [
         r.id,
         client,
         professional,
         r.title,
-        r.scheduled_date,
+        r.scheduled_date || r.requested_date,
         r.payment_status,
-        r.cost!.toFixed(2),
+        (r.cost || 0).toFixed(2),
         tax.toFixed(2),
         total.toFixed(2),
       ].join(",");
     });
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -317,8 +458,20 @@ export class AdminDashboardComponent {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    this.notificationService.addNotification(
-      this.i18n.translate("reportExported")
-    );
+    
+    this.notificationService.addNotification(this.i18n.translate("reportExported"));
   }
+
+  // Legacy methods for compatibility
+  handleApproval(user: User, isApproved: boolean) {
+    if (isApproved) {
+      this.approveClient(user.id);
+    } else {
+      this.rejectClient(user.id);
+    }
+  }
+
+  // Computed properties for backward compatibility
+  pendingProfessionals = this.pendingRegistrations;
+  categories = this.allCategories;
 }

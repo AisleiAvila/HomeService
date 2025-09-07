@@ -1,13 +1,13 @@
 <!-- Admin Dashboard Main Container -->
 <div class="flex flex-col h-full bg-gray-100">
   <!-- Navigation Tabs -->
-  <div class="flex-shrink-0 border-b-2 border-gray-200">
+  <div class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
     <nav class="flex -mb-px space-x-6 px-4 sm:px-6">
       @for (view of views(); track view.id) {
       <button
         (click)="setView(view.id)"
         [class]="
-          'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' +
+          'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ' +
           (currentView() === view.id
             ? 'border-indigo-500 text-indigo-600'
             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
@@ -526,54 +526,74 @@
         <h3 class="text-xl font-semibold mb-4">
           {{ "addNewCategory" | i18n }}
         </h3>
-        <div class="flex space-x-2">
-          <input
-            type="text"
-            [(ngModel)]="newCategory"
-            [placeholder]="'categoryName' | i18n"
-            class="flex-grow p-2 border rounded-md"
-          />
-          <button
-            (click)="addCategory()"
-            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-          >
-            {{ "add" | i18n }}
-          </button>
+        <div class="space-y-4">
+          <div class="flex space-x-2">
+            <input
+              type="text"
+              [(ngModel)]="newCategory"
+              [placeholder]="'categoryName' | i18n"
+              class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              (keydown.enter)="addCategory()"
+            />
+            <button
+              (click)="addCategory()"
+              [disabled]="!newCategory().trim()"
+              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {{ "add" | i18n }}
+            </button>
+          </div>
+          @if (newCategory().trim() && allCategories().includes(newCategory().trim())) {
+          <p class="text-sm text-red-600">{{ "categoryAlreadyExists" | i18n }}</p>
+          }
         </div>
       </div>
       <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
         <h3 class="text-xl font-semibold mb-4">
           {{ "serviceCategories" | i18n }}
         </h3>
+        @if (allCategories().length === 0) {
+        <p class="text-gray-500 text-center py-8">No categories available</p>
+        } @else {
         <ul class="divide-y divide-gray-200">
           @for(cat of allCategories(); track cat) {
-          <li class="py-2 flex justify-between items-center">
+          <li class="py-3 flex justify-between items-center">
             @if(editingCategory() === cat) {
             <input
               type="text"
               [(ngModel)]="editingCategoryName"
-              class="p-1 border rounded-md flex-grow"
+              class="p-2 border rounded-md flex-grow mr-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              (keydown.enter)="saveCategoryEdit()"
+              (keydown.escape)="editingCategory.set(null)"
             />
             <div class="space-x-2 ml-2">
-              <button (click)="saveCategoryEdit()" class="text-green-600">
+              <button 
+                (click)="saveCategoryEdit()" 
+                class="text-green-600 hover:text-green-800 p-1"
+                title="Save"
+              >
                 <i class="fas fa-check"></i>
               </button>
-              <button (click)="editingCategory.set(null)" class="text-gray-500">
+              <button 
+                (click)="editingCategory.set(null)" 
+                class="text-gray-500 hover:text-gray-700 p-1"
+                title="Cancel"
+              >
                 <i class="fas fa-times"></i>
               </button>
             </div>
             } @else {
-            <span>{{ cat }}</span>
+            <span class="font-medium">{{ cat }}</span>
             <div class="space-x-4">
               <button
                 (click)="startEditCategory(cat)"
-                class="text-indigo-600 hover:text-indigo-900"
+                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
               >
                 {{ "edit" | i18n }}
               </button>
               <button
                 (click)="deleteCategory(cat)"
-                class="text-red-600 hover:text-red-900"
+                class="text-red-600 hover:text-red-900 text-sm font-medium"
               >
                 {{ "delete" | i18n }}
               </button>
@@ -582,6 +602,7 @@
           </li>
           }
         </ul>
+        }
       </div>
     </div>
     } }
