@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
 import { AuthService } from "./auth.service";
+import { I18nService } from "./i18n.service";
 import {
   User,
   ServiceRequest,
@@ -19,6 +20,7 @@ export class DataService {
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
   private authService = inject(AuthService);
+  private i18n = inject(I18nService);
 
   // Signals for storing application data
   readonly users = signal<User[]>([]);
@@ -136,6 +138,9 @@ export class DataService {
   }
 
   async updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
+    // Get current request to track status changes
+    const currentRequest = this.getServiceRequestById(id);
+
     const { error } = await this.supabase.client
       .from("service_requests")
       .update(updates)
@@ -145,6 +150,35 @@ export class DataService {
       this.notificationService.addNotification(
         "Error updating request: " + error.message
       );
+    } else {
+      // Notify about status changes
+      if (
+        updates.status &&
+        currentRequest &&
+        currentRequest.status !== updates.status
+      ) {
+        this.notificationService.addNotification(
+          this.i18n.translate("statusChangedFromTo", {
+            id: id.toString(),
+            from: currentRequest.status,
+            to: updates.status,
+          })
+        );
+      }
+
+      // Notify about payment status changes
+      if (
+        updates.payment_status &&
+        currentRequest &&
+        currentRequest.payment_status !== updates.payment_status
+      ) {
+        this.notificationService.addNotification(
+          this.i18n.translate("paymentStatusChanged", {
+            id: id.toString(),
+            status: updates.payment_status,
+          })
+        );
+      }
     }
   }
 
@@ -186,6 +220,7 @@ export class DataService {
     await this.updateServiceRequest(requestId, {
       payment_status: paymentStatus,
     });
+    // Notification is handled by updateServiceRequest
   }
 
   getProfessionalsByCategory(category: ServiceCategory): User[] {

@@ -140,6 +140,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     allCategories: "All Categories",
     completedRequests: "Completed Requests",
     fullName: "Full Name",
+
+    // Status change notifications
+    statusChangedFromTo: 'Request #{id} status changed from "{from}" to "{to}"',
+    paymentStatusChanged: 'Request #{id} payment status changed to "{status}"',
+    professionalApproved: "Professional {name} has been approved",
+    professionalRejected: "Professional {name} has been rejected",
   },
   pt: {
     // General
@@ -279,6 +285,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     allCategories: "Todas as Categorias",
     completedRequests: "Solicitações Concluídas",
     fullName: "Nome Completo",
+
+    // Status change notifications
+    statusChangedFromTo:
+      'Solicitação #{id} mudou status de "{from}" para "{to}"',
+    paymentStatusChanged:
+      'Solicitação #{id} mudou status de pagamento para "{status}"',
+    professionalApproved: "Profissional {name} foi aprovado",
+    professionalRejected: "Profissional {name} foi rejeitado",
   },
 };
 
