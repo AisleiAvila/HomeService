@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎥 Teste: Câmera Acende mas Não Mostra Vídeo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f0f4f8;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .status {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        font-weight: bold;
+      }
+
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      video {
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        border: 3px solid #007bff;
+        border-radius: 10px;
+        margin: 20px auto;
+        display: block;
+        background: #000;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 8px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .debug-info {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+      }
+
+      .test-section {
+        margin: 30px 0;
+        padding: 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: #f8f9fa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎥 Diagnóstico: "Câmera Acende mas Não Mostra Vídeo"</h1>
+      <p>Este teste simula exatamente o problema que você está enfrentando.</p>
+
+      <div class="test-section">
+        <h2>🔍 Status Atual</h2>
+        <div id="status">Aguardando teste...</div>
+      </div>
+
+      <div class="test-section">
+        <h2>📹 Teste da Câmera</h2>
+        <button onclick="testarCameraPasso1()">
+          1. Ativar Câmera (Só Stream)
+        </button>
+        <button onclick="testarCameraPasso2()">2. Conectar ao Vídeo</button>
+        <button onclick="testarCameraPasso3()">3. Forçar Reprodução</button>
+        <button onclick="pararTudo()">❌ Parar Tudo</button>
+
+        <video
+          id="videoTest"
+          style="display: none"
+          autoplay
+          playsinline
+          muted
+        ></video>
+        <div id="debugInfo" class="debug-info" style="display: none"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>🧪 Simulação do Problema Angular</h2>
+        <p>
+          Este teste simula exatamente o que acontece no seu componente Angular:
+        </p>
+        <button onclick="simularProblemaAngular()">
+          🔄 Simular Problema Angular
+        </button>
+        <div id="angular-simulation"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>✅ Teste da Solução</h2>
+        <button onclick="testarSolucao()">🎯 Testar Solução Corrigida</button>
+        <div id="solution-result"></div>
+      </div>
+    </div>
+
+    <script>
+      let currentStream = null;
+      let debugMode = true;
+
+      function log(message, type = "info") {
+        console.log(message);
+        const statusDiv = document.getElementById("status");
+        const className =
+          type === "error"
+            ? "error"
+            : type === "success"
+            ? "success"
+            : type === "warning"
+            ? "warning"
+            : "info";
+        statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+      }
+
+      function showDebugInfo(info) {
+        const debugDiv = document.getElementById("debugInfo");
+        debugDiv.style.display = "block";
+        debugDiv.textContent = info;
+      }
+
+      async function testarCameraPasso1() {
+        log("📷 Passo 1: Solicitando acesso à câmera...");
+
+        try {
+          currentStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user",
+            },
+          });
+
+          log("✅ Câmera acessada! (Luz deve estar acesa)", "success");
+          showDebugInfo(`Stream ativo: ${!!currentStream}
+Stream ID: ${currentStream.id}
+Tracks: ${currentStream.getTracks().length}
+Video tracks: ${currentStream.getVideoTracks().length}`);
+        } catch (error) {
+          log(`❌ Erro: ${error.name} - ${error.message}`, "error");
+        }
+      }
+
+      async function testarCameraPasso2() {
+        if (!currentStream) {
+          log("❌ Execute o Passo 1 primeiro!", "error");
+          return;
+        }
+
+        log("📺 Passo 2: Conectando stream ao elemento de vídeo...");
+
+        const video = document.getElementById("videoTest");
+        video.srcObject = currentStream;
+        video.style.display = "block";
+
+        // Eventos de debug
+        video.onloadstart = () => log("📹 Video: onloadstart");
+        video.onloadedmetadata = () => {
+          log("📹 Video: metadata carregada");
+          showDebugInfo(`Video ready state: ${video.readyState}
+Video dimensions: ${video.videoWidth}x${video.videoHeight}
+Video current time: ${video.currentTime}
+Video paused: ${video.paused}
+Video muted: ${video.muted}`);
+        };
+        video.oncanplay = () => log("📹 Video: pode reproduzir");
+        video.onplay = () => log("▶️ Video: reproduzindo", "success");
+        video.onerror = (e) => log(`❌ Video error: ${e}`, "error");
+
+        setTimeout(() => {
+          if (video.paused) {
+            log("⚠️ Vídeo ainda pausado após 2s", "warning");
+          } else {
+            log("✅ Vídeo reproduzindo normalmente", "success");
+          }
+        }, 2000);
+      }
+
+      async function testarCameraPasso3() {
+        const video = document.getElementById("videoTest");
+
+        if (!video.srcObject) {
+          log("❌ Execute os passos 1 e 2 primeiro!", "error");
+          return;
+        }
+
+        log("▶️ Passo 3: Forçando reprodução...");
+
+        try {
+          await video.play();
+          log("✅ Reprodução forçada com sucesso!", "success");
+        } catch (error) {
+          log(`❌ Erro ao forçar reprodução: ${error.message}`, "error");
+        }
+      }
+
+      function pararTudo() {
+        if (currentStream) {
+          currentStream.getTracks().forEach((track) => track.stop());
+          currentStream = null;
+        }
+
+        const video = document.getElementById("videoTest");
+        video.srcObject = null;
+        video.style.display = "none";
+
+        log("🛑 Tudo parado. Luz da câmera deve apagar.");
+        document.getElementById("debugInfo").style.display = "none";
+      }
+
+      // Simulação do problema Angular
+      async function simularProblemaAngular() {
+        const resultDiv = document.getElementById("angular-simulation");
+        resultDiv.innerHTML =
+          '<div class="info">🔄 Simulando problema do Angular...</div>';
+
+        try {
+          // 1. Obter stream (como no Angular)
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+          resultDiv.innerHTML +=
+            '<div class="success">✅ Stream obtido (câmera acende)</div>';
+
+          // 2. Tentar conectar ao vídeo ANTES do modal aparecer (problema comum)
+          const video = document.createElement("video");
+          video.autoplay = true;
+          video.playsinline = true;
+          video.muted = true;
+          video.style.display = "none"; // Vídeo oculto (como no Angular antes do modal)
+
+          video.srcObject = stream;
+          document.body.appendChild(video);
+
+          resultDiv.innerHTML +=
+            '<div class="warning">⚠️ Vídeo conectado mas oculto (problema comum)</div>';
+
+          // 3. Aguardar um pouco e então "mostrar" (como o modal)
+          setTimeout(() => {
+            video.style.display = "block";
+            video.style.width = "300px";
+            video.style.margin = "10px auto";
+            resultDiv.appendChild(video);
+
+            // 4. Verificar se está reproduzindo
+            setTimeout(() => {
+              if (video.paused) {
+                resultDiv.innerHTML +=
+                  '<div class="error">❌ PROBLEMA REPRODUZIDO: Vídeo pausado mesmo com stream ativo</div>';
+
+                // Tentar solução
+                video
+                  .play()
+                  .then(() => {
+                    resultDiv.innerHTML +=
+                      '<div class="success">✅ SOLUCIONADO: Forçar play() resolveu!</div>';
+                  })
+                  .catch((err) => {
+                    resultDiv.innerHTML +=
+                      '<div class="error">❌ Erro mesmo com play(): ' +
+                      err.message +
+                      "</div>";
+                  });
+              } else {
+                resultDiv.innerHTML +=
+                  '<div class="success">✅ Funcionou corretamente (não reproduziu o problema)</div>';
+              }
+            }, 1000);
+          }, 1000);
+        } catch (error) {
+          resultDiv.innerHTML += `<div class="error">❌ Erro: ${error.message}</div>`;
+        }
+      }
+
+      // Teste da solução
+      async function testarSolucao() {
+        const resultDiv = document.getElementById("solution-result");
+        resultDiv.innerHTML = '<div class="info">🎯 Testando solução...</div>';
+
+        try {
+          // 1. Obter stream
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+          resultDiv.innerHTML += '<div class="success">✅ Stream obtido</div>';
+
+          // 2. Criar vídeo e configurar ANTES de conectar stream
+          const video = document.createElement("video");
+          video.autoplay = true;
+          video.playsinline = true;
+          video.muted = true;
+          video.style.width = "300px";
+          video.style.margin = "10px auto";
+          video.style.display = "block";
+
+          // 3. Conectar eventos ANTES do srcObject
+          video.onloadedmetadata = () => {
+            resultDiv.innerHTML +=
+              '<div class="info">📹 Metadata carregada</div>';
+
+            // 4. Garantir reprodução
+            video
+              .play()
+              .then(() => {
+                resultDiv.innerHTML +=
+                  '<div class="success">✅ SOLUÇÃO FUNCIONOU: Vídeo reproduzindo!</div>';
+              })
+              .catch((err) => {
+                resultDiv.innerHTML +=
+                  '<div class="error">❌ Erro no play: ' +
+                  err.message +
+                  "</div>";
+              });
+          };
+
+          // 5. Conectar stream
+          video.srcObject = stream;
+          resultDiv.appendChild(video);
+
+          // 6. Cleanup após 10 segundos
+          setTimeout(() => {
+            stream.getTracks().forEach((track) => track.stop());
+            video.remove();
+            resultDiv.innerHTML +=
+              '<div class="info">🧹 Teste finalizado e recursos limpos</div>';
+          }, 10000);
+        } catch (error) {
+          resultDiv.innerHTML += `<div class="error">❌ Erro: ${error.message}</div>`;
+        }
+      }
+
+      // Limpeza ao sair
+      window.addEventListener("beforeunload", function () {
+        if (currentStream) {
+          currentStream.getTracks().forEach((track) => track.stop());
+        }
+      });
+    </script>
+  </body>
+</html>

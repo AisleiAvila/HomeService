@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔬 Teste Direto de Câmera - HTTPS</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .title {
+        text-align: center;
+        color: #4a5568;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        font-weight: 300;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #718096;
+        margin-bottom: 40px;
+        font-size: 1.2em;
+      }
+
+      .status {
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+      }
+
+      .success {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+        border: none;
+      }
+
+      .error {
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: white;
+        border: none;
+      }
+
+      .warning {
+        background: linear-gradient(135deg, #ed8936, #dd6b20);
+        color: white;
+        border: none;
+      }
+
+      .info {
+        background: linear-gradient(135deg, #4299e1, #3182ce);
+        color: white;
+        border: none;
+      }
+
+      video {
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        border: 3px solid #e2e8f0;
+        border-radius: 15px;
+        margin: 20px auto;
+        background: #000;
+        display: block;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      button:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .test-section {
+        margin: 40px 0;
+        padding: 30px;
+        border: 2px solid #e2e8f0;
+        border-radius: 15px;
+        background: rgba(247, 250, 252, 0.8);
+      }
+
+      .test-section h2 {
+        color: #2d3748;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+      }
+
+      .details {
+        font-size: 14px;
+        color: #4a5568;
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(237, 242, 247, 0.8);
+        border-radius: 8px;
+        line-height: 1.6;
+      }
+
+      .environment-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        margin: 5px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .ssl-badge {
+        background: #48bb78;
+        color: white;
+      }
+      .localhost-badge {
+        background: #ed8936;
+        color: white;
+      }
+      .insecure-badge {
+        background: #f56565;
+        color: white;
+      }
+
+      .step-list {
+        counter-reset: step-counter;
+        list-style: none;
+        padding: 0;
+      }
+
+      .step-list li {
+        counter-increment: step-counter;
+        margin: 15px 0;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+      }
+
+      .step-list li::before {
+        content: counter(step-counter);
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 50%;
+        margin-right: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">🔬 Teste Direto de Câmera</h1>
+      <p class="subtitle">Diagnóstico completo para HTTPS local</p>
+
+      <div class="test-section">
+        <h2>📊 Status do Ambiente</h2>
+        <div id="environment-status">Verificando...</div>
+      </div>
+
+      <div class="test-section">
+        <h2>🔍 Verificação de Suporte</h2>
+        <div id="support-status">Verificando...</div>
+      </div>
+
+      <div class="test-section">
+        <h2>🎥 Teste da Câmera</h2>
+        <button onclick="testCameraStep1()" id="test-btn">
+          1. Testar Suporte Básico
+        </button>
+        <button onclick="testCameraStep2()" id="permission-btn" disabled>
+          2. Solicitar Permissões
+        </button>
+        <button onclick="testCameraStep3()" id="stream-btn" disabled>
+          3. Ativar Câmera
+        </button>
+        <div id="camera-status"></div>
+        <video
+          id="video"
+          style="display: none"
+          autoplay
+          playsinline
+          muted
+        ></video>
+      </div>
+
+      <div class="test-section">
+        <h2>📋 Instruções Específicas para HTTPS Local</h2>
+        <ol class="step-list">
+          <li>
+            <strong>Aceitar Certificado:</strong> Se você viu um aviso de
+            segurança, clique em "Avançado" e "Prosseguir para localhost"
+          </li>
+          <li>
+            <strong>Verificar URL:</strong> Confirme que está acessando
+            <code>https://localhost:4200</code>
+          </li>
+          <li>
+            <strong>Permissões:</strong> Clique no ícone de cadeado na barra de
+            endereços e defina câmera como "Permitir"
+          </li>
+          <li>
+            <strong>Recarregar:</strong> Após alterar permissões, recarregue a
+            página
+          </li>
+        </ol>
+      </div>
+
+      <div class="test-section">
+        <h2>🛠️ Soluções Rápidas</h2>
+        <button onclick="checkPermissions()">Verificar Permissões</button>
+        <button onclick="testBasicCamera()">Teste Básico</button>
+        <button onclick="showTroubleshooting()">
+          Ver Solução de Problemas
+        </button>
+        <div id="troubleshooting" style="display: none">
+          <div class="details">
+            <h3>🔧 Problemas Comuns:</h3>
+            <ul>
+              <li>
+                <strong>Erro SSL:</strong> Aceite o certificado auto-assinado
+              </li>
+              <li>
+                <strong>NotAllowedError:</strong> Permita câmera nas
+                configurações
+              </li>
+              <li>
+                <strong>NotFoundError:</strong> Verifique se há câmera conectada
+              </li>
+              <li>
+                <strong>NotReadableError:</strong> Feche outros apps que usam
+                câmera
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentStream = null;
+      let step = 0;
+
+      // Verificação inicial
+      document.addEventListener("DOMContentLoaded", function () {
+        checkEnvironment();
+        checkSupport();
+      });
+
+      function checkEnvironment() {
+        const statusDiv = document.getElementById("environment-status");
+        const isHTTPS = location.protocol === "https:";
+        const isLocalhost =
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1";
+
+        let badges = "";
+        let status = "";
+
+        if (isHTTPS) {
+          badges += '<span class="environment-badge ssl-badge">✅ HTTPS</span>';
+          status =
+            '<div class="success">🔒 Ambiente HTTPS - Ideal para câmera</div>';
+        } else {
+          badges +=
+            '<span class="environment-badge insecure-badge">❌ HTTP</span>';
+          status =
+            '<div class="error">⚠️ Ambiente HTTP - Câmera não funcionará</div>';
+        }
+
+        if (isLocalhost) {
+          badges +=
+            '<span class="environment-badge localhost-badge">🏠 Localhost</span>';
+        }
+
+        statusDiv.innerHTML = `
+                ${badges}
+                <div class="details">
+                    <strong>URL:</strong> ${location.href}<br>
+                    <strong>Protocolo:</strong> ${location.protocol}<br>
+                    <strong>Host:</strong> ${location.hostname}
+                </div>
+                ${status}
+            `;
+      }
+
+      function checkSupport() {
+        const supportDiv = document.getElementById("support-status");
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          supportDiv.innerHTML =
+            '<div class="error">❌ getUserMedia não suportado neste navegador</div>';
+          return false;
+        }
+
+        supportDiv.innerHTML =
+          '<div class="success">✅ getUserMedia suportado</div>';
+        return true;
+      }
+
+      async function testCameraStep1() {
+        const statusDiv = document.getElementById("camera-status");
+        const permissionBtn = document.getElementById("permission-btn");
+
+        statusDiv.innerHTML =
+          '<div class="info">🔍 Verificando APIs da câmera...</div>';
+
+        try {
+          // Verificar se as APIs existem
+          if (!navigator.mediaDevices) {
+            throw new Error("navigator.mediaDevices não disponível");
+          }
+
+          if (!navigator.mediaDevices.getUserMedia) {
+            throw new Error("getUserMedia não disponível");
+          }
+
+          // Verificar se podemos enumerar dispositivos
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const cameras = devices.filter(
+            (device) => device.kind === "videoinput"
+          );
+
+          statusDiv.innerHTML = `
+                    <div class="success">✅ Passo 1 Concluído</div>
+                    <div class="details">
+                        APIs disponíveis: ✅<br>
+                        Câmeras detectadas: ${cameras.length}<br>
+                        ${
+                          cameras.length > 0
+                            ? cameras
+                                .map(
+                                  (cam, i) =>
+                                    `Câmera ${i + 1}: ${
+                                      cam.label || "Dispositivo"
+                                    }`
+                                )
+                                .join("<br>")
+                            : "Nenhuma câmera detectada"
+                        }
+                    </div>
+                `;
+
+          permissionBtn.disabled = false;
+          step = 1;
+        } catch (error) {
+          statusDiv.innerHTML = `
+                    <div class="error">❌ Erro no Passo 1: ${error.message}</div>
+                    <div class="details">Verifique se está usando HTTPS e se o navegador suporta câmera</div>
+                `;
+        }
+      }
+
+      async function testCameraStep2() {
+        const statusDiv = document.getElementById("camera-status");
+        const streamBtn = document.getElementById("stream-btn");
+
+        statusDiv.innerHTML =
+          '<div class="info">🔐 Solicitando permissões da câmera...</div>';
+
+        try {
+          // Verificar permissões primeiro
+          if ("permissions" in navigator) {
+            try {
+              const permission = await navigator.permissions.query({
+                name: "camera",
+              });
+              console.log("Permissão atual:", permission.state);
+
+              if (permission.state === "denied") {
+                statusDiv.innerHTML = `
+                                <div class="error">❌ Permissão negada</div>
+                                <div class="details">
+                                    A câmera foi bloqueada. Para permitir:
+                                    <br>1. Clique no ícone de cadeado na barra de endereços
+                                    <br>2. Defina câmera como "Permitir"
+                                    <br>3. Recarregue a página
+                                </div>
+                            `;
+                return;
+              }
+            } catch (e) {
+              console.log("Não foi possível verificar permissões:", e);
+            }
+          }
+
+          statusDiv.innerHTML = `
+                    <div class="success">✅ Passo 2 Concluído</div>
+                    <div class="details">Permissões verificadas. Pronto para ativar câmera.</div>
+                `;
+
+          streamBtn.disabled = false;
+          step = 2;
+        } catch (error) {
+          statusDiv.innerHTML = `
+                    <div class="error">❌ Erro no Passo 2: ${error.message}</div>
+                    <div class="details">Problema com permissões da câmera</div>
+                `;
+        }
+      }
+
+      async function testCameraStep3() {
+        const statusDiv = document.getElementById("camera-status");
+        const video = document.getElementById("video");
+
+        statusDiv.innerHTML =
+          '<div class="info">📹 Ativando stream da câmera...</div>';
+
+        try {
+          // Solicitar acesso à câmera
+          currentStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user",
+            },
+          });
+
+          video.srcObject = currentStream;
+          video.style.display = "block";
+
+          statusDiv.innerHTML = `
+                    <div class="success">🎉 Câmera funcionando perfeitamente!</div>
+                    <div class="details">
+                        ✅ Stream ativa<br>
+                        ✅ Vídeo sendo exibido<br>
+                        ✅ Pronto para uso na aplicação
+                    </div>
+                `;
+
+          step = 3;
+        } catch (error) {
+          console.error("Erro ao ativar câmera:", error);
+
+          let errorMessage = "";
+          let solution = "";
+
+          switch (error.name) {
+            case "NotAllowedError":
+              errorMessage = "Permissão negada pelo usuário";
+              solution =
+                'Clique em "Permitir" quando solicitado ou verifique as configurações do site';
+              break;
+            case "NotFoundError":
+              errorMessage = "Nenhuma câmera encontrada";
+              solution = "Verifique se há uma câmera conectada ao dispositivo";
+              break;
+            case "NotReadableError":
+              errorMessage = "Câmera está sendo usada por outro aplicativo";
+              solution =
+                "Feche outros aplicativos que podem estar usando a câmera";
+              break;
+            case "OverconstrainedError":
+              errorMessage = "Configurações da câmera não suportadas";
+              solution = "Tente com configurações diferentes ou outra câmera";
+              break;
+            default:
+              errorMessage = error.message || "Erro desconhecido";
+              solution = "Verifique as configurações do navegador e permissões";
+          }
+
+          statusDiv.innerHTML = `
+                    <div class="error">❌ ${errorMessage}</div>
+                    <div class="details">
+                        <strong>Código:</strong> ${error.name}<br>
+                        <strong>Solução:</strong> ${solution}
+                    </div>
+                `;
+        }
+      }
+
+      async function checkPermissions() {
+        const statusDiv = document.getElementById("camera-status");
+
+        try {
+          if ("permissions" in navigator) {
+            const permission = await navigator.permissions.query({
+              name: "camera",
+            });
+            statusDiv.innerHTML = `
+                        <div class="info">📋 Status das Permissões</div>
+                        <div class="details">
+                            <strong>Câmera:</strong> ${permission.state}<br>
+                            ${
+                              permission.state === "granted"
+                                ? "✅ Permitida"
+                                : permission.state === "denied"
+                                ? "❌ Negada"
+                                : "⏳ Pendente"
+                            }
+                        </div>
+                    `;
+          } else {
+            statusDiv.innerHTML =
+              '<div class="warning">⚠️ API de permissões não disponível</div>';
+          }
+        } catch (error) {
+          statusDiv.innerHTML = `<div class="error">Erro ao verificar permissões: ${error.message}</div>`;
+        }
+      }
+
+      async function testBasicCamera() {
+        const statusDiv = document.getElementById("camera-status");
+
+        try {
+          statusDiv.innerHTML =
+            '<div class="info">🧪 Teste básico da câmera...</div>';
+
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+
+          statusDiv.innerHTML =
+            '<div class="success">✅ Câmera funciona! (Teste básico aprovado)</div>';
+
+          // Parar stream imediatamente
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (error) {
+          statusDiv.innerHTML = `
+                    <div class="error">❌ Teste básico falhou: ${error.name}</div>
+                    <div class="details">${error.message}</div>
+                `;
+        }
+      }
+
+      function showTroubleshooting() {
+        const troubleshootingDiv = document.getElementById("troubleshooting");
+        troubleshootingDiv.style.display =
+          troubleshootingDiv.style.display === "none" ? "block" : "none";
+      }
+
+      // Limpeza ao sair
+      window.addEventListener("beforeunload", function () {
+        if (currentStream) {
+          currentStream.getTracks().forEach((track) => track.stop());
+        }
+      });
+    </script>
+  </body>
+</html>
