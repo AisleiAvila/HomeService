@@ -18,7 +18,19 @@
             },
             "browser": "index.tsx",
             "tsConfig": "tsconfig.json",
-            "assets": ["favicon.ico", "favicon.svg", "service-worker.js"]
+            "assets": ["favicon.ico", "favicon.svg", "service-worker.js"],
+            "allowedCommonJsDependencies": [
+              "ws",
+              "@supabase/realtime-js",
+              "@supabase/postgrest-js",
+              "@supabase/storage-js",
+              "@supabase/gotrue-js",
+              "@supabase/functions-js",
+              "@supabase/node-fetch",
+              "@supabase/supabase-js",
+              "buffer",
+              "cross-fetch"
+            ]
           },
           "configurations": {
             "production": {
