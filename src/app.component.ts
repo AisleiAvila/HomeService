@@ -111,28 +111,42 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
       <aside
         class="bg-gray-800 text-white flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out z-20"
         [class.w-64]="isSidebarOpen()"
-        [class.w-0]="!isSidebarOpen()"
-        [class.md:w-64]="true"
+        [class.w-16]="!isSidebarOpen()"
       >
         <div
-          class="h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0 px-4"
+          class="h-16 flex items-center text-2xl font-bold flex-shrink-0 px-4 transition-all duration-300"
+          [class.justify-center]="!isSidebarOpen()"
+          [class.justify-start]="isSidebarOpen()"
         >
-          <i class="fas fa-tools mr-3 text-indigo-400"></i>
+          <i
+            class="fas fa-tools text-indigo-400"
+            [class.mr-3]="isSidebarOpen()"
+          ></i>
+          @if (isSidebarOpen()) {
           <span class="truncate">{{ "appName" | i18n }}</span>
+          }
         </div>
 
         <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           @for (item of navItems(); track item.id) {
           <a
             (click)="navigate(item.id)"
-            class="flex items-center px-4 py-2 text-sm rounded-md cursor-pointer transition-colors"
+            class="flex items-center text-sm rounded-md cursor-pointer transition-colors"
             [class.bg-gray-700]="currentNav() === item.id"
             [class.hover:bg-gray-700]="currentNav() !== item.id"
+            [class.px-4]="isSidebarOpen()"
+            [class.py-2]="isSidebarOpen()"
+            [class.px-2]="!isSidebarOpen()"
+            [class.py-3]="!isSidebarOpen()"
+            [class.justify-start]="isSidebarOpen()"
+            [class.justify-center]="!isSidebarOpen()"
           >
             <i class="w-6 text-center" [class]="item.icon"></i>
+            @if (isSidebarOpen()) {
             <span class="ml-3 truncate">{{ item.labelKey | i18n }}</span>
+            }
           </a>
-          } @if(user.role === 'client') {
+          } @if(user.role === 'client' && isSidebarOpen()) {
           <div class="px-4 pt-4">
             <button
               (click)="openNewRequestForm()"
@@ -142,10 +156,25 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
               <span>{{ "newRequest" | i18n }}</span>
             </button>
           </div>
+          } @if(user.role === 'client' && !isSidebarOpen()) {
+          <div class="px-2 pt-4">
+            <button
+              (click)="openNewRequestForm()"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
+              title="{{ 'newRequest' | i18n }}"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
           }
         </nav>
 
-        <div class="p-4 border-t border-gray-700">
+        <div
+          class="border-t border-gray-700"
+          [class.p-4]="isSidebarOpen()"
+          [class.p-2]="!isSidebarOpen()"
+        >
+          @if (isSidebarOpen()) {
           <div class="flex items-center">
             <img
               [src]="user.avatar_url || 'https://i.pravatar.cc/40'"
@@ -164,6 +193,22 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
             <i class="fas fa-sign-out-alt w-6 text-center"></i>
             <span class="ml-3">{{ "logout" | i18n }}</span>
           </button>
+          } @else {
+          <div class="flex flex-col items-center space-y-2">
+            <img
+              [src]="user.avatar_url || 'https://i.pravatar.cc/40'"
+              alt="User Avatar"
+              class="w-8 h-8 rounded-full object-cover"
+            />
+            <button
+              (click)="handleLogout()"
+              class="p-2 text-sm rounded-md hover:bg-gray-700"
+              title="{{ 'logout' | i18n }}"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+          }
         </div>
       </aside>
 
@@ -174,7 +219,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
         >
           <button
             (click)="isSidebarOpen.set(!isSidebarOpen())"
-            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 md:hidden"
+            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200"
           >
             <i class="fas fa-bars text-xl"></i>
           </button>
@@ -368,7 +413,7 @@ export class AppComponent {
   currentNav = signal<Nav>("dashboard");
 
   // Modal State
-  isSidebarOpen = signal(false);
+  isSidebarOpen = signal(true);
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
   isNewRequestFormOpen = signal(false);
