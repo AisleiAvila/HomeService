@@ -223,6 +223,14 @@ export class AdminDashboardComponent {
     }
     const newStatus = isApproved ? "Active" : "Rejected";
     this.dataService.updateUser(user.id, { status: newStatus });
+
+    // Add specific notification for professional approval/rejection
+    const actionKey = isApproved
+      ? "professionalApproved"
+      : "professionalRejected";
+    this.notificationService.addNotification(
+      this.i18n.translate(actionKey, { name: user.name })
+    );
   }
 
   addCategory() {
