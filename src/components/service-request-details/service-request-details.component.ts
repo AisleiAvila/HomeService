@@ -5,14 +5,14 @@ import {
   output,
   computed,
 } from "@angular/core";
-import { CommonModule, CurrencyPipe } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-service-request-details",
   standalone: true,
-  imports: [CommonModule, I18nPipe, CurrencyPipe],
+  imports: [CommonModule, I18nPipe],
   template: `
     <div class="p-6 bg-white rounded-lg relative max-h-full overflow-y-auto">
       <button
@@ -96,7 +96,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
                 "cost" | i18n
               }}</label>
               <p class="text-lg font-semibold text-green-600">
-                {{ request().cost | currency }}
+                €{{ request().cost | number : "1.2-2" }}
               </p>
             </div>
             } @if (request().payment_status) {
