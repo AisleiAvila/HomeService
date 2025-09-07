@@ -34,7 +34,7 @@ O sistema agora inclui dados mock para demonstração:
 1. Acesse a aplicação
 2. Clique em "Sign In"
 3. Use as credenciais acima
-4. Navegue para a aba "Admin" na sidebar
+4. Navegue para a aba "Dashboard" na sidebar (que agora mostra o painel administrativo)
 
 ### 2. **Testar Abas do Dashboard**
 
@@ -95,8 +95,8 @@ O template inclui uma barra amarela no topo com:
 ### Se o Dashboard Não Aparecer
 
 1. Verifique se está logado como admin
-2. Confirme se a aba "Admin" aparece na sidebar
-3. Clique na aba "Admin"
+2. Confirme se a aba "Dashboard" aparece na sidebar
+3. Clique na aba "Dashboard" (que deve mostrar o painel administrativo)
 4. Verifique o console para erros
 
 ## 🚀 Funcionalidades Testáveis
