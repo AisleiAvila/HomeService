@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste de Câmera - HomeService</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .status {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      video {
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        margin: 20px 0;
+        background: #000;
+      }
+
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .test-section {
+        margin: 30px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .details {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎥 Teste de Câmera - HomeService</h1>
+      <p>
+        Este teste verifica se a funcionalidade da câmera funcionará na sua
+        aplicação.
+      </p>
+
+      <div class="test-section">
+        <h2>1. Verificação de Suporte</h2>
+        <div id="support-status">Verificando...</div>
+      </div>
+
+      <div class="test-section">
+        <h2>2. Teste de Permissões</h2>
+        <button onclick="testCamera()" id="test-btn">Testar Câmera</button>
+        <div id="permission-status"></div>
+        <video id="video" style="display: none" autoplay playsinline></video>
+      </div>
+
+      <div class="test-section">
+        <h2>3. Teste de Captura</h2>
+        <button onclick="capturePhoto()" id="capture-btn" disabled>
+          Capturar Foto
+        </button>
+        <div id="capture-status"></div>
+        <canvas id="canvas" style="display: none"></canvas>
+        <img
+          id="captured-photo"
+          style="max-width: 300px; margin-top: 10px; display: none"
+        />
+      </div>
+
+      <div class="test-section">
+        <h2>📋 Informações do Ambiente</h2>
+        <div id="environment-info"></div>
+      </div>
+    </div>
+
+    <script>
+      let stream = null;
+
+      // Verificação inicial de suporte
+      function checkSupport() {
+        const supportDiv = document.getElementById("support-status");
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          supportDiv.innerHTML =
+            '<div class="error">❌ Seu navegador não suporta acesso à câmera</div>';
+          return false;
+        }
+
+        supportDiv.innerHTML =
+          '<div class="success">✅ Seu navegador suporta acesso à câmera</div>';
+        return true;
+      }
+
+      // Teste de acesso à câmera
+      async function testCamera() {
+        const statusDiv = document.getElementById("permission-status");
+        const video = document.getElementById("video");
+        const testBtn = document.getElementById("test-btn");
+        const captureBtn = document.getElementById("capture-btn");
+
+        statusDiv.innerHTML =
+          '<div class="info">🔄 Solicitando acesso à câmera...</div>';
+        testBtn.disabled = true;
+
+        try {
+          // Verificar permissões primeiro (se suportado)
+          if ("permissions" in navigator) {
+            try {
+              const permission = await navigator.permissions.query({
+                name: "camera",
+              });
+              console.log("Permissão da câmera:", permission.state);
+            } catch (e) {
+              console.log("Não foi possível verificar permissões:", e);
+            }
+          }
+
+          // Solicitar acesso à câmera
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user",
+            },
+          });
+
+          video.srcObject = stream;
+          video.style.display = "block";
+          captureBtn.disabled = false;
+
+          statusDiv.innerHTML =
+            '<div class="success">✅ Câmera acessada com sucesso!</div>';
+        } catch (error) {
+          console.error("Erro ao acessar câmera:", error);
+
+          let errorMessage = "";
+          switch (error.name) {
+            case "NotAllowedError":
+              errorMessage =
+                "❌ Permissão negada. Clique no ícone da câmera na barra de endereços e permita o acesso.";
+              break;
+            case "NotFoundError":
+              errorMessage = "❌ Nenhuma câmera encontrada no dispositivo.";
+              break;
+            case "NotReadableError":
+              errorMessage = "❌ Câmera está sendo usada por outro aplicativo.";
+              break;
+            case "OverconstrainedError":
+              errorMessage = "❌ Configurações da câmera não suportadas.";
+              break;
+            default:
+              errorMessage = `❌ Erro desconhecido: ${error.message}`;
+          }
+
+          statusDiv.innerHTML = `<div class="error">${errorMessage}</div>
+                    <div class="details">Código do erro: ${error.name}</div>`;
+        }
+
+        testBtn.disabled = false;
+      }
+
+      // Teste de captura de foto
+      function capturePhoto() {
+        const video = document.getElementById("video");
+        const canvas = document.getElementById("canvas");
+        const img = document.getElementById("captured-photo");
+        const statusDiv = document.getElementById("capture-status");
+
+        if (!stream || video.videoWidth === 0) {
+          statusDiv.innerHTML =
+            '<div class="error">❌ Vídeo não está pronto para captura</div>';
+          return;
+        }
+
+        try {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(video, 0, 0);
+
+          const dataURL = canvas.toDataURL("image/jpeg", 0.9);
+          img.src = dataURL;
+          img.style.display = "block";
+
+          statusDiv.innerHTML =
+            '<div class="success">✅ Foto capturada com sucesso!</div>';
+        } catch (error) {
+          console.error("Erro ao capturar foto:", error);
+          statusDiv.innerHTML =
+            '<div class="error">❌ Erro ao capturar foto: ' +
+            error.message +
+            "</div>";
+        }
+      }
+
+      // Informações do ambiente
+      function showEnvironmentInfo() {
+        const infoDiv = document.getElementById("environment-info");
+
+        const isHTTPS = location.protocol === "https:";
+        const isLocalhost =
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1";
+
+        let protocolStatus = "";
+        if (isHTTPS) {
+          protocolStatus =
+            '<div class="success">✅ HTTPS - Câmera totalmente suportada</div>';
+        } else if (isLocalhost) {
+          protocolStatus =
+            '<div class="warning">⚠️ HTTP + Localhost - Câmera pode funcionar (depende do navegador)</div>';
+        } else {
+          protocolStatus =
+            '<div class="error">❌ HTTP + Domínio externo - Câmera não funcionará</div>';
+        }
+
+        infoDiv.innerHTML = `
+                <div class="details">
+                    <strong>URL atual:</strong> ${location.href}<br>
+                    <strong>Protocolo:</strong> ${location.protocol}<br>
+                    <strong>Hostname:</strong> ${location.hostname}<br>
+                    <strong>Navegador:</strong> ${
+                      navigator.userAgent.split(") ")[0]
+                    })<br>
+                    ${protocolStatus}
+                </div>
+            `;
+      }
+
+      // Inicialização
+      document.addEventListener("DOMContentLoaded", function () {
+        checkSupport();
+        showEnvironmentInfo();
+      });
+
+      // Limpeza ao sair
+      window.addEventListener("beforeunload", function () {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -28,10 +28,48 @@ const allTranslations: Record<Language, Record<string, string>> = {
     unassigned: "Unassigned",
     unknownClient: "Unknown Client",
     noChangesDetected: "No changes detected.",
+    profileUpdatedSuccessfully: "Profile updated successfully!",
     errorInvalidFileFormat: "Invalid file format. Please use JPG, PNG, or GIF.",
     errorImageTooLarge: "Image is too large. Maximum size is 2MB.",
     errorCameraNotSupported: "Camera access is not supported by your browser.",
     errorAccessingCamera: "Error accessing camera.",
+    errorCameraPermissionDenied:
+      "Camera permission was denied. Please allow camera access and try again.",
+    errorNoCameraFound: "No camera found on this device.",
+    errorCameraInUse: "Camera is already in use by another application.",
+    errorCameraConstraints:
+      "Camera constraints are not supported by your device.",
+    errorVideoNotAvailable: "Video stream is not available.",
+    errorVideoNotReady: "Video is not ready for capture. Please wait a moment.",
+    errorCanvasNotSupported: "Canvas is not supported by your browser.",
+    errorCapturingPhoto: "Error capturing photo. Please try again.",
+    errorUploadingPhoto: "Error uploading photo. Please try again.",
+    errorVideoPlayback: "Error playing video stream.",
+    photoUploadedSuccessfully: "Photo uploaded successfully!",
+    uploadPhoto: "Upload Photo",
+    useCamera: "Use Camera",
+    capturePhoto: "Capture Photo",
+    capture: "Capture",
+    saveChanges: "Save Changes",
+    mySpecialties: "My Specialties",
+    emailAddress: "Email Address",
+    loadingCamera: "Loading camera...",
+    cameraInstructions:
+      "Position yourself in the frame and click capture when ready.",
+    solutionPermissionDenied:
+      "💡 Solution: Click the camera icon in the address bar and allow camera access, then reload the page.",
+    solutionNoCameraFound:
+      "💡 Solution: Connect a camera to your device or check if it's working in other apps.",
+    solutionCameraInUse:
+      "💡 Solution: Close other apps that might be using the camera (Teams, Zoom, Skype, etc.) and try again.",
+    solutionCameraConstraints:
+      "💡 Solution: Try using a different camera or check camera settings.",
+    solutionCameraAborted:
+      "💡 Solution: The operation was cancelled. Please try again.",
+    solutionCameraTypeError:
+      "💡 Solution: This appears to be a browser compatibility issue. Try using Chrome or updating your browser.",
+    errorCameraAborted: "Camera operation was cancelled.",
+    errorCameraTypeError: "Browser compatibility issue with camera access.",
     pushNotificationsBlocked:
       "Push notifications are blocked. Please enable them in your browser settings.",
     noDataToExport: "No financial data to export.",
@@ -172,11 +210,52 @@ const allTranslations: Record<Language, Record<string, string>> = {
     unassigned: "Não atribuído",
     unknownClient: "Cliente desconhecido",
     noChangesDetected: "Nenhuma alteração detectada.",
+    profileUpdatedSuccessfully: "Perfil atualizado com sucesso!",
     errorInvalidFileFormat: "Formato de arquivo inválido. Use JPG, PNG ou GIF.",
     errorImageTooLarge: "A imagem é muito grande. O tamanho máximo é 2MB.",
     errorCameraNotSupported:
       "O acesso à câmera não é suportado pelo seu navegador.",
     errorAccessingCamera: "Erro ao acessar a câmera.",
+    errorCameraPermissionDenied:
+      "Permissão da câmera foi negada. Por favor, permita o acesso à câmera e tente novamente.",
+    errorNoCameraFound: "Nenhuma câmera encontrada neste dispositivo.",
+    errorCameraInUse: "A câmera já está sendo usada por outro aplicativo.",
+    errorCameraConstraints:
+      "As configurações da câmera não são suportadas pelo seu dispositivo.",
+    errorVideoNotAvailable: "O fluxo de vídeo não está disponível.",
+    errorVideoNotReady:
+      "O vídeo não está pronto para captura. Por favor, aguarde um momento.",
+    errorCanvasNotSupported: "Canvas não é suportado pelo seu navegador.",
+    errorCapturingPhoto: "Erro ao capturar foto. Por favor, tente novamente.",
+    errorUploadingPhoto:
+      "Erro ao fazer upload da foto. Por favor, tente novamente.",
+    errorVideoPlayback: "Erro na reprodução do fluxo de vídeo.",
+    photoUploadedSuccessfully: "Foto enviada com sucesso!",
+    uploadPhoto: "Enviar Foto",
+    useCamera: "Usar Câmera",
+    capturePhoto: "Capturar Foto",
+    capture: "Capturar",
+    saveChanges: "Salvar Alterações",
+    mySpecialties: "Minhas Especialidades",
+    emailAddress: "Endereço de E-mail",
+    loadingCamera: "Carregando câmera...",
+    cameraInstructions:
+      "Posicione-se no quadro e clique em capturar quando estiver pronto.",
+    solutionPermissionDenied:
+      "💡 Solução: Clique no ícone da câmera na barra de endereços e permita o acesso, depois recarregue a página.",
+    solutionNoCameraFound:
+      "💡 Solução: Conecte uma câmera ao seu dispositivo ou verifique se está funcionando em outros apps.",
+    solutionCameraInUse:
+      "💡 Solução: Feche outros aplicativos que possam estar usando a câmera (Teams, Zoom, Skype, etc.) e tente novamente.",
+    solutionCameraConstraints:
+      "💡 Solução: Tente usar uma câmera diferente ou verifique as configurações da câmera.",
+    solutionCameraAborted:
+      "💡 Solução: A operação foi cancelada. Por favor, tente novamente.",
+    solutionCameraTypeError:
+      "💡 Solução: Parece ser um problema de compatibilidade do navegador. Tente usar o Chrome ou atualize seu navegador.",
+    errorCameraAborted: "Operação da câmera foi cancelada.",
+    errorCameraTypeError:
+      "Problema de compatibilidade do navegador com acesso à câmera.",
     pushNotificationsBlocked:
       "As notificações push estão bloqueadas. Por favor, habilite-as nas configurações do seu navegador.",
     noDataToExport: "Nenhum dado financeiro para exportar.",

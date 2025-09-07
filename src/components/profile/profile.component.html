@@ -1,22 +1,43 @@
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-  <div class="flex flex-col md:flex-row items-center md:items-start md:space-x-8">
-    
+  <div
+    class="flex flex-col md:flex-row items-center md:items-start md:space-x-8"
+  >
     <!-- Avatar with upload/camera options -->
     <div class="flex-shrink-0 mb-6 md:mb-0">
       <div class="relative group h-32 w-32">
-        <img class="h-32 w-32 rounded-full object-cover shadow-lg" [src]="user().avatar_url" [alt]="user().name">
-        <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+        <img
+          class="h-32 w-32 rounded-full object-cover shadow-lg"
+          [src]="user().avatar_url"
+          [alt]="user().name"
+        />
+        <div
+          class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+        >
           <div class="flex space-x-6">
-            <button (click)="fileInput.click()" [title]="'uploadPhoto' | i18n" class="text-white text-3xl hover:text-gray-300">
+            <button
+              (click)="fileInput.click()"
+              [title]="'uploadPhoto' | i18n"
+              class="text-white text-3xl hover:text-gray-300"
+            >
               <i class="fas fa-upload"></i>
             </button>
-            <button (click)="openCameraModal()" [title]="'useCamera' | i18n" class="text-white text-3xl hover:text-gray-300">
+            <button
+              (click)="openCameraModal()"
+              [title]="'useCamera' | i18n"
+              class="text-white text-3xl hover:text-gray-300"
+            >
               <i class="fas fa-camera"></i>
             </button>
           </div>
         </div>
       </div>
-      <input type="file" #fileInput hidden (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/gif">
+      <input
+        type="file"
+        #fileInput
+        hidden
+        (change)="onFileSelected($event)"
+        accept="image/png, image/jpeg, image/gif"
+      />
     </div>
 
     <!-- User Info Form -->
@@ -28,49 +49,91 @@
         <div class="space-y-6">
           <!-- Name -->
           <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">{{ 'fullName' | i18n }}</label>
-            <input type="text" id="name" name="name" 
-                   [ngModel]="name()" (ngModelChange)="name.set($event); checkIfChanged()" 
-                   required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+            <label for="name" class="block text-sm font-medium text-gray-700">{{
+              "fullName" | i18n
+            }}</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event); checkIfChanged()"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
           </div>
 
           <!-- Email -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">{{ 'emailAddress' | i18n }}</label>
-            <input type="email" id="email" name="email" 
-                   [ngModel]="email()" (ngModelChange)="email.set($event); checkIfChanged()" 
-                   required email class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+            <label
+              for="email"
+              class="block text-sm font-medium text-gray-700"
+              >{{ "emailAddress" | i18n }}</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event); checkIfChanged()"
+              required
+              email
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
           </div>
 
           <!-- Specialties for Professionals -->
           @if (user().role === 'professional') {
-            <div>
-              <fieldset>
-                <legend class="block text-sm font-medium text-gray-700 mb-2">{{ 'mySpecialties' | i18n }}</legend>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  @for (cat of allCategories(); track cat) {
-                    <div class="flex items-start">
-                      <div class="flex items-center h-5">
-                        <input [id]="'specialty-' + cat" type="checkbox"
-                               [checked]="isSpecialtyChecked(cat)"
-                               (change)="onSpecialtyChange(cat, $event)"
-                               class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-                      </div>
-                      <div class="ml-2 text-sm">
-                        <label [for]="'specialty-' + cat" class="font-medium text-gray-700">{{ cat }}</label>
-                      </div>
-                    </div>
-                  }
+          <div>
+            <fieldset>
+              <legend class="block text-sm font-medium text-gray-700 mb-2">
+                {{ "mySpecialties" | i18n }}
+              </legend>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                @for (cat of allCategories(); track cat) {
+                <div class="flex items-start">
+                  <div class="flex items-center h-5">
+                    <input
+                      [id]="'specialty-' + cat"
+                      type="checkbox"
+                      [checked]="isSpecialtyChecked(cat)"
+                      (change)="onSpecialtyChange(cat, $event)"
+                      class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                  </div>
+                  <div class="ml-2 text-sm">
+                    <label
+                      [for]="'specialty-' + cat"
+                      class="font-medium text-gray-700"
+                      >{{ cat }}</label
+                    >
+                  </div>
                 </div>
-              </fieldset>
-            </div>
+                }
+              </div>
+            </fieldset>
+          </div>
           }
         </div>
 
         <!-- Action Buttons -->
-        <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-3">
-          <button type="button" (click)="resetForm()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">{{ 'cancel' | i18n }}</button>
-          <button type="submit" [disabled]="profileForm.invalid || !isChanged()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300">{{ 'saveChanges' | i18n }}</button>
+        <div
+          class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-3"
+        >
+          <button
+            type="button"
+            (click)="resetForm()"
+            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+          >
+            {{ "cancel" | i18n }}
+          </button>
+          <button
+            type="submit"
+            [disabled]="profileForm.invalid || !isChanged()"
+            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+          >
+            {{ "saveChanges" | i18n }}
+          </button>
         </div>
       </form>
     </div>
@@ -79,17 +142,96 @@
 
 <!-- Camera Modal -->
 @if (showCameraModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-    <div class="bg-white p-4 rounded-lg shadow-xl text-center">
-      <h3 class="text-xl font-semibold mb-4">{{ 'capturePhoto' | i18n }}</h3>
-      <video #videoElement autoplay playsinline class="rounded-md w-full max-w-lg h-auto bg-gray-900"></video>
-      <div class="mt-4 flex justify-center space-x-4">
-        <button (click)="capturePhoto()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2">
-          <i class="fas fa-camera"></i>
-          <span>{{ 'capture' | i18n }}</span>
+<div
+  class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+  (click)="closeCameraModal()"
+>
+  <div
+    class="bg-white p-6 rounded-lg shadow-xl text-center max-w-2xl w-full mx-4"
+    (click)="$event.stopPropagation()"
+  >
+    <h3 class="text-xl font-semibold mb-4">{{ "capturePhoto" | i18n }}</h3>
+
+    <!-- Video container with loading state -->
+    <div class="relative rounded-md overflow-hidden bg-gray-900 mb-4">
+      <video
+        #videoElement
+        autoplay
+        playsinline
+        muted
+        class="w-full h-auto max-h-96 bg-gray-900"
+        [style.display]="'block'"
+      ></video>
+
+      <!-- Loading overlay -->
+      <div
+        class="absolute inset-0 bg-gray-900 flex items-center justify-center"
+        [style.display]="'none'"
+        id="videoLoading"
+      >
+        <div class="text-white">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+          <p>{{ "loadingCamera" | i18n }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex justify-center space-x-4">
+      <button
+        (click)="capturePhoto()"
+        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center space-x-2 transition-colors"
+      >
+        <i class="fas fa-camera"></i>
+        <span>{{ "capture" | i18n }}</span>
+      </button>
+      <button
+        (click)="closeCameraModal()"
+        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+      >
+        {{ "cancel" | i18n }}
+      </button>
+    </div>
+
+    <!-- Instructions -->
+    <p class="text-sm text-gray-600 mt-4">
+      {{ "cameraInstructions" | i18n }}
+    </p>
+  </div>
+</div>
+}
+
+<!-- Save Toast Notification -->
+@if (showSaveToast()) {
+<div class="fixed top-4 right-4 z-50 max-w-sm w-full">
+  <div
+    class="p-4 rounded-lg shadow-lg border-l-4 transition-all duration-300 transform translate-x-0"
+    [class]="
+      saveToastType() === 'success'
+        ? 'bg-green-50 border-green-400 text-green-800'
+        : 'bg-red-50 border-red-400 text-red-800'
+    "
+  >
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        @if (saveToastType() === 'success') {
+        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+        } @else {
+        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+        }
+      </div>
+      <div class="ml-3">
+        <p class="text-sm font-medium">{{ saveToastMessage() }}</p>
+      </div>
+      <div class="ml-auto pl-3">
+        <button
+          (click)="showSaveToast.set(false)"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          <i class="fas fa-times"></i>
         </button>
-        <button (click)="closeCameraModal()" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">{{ 'cancel' | i18n }}</button>
       </div>
     </div>
   </div>
+</div>
 }
