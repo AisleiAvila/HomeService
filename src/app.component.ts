@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   effect,
+  ViewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
@@ -38,6 +39,7 @@ import { SchedulerComponent } from "./components/scheduler/scheduler.component";
 import { ChatComponent } from "./components/chat/chat.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
+import { ModalComponent } from "./components/modal/modal.component";
 
 // Pipes
 import { I18nPipe } from "./pipes/i18n.pipe";
@@ -66,6 +68,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
     ChatComponent,
     NotificationCenterComponent,
     LanguageSwitcherComponent,
+    ModalComponent,
   ],
   template: `
     <!-- Main view router -->
@@ -82,6 +85,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
         <app-language-switcher [theme]="authTheme()" />
       </div>
       <app-login
+        #loginComponent
         (loggedIn)="handleLogin($event)"
         (switchToRegister)="showRegister()"
         (switchToLanding)="showLanding()"
@@ -104,6 +108,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       [email]="emailForVerification()"
       (verified)="handleVerification($event)"
       (resendCode)="handleResendVerification()"
+      (backToLanding)="handleBackToLanding()"
     />
     } @case ('app') { @if (currentUser(); as user) {
     <div class="flex h-screen bg-gray-100 font-sans text-gray-800">
@@ -326,6 +331,14 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       <p>{{ "loadingUser" | i18n }}</p>
     </div>
     } } }
+
+    <!-- Modal de Sucesso do Registro -->
+    <app-modal
+      [title]="'registrationSuccessful' | i18n"
+      [message]="'emailVerificationRequired' | i18n"
+      [isVisible]="showRegistrationModal()"
+      (closed)="handleModalClose()"
+    />
   `,
   styles: [
     `
@@ -420,12 +433,17 @@ export class AppComponent {
   isNewRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
   isDetailsModalOpen = signal(false);
+  showRegistrationModal = signal(false);
 
   selectedRequest = signal<ServiceRequest | null>(null);
 
   // User data
   currentUser = this.authService.appUser;
+  pendingEmailConfirmation = this.authService.pendingEmailConfirmation;
   emailForVerification = signal("");
+
+  // Component References
+  @ViewChild(LoginComponent) loginComponent?: LoginComponent;
 
   hasUnreadNotifications = computed(() =>
     this.notificationService.notifications().some((n) => !n.read)
@@ -459,7 +477,20 @@ export class AppComponent {
   constructor() {
     effect(() => {
       const user = this.currentUser();
-      if (user) {
+      const pendingEmail = this.pendingEmailConfirmation();
+
+      console.log("🎯 AppComponent effect triggered:");
+      console.log("  - currentUser:", user?.id || "null");
+      console.log("  - pendingEmailConfirmation:", pendingEmail || "null");
+
+      if (pendingEmail) {
+        // Usuário registrado mas precisa confirmar e-mail
+        console.log("📧 Redirecionando para tela de verificação");
+        this.emailForVerification.set(pendingEmail);
+        this.view.set("verification");
+        this.dataService.clearData();
+      } else if (user) {
+        console.log("👤 Usuário autenticado, status:", user.status);
         if (user.status === "Active") {
           this.view.set("app");
           this.dataService.loadInitialData(user);
@@ -472,6 +503,7 @@ export class AppComponent {
           this.authService.logout();
         }
       } else {
+        console.log("🏠 Redirecionando para landing");
         this.view.set("landing");
         this.dataService.clearData();
       }
@@ -494,40 +526,103 @@ export class AppComponent {
   }
 
   // --- Auth Handlers ---
-  handleLogin(payload: LoginPayload) {
+  async handleLogin(payload: LoginPayload) {
     console.log(
       "handleLogin - Logging in with",
       payload.email,
       payload.password
     );
-    this.authService.login(payload.email, payload.password);
+
+    try {
+      const response = await this.authService.login(
+        payload.email,
+        payload.password
+      );
+
+      if (response.error) {
+        console.log("❌ Erro no login:", response.error.message);
+
+        // Exibir erro no componente de login
+        if (this.loginComponent) {
+          this.loginComponent.setError(response.error.message);
+        }
+
+        // Usuário permanece na tela de login
+      } else {
+        console.log("✅ Login bem-sucedido");
+
+        // Limpar erros do componente de login
+        if (this.loginComponent) {
+          this.loginComponent.clearError();
+        }
+
+        // O AuthService vai automaticamente definir o currentUser
+        // e o effect vai redirecionar para a aplicação
+      }
+    } catch (error) {
+      console.error("❌ Erro inesperado no login:", error);
+
+      if (this.loginComponent) {
+        this.loginComponent.setError("Erro inesperado. Tente novamente.");
+      }
+    }
   }
 
   handleRegister(payload: RegisterPayload) {
+    console.log(
+      "🎯 AppComponent.handleRegister() chamado para:",
+      payload.email
+    );
+
     this.authService.register(
       payload.name,
       payload.email,
       payload.password,
       payload.role
     );
-    this.emailForVerification.set(payload.email);
-    this.view.set("verification");
+
+    console.log("✅ AuthService.register() chamado");
+
+    // Mostrar modal de sucesso
+    console.log("📱 Exibindo modal de sucesso do registro");
+    this.showRegistrationModal.set(true);
   }
 
   handleVerification(code: string) {
-    this.authService.verifyOtp(this.emailForVerification(), code).then(() => {
-      this.notificationService.addNotification(
-        "Verification successful! You can now log in."
-      );
-      this.view.set("login");
-    });
+    this.authService
+      .verifyOtp(this.emailForVerification(), code)
+      .then((response) => {
+        if (response.error) {
+          // Erro na verificação será tratado pelo AuthService
+          return;
+        }
+
+        this.notificationService.addNotification(
+          "Verification successful! You can now access the application."
+        );
+
+        // Limpar estado de verificação pendente
+        this.authService.pendingEmailConfirmation.set(null);
+
+        // O effect do constructor vai automaticamente redirecionar para a aplicação
+      });
   }
 
   handleResendVerification() {
-    this.notificationService.addNotification(
-      "A new verification code has been sent."
-    );
-    // In a real app, you would call an authService method here.
+    const email = this.emailForVerification();
+    if (email) {
+      // Usar o método signInWithOtp para reenviar código
+      this.authService.resendVerificationCode(email);
+    }
+  }
+
+  handleBackToLanding() {
+    console.log("🏠 Usuário solicitou volta para tela principal");
+    // Limpar e-mail pendente de confirmação
+    this.authService.pendingEmailConfirmation.set(null);
+    this.emailForVerification.set("");
+    // Redirecionar para landing
+    this.view.set("landing");
   }
 
   handleForgotPassword(email: string) {
@@ -621,5 +716,11 @@ export class AppComponent {
       `Payment for request #${request.id} processed.`
     );
     this.closeModal();
+  }
+
+  handleModalClose() {
+    console.log("🏠 Modal fechado, retornando para tela principal");
+    this.showRegistrationModal.set(false);
+    this.view.set("landing");
   }
 }
