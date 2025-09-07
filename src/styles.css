@@ -11,6 +11,41 @@ body {
   margin: 0;
 }
 
+/* Mobile responsiveness improvements */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scrolling */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve text readability on small screens */
+  .text-xs {
+    font-size: 0.875rem !important;
+  }
+
+  /* Better spacing for mobile */
+  .space-y-1 > * + * {
+    margin-top: 0.5rem !important;
+  }
+
+  .space-y-2 > * + * {
+    margin-top: 0.75rem !important;
+  }
+}
+
 /* Styles for printing the invoice */
 @media print {
   body * {
