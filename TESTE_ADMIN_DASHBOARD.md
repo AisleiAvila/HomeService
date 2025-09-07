@@ -58,7 +58,7 @@ O sistema agora inclui dados mock para demonstração:
 
 #### **💰 Finances (Finanças)**
 
-- Veja estatísticas: 2 serviços concluídos, R$ 450 de receita
+- Veja estatísticas: 2 serviços concluídos, € 450 de receita
 - Teste exportar relatório CSV
 - Teste gerar fatura individual
 
@@ -135,7 +135,7 @@ Teste mudando o idioma:
 1. Clique no seletor de idioma (canto superior direito)
 2. Alterne entre English/Português
 3. Observe todas as traduções sendo aplicadas
-4. Verifique formatação de moeda ($ vs R$)
+4. Verifique formatação de moeda (€ para todas as línguas)
 
 ## 📈 Próximos Passos
 
