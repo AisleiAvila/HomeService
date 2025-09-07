@@ -38,6 +38,18 @@ export interface LoginPayload {
         </div>
 
         <form (ngSubmit)="login()" class="space-y-6">
+          <!-- Mensagem de Erro -->
+          @if (errorMessage()) {
+          <div
+            class="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md"
+          >
+            <div class="flex items-center">
+              <i class="fas fa-exclamation-circle mr-2"></i>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          </div>
+          }
+
           <div>
             <label
               for="email"
@@ -89,10 +101,15 @@ export interface LoginPayload {
           <div>
             <button
               type="submit"
-              [disabled]="!email() || !password()"
+              [disabled]="!email() || !password() || isLoading()"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
             >
+              @if (isLoading()) {
+              <i class="fas fa-spinner fa-spin mr-2"></i>
+              {{ "loggingIn" | i18n }}
+              } @else {
               {{ "login" | i18n }}
+              }
             </button>
           </div>
         </form>
@@ -119,13 +136,30 @@ export class LoginComponent {
 
   email = signal("");
   password = signal("");
+  errorMessage = signal<string | null>(null);
+  isLoading = signal(false);
 
   login() {
     console.log("Logging in with", this.email(), this.password());
+
+    // Limpar mensagens de erro anteriores
+    this.errorMessage.set(null);
+    this.isLoading.set(true);
+
     this.loggedIn.emit({
       email: this.email(),
       password: this.password(),
     });
+  }
+
+  setError(message: string) {
+    this.errorMessage.set(message);
+    this.isLoading.set(false);
+  }
+
+  clearError() {
+    this.errorMessage.set(null);
+    this.isLoading.set(false);
   }
 
   handleForgotPassword() {

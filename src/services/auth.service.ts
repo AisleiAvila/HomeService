@@ -16,21 +16,28 @@ export class AuthService {
   // The application's user profile, fetched from the 'users' table.
   readonly appUser = signal<User | null>(null);
 
+  // Indica se há um usuário que precisa confirmar e-mail
+  readonly pendingEmailConfirmation = signal<string | null>(null);
+
   constructor() {
     effect(async () => {
       const sUser = this.supabaseUser();
+      console.log("🔍 AuthService effect triggered. sUser:", sUser?.id);
+
       if (sUser) {
-        // When supabase user exists, fetch our custom user profile
+        console.log("👤 Usuário autenticado, buscando perfil...");
         await this.fetchAppUser(sUser.id);
       } else {
-        // When supabase user is null (logged out), clear our app user
+        console.log("👤 Nenhum usuário logado");
         this.appUser.set(null);
+        this.pendingEmailConfirmation.set(null);
       }
     });
   }
 
   private async fetchAppUser(userId: string) {
-    console.log("Buscando usuário com auth_id:", userId);
+    console.log("🔍 Buscando usuário com auth_id:", userId);
+
     const { data, error } = await this.supabase.client
       .from("users")
       .select("*")
@@ -38,14 +45,34 @@ export class AuthService {
       .single();
 
     if (error) {
-      console.error("Supabase fetchAppUser error:", error);
+      console.error("❌ Supabase fetchAppUser error:", error);
       if (error.code !== "PGRST116") {
         // PGRST116: "object not found" - this is expected on first login after signup
         this.handleAuthError(error, "fetching user profile");
       }
+      this.appUser.set(null);
+      return;
     }
 
-    this.appUser.set(data as User | null);
+    const user = data as User;
+    console.log("👤 Usuário encontrado:", user.email);
+    console.log("📧 Email verificado:", user.email_verified);
+
+    // Verificar se o email foi verificado
+    if (!user.email_verified) {
+      console.log(
+        "⚠️ Email NÃO verificado. Definindo pendingEmailConfirmation"
+      );
+      this.pendingEmailConfirmation.set(user.email);
+      this.appUser.set(null);
+      // Fazer logout para forçar verificação
+      await this.supabase.client.auth.signOut();
+      return;
+    }
+
+    console.log("✅ Email verificado. Carregando usuário");
+    this.pendingEmailConfirmation.set(null);
+    this.appUser.set(user);
   }
 
   private handleAuthError(
@@ -86,9 +113,51 @@ export class AuthService {
           status: response.error.status,
           name: response.error.name,
         });
+        this.handleAuthError(response.error as AuthError, "logging in");
+        return response;
       }
 
-      this.handleAuthError(response.error as AuthError, "logging in");
+      // Se login foi bem-sucedido, verificar se email foi verificado
+      if (response.data?.user) {
+        console.log("🔍 Login bem-sucedido, verificando email_verified...");
+
+        const { data: userData, error: userError } = await this.supabase.client
+          .from("users")
+          .select("email_verified")
+          .eq("auth_id", response.data.user.id)
+          .single();
+
+        if (userError) {
+          console.error("❌ Erro ao verificar email_verified:", userError);
+        } else if (!userData?.email_verified) {
+          console.log("⚠️ Email não verificado, bloqueando login");
+
+          // Fazer logout imediatamente
+          await this.supabase.client.auth.signOut();
+
+          // NÃO definir pendingEmailConfirmation - manter na tela de login
+          // this.pendingEmailConfirmation.set(response.data.user.email || email);
+
+          // Mostrar notificação de erro na tela de login
+          this.notificationService.addNotification(
+            "Email não verificado. Por favor, verifique seu email e clique no link de verificação antes de fazer login."
+          );
+
+          // Retornar erro personalizado para ser tratado pelo componente de login
+          return {
+            data: { user: null, session: null },
+            error: {
+              message:
+                "Email não verificado. Por favor, verifique seu email e clique no link de verificação antes de fazer login.",
+              name: "EmailNotVerified",
+              status: 400,
+            } as AuthError,
+          };
+        } else {
+          console.log("✅ Email verificado, login permitido");
+        }
+      }
+
       return response;
     } catch (error) {
       console.error("Erro inesperado no login:", error);
@@ -108,6 +177,38 @@ export class AuthService {
     password: string,
     role: UserRole
   ): Promise<void> {
+    console.log("🚀 AuthService.register() iniciado para:", email);
+    console.log("🎯 IMPORTANTE: Role recebido como parâmetro:", role);
+    console.log("🎯 IMPORTANTE: Tipo do role:", typeof role);
+    console.log("🎯 IMPORTANTE: Parâmetros completos:", { name, email, role });
+
+    // Validar formato do e-mail antes de qualquer operação
+    console.log("✅ Validando formato do e-mail...");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.error("❌ Formato de e-mail inválido:", email);
+      this.notificationService.addNotification(
+        "Por favor, insira um e-mail válido (exemplo: usuario@email.com)"
+      );
+      return;
+    }
+
+    // Verificar se já existe um usuário com este e-mail na nossa tabela
+    console.log("🔍 Verificando se e-mail já existe na base de dados...");
+    const { data: existingUser } = await this.supabase.client
+      .from("users")
+      .select("email")
+      .eq("email", email)
+      .single();
+
+    if (existingUser) {
+      console.log("⚠️ E-mail já existe na tabela users");
+      this.notificationService.addNotification(
+        "E-mail já cadastrado. Tente fazer login ou use outro e-mail."
+      );
+      return;
+    }
+
     const { data: signUpData, error: signUpError } =
       await this.supabase.client.auth.signUp({
         email,
@@ -115,25 +216,151 @@ export class AuthService {
       });
 
     if (signUpError) {
-      this.handleAuthError(signUpError, "registering");
+      console.error("❌ Erro no signUp:", signUpError);
+
+      // Tratamento específico para diferentes tipos de erro
+      if (signUpError.message.includes("User already registered")) {
+        this.notificationService.addNotification(
+          "E-mail já cadastrado. Tente fazer login ou use outro e-mail."
+        );
+      } else if (signUpError.message.includes("invalid format")) {
+        this.notificationService.addNotification(
+          "Formato de e-mail inválido. Use o formato: usuario@email.com"
+        );
+      } else if (signUpError.message.includes("email address")) {
+        this.notificationService.addNotification(
+          "E-mail inválido. Verifique se digitou corretamente."
+        );
+      } else {
+        this.handleAuthError(signUpError, "registering");
+      }
       return;
     }
 
+    console.log("✅ SignUp bem-sucedido:", signUpData.user?.id);
+
     if (signUpData.user) {
+      // Verificar se o usuário foi automaticamente confirmado pelo Supabase
+      console.log("📊 Dados do usuário recém-criado:");
+      console.log("  - id:", signUpData.user.id);
+      console.log("  - email:", signUpData.user.email);
+      console.log(
+        "  - email_confirmed_at:",
+        signUpData.user.email_confirmed_at
+      );
+      console.log(
+        "  - phone_confirmed_at:",
+        signUpData.user.phone_confirmed_at
+      );
+
+      // Criar perfil do usuário na tabela users
+      console.log("📝 Criando perfil do usuário na tabela users");
+      console.log("🔍 Dados que serão inseridos na tabela users:");
+      console.log("  - auth_id:", signUpData.user.id);
+      console.log("  - name:", name);
+      console.log("  - email:", email);
+      console.log("  - role:", role);
+      console.log(
+        "  - status:",
+        role === "professional" ? "Pending" : "Active"
+      );
+
+      const insertData = {
+        auth_id: signUpData.user.id,
+        name,
+        email,
+        role: "client", // FORÇANDO "client" para testar
+        status: role === "professional" ? "Pending" : "Active", // Professionals need approval
+        avatar_url: `https://i.pravatar.cc/150?u=${signUpData.user.id}`,
+        email_verified: false, // Email não verificado inicialmente
+      };
+
+      console.log("📊 Objeto completo sendo inserido:", insertData);
+      console.log(
+        "🎯 IMPORTANTE: Role sendo inserido (hardcoded):",
+        insertData.role
+      );
+
       const { error: insertError } = await this.supabase.client
         .from("users")
-        .insert({
-          auth_id: signUpData.user.id,
-          name,
-          email,
-          role,
-          status: role === "professional" ? "Pending" : "Active", // Professionals need approval
-          avatar_url: `https://i.pravatar.cc/150?u=${signUpData.user.id}`,
-        });
+        .insert(insertData);
 
       if (insertError) {
-        this.handleAuthError(insertError, "creating user profile");
+        console.error("❌ Erro ao criar perfil:", insertError);
+        console.error("❌ Detalhes do erro:", insertError.message);
+        console.error("❌ Código do erro:", insertError.code);
+
+        // Se for erro de UNIQUE constraint (usuário já existe), vamos fazer UPDATE
+        if (
+          insertError.message.includes("duplicate key") ||
+          insertError.message.includes("already exists")
+        ) {
+          console.log("⚠️ Usuário já existe, tentando UPDATE...");
+
+          const { error: updateError } = await this.supabase.client
+            .from("users")
+            .update({
+              name,
+              role: "client", // FORÇANDO "client"
+              status: role === "professional" ? "Pending" : "Active",
+              avatar_url: `https://i.pravatar.cc/150?u=${signUpData.user.id}`,
+              email_verified: false, // Email não verificado inicialmente
+            })
+            .eq("auth_id", signUpData.user.id);
+
+          if (updateError) {
+            console.error("❌ Erro no UPDATE:", updateError);
+            this.handleAuthError(updateError, "updating user profile");
+          } else {
+            console.log("✅ Perfil atualizado com sucesso");
+
+            // IMPORTANTE: Definir e-mail pendente PRIMEIRO (antes do logout)
+            console.log(
+              "📧 Definindo e-mail pendente de confirmação (UPDATE):",
+              email
+            );
+            this.pendingEmailConfirmation.set(email);
+
+            // SEMPRE fazer logout para garantir que o usuário vá para tela de verificação
+            console.log(
+              "� Fazendo logout obrigatório para tela de verificação"
+            );
+            await this.supabase.client.auth.signOut();
+
+            this.notificationService.addNotification(
+              "Registration successful! Please check your email to verify your account."
+            );
+          }
+        } else {
+          this.handleAuthError(insertError, "creating user profile");
+        }
       } else {
+        console.log("✅ Perfil criado com sucesso");
+
+        // Verificar o que foi realmente inserido na base de dados
+        console.log("🔍 Verificando dados inseridos na base de dados...");
+        const { data: insertedUser, error: selectError } =
+          await this.supabase.client
+            .from("users")
+            .select("*")
+            .eq("auth_id", signUpData.user.id)
+            .single();
+
+        if (selectError) {
+          console.error("❌ Erro ao buscar usuário inserido:", selectError);
+        } else {
+          console.log("📊 Dados realmente inseridos na base:", insertedUser);
+          console.log("🎯 Role na base de dados:", insertedUser.role);
+        }
+
+        // Definir e-mail pendente de confirmação PRIMEIRO (antes do logout)
+        console.log("📧 Definindo e-mail pendente de confirmação:", email);
+        this.pendingEmailConfirmation.set(email);
+
+        // SEMPRE fazer logout para garantir que o usuário vá para tela de verificação
+        console.log("� Fazendo logout obrigatório para tela de verificação");
+        await this.supabase.client.auth.signOut();
+
         this.notificationService.addNotification(
           "Registration successful! Please check your email to verify your account."
         );
@@ -142,13 +369,47 @@ export class AuthService {
   }
 
   async verifyOtp(email: string, token: string): Promise<AuthResponse> {
+    console.log("🔍 Verificando OTP para:", email);
+
     const response = await this.supabase.client.auth.verifyOtp({
       email,
       token,
       type: "signup",
     });
+
     this.handleAuthError(response.error as AuthError, "verifying OTP");
+
+    // Se a verificação foi bem-sucedida, marcar email como verificado
+    if (!response.error && response.data.user) {
+      console.log(
+        "✅ OTP verificado com sucesso, marcando email como verificado"
+      );
+      await this.markEmailAsVerified(response.data.user.id);
+    }
+
     return response;
+  }
+
+  async resendVerificationCode(email: string): Promise<void> {
+    try {
+      const { error } = await this.supabase.client.auth.resend({
+        type: "signup",
+        email: email,
+      });
+
+      if (error) {
+        this.handleAuthError(error, "resending verification code");
+      } else {
+        this.notificationService.addNotification(
+          "A new verification code has been sent to your email."
+        );
+      }
+    } catch (error) {
+      console.error("Error resending verification code:", error);
+      this.notificationService.addNotification(
+        "Error resending verification code. Please try again."
+      );
+    }
   }
 
   async resetPassword(email: string): Promise<void> {
@@ -171,6 +432,24 @@ export class AuthService {
     this.handleAuthError(error, "logging out");
     if (!error) {
       this.appUser.set(null);
+    }
+  }
+
+  async markEmailAsVerified(authId: string): Promise<void> {
+    console.log("✅ Marcando email como verificado para user:", authId);
+
+    const { error } = await this.supabase.client
+      .from("users")
+      .update({ email_verified: true })
+      .eq("auth_id", authId);
+
+    if (error) {
+      console.error("❌ Erro ao marcar email como verificado:", error);
+      this.handleAuthError(error, "marking email as verified");
+    } else {
+      console.log("✅ Email marcado como verificado com sucesso");
+      // Recarregar o usuário
+      await this.fetchAppUser(authId);
     }
   }
 
