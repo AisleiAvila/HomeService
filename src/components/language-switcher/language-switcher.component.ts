@@ -1,18 +1,25 @@
-import { Component, ChangeDetectionStrategy, inject, signal, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { I18nService, Language } from '../../services/i18n.service';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  signal,
+  input,
+} from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { I18nService, Language } from "../../services/i18n.service";
+import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
-  selector: 'app-language-switcher',
+  selector: "app-language-switcher",
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './language-switcher.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  imports: [CommonModule, I18nPipe],
+  templateUrl: "./language-switcher.component.html",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageSwitcherComponent {
   i18n = inject(I18nService);
   isOpen = signal(false);
-  theme = input<'light' | 'dark'>('light');
+  theme = input<"light" | "dark">("light");
 
   setLanguage(lang: Language) {
     this.i18n.setLanguage(lang);

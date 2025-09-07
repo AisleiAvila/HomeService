@@ -118,7 +118,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
           class="h-16 flex items-center justify-center text-2xl font-bold flex-shrink-0 px-4"
         >
           <i class="fas fa-tools mr-3 text-indigo-400"></i>
-          <span class="truncate">MaintainApp</span>
+          <span class="truncate">{{ "appName" | i18n }}</span>
         </div>
 
         <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
@@ -139,7 +139,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
               class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center"
             >
               <i class="fas fa-plus mr-2"></i>
-              <span>New Request</span>
+              <span>{{ "newRequest" | i18n }}</span>
             </button>
           </div>
           }
@@ -174,7 +174,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
         >
           <button
             (click)="isSidebarOpen.set(!isSidebarOpen())"
-            class="text-gray-600 md:hidden"
+            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-md transition-colors duration-200 md:hidden"
           >
             <i class="fas fa-bars text-xl"></i>
           </button>
@@ -185,7 +185,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
             <app-language-switcher theme="light" />
             <button
               (click)="isNotificationCenterOpen.set(true)"
-              class="relative text-gray-600 hover:text-indigo-600"
+              class="relative text-gray-700 hover:text-indigo-600 hover:bg-gray-100 p-2 rounded-full transition-colors duration-200"
             >
               <i class="fas fa-bell text-xl"></i>
               @if (hasUnreadNotifications()) {
@@ -277,7 +277,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
     </div>
     } } @else {
     <div class="w-screen h-screen flex items-center justify-center">
-      <p>Loading user...</p>
+      <p>{{ "loadingUser" | i18n }}</p>
     </div>
     } } }
   `,

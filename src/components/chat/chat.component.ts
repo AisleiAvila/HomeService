@@ -1,15 +1,29 @@
-
-import { Component, ChangeDetectionStrategy, input, output, inject, computed, viewChild, ElementRef, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { User, ServiceRequest, ChatMessage } from '../../models/maintenance.models';
-import { DataService } from '../../services/data.service';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  inject,
+  computed,
+  viewChild,
+  ElementRef,
+  effect,
+} from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import {
+  User,
+  ServiceRequest,
+  ChatMessage,
+} from "../../models/maintenance.models";
+import { DataService } from "../../services/data.service";
+import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
-  selector: 'app-chat',
+  selector: "app-chat",
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './chat.component.html',
+  imports: [CommonModule, FormsModule, I18nPipe],
+  templateUrl: "./chat.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComponent {
@@ -18,24 +32,27 @@ export class ChatComponent {
   close = output<void>();
 
   private dataService = inject(DataService);
-  
-  chatContainer = viewChild<ElementRef<HTMLDivElement>>('chatContainer');
-  
+
+  chatContainer = viewChild<ElementRef<HTMLDivElement>>("chatContainer");
+
   messages = computed(() => {
-    return this.dataService.chatMessages()
-      .filter(m => m.request_id === this.serviceRequest().id)
-      .map(m => {
-        const sender = this.dataService.users().find(u => u.id === m.sender_id);
+    return this.dataService
+      .chatMessages()
+      .filter((m) => m.request_id === this.serviceRequest().id)
+      .map((m) => {
+        const sender = this.dataService
+          .users()
+          .find((u) => u.id === m.sender_id);
         return {
           ...m,
-          sender_name: sender?.name || 'Unknown',
+          sender_name: sender?.name || "Unknown",
           sender_avatar_url: sender?.avatar_url,
-          isCurrentUser: m.sender_id === this.currentUser().id
+          isCurrentUser: m.sender_id === this.currentUser().id,
         };
       });
   });
 
-  newMessageText = '';
+  newMessageText = "";
 
   constructor() {
     effect(() => {
@@ -54,14 +71,14 @@ export class ChatComponent {
 
   sendMessage() {
     if (!this.newMessageText.trim()) return;
-    
+
     this.dataService.addChatMessage(
       this.serviceRequest().id,
       this.currentUser().id,
       this.newMessageText.trim()
     );
 
-    this.newMessageText = '';
+    this.newMessageText = "";
     setTimeout(() => this.scrollToBottom(), 50);
   }
 
@@ -71,7 +88,7 @@ export class ChatComponent {
         const container = this.chatContainer()!.nativeElement;
         container.scrollTop = container.scrollHeight;
       }
-    } catch (err) { 
+    } catch (err) {
       console.error("Could not scroll to bottom:", err);
     }
   }
