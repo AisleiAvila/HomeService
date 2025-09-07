@@ -1,15 +1,5 @@
 <!-- Admin Dashboard Main Container -->
 <div class="flex flex-col h-full bg-gray-100">
-  <!-- Development Info -->
-  <div
-    class="p-2 bg-blue-50 text-xs border-b border-blue-200"
-    *ngIf="!isProduction"
-  >
-    <strong>Admin Dashboard:</strong>
-    {{ allUsers().length }} users, {{ allRequests().length }} requests,
-    {{ actionableRequests().length }} pending actions
-  </div>
-
   <!-- Navigation Tabs -->
   <div class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
     <nav class="flex -mb-px space-x-6 px-4 sm:px-6">

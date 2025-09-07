@@ -30,10 +30,7 @@ export class AdminDashboardComponent {
   private notificationService = inject(NotificationService);
 
   constructor() {
-    // Debug: Check if component is being instantiated
-    console.log("AdminDashboardComponent initialized");
-    console.log("Users:", this.dataService.users());
-    console.log("Requests:", this.dataService.serviceRequests());
+    // Component initialized
   }
 
   // Environment check
