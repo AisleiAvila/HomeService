@@ -33,6 +33,7 @@ import { SearchComponent } from "./components/search/search.component";
 import { ProfileComponent } from "./components/profile/profile.component";
 import { AdminDashboardComponent } from "./components/admin-dashboard/admin-dashboard.component";
 import { ServiceRequestFormComponent } from "./components/service-request-form/service-request-form.component";
+import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
 import { SchedulerComponent } from "./components/scheduler/scheduler.component";
 import { ChatComponent } from "./components/chat/chat.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
@@ -60,6 +61,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
     ProfileComponent,
     AdminDashboardComponent,
     ServiceRequestFormComponent,
+    ServiceRequestDetailsComponent,
     SchedulerComponent,
     ChatComponent,
     NotificationCenterComponent,
@@ -258,6 +260,21 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
         />
       </div>
     </div>
+    } @if (isDetailsModalOpen() && selectedRequest()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-content max-w-4xl" (click)="$event.stopPropagation()">
+        <app-service-request-details
+          [request]="selectedRequest()!"
+          [currentUser]="user"
+          (close)="closeModal()"
+          (openChat)="openChat($event)"
+          (approveQuote)="handleApproveQuote($event)"
+          (rejectQuote)="handleRejectQuote($event)"
+          (scheduleRequest)="openScheduler($event)"
+          (payNow)="handlePayment($event)"
+        />
+      </div>
+    </div>
     } } @else {
     <div class="w-screen h-screen flex items-center justify-center">
       <p>Loading user...</p>
@@ -356,6 +373,7 @@ export class AppComponent {
   isChatOpen = signal(false);
   isNewRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
+  isDetailsModalOpen = signal(false);
 
   selectedRequest = signal<ServiceRequest | null>(null);
 
@@ -500,9 +518,7 @@ export class AppComponent {
 
   openDetails(request: ServiceRequest) {
     this.selectedRequest.set(request);
-    // For now, details may open other modals like chat or scheduler.
-    // If a dedicated details modal is created, its state would be set here.
-    // Example: this.isDetailsModalOpen.set(true);
+    this.isDetailsModalOpen.set(true);
   }
 
   handleScheduleConfirmed(event: {
@@ -539,7 +555,24 @@ export class AppComponent {
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
+    this.isDetailsModalOpen.set(false);
     this.selectedRequest.set(null);
+  }
+
+  handleApproveQuote(request: ServiceRequest) {
+    this.dataService.updateServiceRequest(request.id, { status: "Approved" });
+    this.notificationService.addNotification(
+      `Quote for "${request.title}" approved`
+    );
+    this.closeModal();
+  }
+
+  handleRejectQuote(request: ServiceRequest) {
+    this.dataService.updateServiceRequest(request.id, { status: "Cancelled" });
+    this.notificationService.addNotification(
+      `Quote for "${request.title}" rejected`
+    );
+    this.closeModal();
   }
 
   handlePayment(request: ServiceRequest) {
@@ -548,5 +581,6 @@ export class AppComponent {
     this.notificationService.addNotification(
       `Payment for request #${request.id} processed.`
     );
+    this.closeModal();
   }
 }
