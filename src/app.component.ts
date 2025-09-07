@@ -43,7 +43,7 @@ import { LanguageSwitcherComponent } from "./components/language-switcher/langua
 import { I18nPipe } from "./pipes/i18n.pipe";
 
 type View = "landing" | "login" | "register" | "verification" | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
+type Nav = "dashboard" | "schedule" | "search" | "profile";
 
 @Component({
   selector: "app-root",
@@ -243,7 +243,10 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
         </header>
 
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-100">
-          @switch(currentNav()) { @case('dashboard') {
+          @switch(currentNav()) { @case('dashboard') { @if(user.role ===
+          'admin') {
+          <app-admin-dashboard />
+          } @else {
           <app-dashboard
             [user]="user"
             (viewDetails)="openDetails($event)"
@@ -251,15 +254,13 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "admin";
             (payNow)="handlePayment($event)"
             (scheduleRequest)="openScheduler($event)"
           />
-          } @case('schedule') {
+          } } @case('schedule') {
           <app-schedule [user]="user" (viewDetails)="openDetails($event)" />
           } @case('search') {
           <app-search [user]="user" />
           } @case('profile') {
           <app-profile [user]="user" />
-          } @case('admin') { @if(user.role === 'admin') {
-          <app-admin-dashboard />
-          } } }
+          } }
         </main>
       </div>
     </div>
@@ -452,13 +453,6 @@ export class AppComponent {
       },
       { id: "profile", labelKey: "profile", icon: "fa-solid fa-user" },
     ];
-    if (userRole === "admin") {
-      items.push({
-        id: "admin",
-        labelKey: "admin",
-        icon: "fa-solid fa-user-shield",
-      });
-    }
     return items;
   });
 
