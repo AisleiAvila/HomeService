@@ -83,6 +83,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     dontHaveAccount: "Don't have an account?",
     or: "or",
     cancel: "Cancel",
+    ok: "OK",
     paid: "Paid",
 
     // Landing Page
@@ -92,6 +93,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Login / Register
     registerTitle: "Create a new account",
     registerLoginLink: "sign in to your existing account",
+    loggingIn: "Logging in...",
     iAmA: "I am a",
 
     // Verification
@@ -100,6 +102,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     verificationCode: "Verification Code",
     verify: "Verify",
     resendCode: "Didn't receive a code? Resend",
+    registrationSuccessful: "Registration completed successfully!",
+    checkEmailBeforeAccess:
+      "Please check your email and confirm your account before accessing the application.",
+    emailVerificationRequired:
+      "Please check your email and click the verification link to activate your account.",
+    emailNotVerifiedLogin:
+      "Please verify your email before logging in. Check your email for the verification link.",
 
     // Dashboard
     welcomeBack: "Welcome back, {name}!",
@@ -341,6 +350,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     dontHaveAccount: "Não tem uma conta?",
     or: "ou",
     cancel: "Cancelar",
+    ok: "OK",
     paid: "Pago",
 
     // Landing Page
@@ -350,6 +360,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Login / Register
     registerTitle: "Crie uma nova conta",
     registerLoginLink: "faça login na sua conta existente",
+    loggingIn: "Fazendo login...",
     iAmA: "Eu sou um(a)",
 
     // Verification
@@ -358,6 +369,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     verificationCode: "Código de Verificação",
     verify: "Verificar",
     resendCode: "Não recebeu o código? Reenviar",
+    registrationSuccessful: "Cadastro realizado com sucesso!",
+    checkEmailBeforeAccess:
+      "Por favor, verifique seu email e confirme sua conta antes de acessar a aplicação.",
+    emailVerificationRequired:
+      "Por favor, verifique seu email e clique no link de verificação para ativar sua conta.",
+    emailNotVerifiedLogin:
+      "Por favor, verifique seu email antes de fazer login. Verifique seu email pelo link de verificação.",
 
     // Dashboard
     welcomeBack: "Bem-vindo(a) de volta, {name}!",

@@ -1,7 +1,15 @@
-export type UserRole = 'client' | 'professional' | 'admin';
-export type UserStatus = 'Pending' | 'Active' | 'Rejected';
-export type ServiceStatus = 'Pending' | 'Quoted' | 'Approved' | 'Scheduled' | 'Assigned' | 'In Progress' | 'Completed' | 'Cancelled';
-export type PaymentStatus = 'Unpaid' | 'Paid';
+export type UserRole = "client" | "professional" | "admin";
+export type UserStatus = "Pending" | "Active" | "Rejected";
+export type ServiceStatus =
+  | "Pending"
+  | "Quoted"
+  | "Approved"
+  | "Scheduled"
+  | "Assigned"
+  | "In Progress"
+  | "Completed"
+  | "Cancelled";
+export type PaymentStatus = "Unpaid" | "Paid";
 export type ServiceCategory = string; // E.g., 'Plumbing', 'Electrical', 'Cleaning'
 
 export interface Address {
@@ -19,6 +27,7 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   avatar_url: string;
+  email_verified?: boolean; // Campo para verificação de email
   specialties?: ServiceCategory[];
   address?: Address;
   phone?: string;
