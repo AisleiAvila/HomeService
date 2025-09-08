@@ -1,1 +1,29 @@
-<full-calendar #calendar [options]="calendarOptions"></full-calendar>
+<div class="schedule-container h-full">
+  <!-- Mobile View Notice -->
+  <div class="md:hidden bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+    <div class="flex items-center">
+      <svg
+        class="w-5 h-5 text-blue-600 mr-2"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span class="text-sm text-blue-800 font-medium"
+        >Dica: Gire o dispositivo para melhor visualização da agenda</span
+      >
+    </div>
+  </div>
+
+  <full-calendar
+    #calendar
+    [options]="calendarOptions"
+    class="mobile-calendar"
+  ></full-calendar>
+</div>

@@ -1,41 +1,149 @@
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
-    <h3 class="text-xl font-bold mb-4">{{ 'scheduleAppointmentFor' | i18n }} "{{ serviceRequest().title }}"</h3>
-    
-    <div class="space-y-4">
+<div
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+  >
+    <!-- Header -->
+    <div
+      class="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 sm:px-6"
+    >
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg sm:text-xl font-bold text-gray-900 pr-4">
+          {{ "scheduleAppointmentFor" | i18n }}
+        </h3>
+        <button
+          (click)="close.emit()"
+          class="flex-shrink-0 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-1"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+      <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+        "{{ serviceRequest().title }}"
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div class="px-4 py-4 sm:px-6 space-y-6">
       <!-- Professional Selection -->
-      <div>
-        <label for="professional" class="block text-sm font-medium text-gray-700">{{ 'selectProfessional' | i18n }}</label>
-        <select id="professional" name="professional"
-                [(ngModel)]="selectedProfessionalId"
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-          <option [ngValue]="null" disabled>{{ 'selectAProfessional' | i18n }}</option>
+      <div class="space-y-2">
+        <label
+          for="professional"
+          class="block text-sm font-semibold text-gray-700"
+        >
+          {{ "selectProfessional" | i18n }}
+        </label>
+        <select
+          id="professional"
+          name="professional"
+          [(ngModel)]="selectedProfessionalId"
+          class="block w-full px-3 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        >
+          <option [ngValue]="null" disabled>
+            {{ "selectAProfessional" | i18n }}
+          </option>
           @for(pro of availableProfessionals(); track pro.id) {
-            <option [ngValue]="pro.id">{{ pro.name }} ({{ pro.specialties?.join(', ') }})</option>
+          <option [ngValue]="pro.id">
+            {{ pro.name }}
+            @if (pro.specialties && pro.specialties.length > 0) {
+            <span class="hidden sm:inline">
+              ({{ pro.specialties.join(", ") }})</span
+            >
+            }
+          </option>
           }
         </select>
       </div>
-      
+
       <!-- Date and Time Selection -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label for="date" class="block text-sm font-medium text-gray-700">{{ 'selectDate' | i18n }}</label>
-          <input type="date" id="date" name="date" [(ngModel)]="selectedDate"
-                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+      <div class="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4">
+        <div class="space-y-2">
+          <label for="date" class="block text-sm font-semibold text-gray-700">
+            {{ "selectDate" | i18n }}
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            [(ngModel)]="selectedDate"
+            [min]="getTomorrowDate()"
+            class="block w-full px-3 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
         </div>
-        <div>
-          <label for="time" class="block text-sm font-medium text-gray-700">{{ 'selectTime' | i18n }}</label>
-          <input type="time" id="time" name="time" [(ngModel)]="selectedTime"
-                 class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        <div class="space-y-2">
+          <label for="time" class="block text-sm font-semibold text-gray-700">
+            {{ "selectTime" | i18n }}
+          </label>
+          <select
+            id="time"
+            name="time"
+            [(ngModel)]="selectedTime"
+            class="block w-full px-3 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="" disabled>Selecione um horário</option>
+            @for(timeSlot of availableTimeSlots; track timeSlot.value) {
+            <option [value]="timeSlot.value">{{ timeSlot.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Service Details Card (Mobile Enhancement) -->
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <h4 class="text-sm font-semibold text-gray-700 mb-2">
+          Detalhes do Serviço
+        </h4>
+        <div class="space-y-2 text-sm text-gray-600">
+          <div>
+            <span class="font-medium">Categoria:</span>
+            <span class="ml-1">{{ serviceRequest().category }}</span>
+          </div>
+          <div>
+            <span class="font-medium">Endereço:</span>
+            <div class="ml-1 text-xs">
+              {{ serviceRequest().street }}, {{ serviceRequest().city }}
+              <br />{{ serviceRequest().state }} -
+              {{ serviceRequest().zip_code }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    
-    <div class="mt-6 flex justify-end space-x-3">
-      <button (click)="close.emit()" class="px-4 py-2 rounded-md bg-gray-200">{{ 'cancel' | i18n }}</button>
-      <button (click)="confirmAppointment()" [disabled]="!canConfirm()" class="px-4 py-2 rounded-md bg-indigo-600 text-white disabled:bg-indigo-300">
-        {{ 'confirmSchedule' | i18n }}
-      </button>
+
+    <!-- Footer Actions -->
+    <div
+      class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 py-4 sm:px-6"
+    >
+      <div
+        class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3"
+      >
+        <button
+          (click)="close.emit()"
+          class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        >
+          {{ "cancel" | i18n }}
+        </button>
+        <button
+          (click)="confirmAppointment()"
+          [disabled]="!canConfirm()"
+          class="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        >
+          {{ "confirmSchedule" | i18n }}
+        </button>
+      </div>
     </div>
   </div>
 </div>
