@@ -95,19 +95,58 @@
             }
           </td>
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <div class="flex gap-1 lg:gap-2">
+            <div class="flex gap-2 items-center">
+              <!-- Always Available Actions -->
               <button
                 (click)="viewDetails.emit(request)"
-                class="text-blue-600 hover:text-blue-900 text-xs lg:text-sm"
+                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                title="{{ 'viewRequestDetails' | i18n }}"
               >
-                Ver
+                <i class="fas fa-eye"></i>
               </button>
               <button
                 (click)="openChat.emit(request)"
-                class="text-gray-600 hover:text-gray-900 text-xs lg:text-sm"
+                class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors duration-200"
+                title="{{ 'chat' | i18n }}"
               >
-                Chat
+                <i class="fas fa-comments"></i>
               </button>
+
+              <!-- Conditional Actions -->
+              @if(currentUser().role === 'client') { @if(request.status ===
+              'Quoted') {
+              <button
+                (click)="approveQuote.emit(request)"
+                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                title="{{ 'approve' | i18n }}"
+              >
+                <i class="fas fa-check"></i>
+              </button>
+              <button
+                (click)="rejectQuote.emit(request)"
+                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                title="{{ 'reject' | i18n }}"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+              } @if(request.status === 'Approved') {
+              <button
+                (click)="scheduleRequest.emit(request)"
+                class="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-colors duration-200"
+                title="{{ 'schedule' | i18n }}"
+              >
+                <i class="fas fa-calendar"></i>
+              </button>
+              } @if(request.status === 'Completed' && request.payment_status ===
+              'Unpaid') {
+              <button
+                (click)="payNow.emit(request)"
+                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                title="{{ 'payNow' | i18n }}"
+              >
+                <i class="fas fa-credit-card"></i>
+              </button>
+              } }
             </div>
           </td>
         </tr>
@@ -382,6 +421,7 @@
             <button
               (click)="viewDetails.emit(request)"
               class="service-action-secondary bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors duration-200 border border-blue-200 text-sm"
+              title="{{ 'viewRequestDetails' | i18n }}"
             >
               <i class="fas fa-eye mr-1"></i>
               {{ "details" | i18n }}
@@ -389,6 +429,7 @@
             <button
               (click)="openChat.emit(request)"
               class="service-action-secondary bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-200 text-sm"
+              title="{{ 'chat' | i18n }}"
             >
               <i class="fas fa-comments mr-1"></i>
               {{ "chat" | i18n }}

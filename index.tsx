@@ -22,13 +22,6 @@ const tailwindScript = document.createElement("script");
 tailwindScript.src = "https://cdn.tailwindcss.com";
 document.head.appendChild(tailwindScript);
 
-// Add Font Awesome for icons
-const fontAwesomeLink = document.createElement("link");
-fontAwesomeLink.rel = "stylesheet";
-fontAwesomeLink.href =
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
-document.head.appendChild(fontAwesomeLink);
-
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
