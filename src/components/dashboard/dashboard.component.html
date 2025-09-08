@@ -1,4 +1,4 @@
-<div class="space-y-6 min-w-0 overflow-hidden">
+<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
   <div>
     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 break-words">
       {{ "welcomeBack" | i18n : { name: user().name } }}
@@ -37,7 +37,9 @@
 
   <!-- Service Lists -->
   <div class="min-w-0">
-    <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+    <h3
+      class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
+    >
       {{ "activeRequests" | i18n }}
     </h3>
     <app-service-list
@@ -54,7 +56,9 @@
   </div>
 
   <div class="min-w-0">
-    <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+    <h3
+      class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
+    >
       {{ "completedRequests" | i18n }}
     </h3>
     <app-service-list
