@@ -27,6 +27,13 @@ export class SupabaseService {
     // Listen for auth changes
     this.client.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
+
+      // Detectar confirmação de e-mail
+      if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
+        console.log("✅ Email confirmado detectado:", session.user.email);
+        console.log("📧 Data de confirmação:", session.user.email_confirmed_at);
+      }
+
       this._currentUser.set(session?.user ?? null);
     });
   }
