@@ -1,4 +1,29 @@
-/* Tailwind CSS directive/* Hide scrollbar for horizontal navigation */
+/* Tailwind CSS directives - Using CDN instead to avoid build issues */
+/*
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+*/
+
+/* Custom styles to prevent flash of unstyled content */
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+/* Mobile responsiveness improvements */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scrolling */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Hide scrollbar for horizontal navigation */
 .scrollbar-hide {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
@@ -37,40 +62,100 @@
     padding: 0.75rem 0.5rem !important;
     white-space: nowrap;
   }
-}
-CDN instead to avoid build issues */
-/*
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-*/
 
-/* Custom styles to prevent flash of unstyled content */
-body {
-  font-family: sans-serif;
-  margin: 0;
-}
+  /* Service list mobile optimizations */
+  .service-list-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
 
-/* Mobile responsiveness improvements */
-* {
-  box-sizing: border-box;
-}
+  .service-list-actions button {
+    min-height: 44px;
+    font-size: 0.875rem;
+    padding: 0.75rem 0.5rem;
+  }
 
-/* Prevent horizontal scrolling */
-html,
-body {
-  overflow-x: hidden;
-  width: 100%;
-}
+  /* Enhanced mobile service card styling */
+  .service-request-card {
+    padding: 1.25rem !important;
+    margin-bottom: 1rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
 
-/* Hide scrollbar for horizontal navigation */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
-}
+  .service-request-title {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+    margin-bottom: 0.75rem !important;
+    font-weight: 700 !important;
+  }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  .service-request-details {
+    line-height: 1.5 !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .service-request-info-item {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .service-action-primary {
+    min-height: 48px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    padding: 0.875rem 1rem !important;
+  }
+
+  .service-action-secondary {
+    min-height: 44px !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 0.75rem !important;
+  }
+
+  /* Line clamping utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Ensure text doesn't overflow in mobile cards */
+  .service-request-card .break-words {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Mobile table responsiveness */
+  @media (max-width: 767px) {
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 2px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 2px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  }
 }
 
 /* Better touch targets for mobile */
