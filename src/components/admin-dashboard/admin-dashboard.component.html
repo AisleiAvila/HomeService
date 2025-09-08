@@ -79,7 +79,11 @@
         {{ "pendingActions" | i18n }}
       </h3>
       @if(actionableRequests().length > 0) {
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+
+      <!-- Desktop Table View -->
+      <div
+        class="hidden lg:block bg-white rounded-lg shadow-md overflow-hidden"
+      >
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -147,6 +151,57 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden space-y-4">
+        @for(req of actionableRequests(); track req.id) {
+        <div class="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+          <div class="space-y-3">
+            <!-- Header with title and status -->
+            <div class="flex justify-between items-start">
+              <h4 class="text-sm font-semibold text-gray-900 flex-1 mr-2">
+                {{ req.title }}
+              </h4>
+              <span [class]="statusClass(req.status)" class="flex-shrink-0">
+                {{ req.status }}
+              </span>
+            </div>
+
+            <!-- Client info -->
+            <div class="text-sm text-gray-600">
+              <span class="font-medium">{{ "client" | i18n }}:</span>
+              {{ getClientName(req.client_id) }}
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-2 border-t border-gray-100">
+              <div class="flex flex-wrap gap-2">
+                @if(req.status === 'Pending' || req.status === 'Quoted') {
+                <button
+                  (click)="selectRequestForQuote(req)"
+                  class="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200"
+                >
+                  {{
+                    req.status === "Quoted"
+                      ? ("viewQuote" | i18n)
+                      : ("provideQuote" | i18n)
+                  }}
+                </button>
+                } @if(req.status === 'Approved') {
+                <button
+                  (click)="selectRequestForAssignment(req)"
+                  class="flex-1 min-w-[120px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
+                >
+                  {{ "assign" | i18n }}
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
       } @else {
       <p class="text-center text-gray-500 p-6 bg-white rounded-lg shadow-md">
         {{ "noRequestsNeedAttention" | i18n }}
@@ -154,7 +209,7 @@
       }
     </div>
     } @case ('requests') {
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -243,7 +298,7 @@
       </table>
     </div>
     } @case ('approvals') {
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
       <h3 class="text-xl font-semibold text-gray-800 p-4 border-b">
         {{ "pendingRegistrations" | i18n }}
       </h3>
@@ -345,7 +400,7 @@
       </div>
     </div>
     }
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
       <div class="p-4 border-b flex justify-between items-center">
         <h3 class="text-xl font-semibold">{{ "financialDetails" | i18n }}</h3>
         <button
@@ -434,7 +489,7 @@
       </table>
     </div>
     } @case ('professionals') {
-    <div class="bg-white rounded-lg shadow-md">
+    <div class="bg-white rounded-lg shadow-md table-responsive">
       <div class="p-4 border-b flex justify-between items-center">
         <h3 class="text-xl font-semibold">
           {{ "manageProfessionals" | i18n }}
@@ -634,7 +689,7 @@
       </div>
     </div>
     } @case ('clients') {
-    <div class="bg-white rounded-lg shadow-md">
+    <div class="bg-white rounded-lg shadow-md table-responsive">
       <div class="p-4 border-b">
         <h3 class="text-xl font-semibold">{{ "manageClients" | i18n }}</h3>
         <p class="text-gray-600 text-sm mt-1">
