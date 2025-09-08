@@ -8,6 +8,7 @@ import {
   viewChild,
   Injector,
   runInInjectionContext,
+  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -37,15 +38,45 @@ import ptBr from "@fullcalendar/core/locales/pt-br";
     class: "block h-full",
   },
 })
-export class ScheduleComponent {
+export class ScheduleComponent implements OnDestroy {
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
 
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
   private injector = inject(Injector); // Inject the injector to provide context
+  private resizeHandler?: () => void;
 
   calendarComponent = viewChild.required<FullCalendarComponent>("calendar");
+
+  private isMobile(): boolean {
+    return window.innerWidth < 768;
+  }
+
+  private getResponsiveCalendarOptions(): Partial<CalendarOptions> {
+    const isMobile = this.isMobile();
+
+    return {
+      aspectRatio: isMobile ? 1.0 : 1.35,
+      contentHeight: isMobile ? 400 : "auto",
+      height: isMobile ? 500 : "100%",
+      headerToolbar: isMobile
+        ? {
+            left: "prev,next",
+            center: "title",
+            right: "today",
+          }
+        : {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,dayGridWeek",
+          },
+      eventDisplay: isMobile ? "block" : "auto",
+      dayMaxEvents: isMobile ? 2 : 5,
+      initialView: isMobile ? "dayGridMonth" : "dayGridMonth",
+      dayHeaderFormat: isMobile ? { weekday: "short" } : { weekday: "long" },
+    };
+  }
 
   // A stable arrow function that uses `runInInjectionContext` to safely access DI.
   // This is the robust way to handle callbacks from third-party libraries in zoneless Angular.
@@ -64,19 +95,34 @@ export class ScheduleComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
-    headerToolbar: {
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,dayGridWeek",
-    },
+    // Mobile-responsive header toolbar
+    headerToolbar:
+      window.innerWidth < 768
+        ? {
+            left: "prev,next",
+            center: "title",
+            right: "today",
+          }
+        : {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,dayGridWeek",
+          },
+    // Mobile-specific responsive settings
+    aspectRatio: window.innerWidth < 768 ? 1.0 : 1.35,
+    contentHeight: window.innerWidth < 768 ? 400 : "auto",
     weekends: true,
-    height: "100%",
+    height: window.innerWidth < 768 ? 500 : "100%",
     eventTimeFormat: {
       hour: "2-digit",
       minute: "2-digit",
       meridiem: false,
       hour12: false,
     },
+    // Event display settings for mobile
+    eventDisplay: window.innerWidth < 768 ? "block" : "auto",
+    dayMaxEvents: window.innerWidth < 768 ? 2 : 5,
+    moreLinkClick: "popover",
     // The stable, context-aware event handler is now part of the initial config.
     eventClick: this.handleEventClick,
   };
@@ -110,6 +156,12 @@ export class ScheduleComponent {
   }
 
   constructor() {
+    // Window resize handler for responsive calendar
+    if (typeof window !== "undefined") {
+      this.resizeHandler = () => this.updateCalendarForResize();
+      window.addEventListener("resize", this.resizeHandler);
+    }
+
     // This effect now only handles dynamic data updates (events and locale).
     effect(() => {
       const calendarApi = this.calendarComponent()?.getApi();
@@ -169,5 +221,43 @@ export class ScheduleComponent {
       calendarApi.getEventSources().forEach((source) => source.remove());
       calendarApi.addEventSource(scheduledEvents);
     });
+  }
+
+  ngOnDestroy() {
+    if (this.resizeHandler && typeof window !== "undefined") {
+      window.removeEventListener("resize", this.resizeHandler);
+    }
+  }
+
+  private updateCalendarForResize() {
+    const calendarApi = this.calendarComponent()?.getApi();
+    if (!calendarApi) return;
+
+    const isMobile = this.isMobile();
+
+    // Update responsive settings on window resize
+    calendarApi.setOption("aspectRatio", isMobile ? 1.0 : 1.35);
+    calendarApi.setOption("height", isMobile ? 500 : "100%");
+    calendarApi.setOption("contentHeight", isMobile ? 400 : "auto");
+    calendarApi.setOption("dayMaxEvents", isMobile ? 2 : 5);
+    calendarApi.setOption("eventDisplay", isMobile ? "block" : "auto");
+
+    // Update header toolbar for mobile
+    calendarApi.setOption(
+      "headerToolbar",
+      isMobile
+        ? {
+            left: "prev,next",
+            center: "title",
+            right: "today",
+          }
+        : {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,dayGridWeek",
+          }
+    );
+
+    calendarApi.render();
   }
 }
