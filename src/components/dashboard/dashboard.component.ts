@@ -33,6 +33,8 @@ export class DashboardComponent {
   private userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
     const currentUser = this.user();
+    console.log("Dashboard - Total requests:", allRequests.length);
+    console.log("Dashboard - Current user:", currentUser);
     if (currentUser.role === "client") {
       return allRequests.filter((r) => r.client_id === currentUser.id);
     } else if (currentUser.role === "professional") {

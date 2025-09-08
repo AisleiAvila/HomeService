@@ -620,6 +620,32 @@ export class AdminDashboardComponent {
     }
   }
 
+  // Admin Dashboard specific actions
+  viewRequestDetails(request: ServiceRequest) {
+    console.log("Admin Dashboard - viewRequestDetails called:", request);
+    // Emit to parent component to open modal
+    // For now, we'll just log - the parent app component should handle this
+    window.postMessage(
+      {
+        type: "OPEN_REQUEST_DETAILS",
+        payload: request,
+      },
+      "*"
+    );
+  }
+
+  openChat(request: ServiceRequest) {
+    console.log("Admin Dashboard - openChat called:", request);
+    // Emit to parent component to open chat
+    window.postMessage(
+      {
+        type: "OPEN_CHAT",
+        payload: request,
+      },
+      "*"
+    );
+  }
+
   // Computed properties for backward compatibility
   pendingProfessionals = this.pendingRegistrations;
   categories = this.allCategories;

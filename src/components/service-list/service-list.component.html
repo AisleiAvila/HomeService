@@ -5,37 +5,37 @@
       <thead class="bg-gray-50">
         <tr>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Serviço
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Endereço
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Data
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Status
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Profissional
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Valor
           </th>
           <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
           >
             Ações
           </th>
@@ -98,7 +98,10 @@
             <div class="flex gap-2 items-center">
               <!-- Always Available Actions -->
               <button
-                (click)="viewDetails.emit(request)"
+                (click)="
+                  viewDetails.emit(request);
+                  console.log('Clique no ícone detalhar detectado!', request)
+                "
                 class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
                 title="{{ 'viewRequestDetails' | i18n }}"
               >
@@ -419,7 +422,13 @@
           <!-- Secondary Actions -->
           <div class="service-list-actions">
             <button
-              (click)="viewDetails.emit(request)"
+              (click)="
+                viewDetails.emit(request);
+                console.log(
+                  'Clique mobile no ícone detalhar detectado!',
+                  request
+                )
+              "
               class="service-action-secondary bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors duration-200 border border-blue-200 text-sm"
               title="{{ 'viewRequestDetails' | i18n }}"
             >
