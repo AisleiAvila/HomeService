@@ -548,6 +548,23 @@ export class AppComponent implements OnInit {
   });
 
   constructor() {
+    // Listen for messages from admin dashboard
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "OPEN_REQUEST_DETAILS" && event.data?.payload) {
+        console.log(
+          "Admin Dashboard message received - opening details:",
+          event.data.payload
+        );
+        this.openDetails(event.data.payload);
+      } else if (event.data?.type === "OPEN_CHAT" && event.data?.payload) {
+        console.log(
+          "Admin Dashboard message received - opening chat:",
+          event.data.payload
+        );
+        this.openChat(event.data.payload);
+      }
+    });
+
     effect(() => {
       const user = this.currentUser();
       const pendingEmail = this.pendingEmailConfirmation();
@@ -727,8 +744,10 @@ export class AppComponent implements OnInit {
   }
 
   openDetails(request: ServiceRequest) {
+    console.log("openDetails called with request:", request);
     this.selectedRequest.set(request);
     this.isDetailsModalOpen.set(true);
+    console.log("Modal state:", this.isDetailsModalOpen());
   }
 
   handleScheduleConfirmed(event: {
