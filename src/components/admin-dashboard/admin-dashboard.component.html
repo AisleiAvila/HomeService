@@ -123,28 +123,30 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <span [class]="statusClass(req.status)">{{ req.status }}</span>
               </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"
-              >
-                @if(req.status === 'Pending' || req.status === 'Quoted') {
-                <button
-                  (click)="selectRequestForQuote(req)"
-                  class="text-indigo-600 hover:text-indigo-900"
-                >
-                  {{
-                    req.status === "Quoted"
-                      ? ("viewQuote" | i18n)
-                      : ("provideQuote" | i18n)
-                  }}
-                </button>
-                } @if(req.status === 'Approved') {
-                <button
-                  (click)="selectRequestForAssignment(req)"
-                  class="text-green-600 hover:text-green-900"
-                >
-                  {{ "assign" | i18n }}
-                </button>
-                }
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2 items-center">
+                  @if(req.status === 'Pending' || req.status === 'Quoted') {
+                  <button
+                    (click)="selectRequestForQuote(req)"
+                    class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                    title="{{
+                      req.status === 'Quoted'
+                        ? ('viewQuote' | i18n)
+                        : ('provideQuote' | i18n)
+                    }}"
+                  >
+                    <i class="fas fa-calculator"></i>
+                  </button>
+                  } @if(req.status === 'Approved') {
+                  <button
+                    (click)="selectRequestForAssignment(req)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'assignProfessional' | i18n }}"
+                  >
+                    <i class="fas fa-user-plus"></i>
+                  </button>
+                  }
+                </div>
               </td>
             </tr>
             }
@@ -265,24 +267,40 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
             </td>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"
-            >
-              @if(req.status === 'Pending' || req.status === 'Quoted') {
-              <button
-                (click)="selectRequestForQuote(req)"
-                class="text-indigo-600 hover:text-indigo-900"
-              >
-                {{ "provideQuote" | i18n }}
-              </button>
-              } @if(req.status === 'Approved') {
-              <button
-                (click)="selectRequestForAssignment(req)"
-                class="text-green-600 hover:text-green-900"
-              >
-                {{ "assign" | i18n }}
-              </button>
-              }
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex gap-2 items-center">
+                @if(req.status === 'Pending' || req.status === 'Quoted') {
+                <button
+                  (click)="selectRequestForQuote(req)"
+                  class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                  title="{{ 'provideQuote' | i18n }}"
+                >
+                  <i class="fas fa-calculator"></i>
+                </button>
+                } @if(req.status === 'Approved') {
+                <button
+                  (click)="selectRequestForAssignment(req)"
+                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                  title="{{ 'assignProfessional' | i18n }}"
+                >
+                  <i class="fas fa-user-plus"></i>
+                </button>
+                }
+
+                <!-- Always Available Actions -->
+                <button
+                  class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                  title="{{ 'viewRequestDetails' | i18n }}"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors duration-200"
+                  title="{{ 'chat' | i18n }}"
+                >
+                  <i class="fas fa-comments"></i>
+                </button>
+              </div>
             </td>
           </tr>
           }
@@ -334,21 +352,23 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ user.phone }}
             </td>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4"
-            >
-              <button
-                (click)="approveClient(user.id)"
-                class="text-green-600 hover:text-green-900"
-              >
-                {{ "approve" | i18n }}
-              </button>
-              <button
-                (click)="rejectClient(user.id)"
-                class="text-red-600 hover:text-red-900"
-              >
-                {{ "reject" | i18n }}
-              </button>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex gap-2 items-center">
+                <button
+                  (click)="approveClient(user.id)"
+                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                  title="{{ 'approve' | i18n }}"
+                >
+                  <i class="fas fa-check"></i>
+                </button>
+                <button
+                  (click)="rejectClient(user.id)"
+                  class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                  title="{{ 'reject' | i18n }}"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
             </td>
           </tr>
           }
@@ -470,9 +490,10 @@
             <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
               <button
                 (click)="generateInvoice(req)"
-                class="text-indigo-600 hover:text-indigo-900"
+                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                title="{{ 'generateInvoice' | i18n }}"
               >
-                {{ "generateInvoice" | i18n }}
+                <i class="fas fa-file-invoice"></i>
               </button>
             </td>
           </tr>
@@ -582,9 +603,10 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm">
               <button
                 (click)="startEditProfessional(pro)"
-                class="text-indigo-600 hover:text-indigo-900"
+                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                title="{{ 'edit' | i18n }}"
               >
-                {{ "edit" | i18n }}
+                <i class="fas fa-edit"></i>
               </button>
             </td>
           </tr>
@@ -805,41 +827,41 @@
                 <span class="text-gray-400">{{ "never" | i18n }}</span>
                 }
               </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"
-              >
-                @if (client.status === 'Active') {
-                <button
-                  (click)="deactivateClient(client.id)"
-                  class="text-red-600 hover:text-red-900"
-                  title="{{ 'deactivateClient' | i18n }}"
-                >
-                  <i class="fas fa-user-times"></i>
-                </button>
-                } @else if (client.status === 'Rejected') {
-                <button
-                  (click)="activateClient(client.id)"
-                  class="text-green-600 hover:text-green-900"
-                  title="{{ 'activateClient' | i18n }}"
-                >
-                  <i class="fas fa-user-check"></i>
-                </button>
-                } @if (client.status === 'Pending') {
-                <button
-                  (click)="activateClient(client.id)"
-                  class="text-green-600 hover:text-green-900 mr-2"
-                  title="{{ 'approveClient' | i18n }}"
-                >
-                  <i class="fas fa-check"></i>
-                </button>
-                <button
-                  (click)="deactivateClient(client.id)"
-                  class="text-red-600 hover:text-red-900"
-                  title="{{ 'rejectClient' | i18n }}"
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-                }
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2 items-center">
+                  @if (client.status === 'Active') {
+                  <button
+                    (click)="deactivateClient(client.id)"
+                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                    title="{{ 'deactivateClient' | i18n }}"
+                  >
+                    <i class="fas fa-user-times"></i>
+                  </button>
+                  } @else if (client.status === 'Rejected') {
+                  <button
+                    (click)="activateClient(client.id)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'activateClient' | i18n }}"
+                  >
+                    <i class="fas fa-user-check"></i>
+                  </button>
+                  } @if (client.status === 'Pending') {
+                  <button
+                    (click)="activateClient(client.id)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'approveClient' | i18n }}"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button
+                    (click)="deactivateClient(client.id)"
+                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                    title="{{ 'rejectClient' | i18n }}"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                  }
+                </div>
               </td>
             </tr>
             } }
