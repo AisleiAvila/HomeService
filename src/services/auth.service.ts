@@ -60,22 +60,49 @@ export class AuthService {
 
     // Verificar se o email foi verificado
     if (!user.email_verified) {
-      console.log("⚠️ Email NÃO verificado.");
+      console.log("⚠️ Email NÃO verificado na tabela users.");
 
-      if (isAutomatic) {
-        // Se é uma chamada automática (effect), apenas fazer logout silencioso
-        console.log("🔄 Chamada automática - fazendo logout silencioso");
-        await this.supabase.client.auth.signOut();
-        this.appUser.set(null);
-        // NÃO definir pendingEmailConfirmation para não redirecionar
+      // CORREÇÃO: Verificar se email foi confirmado no Supabase
+      console.log("🔍 Verificando confirmação no Supabase...");
+      const { data: supabaseUser, error: supabaseError } =
+        await this.supabase.client.auth.getUser();
+
+      if (!supabaseError && supabaseUser.user?.email_confirmed_at) {
+        console.log(
+          "✅ Email confirmado no Supabase! Atualizando tabela users..."
+        );
+
+        // Atualizar email_verified na tabela users
+        const { error: updateError } = await this.supabase.client
+          .from("users")
+          .update({ email_verified: true })
+          .eq("auth_id", userId);
+
+        if (updateError) {
+          console.error("❌ Erro ao atualizar email_verified:", updateError);
+        } else {
+          console.log("✅ Campo email_verified atualizado com sucesso");
+          // Recarregar dados do usuário com email_verified atualizado
+          user.email_verified = true;
+        }
       } else {
-        // Se é uma chamada manual (verificação), redirecionar para tela de verificação
-        console.log("📧 Chamada manual - redirecionando para verificação");
-        this.pendingEmailConfirmation.set(user.email);
-        this.appUser.set(null);
-        await this.supabase.client.auth.signOut();
+        console.log("❌ Email ainda não confirmado no Supabase");
+
+        if (isAutomatic) {
+          // Se é uma chamada automática (effect), apenas fazer logout silencioso
+          console.log("🔄 Chamada automática - fazendo logout silencioso");
+          await this.supabase.client.auth.signOut();
+          this.appUser.set(null);
+          // NÃO definir pendingEmailConfirmation para não redirecionar
+        } else {
+          // Se é uma chamada manual (verificação), redirecionar para tela de verificação
+          console.log("📧 Chamada manual - redirecionando para verificação");
+          this.pendingEmailConfirmation.set(user.email);
+          this.appUser.set(null);
+          await this.supabase.client.auth.signOut();
+        }
+        return;
       }
-      return;
     }
 
     console.log("✅ Email verificado. Carregando usuário");
