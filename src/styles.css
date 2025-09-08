@@ -1,4 +1,44 @@
-/* Tailwind CSS directives - Using CDN instead to avoid build issues */
+/* Tailwind CSS directive/* Hide scrollbar for horizontal navigation */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Responsive table utilities */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  .table-responsive table {
+    min-width: 700px;
+  }
+}
+
+/* Mobile table improvements */
+@media (max-width: 768px) {
+  .table-responsive {
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .table-responsive table {
+    min-width: 600px;
+    font-size: 0.875rem;
+  }
+
+  .table-responsive th,
+  .table-responsive td {
+    padding: 0.75rem 0.5rem !important;
+    white-space: nowrap;
+  }
+}
+CDN instead to avoid build issues */
 /*
 @tailwind base;
 @tailwind components;
