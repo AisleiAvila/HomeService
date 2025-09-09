@@ -29,6 +29,9 @@ export class AdminDashboardComponent {
   private i18n = inject(I18nService);
   private notificationService = inject(NotificationService);
 
+  // Expose Math for template use
+  Math = Math;
+
   constructor() {
     // Component initialized
   }
@@ -68,6 +71,59 @@ export class AdminDashboardComponent {
   assignmentRequest = signal<ServiceRequest | null>(null);
   assigningProfessionalId = signal<number | null>(null);
   invoiceRequest = signal<ServiceRequest | null>(null);
+
+  // Pagination data
+  currentPage = signal(1);
+  itemsPerPage = signal(5); // Changed to 5 to see pagination with fewer items
+  totalPages = computed(() =>
+    Math.ceil(this.allRequests().length / this.itemsPerPage())
+  );
+
+  // Computed property for paginated requests
+  paginatedRequests = computed(() => {
+    const requests = this.allRequests();
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return requests.slice(start, end);
+  });
+
+  // Pagination helper methods
+  get pageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+
+    // Show first page
+    pages.push(1);
+
+    // Show pages around current page
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+
+    // Add ellipsis if needed
+    if (start > 2) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Add middle pages
+    for (let i = start; i <= end; i++) {
+      if (i !== 1 && i !== total) {
+        pages.push(i);
+      }
+    }
+
+    // Add ellipsis if needed
+    if (end < total - 1) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Show last page if more than 1 page
+    if (total > 1) {
+      pages.push(total);
+    }
+
+    return pages;
+  }
 
   // Data sources
   allUsers = this.dataService.users;
@@ -208,6 +264,32 @@ export class AdminDashboardComponent {
       | "clients"
   ) {
     this.currentView.set(view);
+  }
+
+  // Pagination methods
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  previousPage() {
+    const current = this.currentPage();
+    if (current > 1) {
+      this.currentPage.set(current - 1);
+    }
+  }
+
+  nextPage() {
+    const current = this.currentPage();
+    if (current < this.totalPages()) {
+      this.currentPage.set(current + 1);
+    }
+  }
+
+  setItemsPerPage(items: number) {
+    this.itemsPerPage.set(items);
+    this.currentPage.set(1); // Reset to first page when changing items per page
   }
 
   // Helper methods
