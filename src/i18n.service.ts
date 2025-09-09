@@ -45,6 +45,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     forgotPassword: "Forgot your password?",
     dontHaveAccount: "Don't have an account?",
 
+    // Pagination
+    itemsPerPage: "Items per page",
+    showing: "Showing",
+    to: "to",
+    of: "of",
+    results: "results",
+
     // Dashboard
     pendingApproval: "Pending",
     activeRequests: "Active",
@@ -109,6 +116,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     backToHome: "Voltar para Início",
     forgotPassword: "Esqueceu sua senha?",
     dontHaveAccount: "Não tem uma conta?",
+
+    // Pagination
+    itemsPerPage: "Itens por página",
+    showing: "Mostrando",
+    to: "até",
+    of: "de",
+    results: "resultados",
 
     // Dashboard
     pendingApproval: "Pendentes",

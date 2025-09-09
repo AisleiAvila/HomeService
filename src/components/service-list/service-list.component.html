@@ -42,13 +42,13 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        @if (serviceRequests().length === 0) {
+        @if (displayedRequests().length === 0) {
         <tr>
           <td colspan="7" class="px-4 lg:px-6 py-4 text-center text-gray-500">
             {{ "noServiceRequestsFound" | i18n }}
           </td>
         </tr>
-        } @else { @for (request of serviceRequests(); track request.id) {
+        } @else { @for (request of displayedRequests(); track request.id) {
         <tr class="hover:bg-gray-50">
           <td class="px-4 lg:px-6 py-4">
             <div class="min-w-0">
@@ -160,13 +160,13 @@
 
   <!-- Mobile Card View -->
   <div class="md:hidden">
-    @if (serviceRequests().length === 0) {
+    @if (displayedRequests().length === 0) {
     <div class="p-4 sm:p-6 text-center text-gray-500">
       {{ "noServiceRequestsFound" | i18n }}
     </div>
     } @else {
     <div class="divide-y divide-gray-200">
-      @for (request of serviceRequests(); track request.id) {
+      @for (request of displayedRequests(); track request.id) {
       <div class="service-request-card p-4 sm:p-5">
         <!-- Header with Category and Status -->
         <div class="flex items-start justify-between mb-3 sm:mb-4 gap-3">
@@ -450,4 +450,92 @@
     </div>
     }
   </div>
+
+  <!-- Pagination Controls -->
+  @if(enablePagination() && totalPages() > 1) {
+  <div
+    class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200"
+  >
+    <!-- Items per page selector -->
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
+      <select
+        [value]="itemsPerPage()"
+        (change)="setItemsPerPage(+$event.target.value)"
+        class="border border-gray-300 rounded-md px-2 py-1 text-sm"
+      >
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+
+    <!-- Pagination info -->
+    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm text-gray-700">
+          {{ "showing" | i18n }}
+          <span class="font-medium">{{
+            (currentPage() - 1) * itemsPerPage() + 1
+          }}</span>
+          {{ "to" | i18n }}
+          <span class="font-medium">{{
+            Math.min(currentPage() * itemsPerPage(), serviceRequests().length)
+          }}</span>
+          {{ "of" | i18n }}
+          <span class="font-medium">{{ serviceRequests().length }}</span>
+          {{ "results" | i18n }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Pagination buttons -->
+    <div class="flex-1 flex justify-center sm:justify-end">
+      <nav
+        class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+        aria-label="Pagination"
+      >
+        <!-- Previous button -->
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage() === 1"
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- Page numbers -->
+        @for(page of pageNumbers; track page) { @if(page === -1) {
+        <!-- Ellipsis -->
+        <span
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+        >
+          ...
+        </span>
+        } @else {
+        <button
+          (click)="goToPage(page)"
+          [class]="
+            page === currentPage()
+              ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600'
+              : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+          "
+        >
+          {{ page }}
+        </button>
+        } }
+
+        <!-- Next button -->
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage() === totalPages()"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </nav>
+    </div>
+  </div>
+  }
 </div>

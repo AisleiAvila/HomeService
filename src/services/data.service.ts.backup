@@ -37,8 +37,8 @@ export class DataService {
   }
 
   private addSampleDataForTesting() {
-    console.log("🔧 Adding sample data for testing...");
-
+    console.log('🔧 Adding sample data for testing...');
+    
     // Add sample users
     const sampleUsers: User[] = [
       {
@@ -94,36 +94,8 @@ export class DataService {
       },
     ];
 
-    // Add sample service requests with varied names for testing
+    // Add sample service requests
     const sampleRequests: ServiceRequest[] = [];
-    const serviceNames = [
-      "Trocar encanamento danificado",
-      "Cortar grama",
-      "Instalação elétrica",
-      "Limpeza geral da casa",
-      "Pintura de parede",
-      "Conserto de vazamento",
-      "Manutenção do jardim",
-      "Troca de tomadas",
-      "Limpeza de piscina",
-      "Pintura de fachada",
-      "Reparo hidráulico",
-      "Poda de árvores",
-      "Instalação de ventilador",
-      "Limpeza de caixa d'água",
-      "Pintura de portão",
-      "Desentupimento",
-      "Jardinagem completa",
-      "Revisão elétrica",
-      "Limpeza pós-obra",
-      "Pintura interna",
-      "Manutenção de bomba",
-      "Corte de cerca viva",
-      "Instalação de interruptor",
-      "Limpeza de calhas",
-      "Pintura externa",
-    ];
-
     for (let i = 1; i <= 25; i++) {
       sampleRequests.push({
         id: i,
@@ -131,8 +103,8 @@ export class DataService {
         professional_id: i % 3 === 0 ? 2 : null,
         client_auth_id: "test-client-1",
         professional_auth_id: i % 3 === 0 ? "test-professional-1" : null,
-        title: serviceNames[i - 1],
-        description: `Descrição detalhada do serviço: ${serviceNames[i - 1]}`,
+        title: `Serviço de teste ${i}`,
+        description: `Descrição detalhada do serviço ${i}`,
         category: [
           "Plumbing",
           "Electrical",
@@ -170,10 +142,8 @@ export class DataService {
       "Gardening",
       "Painting",
     ]);
-
-    console.log(
-      `✅ Sample data loaded: ${sampleUsers.length} users, ${sampleRequests.length} requests`
-    );
+    
+    console.log(`✅ Sample data loaded: ${sampleUsers.length} users, ${sampleRequests.length} requests`);
   }
 
   async loadInitialData(currentUser: User) {
@@ -194,10 +164,7 @@ export class DataService {
       .from("users")
       .select("*");
     if (error) {
-      console.log(
-        "Error fetching users from Supabase, keeping sample data:",
-        error.message
-      );
+      console.log("Error fetching users from Supabase, keeping sample data:", error.message);
       this.notificationService.addNotification(
         "Using sample data - Error fetching users: " + error.message
       );
@@ -224,10 +191,7 @@ export class DataService {
     const { data, error } = await query;
 
     if (error) {
-      console.log(
-        "Error fetching service requests from Supabase, keeping sample data:",
-        error.message
-      );
+      console.log("Error fetching service requests from Supabase, keeping sample data:", error.message);
       this.notificationService.addNotification(
         "Using sample data - Error fetching service requests: " + error.message
       );
@@ -253,10 +217,7 @@ export class DataService {
       .order("name");
 
     if (error) {
-      console.log(
-        "Error fetching categories from Supabase, keeping sample data:",
-        error.message
-      );
+      console.log("Error fetching categories from Supabase, keeping sample data:", error.message);
       this.notificationService.addNotification(
         "Using sample data - Error fetching categories: " + error.message
       );

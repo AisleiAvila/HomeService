@@ -5,6 +5,7 @@ import {
   output,
   inject,
   computed,
+  signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ServiceRequest, User, Address } from "../../models/maintenance.models";
@@ -22,6 +23,8 @@ import { I18nService } from "../../services/i18n.service";
 export class ServiceListComponent {
   serviceRequests = input.required<ServiceRequest[]>();
   currentUser = input.required<User>();
+  enablePagination = input<boolean>(false); // New input to enable pagination
+  itemsPerPageDefault = input<number>(10); // Default items per page
 
   viewDetails = output<ServiceRequest>();
   openChat = output<ServiceRequest>();
@@ -32,6 +35,102 @@ export class ServiceListComponent {
 
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
+
+  // Expose Math for template use
+  Math = Math;
+
+  // Pagination state
+  currentPage = signal(1);
+  itemsPerPage = signal(10);
+
+  // Initialize items per page based on input
+  constructor() {
+    // Set initial value from input
+    this.itemsPerPage.set(this.itemsPerPageDefault());
+  }
+
+  // Computed properties for pagination
+  totalPages = computed(() => {
+    if (!this.enablePagination()) return 1;
+    return Math.ceil(this.serviceRequests().length / this.itemsPerPage());
+  });
+
+  displayedRequests = computed(() => {
+    if (!this.enablePagination()) {
+      return this.serviceRequests();
+    }
+
+    const requests = this.serviceRequests();
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return requests.slice(start, end);
+  });
+
+  // Pagination helper methods
+  get pageNumbers(): number[] {
+    if (!this.enablePagination()) return [];
+
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+
+    // Show first page
+    pages.push(1);
+
+    // Show pages around current page
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+
+    // Add ellipsis if needed
+    if (start > 2) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Add middle pages
+    for (let i = start; i <= end; i++) {
+      if (i !== 1 && i !== total) {
+        pages.push(i);
+      }
+    }
+
+    // Add ellipsis if needed
+    if (end < total - 1) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Show last page if more than 1 page
+    if (total > 1) {
+      pages.push(total);
+    }
+
+    return pages;
+  }
+
+  // Pagination methods
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  previousPage() {
+    const current = this.currentPage();
+    if (current > 1) {
+      this.currentPage.set(current - 1);
+    }
+  }
+
+  nextPage() {
+    const current = this.currentPage();
+    if (current < this.totalPages()) {
+      this.currentPage.set(current + 1);
+    }
+  }
+
+  setItemsPerPage(items: number) {
+    this.itemsPerPage.set(items);
+    this.currentPage.set(1); // Reset to first page when changing items per page
+  }
 
   // Computed property to get all users for lookup
   allUsers = this.dataService.users;

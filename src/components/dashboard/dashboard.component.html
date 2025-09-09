@@ -45,6 +45,8 @@
     <app-service-list
       [serviceRequests]="activeRequests()"
       [currentUser]="user()"
+      [enablePagination]="true"
+      [itemsPerPageDefault]="10"
       (viewDetails)="viewDetails.emit($event)"
       (openChat)="openChat.emit($event)"
       (payNow)="payNow.emit($event)"
@@ -64,6 +66,8 @@
     <app-service-list
       [serviceRequests]="completedRequests()"
       [currentUser]="user()"
+      [enablePagination]="true"
+      [itemsPerPageDefault]="10"
       (viewDetails)="viewDetails.emit($event)"
       (openChat)="openChat.emit($event)"
       (payNow)="payNow.emit($event)"
