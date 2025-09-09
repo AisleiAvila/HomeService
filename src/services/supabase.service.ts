@@ -25,13 +25,32 @@ export class SupabaseService {
     this.initializeCurrentUser();
 
     // Listen for auth changes
-    this.client.auth.onAuthStateChange((event, session) => {
+    this.client.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
 
-      // Detectar confirmação de e-mail
+      // Detectar confirmação de e-mail via link
       if (event === "SIGNED_IN" && session?.user?.email_confirmed_at) {
-        console.log("✅ Email confirmado detectado:", session.user.email);
+        console.log(
+          "✅ Email confirmado via link detectado:",
+          session.user.email
+        );
         console.log("📧 Data de confirmação:", session.user.email_confirmed_at);
+
+        // Verificar se há dados temporários (usuário veio de confirmação por link)
+        const tempUserData = localStorage.getItem("tempUserData");
+        if (tempUserData) {
+          console.log(
+            "🔄 Detectada confirmação via link com dados temporários"
+          );
+          console.log("📧 Processando confirmação via link...");
+
+          // Emitir evento para AuthService processar
+          window.dispatchEvent(
+            new CustomEvent("emailConfirmedViaLink", {
+              detail: { user: session.user, tempData: tempUserData },
+            })
+          );
+        }
       }
 
       this._currentUser.set(session?.user ?? null);

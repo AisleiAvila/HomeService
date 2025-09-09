@@ -33,6 +33,12 @@ export class AuthService {
         this.pendingEmailConfirmation.set(null);
       }
     });
+
+    // Listener para confirmação de email via link
+    window.addEventListener("emailConfirmedViaLink", async (event: any) => {
+      console.log("🔗 Processando confirmação via link...");
+      await this.handleEmailConfirmedViaLink(event.detail);
+    });
   }
 
   private async fetchAppUser(userId: string, isAutomatic: boolean = true) {
@@ -655,6 +661,103 @@ export class AuthService {
       this.notificationService.addNotification(
         `Upload failed: ${error.message || "Unknown error"}`
       );
+    }
+  }
+
+  private async handleEmailConfirmedViaLink(detail: {
+    user: any;
+    tempData: string;
+  }): Promise<void> {
+    console.log("🔗 Processando confirmação de email via link");
+
+    try {
+      const { user, tempData } = detail;
+      const tempUserData = JSON.parse(tempData);
+
+      console.log("📝 Dados temporários encontrados:", tempUserData);
+      console.log("👤 Usuário confirmado:", user.email);
+
+      // Verificar se perfil já existe
+      const { data: existingProfile } = await this.supabase.client
+        .from("users")
+        .select("*")
+        .eq("auth_id", user.id)
+        .single();
+
+      if (!existingProfile) {
+        console.log("📝 Criando perfil para usuário confirmado via link...");
+
+        // Criar perfil na tabela users
+        const insertData = {
+          auth_id: user.id,
+          name: tempUserData.name,
+          email: tempUserData.email,
+          role: tempUserData.role,
+          status: tempUserData.role === "professional" ? "Pending" : "Active",
+          avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
+          email_verified: true, // Email já confirmado via link
+        };
+
+        const { error: insertError } = await this.supabase.client
+          .from("users")
+          .insert(insertData);
+
+        if (insertError) {
+          console.error("❌ Erro ao criar perfil:", insertError);
+        } else {
+          console.log("✅ Perfil criado com sucesso");
+        }
+      } else {
+        console.log("📝 Perfil já existe, atualizando email_verified...");
+
+        const { error: updateError } = await this.supabase.client
+          .from("users")
+          .update({ email_verified: true })
+          .eq("auth_id", user.id);
+
+        if (updateError) {
+          console.error("❌ Erro ao atualizar email_verified:", updateError);
+        } else {
+          console.log("✅ email_verified atualizado com sucesso");
+        }
+      }
+
+      // Definir senha do usuário
+      if (tempUserData.password) {
+        console.log("🔑 Definindo senha para usuário confirmado via link...");
+
+        const { error: passwordError } =
+          await this.supabase.client.auth.updateUser({
+            password: tempUserData.password,
+          });
+
+        if (passwordError) {
+          console.error("❌ Erro ao definir senha:", passwordError);
+        } else {
+          console.log("✅ Senha definida com sucesso");
+        }
+      }
+
+      // Limpar dados temporários
+      localStorage.removeItem("tempUserData");
+
+      // Fazer logout para forçar login com credenciais
+      console.log("🔒 Fazendo logout para redirecionar para login...");
+      await this.supabase.client.auth.signOut();
+
+      // Mostrar notificação de sucesso
+      this.notificationService.addNotification(
+        `Conta confirmada com sucesso! Faça login com suas credenciais para acessar a aplicação.`
+      );
+
+      // Limpar estado de confirmação pendente
+      this.pendingEmailConfirmation.set(null);
+
+      console.log("✅ Confirmação via link processada com sucesso");
+    } catch (error) {
+      console.error("❌ Erro ao processar confirmação via link:", error);
+      // Limpar dados temporários mesmo em caso de erro
+      localStorage.removeItem("tempUserData");
     }
   }
 }
