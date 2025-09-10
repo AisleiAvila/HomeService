@@ -1,21 +1,12 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, of } from "rxjs";
-import { map, catchError, timeout } from "rxjs/operators";
+import { Observable, of, catchError, map, timeout } from "rxjs";
 
+// Interface para a resposta da API https://www.codigo-postal.pt/
 export interface PostalCodeApiResponse {
   result: boolean;
   num_results: number;
-  results: Array<{
-    cp: string;
-    cp4: string;
-    cp3: string;
-    district: string;
-    municipality: string;
-    locality: string;
-    street_name?: string;
-    street_type?: string;
-  }>;
+  results: PostalCodeResult[];
 }
 
 export interface PostalCodeResult {
@@ -71,12 +62,11 @@ export class PostalCodeApiService {
 
   /**
    * Modo debug para desenvolvimento - permite logs detalhados
-   * Altere para `false` em produção
+   * Altere para `true` durante desenvolvimento ou debugging
    */
-  private readonly DEBUG_MODE = true;
+  private readonly DEBUG_MODE = true; // TODO: Alterar para false em produção
 
   constructor(private http: HttpClient) {}
-
   /**
    * Valida e obtém informações de um código postal através da API oficial
    * @param postalCode Código postal no formato XXXX-XXX ou XXXXXXX
@@ -93,22 +83,8 @@ export class PostalCodeApiService {
       });
     }
 
-    if (this.DEBUG_MODE) {
-      console.log("🔍 Validando código postal:", normalizedCode);
-    }
+    console.log("🔍 Validando código postal:", normalizedCode);
 
-    // TEMPORÁRIO: API externa está retornando 404, usar fallback offline diretamente
-    // TODO: Reativar tentativas de API quando o serviço voltar ao normal
-    if (this.DEBUG_MODE) {
-      console.log(
-        "⚡ Usando validação offline direta devido a problemas na API externa"
-      );
-    }
-
-    return this.getOfflineFallback(normalizedCode);
-
-    // Código original comentado temporariamente:
-    /*
     // Tenta múltiplas URLs da API
     return this.tryMultipleApiUrls(normalizedCode).pipe(
       catchError((error) => {
@@ -120,119 +96,14 @@ export class PostalCodeApiService {
         }
         return this.tryWithCorsProxy(normalizedCode);
       }),
-      catchError(() => {
-        if (this.DEBUG_MODE) {
-          console.warn(
-            "Todos os proxies CORS falharam, usando fallback offline"
-          );
-        }
+      catchError((error) => {
+        console.warn(
+          "❌ Proxies CORS também falharam, usando fallback offline...",
+          error
+        );
         return this.getOfflineFallback(normalizedCode);
       })
     );
-    */
-  }
-
-  /**
-   * Busca códigos postais por localidade (simulado com base offline)
-   * @param locality Nome da localidade
-   * @returns Observable com array de resultados
-   */
-  searchByLocality(locality: string): Observable<PostalCodeResult[]> {
-    // Como a API real não tem endpoint de busca por localidade,
-    // vamos simular com nossa base de dados local
-    const localityLower = locality.toLowerCase().trim();
-
-    const mockDatabase: PostalCodeResult[] = [
-      {
-        cp: "1000-001",
-        cp4: "1000",
-        cp3: "001",
-        district: "Lisboa",
-        municipality: "Lisboa",
-        locality: "Lisboa",
-      },
-      {
-        cp: "1100-048",
-        cp4: "1100",
-        cp3: "048",
-        district: "Lisboa",
-        municipality: "Lisboa",
-        locality: "Lisboa",
-      },
-      {
-        cp: "1200-001",
-        cp4: "1200",
-        cp3: "001",
-        district: "Lisboa",
-        municipality: "Lisboa",
-        locality: "Lisboa",
-      },
-      {
-        cp: "4000-001",
-        cp4: "4000",
-        cp3: "001",
-        district: "Porto",
-        municipality: "Porto",
-        locality: "Porto",
-      },
-      {
-        cp: "4100-001",
-        cp4: "4100",
-        cp3: "001",
-        district: "Porto",
-        municipality: "Porto",
-        locality: "Porto",
-      },
-      {
-        cp: "3000-001",
-        cp4: "3000",
-        cp3: "001",
-        district: "Coimbra",
-        municipality: "Coimbra",
-        locality: "Coimbra",
-      },
-      {
-        cp: "2970-001",
-        cp4: "2970",
-        cp3: "001",
-        district: "Setúbal",
-        municipality: "Sesimbra",
-        locality: "Sesimbra",
-      },
-      {
-        cp: "2975-001",
-        cp4: "2975",
-        cp3: "001",
-        district: "Setúbal",
-        municipality: "Sesimbra",
-        locality: "Sesimbra",
-      },
-      {
-        cp: "8000-001",
-        cp4: "8000",
-        cp3: "001",
-        district: "Faro",
-        municipality: "Faro",
-        locality: "Faro",
-      },
-      {
-        cp: "9000-001",
-        cp4: "9000",
-        cp3: "001",
-        district: "Ilha da Madeira",
-        municipality: "Funchal",
-        locality: "Funchal",
-      },
-    ];
-
-    const results = mockDatabase.filter(
-      (item) =>
-        item.locality.toLowerCase().includes(localityLower) ||
-        item.municipality.toLowerCase().includes(localityLower) ||
-        item.district.toLowerCase().includes(localityLower)
-    );
-
-    return of(results);
   }
 
   /**
@@ -292,7 +163,7 @@ export class PostalCodeApiService {
   }
 
   /**
-   * Tenta acesso direto à API principal (método legado)
+   * Tenta acesso direto à API
    */
   private tryDirectApiCall(
     normalizedCode: string
@@ -349,30 +220,22 @@ export class PostalCodeApiService {
     const proxyUrl = this.CORS_PROXY_URLS[proxyIndex];
     const proxiedUrl = proxyUrl + encodeURIComponent(originalUrl);
 
-    if (this.DEBUG_MODE) {
-      console.log(
-        `🔄 Tentando proxy ${proxyIndex + 1}/${this.CORS_PROXY_URLS.length}: ${
-          proxyUrl.replace("https://", "").split("/")[0]
-        }`
-      );
-    }
+    console.log(
+      `🔄 Tentando proxy ${proxyIndex + 1}/${this.CORS_PROXY_URLS.length}: ${
+        proxyUrl.replace("https://", "").split("/")[0]
+      }`
+    );
 
     return this.http.get<any>(proxiedUrl).pipe(
       timeout(this.REQUEST_TIMEOUT),
       map((response) => {
-        if (this.DEBUG_MODE) {
-          console.log(`✅ Sucesso com proxy ${proxyIndex + 1}`);
-        }
+        console.log(`✅ Sucesso com proxy ${proxyIndex + 1}`);
         return this.processProxyResponse(response, normalizedCode, proxyIndex);
       }),
       catchError((error) => {
-        const errorMsg = error instanceof Error ? error.message : String(error);
         if (this.DEBUG_MODE) {
-          console.warn(`❌ Proxy ${proxyIndex + 1} falhou:`, errorMsg);
+          console.warn(`❌ Proxy ${proxyIndex + 1} falhou:`, error.message);
         }
-
-        // Se foi erro de parsing/processamento, tentar próximo proxy
-        // Se foi erro de rede/timeout, também tentar próximo
         return this.tryProxiesSequentially(
           originalUrl,
           normalizedCode,
@@ -383,33 +246,80 @@ export class PostalCodeApiService {
   }
 
   /**
-   * Normaliza o código postal para o formato XXXX-XXX
+   * Busca códigos postais por localidade
+   * @param locality Nome da localidade (cidade, vila, etc.)
+   * @returns Observable com lista de códigos postais encontrados
+   */
+  searchByLocality(locality: string): Observable<PostalCodeResult[]> {
+    if (!locality || locality.trim().length < 2) {
+      return of([]);
+    }
+
+    const searchUrl = `${this.API_BASE_URL}/search/${encodeURIComponent(
+      locality.trim()
+    )}`;
+
+    return this.http.get<PostalCodeApiResponse>(searchUrl).pipe(
+      timeout(this.REQUEST_TIMEOUT),
+      map((response) => (response.result ? response.results : [])),
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Busca informações detalhadas de um código postal específico
+   * @param postalCode Código postal completo (XXXX-XXX)
+   * @returns Observable com informações detalhadas
+   */
+  getPostalCodeDetails(
+    postalCode: string
+  ): Observable<PostalCodeResult | null> {
+    const normalizedCode = this.normalizePostalCode(postalCode);
+
+    if (!normalizedCode) {
+      return of(null);
+    }
+
+    return this.validatePostalCode(normalizedCode).pipe(
+      map((result) => {
+        if (result.isValid && result.postalCode) {
+          return {
+            cp: result.postalCode,
+            cp4: result.postalCode.substring(0, 4),
+            cp3: result.postalCode.substring(5, 8),
+            district: result.district || "",
+            municipality: result.municipality || "",
+            locality: result.locality || "",
+            street_name: result.street,
+          };
+        }
+        return null;
+      })
+    );
+  }
+
+  /**
+   * Normaliza código postal para o formato XXXX-XXX
    * @param postalCode Código postal em qualquer formato
    * @returns Código postal normalizado ou null se inválido
    */
   private normalizePostalCode(postalCode: string): string | null {
     if (!postalCode) return null;
 
-    // Remove espaços e caracteres especiais, mantém apenas números e hífens
-    const cleaned = postalCode.replace(/[^0-9-]/g, "");
+    // Remove todos os caracteres não numéricos
+    const numbers = postalCode.replace(/\D/g, "");
 
-    // Se já está no formato correto
-    if (/^\d{4}-\d{3}$/.test(cleaned)) {
-      return cleaned;
-    }
+    // Deve ter exatamente 7 dígitos
+    if (numbers.length !== 7) return null;
 
-    // Se está sem hífen
-    if (/^\d{7}$/.test(cleaned)) {
-      return cleaned.substring(0, 4) + "-" + cleaned.substring(4);
-    }
-
-    return null;
+    // Formata como XXXX-XXX
+    return `${numbers.substring(0, 4)}-${numbers.substring(4, 7)}`;
   }
 
   /**
    * Processa resposta de proxy CORS que pode ter diferentes formatos
    * @param response Resposta do proxy (pode ser encapsulada)
-   * @param targetPostalCode Código postal que estamos procurando
+   * @param targetPostalCode Código postal que estamos procurando  
    * @param proxyIndex Índice do proxy usado (para debugging)
    * @returns Resultado da validação
    */
@@ -421,97 +331,43 @@ export class PostalCodeApiService {
     try {
       let actualData: PostalCodeApiResponse;
 
-      if (this.DEBUG_MODE) {
-        console.log(`🔍 Resposta bruta do proxy ${proxyIndex + 1}:`, response);
-      }
-
-      // Verificar se a resposta é válida
-      if (!response) {
-        throw new Error("Resposta vazia do proxy");
-      }
-
       // Diferentes formatos de proxy
       if (response.contents) {
         // AllOrigins format: { contents: "JSON_STRING" }
-        const contents = response.contents;
-
-        // Verificar se contents é uma string JSON válida
-        if (typeof contents === "string") {
-          // Verificar se começa com { ou [ (JSON válido)
-          const trimmed = contents.trim();
-          if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
-            // Provavelmente HTML ou texto de erro
-            if (this.DEBUG_MODE) {
-              console.warn(
-                `❌ Proxy ${proxyIndex + 1} retornou texto não-JSON:`,
-                trimmed.substring(0, 200)
-              );
-            }
-            throw new Error("Resposta do proxy não é JSON válido");
-          }
-
-          try {
-            actualData = JSON.parse(contents);
-          } catch (parseError) {
-            throw new Error(`Erro ao fazer parse do JSON: ${parseError}`);
-          }
-        } else {
-          // contents já é um objeto
-          actualData = contents;
-        }
+        actualData = JSON.parse(response.contents);
       } else if (response.data) {
         // Alguns proxies encapsulam em { data: ... }
         actualData = response.data;
       } else if (Array.isArray(response)) {
         // Resposta direta da API portuguesa
-        actualData = {
-          results: response,
-          result: response.length > 0,
-          num_results: response.length,
+        actualData = { 
+          results: response, 
+          result: response.length > 0, 
+          num_results: response.length 
         };
       } else if (response.results) {
         // Formato padrão da API
         actualData = response;
       } else {
-        // Verificar se é uma resposta válida da API
-        if (
-          response.result !== undefined ||
-          response.num_results !== undefined
-        ) {
-          actualData = response;
-        } else {
-          // Tentar interpretar como resposta direta
-          actualData = {
-            results: [response],
-            result: true,
-            num_results: 1,
-          };
-        }
+        // Tentar interpretar como resposta direta
+        actualData = { 
+          results: [response], 
+          result: true, 
+          num_results: 1 
+        };
       }
 
       if (this.DEBUG_MODE) {
-        console.log(
-          `🔍 Dados processados do proxy ${proxyIndex + 1}:`,
-          actualData
-        );
-      }
-
-      // Verificar se actualData tem a estrutura esperada
-      if (!actualData || typeof actualData !== "object") {
-        throw new Error("Dados processados são inválidos");
+        console.log(`🔍 Proxy ${proxyIndex + 1} retornou:`, actualData);
       }
 
       return this.processApiResponse(actualData, targetPostalCode);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      if (this.DEBUG_MODE) {
-        console.warn(
-          `❌ Erro ao processar resposta do proxy ${proxyIndex + 1}:`,
-          errorMsg
-        );
-      }
-
-      throw new Error(`Proxy ${proxyIndex + 1} falhou: ${errorMsg}`);
+      console.warn(`❌ Erro ao processar resposta do proxy ${proxyIndex + 1}:`, error);
+      return {
+        isValid: false,
+        error: `Erro ao processar resposta do proxy: ${error}`
+      };
     }
   }
 
@@ -532,41 +388,71 @@ export class PostalCodeApiService {
     ) {
       return {
         isValid: false,
-        error: "Código postal não encontrado na base de dados oficial",
+        error: "Código postal não encontrado",
       };
     }
 
-    // Procura correspondência exata primeiro
+    // Procura pelo código postal exato
     const exactMatch = response.results.find(
-      (item) =>
-        item.cp === targetPostalCode ||
-        `${item.cp4}-${item.cp3}` === targetPostalCode
+      (result) => result.cp === targetPostalCode
     );
 
-    // Se encontrou correspondência exata, usa ela; senão usa o primeiro resultado
-    const result = exactMatch || response.results[0];
+    if (exactMatch) {
+      return {
+        isValid: true,
+        postalCode: exactMatch.cp,
+        locality: exactMatch.locality,
+        district: exactMatch.district,
+        municipality: exactMatch.municipality,
+        street: exactMatch.street_name,
+      };
+    }
 
+    // Se não encontrou match exato, pega o primeiro resultado da mesma área
+    const firstResult = response.results[0];
     return {
-      isValid: true,
+      isValid: false,
       postalCode: targetPostalCode,
-      locality: result.locality,
-      district: result.district,
-      municipality: result.municipality,
-      street: result.street_name
-        ? `${result.street_type || ""} ${result.street_name}`.trim()
-        : undefined,
+      locality: firstResult.locality,
+      district: firstResult.district,
+      municipality: firstResult.municipality,
+      error: `Código postal ${targetPostalCode} não encontrado. Área: ${firstResult.locality}, ${firstResult.district}`,
     };
   }
 
   /**
-   * Fallback offline com base de dados local expandida
+   * Trata erros da API
+   * @param error Erro retornado
+   * @param postalCode Código postal que estava sendo validado
+   * @returns Resultado com fallback offline
+   */
+  private handleApiError(
+    error: any,
+    postalCode: string
+  ): Observable<ValidationResult> {
+    console.warn("Erro na API de códigos postais:", error);
+
+    // Fallback: validação offline básica
+    const isValidFormat = /^\d{4}-\d{3}$/.test(postalCode);
+
+    return of({
+      isValid: isValidFormat,
+      postalCode: isValidFormat ? postalCode : undefined,
+      error: isValidFormat
+        ? "Validação offline (API indisponível)"
+        : "Formato inválido e API indisponível",
+    });
+  }
+
+  /**
+   * Fallback offline com base de dados local básica
    * @param postalCode Código postal normalizado
    * @returns Observable com resultado offline
    */
   private getOfflineFallback(postalCode: string): Observable<ValidationResult> {
     console.log("🔄 Usando validação offline para:", postalCode);
 
-    // Base de dados offline expandida
+    // Base de dados offline básica
     const offlineDatabase: Record<
       string,
       { locality: string; district: string; municipality: string }
@@ -626,37 +512,20 @@ export class PostalCodeApiService {
         district: "Setúbal",
         municipality: "Sesimbra",
       },
-      // Códigos adicionais para melhor cobertura nacional
-      "9000": {
-        locality: "Funchal",
-        district: "Ilha da Madeira",
-        municipality: "Funchal",
-      },
-      "9500": {
-        locality: "Ponta Delgada",
-        district: "Ilha de São Miguel",
-        municipality: "Ponta Delgada",
-      },
+      // Códigos postais adicionais para melhor cobertura
+      "9000": { locality: "Funchal", district: "Ilha da Madeira", municipality: "Funchal" },
+      "9500": { locality: "Ponta Delgada", district: "Ilha de São Miguel", municipality: "Ponta Delgada" },
       "7000": { locality: "Évora", district: "Évora", municipality: "Évora" },
-      "6000": {
-        locality: "Castelo Branco",
-        district: "Castelo Branco",
-        municipality: "Castelo Branco",
+      "6000": { locality: "Castelo Branco", district: "Castelo Branco", municipality: "Castelo Branco" },
+      "5000": { locality: "Vila Real", district: "Vila Real", municipality: "Vila Real" },
+      "2800": { locality: "Almada", district: "Setúbal", municipality: "Almada" },
+      "2900": { locality: "Setúbal", district: "Setúbal", municipality: "Setúbal" },
+        municipality: "Sesimbra",
       },
-      "5000": {
-        locality: "Vila Real",
-        district: "Vila Real",
-        municipality: "Vila Real",
-      },
-      "2800": {
-        locality: "Almada",
+      "2975": {
+        locality: "Sesimbra",
         district: "Setúbal",
-        municipality: "Almada",
-      },
-      "2900": {
-        locality: "Setúbal",
-        district: "Setúbal",
-        municipality: "Setúbal",
+        municipality: "Sesimbra",
       },
     };
 
@@ -691,15 +560,6 @@ export class PostalCodeApiService {
    * @returns Observable indicando se a API está disponível
    */
   testApiConnectivity(): Observable<boolean> {
-    // TEMPORÁRIO: Retornar false para indicar que estamos usando offline
-    // devido aos problemas na API externa
-    if (this.DEBUG_MODE) {
-      console.log("📡 Teste de conectividade: API offline temporariamente");
-    }
-    return of(false);
-
-    // Código original comentado:
-    /*
     const testUrl = `${this.API_BASE_URL}/search/1000`;
 
     return this.http.get<PostalCodeApiResponse>(testUrl).pipe(
@@ -707,6 +567,5 @@ export class PostalCodeApiService {
       map(() => true),
       catchError(() => of(false))
     );
-    */
   }
 }

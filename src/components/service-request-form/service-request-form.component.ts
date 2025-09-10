@@ -266,16 +266,13 @@ export class ServiceRequestFormComponent {
   });
 
   constructor() {
-    effect(
-      () => {
-        const userAddress = this.user().address;
-        if (userAddress) {
-          this.address.set({ ...userAddress });
-          this.addressQuery.set(userAddress.street);
-        }
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      const userAddress = this.user().address;
+      if (userAddress) {
+        this.address.set({ ...userAddress });
+        this.addressQuery.set(userAddress.street);
+      }
+    });
 
     effect(() => {
       const query = this.addressQuery();
@@ -291,13 +288,10 @@ export class ServiceRequestFormComponent {
     });
 
     // Reset loading state when component is reused
-    effect(
-      () => {
-        // Reset submitting state when user changes (component reinitialized)
-        this.isSubmitting.set(false);
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      // Reset submitting state when user changes (component reinitialized)
+      this.isSubmitting.set(false);
+    });
   }
 
   updateStreet(street: string) {
