@@ -13,10 +13,12 @@ export type PaymentStatus = "Unpaid" | "Paid";
 export type ServiceCategory = string; // E.g., 'Plumbing', 'Electrical', 'Cleaning'
 
 export interface Address {
-  street: string;
-  city: string;
-  state: string;
-  zip_code: string;
+  street: string; // Rua/Avenida completa
+  city: string; // Localidade (ex: Lisboa, Porto)
+  state: string; // Distrito (ex: Lisboa, Porto, Coimbra)
+  zip_code: string; // Código Postal (formato: XXXX-XXX)
+  freguesia?: string; // Freguesia (opcional para Portugal)
+  concelho?: string; // Concelho (opcional para Portugal)
 }
 
 export interface User {
