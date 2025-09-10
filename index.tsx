@@ -4,6 +4,7 @@ import "@angular/compiler";
 // applyFetchInterceptor();
 
 import { provideZonelessChangeDetection, LOCALE_ID } from "@angular/core";
+import { provideHttpClient, withFetch } from "@angular/common/http";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { registerLocaleData } from "@angular/common";
 import localeEn from "@angular/common/locales/en";
@@ -25,6 +26,7 @@ document.head.appendChild(tailwindScript);
 bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
+    provideHttpClient(withFetch()), // Enable HTTP client with fetch API
     { provide: LOCALE_ID, useValue: "de" }, // German locale for Euro
   ],
 }).catch((err) => console.error(err));

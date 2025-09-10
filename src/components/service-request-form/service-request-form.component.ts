@@ -310,21 +310,46 @@ export class ServiceRequestFormComponent {
       this.portugalValidationService.formatPostalCode(postalCode);
     this.address.update((a) => ({ ...a, zip_code: formatted }));
 
-    // Auto-complete city and district based on postal code
+    // Auto-complete city and district based on postal code using new API
     if (this.portugalValidationService.validatePostalCode(formatted)) {
-      this.addressService
-        .getAddressByPostalCode(formatted)
-        .then((addressInfo) => {
-          if (addressInfo) {
-            this.address.update((a) => ({
-              ...a,
-              city: addressInfo.city,
-              state: addressInfo.state,
-              concelho: addressInfo.concelho,
-            }));
-          }
+      // Try API validation first
+      this.portugalValidationService
+        .validatePostalCodeWithApi(formatted)
+        .subscribe({
+          next: (result) => {
+            if (result.isValid && result.locality && result.district) {
+              this.address.update((a) => ({
+                ...a,
+                city: result.locality,
+                state: result.district,
+                concelho: result.municipality || result.locality,
+              }));
+            } else {
+              // Fallback to existing service if API fails
+              this.fallbackToOfflineValidation(formatted);
+            }
+          },
+          error: () => {
+            // Fallback to existing service if API fails
+            this.fallbackToOfflineValidation(formatted);
+          },
         });
     }
+  }
+
+  private fallbackToOfflineValidation(postalCode: string) {
+    this.addressService
+      .getAddressByPostalCode(postalCode)
+      .then((addressInfo) => {
+        if (addressInfo) {
+          this.address.update((a) => ({
+            ...a,
+            city: addressInfo.city,
+            state: addressInfo.state,
+            concelho: addressInfo.concelho,
+          }));
+        }
+      });
   }
 
   isValidPostalCode(): boolean {
