@@ -45,6 +45,21 @@ const allTranslations: Record<Language, Record<string, string>> = {
     forgotPassword: "Forgot your password?",
     dontHaveAccount: "Don't have an account?",
 
+    // Address fields (Portugal context)
+    streetAddress: "Complete Address",
+    streetAddressPlaceholder:
+      "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
+    postalCode: "Postal Code",
+    postalCodePlaceholder: "0000-000",
+    locality: "Locality",
+    localityPlaceholder: "Lisbon, Porto, Coimbra...",
+    district: "District",
+    selectDistrict: "Select district",
+    concelho: "Municipality (Optional)",
+    concelhoPlaceholder: "Lisbon, Porto, Sintra...",
+    freguesia: "Parish (Optional)",
+    postalCodeInvalidFormat: "Format: 0000-000",
+
     // Pagination
     itemsPerPage: "Items per page",
     showing: "Showing",
@@ -116,6 +131,21 @@ const allTranslations: Record<Language, Record<string, string>> = {
     backToHome: "Voltar para Início",
     forgotPassword: "Esqueceu sua senha?",
     dontHaveAccount: "Não tem uma conta?",
+
+    // Address fields (Portugal context)
+    streetAddress: "Morada Completa",
+    streetAddressPlaceholder:
+      "Rua/Avenida, número, andar (ex: Rua Augusta, 123, 2º)",
+    postalCode: "Código Postal",
+    postalCodePlaceholder: "0000-000",
+    locality: "Localidade",
+    localityPlaceholder: "Lisboa, Porto, Coimbra...",
+    district: "Distrito",
+    selectDistrict: "Selecione o distrito",
+    concelho: "Concelho (Opcional)",
+    concelhoPlaceholder: "Lisboa, Porto, Sintra...",
+    freguesia: "Freguesia (Opcional)",
+    postalCodeInvalidFormat: "Formato: 0000-000",
 
     // Pagination
     itemsPerPage: "Itens por página",

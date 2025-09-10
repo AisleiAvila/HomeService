@@ -18,6 +18,7 @@ import {
 } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { AddressAutocompleteService } from "../../services/address-autocomplete.service";
+import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
@@ -83,9 +84,9 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
         </div>
 
         <div class="relative">
-          <label for="street" class="block text-sm font-medium text-gray-700"
-            >Street Address</label
-          >
+          <label for="street" class="block text-sm font-medium text-gray-700">{{
+            "streetAddress" | i18n
+          }}</label>
           <input
             id="street"
             type="text"
@@ -94,6 +95,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
             name="street"
             required
             autocomplete="off"
+            [placeholder]="'streetAddressPlaceholder' | i18n"
             (focus)="showSuggestions.set(true)"
             (blur)="onAddressBlur()"
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -107,18 +109,46 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
               (click)="selectAddress(suggestion)"
               class="px-4 py-2 cursor-pointer hover:bg-gray-100"
             >
-              {{ suggestion.street }}, {{ suggestion.city }}
+              <div class="font-medium">{{ suggestion.street }}</div>
+              <div class="text-sm text-gray-500">
+                {{ suggestion.city }}, {{ suggestion.state }}
+                {{ suggestion.zip_code }}
+              </div>
             </li>
             }
           </ul>
           }
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="city" class="block text-sm font-medium text-gray-700"
-              >City</label
-            >
+            <label for="zip" class="block text-sm font-medium text-gray-700">{{
+              "postalCode" | i18n
+            }}</label>
+            <input
+              id="zip"
+              type="text"
+              [ngModel]="address().zip_code"
+              (ngModelChange)="updatePostalCode($event)"
+              name="zip_code"
+              required
+              maxlength="8"
+              [placeholder]="'postalCodePlaceholder' | i18n"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              [class.border-red-500]="
+                address().zip_code && !isValidPostalCode()
+              "
+            />
+            @if (address().zip_code && !isValidPostalCode()) {
+            <p class="text-red-500 text-xs mt-1">
+              {{ "postalCodeInvalidFormat" | i18n }}
+            </p>
+            }
+          </div>
+          <div>
+            <label for="city" class="block text-sm font-medium text-gray-700">{{
+              "locality" | i18n
+            }}</label>
             <input
               id="city"
               type="text"
@@ -126,34 +156,46 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
               (ngModelChange)="updateAddressField('city', $event)"
               name="city"
               required
+              [placeholder]="'localityPlaceholder' | i18n"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="state" class="block text-sm font-medium text-gray-700"
-              >State</label
+            <label
+              for="state"
+              class="block text-sm font-medium text-gray-700"
+              >{{ "district" | i18n }}</label
             >
-            <input
+            <select
               id="state"
-              type="text"
               [ngModel]="address().state"
               (ngModelChange)="updateAddressField('state', $event)"
               name="state"
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
+            >
+              <option value="">{{ "selectDistrict" | i18n }}</option>
+              @for(district of portugueseDistricts(); track district) {
+              <option [value]="district">{{ district }}</option>
+              }
+            </select>
           </div>
           <div>
-            <label for="zip" class="block text-sm font-medium text-gray-700"
-              >ZIP Code</label
+            <label
+              for="concelho"
+              class="block text-sm font-medium text-gray-700"
+              >{{ "concelho" | i18n }}</label
             >
             <input
-              id="zip"
+              id="concelho"
               type="text"
-              [ngModel]="address().zip_code"
-              (ngModelChange)="updateAddressField('zip_code', $event)"
-              name="zip_code"
-              required
+              [ngModel]="address().concelho || ''"
+              (ngModelChange)="updateAddressField('concelho', $event)"
+              name="concelho"
+              [placeholder]="'concelhoPlaceholder' | i18n"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
@@ -189,6 +231,7 @@ export class ServiceRequestFormComponent {
 
   private dataService = inject(DataService);
   private addressService = inject(AddressAutocompleteService);
+  private portugalValidationService = inject(PortugalAddressValidationService);
 
   // Form state signals
   title = signal("");
@@ -203,6 +246,11 @@ export class ServiceRequestFormComponent {
   showSuggestions = signal(false);
 
   categories = this.dataService.categories;
+
+  // Portugal-specific data
+  portugueseDistricts = signal(
+    this.portugalValidationService.getPortugueseDistricts()
+  );
 
   canSubmit = computed(() => {
     return (
@@ -255,6 +303,34 @@ export class ServiceRequestFormComponent {
   updateStreet(street: string) {
     this.addressQuery.set(street);
     this.address.update((a) => ({ ...a, street }));
+  }
+
+  updatePostalCode(postalCode: string) {
+    const formatted =
+      this.portugalValidationService.formatPostalCode(postalCode);
+    this.address.update((a) => ({ ...a, zip_code: formatted }));
+
+    // Auto-complete city and district based on postal code
+    if (this.portugalValidationService.validatePostalCode(formatted)) {
+      this.addressService
+        .getAddressByPostalCode(formatted)
+        .then((addressInfo) => {
+          if (addressInfo) {
+            this.address.update((a) => ({
+              ...a,
+              city: addressInfo.city,
+              state: addressInfo.state,
+              concelho: addressInfo.concelho,
+            }));
+          }
+        });
+    }
+  }
+
+  isValidPostalCode(): boolean {
+    return this.portugalValidationService.validatePostalCode(
+      this.address().zip_code
+    );
   }
 
   selectAddress(selectedAddress: Address) {
