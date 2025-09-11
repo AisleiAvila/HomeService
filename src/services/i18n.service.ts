@@ -299,7 +299,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     deactivateClient: "Deactivate Client",
     approveClient: "Approve Client",
     rejectClient: "Reject Client",
-    confirmDeactivateClient: "Are you sure you want to deactivate this client?",
+    confirmDeactivateClient: "Are you sure you want to deactivate client?",
     clientActivated: "Client {name} has been activated",
     clientDeactivated: "Client {name} has been deactivated",
     noClientsFound: "No Clients Found",
@@ -308,6 +308,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailNotVerified: "Email not verified",
     of: "of",
     never: "Never",
+    viewDetails: "View Details",
+    totalServices: "Total Services",
+    activate: "Activate",
+    deactivate: "Deactivate",
 
     // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
     newServiceRequest: "New Service Request",
@@ -647,6 +651,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailNotVerified: "Email não verificado",
     of: "de",
     never: "Nunca",
+    viewDetails: "Ver Detalhes",
+    totalServices: "Total de Serviços",
+    activate: "Ativar",
+    deactivate: "Desativar",
 
     // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
     newServiceRequest: "Nova Solicitação de Serviço",
