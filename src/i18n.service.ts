@@ -149,6 +149,75 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Total Tax",
     outstandingAmount: "Outstanding Amount",
     registrationSuccessful: "Registration Successful",
+
+    // New Service Request Form
+    newServiceRequest: "New Service Request",
+    title: "Title",
+    titlePlaceholder: "Enter service title...",
+    selectCategory: "Select a category...",
+    descriptionPlaceholder: "Describe what you need...",
+    requestedDateTimeHelp: "When would you like this service to be performed?",
+    submitting: "Submitting",
+    submitRequest: "Submit Request",
+
+    // Time Control and Scheduling
+    timeControl: "Time Control",
+    requestedDateTime: "Requested Date & Time",
+    scheduledStartDateTime: "Scheduled Start Date & Time",
+    estimatedDuration: "Estimated Duration",
+    actualDuration: "Actual Duration",
+    actualStartDateTime: "Actual Start Date & Time",
+    actualEndDateTime: "Actual End Date & Time",
+    startWork: "Start Work",
+    finishWork: "Finish Work",
+    serviceCompleted: "Service Completed",
+    serviceInProgress: "Service In Progress",
+    awaitingSchedule: "Awaiting Schedule",
+    noActionAvailable: "No Action Available",
+    adminActions: "Admin Actions",
+    useSchedulerToManage: "Use the scheduler to manage this service",
+    scheduleService: "Schedule Service",
+    serviceInformation: "Service Information",
+    notSpecified: "Not Specified",
+    selectOption: "Select an option",
+    specialist: "Specialist",
+    noProfessionalsAvailable: "No professionals available for this category",
+    scheduledDate: "Scheduled Date",
+    scheduledTime: "Scheduled Time",
+    hours: "Hours",
+    minutes: "Minutes",
+    totalDuration: "Total Duration",
+    serviceDescription: "Service Description",
+    serviceAddress: "Service Address",
+    timeReports: "Time Reports",
+    exportCSV: "Export CSV",
+    filters: "Filters",
+    period: "Period",
+    today: "Today",
+    lastWeek: "Last Week",
+    lastMonth: "Last Month",
+    customPeriod: "Custom Period",
+    allCategories: "All Categories",
+    startDate: "Start Date",
+    endDate: "End Date",
+    totalRequests: "Total Requests",
+    completionRate: "Completion Rate",
+    averageDuration: "Average Duration",
+    onTimePercentage: "On Time Percentage",
+    professionalProductivity: "Professional Productivity",
+    completedServicesCount: "Completed Services",
+    noDataAvailable: "No data available",
+    todayScheduledServices: "Today's Scheduled Services",
+    delayedServices: "Delayed Services",
+    delayed: "Delayed",
+    detailedServiceList: "Detailed Service List",
+    professionalName: "Professional",
+    scheduledLabel: "Scheduled",
+    duration: "Duration",
+    estimated: "Estimated",
+    actual: "Actual",
+    accessDenied: "Access Denied",
+    adminAccessRequired: "Administrator access required",
   },
   pt: {
     // General
@@ -297,6 +366,77 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Imposto Total",
     outstandingAmount: "Valor em Aberto",
     registrationSuccessful: "Registro Bem-sucedido",
+
+    // New Service Request Form
+    newServiceRequest: "Nova Solicitação de Serviço",
+    title: "Título",
+    titlePlaceholder: "Digite o título do serviço...",
+    selectCategory: "Selecione uma categoria...",
+    descriptionPlaceholder: "Descreva o que você precisa...",
+    requestedDateTimeHelp:
+      "Quando você gostaria que este serviço fosse realizado?",
+    submitting: "Enviando",
+    submitRequest: "Enviar Solicitação",
+
+    // Time Control and Scheduling
+    timeControl: "Controle de Tempo",
+    requestedDateTime: "Data e Hora Solicitada",
+    scheduledStartDateTime: "Data e Hora Agendada para Início",
+    estimatedDuration: "Duração Estimada",
+    actualDuration: "Duração Real",
+    actualStartDateTime: "Data e Hora Real de Início",
+    actualEndDateTime: "Data e Hora Real do Final",
+    startWork: "Iniciar Trabalho",
+    finishWork: "Finalizar Trabalho",
+    serviceCompleted: "Serviço Concluído",
+    serviceInProgress: "Serviço em Progresso",
+    awaitingSchedule: "Aguardando Agendamento",
+    noActionAvailable: "Nenhuma Ação Disponível",
+    adminActions: "Ações do Administrador",
+    useSchedulerToManage: "Use o agendador para gerir este serviço",
+    scheduleService: "Agendar Serviço",
+    serviceInformation: "Informações do Serviço",
+    notSpecified: "Não Especificado",
+    selectOption: "Selecione uma opção",
+    specialist: "Especialista",
+    noProfessionalsAvailable:
+      "Nenhum profissional disponível para esta categoria",
+    scheduledDate: "Data Agendada",
+    scheduledTime: "Hora Agendada",
+    hours: "Horas",
+    minutes: "Minutos",
+    totalDuration: "Duração Total",
+    serviceDescription: "Descrição do Serviço",
+    serviceAddress: "Endereço do Serviço",
+    timeReports: "Relatórios de Tempo",
+    exportCSV: "Exportar CSV",
+    filters: "Filtros",
+    period: "Período",
+    today: "Hoje",
+    lastWeek: "Última Semana",
+    lastMonth: "Último Mês",
+    customPeriod: "Período Personalizado",
+    allCategories: "Todas as Categorias",
+    startDate: "Data de Início",
+    endDate: "Data de Fim",
+    totalRequests: "Total de Pedidos",
+    completionRate: "Taxa de Conclusão",
+    averageDuration: "Duração Média",
+    onTimePercentage: "Percentagem No Horário",
+    professionalProductivity: "Produtividade dos Profissionais",
+    completedServicesCount: "Serviços Concluídos",
+    noDataAvailable: "Nenhum dado disponível",
+    todayScheduledServices: "Serviços Agendados para Hoje",
+    delayedServices: "Serviços Atrasados",
+    delayed: "Atrasado",
+    detailedServiceList: "Lista Detalhada de Serviços",
+    professionalName: "Profissional",
+    scheduledLabel: "Agendado",
+    duration: "Duração",
+    estimated: "Estimado",
+    actual: "Real",
+    accessDenied: "Acesso Negado",
+    adminAccessRequired: "Acesso de administrador necessário",
   },
 };
 
@@ -304,23 +444,69 @@ const allTranslations: Record<Language, Record<string, string>> = {
   providedIn: "root",
 })
 export class I18nService {
-  readonly language = signal<Language>("en");
+  readonly language = signal<Language>("en"); // Idioma padrão inglês
+
+  constructor() {
+    // Carregar idioma salvo do localStorage
+    const savedLang = localStorage.getItem("homeservice-language") as Language;
+    if (savedLang && (savedLang === "en" || savedLang === "pt")) {
+      this.language.set(savedLang);
+      console.log(`🌍 [I18N] Idioma carregado do localStorage: ${savedLang}`);
+    }
+
+    // Log inicial do estado
+    console.log(`🌍 [I18N] Idioma inicial: ${this.language()}`);
+    console.log(
+      `🌍 [I18N] Testando tradução 'newServiceRequest': ${this.translate(
+        "newServiceRequest"
+      )}`
+    );
+  }
 
   setLanguage(lang: Language) {
     this.language.set(lang);
+    localStorage.setItem("homeservice-language", lang);
+    console.log(`🌍 [I18N] Idioma alterado para: ${lang}`);
+
+    // Força reload da página para garantir que as traduções sejam atualizadas
+    window.location.reload();
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
     const lang = this.language();
-    let translation = allTranslations[lang][key] || key;
+    const translations = allTranslations[lang];
+    const translation = translations[key];
+
+    // Debug extremo
+    if (key === "newServiceRequest") {
+      console.log(`� [EXTREME DEBUG] Key: ${key}`);
+      console.log(`🚨 [EXTREME DEBUG] Lang: ${lang}`);
+      console.log(
+        `🚨 [EXTREME DEBUG] Has translations object:`,
+        !!translations
+      );
+      console.log(`🚨 [EXTREME DEBUG] Direct lookup:`, translations[key]);
+      console.log(
+        `� [EXTREME DEBUG] All PT keys starting with 'new':`,
+        Object.keys(allTranslations.pt).filter((k) => k.startsWith("new"))
+      );
+      console.log(
+        `🚨 [EXTREME DEBUG] Key exists in PT:`,
+        key in allTranslations.pt
+      );
+      console.log(
+        `🚨 [EXTREME DEBUG] Expected value:`,
+        allTranslations.pt.newServiceRequest
+      );
+    }
+
+    let result = translation || key;
+
     if (params) {
       Object.keys(params).forEach((paramKey) => {
-        translation = translation.replace(
-          `{${paramKey}}`,
-          String(params[paramKey])
-        );
+        result = result.replace(`{${paramKey}}`, String(params[paramKey]));
       });
     }
-    return translation;
+    return result;
   }
 }

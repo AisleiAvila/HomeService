@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Teste I18n</title>
+  </head>
+  <body>
+    <h1>Teste das Traduções</h1>
+    <div id="test-output"></div>
+
+    <script>
+      // Simular as traduções
+      const allTranslations = {
+        en: {
+          newServiceRequest: "New Service Request",
+          requestedDateTime: "Requested Date & Time",
+          title: "Title",
+        },
+        pt: {
+          newServiceRequest: "Novo Pedido de Serviço",
+          requestedDateTime: "Data e Hora Solicitada",
+          title: "Título",
+        },
+      };
+
+      function translate(key, lang) {
+        return allTranslations[lang]?.[key] || key;
+      }
+
+      const output = document.getElementById("test-output");
+      output.innerHTML = `
+            <p>EN - newServiceRequest: ${translate(
+              "newServiceRequest",
+              "en"
+            )}</p>
+            <p>PT - newServiceRequest: ${translate(
+              "newServiceRequest",
+              "pt"
+            )}</p>
+            <p>EN - requestedDateTime: ${translate(
+              "requestedDateTime",
+              "en"
+            )}</p>
+            <p>PT - requestedDateTime: ${translate(
+              "requestedDateTime",
+              "pt"
+            )}</p>
+        `;
+    </script>
+  </body>
+</html>

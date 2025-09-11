@@ -11,6 +11,7 @@ import {
   ServiceStatus,
   PaymentStatus,
   ServiceRequestPayload,
+  SchedulingStatus,
 } from "../models/maintenance.models";
 
 @Injectable({
@@ -276,6 +277,9 @@ export class DataService {
       throw new Error("User not authenticated");
     }
 
+    // Usar requested_datetime (agora obrigatório)
+    const requestedDateTime = payload.requested_datetime;
+
     const newRequestData = {
       client_id: currentUser.id,
       client_auth_id: currentUser.auth_id,
@@ -286,7 +290,7 @@ export class DataService {
       city: payload.address.city,
       state: payload.address.state,
       zip_code: payload.address.zip_code,
-      requested_date: new Date().toISOString(),
+      requested_datetime: requestedDateTime, // Campo principal
       status: "Pending",
       payment_status: "Unpaid",
     };
@@ -502,5 +506,244 @@ export class DataService {
         }
       )
       .subscribe();
+  }
+
+  // ==========================================
+  // NOVOS MÉTODOS PARA CONTROLE DE AGENDAMENTO E TEMPO
+  // ==========================================
+
+  /**
+   * Atualiza a data e hora solicitada pelo cliente
+   */
+  async updateRequestedDateTime(requestId: number, requestedDateTime: Date) {
+    const updates = {
+      requested_datetime: requestedDateTime.toISOString(),
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      `Data solicitada para o pedido #${requestId} foi atualizada.`
+    );
+  }
+
+  /**
+   * Agenda o início do serviço (usado pelo administrador)
+   */
+  async scheduleServiceStart(
+    requestId: number,
+    professionalId: number,
+    scheduledStartDateTime: Date,
+    estimatedDurationMinutes: number
+  ) {
+    const updates = {
+      professional_id: professionalId,
+      scheduled_start_datetime: scheduledStartDateTime.toISOString(),
+      estimated_duration_minutes: estimatedDurationMinutes,
+      status: "Scheduled" as ServiceStatus,
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      `Serviço #${requestId} foi agendado para ${scheduledStartDateTime.toLocaleDateString()} às ${scheduledStartDateTime.toLocaleTimeString()}.`
+    );
+  }
+
+  /**
+   * Registra o início real do atendimento (usado pelo profissional)
+   */
+  async startServiceWork(requestId: number) {
+    const updates = {
+      actual_start_datetime: new Date().toISOString(),
+      status: "In Progress" as ServiceStatus,
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      `Atendimento do serviço #${requestId} foi iniciado.`
+    );
+  }
+
+  /**
+   * Registra o final real do atendimento (usado pelo profissional)
+   */
+  async finishServiceWork(requestId: number) {
+    const updates = {
+      actual_end_datetime: new Date().toISOString(),
+      status: "Completed" as ServiceStatus,
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      `Atendimento do serviço #${requestId} foi finalizado.`
+    );
+  }
+
+  /**
+   * Atualiza a previsão de duração (usado pelo administrador)
+   */
+  async updateEstimatedDuration(
+    requestId: number,
+    estimatedDurationMinutes: number
+  ) {
+    const updates = {
+      estimated_duration_minutes: estimatedDurationMinutes,
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      `Previsão de duração do serviço #${requestId} foi atualizada para ${estimatedDurationMinutes} minutos.`
+    );
+  }
+
+  /**
+   * Calcula a duração real do serviço em minutos
+   */
+  calculateActualDuration(request: ServiceRequest): number | null {
+    if (!request.actual_start_datetime || !request.actual_end_datetime) {
+      return null;
+    }
+
+    const start = new Date(request.actual_start_datetime);
+    const end = new Date(request.actual_end_datetime);
+    return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+  }
+
+  /**
+   * Calcula a variação entre duração estimada e real
+   */
+  calculateDurationVariance(request: ServiceRequest): number | null {
+    const actualDuration = this.calculateActualDuration(request);
+    if (!actualDuration || !request.estimated_duration_minutes) {
+      return null;
+    }
+
+    return actualDuration - request.estimated_duration_minutes;
+  }
+
+  /**
+   * Determina o status do agendamento
+   */
+  getSchedulingStatus(request: ServiceRequest): SchedulingStatus {
+    const now = new Date();
+
+    // Se o serviço está concluído
+    if (request.status === "Completed" && request.actual_end_datetime) {
+      return "Completed";
+    }
+
+    // Se o serviço está em progresso
+    if (request.actual_start_datetime && !request.actual_end_datetime) {
+      return "In Progress";
+    }
+
+    // Se o serviço está atrasado
+    if (
+      request.scheduled_start_datetime &&
+      !request.actual_start_datetime &&
+      new Date(request.scheduled_start_datetime).getTime() + 30 * 60 * 1000 <
+        now.getTime()
+    ) {
+      return "Delayed";
+    }
+
+    // Se o serviço está agendado para hoje
+    if (request.scheduled_start_datetime) {
+      const scheduledDate = new Date(request.scheduled_start_datetime);
+      const today = new Date();
+      if (scheduledDate.toDateString() === today.toDateString()) {
+        return "Scheduled Today";
+      }
+    }
+
+    // Se o serviço está agendado para o futuro
+    if (
+      request.scheduled_start_datetime &&
+      new Date(request.scheduled_start_datetime) > now
+    ) {
+      return "Scheduled";
+    }
+
+    // Se tem data solicitada mas não agendada
+    if (request.requested_datetime && !request.scheduled_start_datetime) {
+      return "Awaiting Schedule";
+    }
+
+    return "Pending";
+  }
+
+  /**
+   * Obtém pedidos agendados para hoje
+   */
+  getTodayScheduledRequests(): ServiceRequest[] {
+    const today = new Date();
+    return this.serviceRequests().filter((request) => {
+      if (!request.scheduled_start_datetime) return false;
+      const scheduledDate = new Date(request.scheduled_start_datetime);
+      return scheduledDate.toDateString() === today.toDateString();
+    });
+  }
+
+  /**
+   * Obtém pedidos atrasados
+   */
+  getDelayedRequests(): ServiceRequest[] {
+    return this.serviceRequests().filter(
+      (request) => this.getSchedulingStatus(request) === "Delayed"
+    );
+  }
+
+  /**
+   * Obtém relatório de produtividade dos profissionais
+   */
+  getProfessionalProductivityReport(): Array<{
+    professional_id: number;
+    professional_name: string;
+    completed_services: number;
+    average_duration_minutes: number;
+    on_time_percentage: number;
+  }> {
+    const professionals = this.users().filter((u) => u.role === "professional");
+
+    return professionals.map((professional) => {
+      const services = this.serviceRequests().filter(
+        (r) => r.professional_id === professional.id && r.status === "Completed"
+      );
+
+      const completedServices = services.length;
+      let totalDuration = 0;
+      let onTimeCount = 0;
+
+      services.forEach((service) => {
+        const actualDuration = this.calculateActualDuration(service);
+        if (actualDuration) {
+          totalDuration += actualDuration;
+        }
+
+        // Considera "no horário" se iniciou dentro de 15 minutos do agendado
+        if (service.scheduled_start_datetime && service.actual_start_datetime) {
+          const scheduled = new Date(service.scheduled_start_datetime);
+          const actual = new Date(service.actual_start_datetime);
+          const diffMinutes =
+            (actual.getTime() - scheduled.getTime()) / (1000 * 60);
+          if (Math.abs(diffMinutes) <= 15) {
+            onTimeCount++;
+          }
+        }
+      });
+
+      return {
+        professional_id: professional.id,
+        professional_name: professional.name,
+        completed_services: completedServices,
+        average_duration_minutes:
+          completedServices > 0
+            ? Math.round(totalDuration / completedServices)
+            : 0,
+        on_time_percentage:
+          completedServices > 0
+            ? Math.round((onTimeCount / completedServices) * 100)
+            : 0,
+      };
+    });
   }
 }

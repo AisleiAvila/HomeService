@@ -308,6 +308,30 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailNotVerified: "Email not verified",
     of: "of",
     never: "Never",
+
+    // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
+    newServiceRequest: "New Service Request",
+    titlePlaceholder: "Enter service title...",
+    selectCategory: "Select a category...",
+    descriptionPlaceholder: "Describe what you need...",
+    requestedDateTime: "Requested Date & Time",
+    requestedDateTimeHelp: "When would you like this service to be performed?",
+    streetAddress: "Complete Address",
+    streetAddressPlaceholder:
+      "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
+    postalCode: "Postal Code",
+    postalCodePlaceholder: "0000-000",
+    locality: "Locality",
+    localityPlaceholder: "Lisbon, Porto, Coimbra...",
+    district: "District",
+    selectDistrict: "Select district",
+    concelho: "Municipality (Optional)",
+    selectConcelho: "Select municipality",
+    postalCodeInvalidFormat: "Format: 0000-000",
+    submitting: "Submitting",
+    submitRequest: "Submit Request",
+    awaitingQuote: "Awaiting Quote",
+    requested: "Requested",
   },
   pt: {
     // General
@@ -623,6 +647,31 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailNotVerified: "Email não verificado",
     of: "de",
     never: "Nunca",
+
+    // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
+    newServiceRequest: "Nova Solicitação de Serviço",
+    titlePlaceholder: "Digite o título do serviço...",
+    selectCategory: "Selecione uma categoria...",
+    descriptionPlaceholder: "Descreva o que você precisa...",
+    requestedDateTime: "Data e Hora Solicitada",
+    requestedDateTimeHelp:
+      "Quando você gostaria que este serviço fosse realizado?",
+    streetAddress: "Morada Completa",
+    streetAddressPlaceholder:
+      "Rua/Avenida, número, andar (ex: Rua Augusta, 123, 2º)",
+    postalCode: "Código Postal",
+    postalCodePlaceholder: "0000-000",
+    locality: "Localidade",
+    localityPlaceholder: "Lisboa, Porto, Coimbra...",
+    district: "Distrito",
+    selectDistrict: "Selecione o distrito",
+    concelho: "Concelho (Opcional)",
+    selectConcelho: "Selecione o concelho",
+    postalCodeInvalidFormat: "Formato: 0000-000",
+    submitting: "Enviando",
+    submitRequest: "Enviar Solicitação",
+    awaitingQuote: "Aguardando Orçamento",
+    requested: "Solicitado",
   },
 };
 
@@ -630,10 +679,21 @@ const allTranslations: Record<Language, Record<string, string>> = {
   providedIn: "root",
 })
 export class I18nService {
-  readonly language = signal<Language>("en");
+  readonly language = signal<Language>("en"); // Idioma padrão inglês
+
+  constructor() {
+    // Carregar idioma salvo do localStorage
+    const savedLang = localStorage.getItem("homeservice-language") as Language;
+    if (savedLang && (savedLang === "en" || savedLang === "pt")) {
+      this.language.set(savedLang);
+    }
+  }
 
   setLanguage(lang: Language) {
     this.language.set(lang);
+    localStorage.setItem("homeservice-language", lang);
+    // Força reload da página para garantir que as traduções sejam atualizadas
+    window.location.reload();
   }
 
   translate(key: string, params?: Record<string, string | number>): string {

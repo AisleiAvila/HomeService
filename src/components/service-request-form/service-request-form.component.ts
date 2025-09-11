@@ -20,6 +20,7 @@ import { DataService } from "../../services/data.service";
 import { AddressAutocompleteService } from "../../services/address-autocomplete.service";
 import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { I18nService } from "../../i18n.service";
 
 @Component({
   selector: "app-service-request-form",
@@ -33,25 +34,36 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
       >
         <i class="fas fa-times text-xl"></i>
       </button>
-      <h2 class="text-2xl font-bold text-gray-800 mb-6">New Service Request</h2>
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">
+        {{ "newServiceRequest" | i18n }}
+        <!-- Debug: mostrar o valor diretamente -->
+        <small class="block text-xs text-gray-500">
+          Debug: "{{ debugTranslation() }}" | Pipe: "{{
+            "newServiceRequest" | i18n
+          }}"
+        </small>
+      </h2>
       <form (ngSubmit)="submitForm()" class="space-y-4">
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700"
-            >Title</label
-          >
+          <label for="title" class="block text-sm font-medium text-gray-700">{{
+            "title" | i18n
+          }}</label>
           <input
             id="title"
             type="text"
             [(ngModel)]="title"
             name="title"
             required
+            [placeholder]="'titlePlaceholder' | i18n"
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           />
         </div>
 
         <div>
-          <label for="category" class="block text-sm font-medium text-gray-700"
-            >Category</label
+          <label
+            for="category"
+            class="block text-sm font-medium text-gray-700"
+            >{{ "category" | i18n }}</label
           >
           <select
             id="category"
@@ -60,7 +72,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
             required
             class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >
-            <option value="" disabled>Select a category...</option>
+            <option value="" disabled>{{ "selectCategory" | i18n }}</option>
             @for(cat of categories(); track cat) {
             <option [value]="cat">{{ cat }}</option>
             }
@@ -71,7 +83,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
           <label
             for="description"
             class="block text-sm font-medium text-gray-700"
-            >Description</label
+            >{{ "description" | i18n }}</label
           >
           <textarea
             id="description"
@@ -79,8 +91,31 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
             [(ngModel)]="description"
             name="description"
             required
+            [placeholder]="'descriptionPlaceholder' | i18n"
             class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           ></textarea>
+        </div>
+
+        <!-- Novo campo: Data e hora solicitada -->
+        <div>
+          <label
+            for="requestedDateTime"
+            class="block text-sm font-medium text-gray-700"
+          >
+            {{ "requestedDateTime" | i18n }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="requestedDateTime"
+            type="datetime-local"
+            [(ngModel)]="requestedDateTime"
+            name="requestedDateTime"
+            required
+            [min]="minDateTime()"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            {{ "requestedDateTimeHelp" | i18n }}
+          </p>
         </div>
 
         <div class="relative">
@@ -224,7 +259,8 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
           >
             @if (isSubmitting()) {
             <i class="fas fa-spinner fa-spin mr-2"></i>
-            Submitting... } @else { Submit Request }
+            {{ "submitting" | i18n }}... } @else {
+            {{ "submitRequest" | i18n }} }
           </button>
         </div>
       </form>
@@ -240,11 +276,13 @@ export class ServiceRequestFormComponent {
   private dataService = inject(DataService);
   private addressService = inject(AddressAutocompleteService);
   private portugalValidationService = inject(PortugalAddressValidationService);
+  private i18nService = inject(I18nService);
 
   // Form state signals
   title = signal("");
   description = signal("");
   category = signal<ServiceCategory>("");
+  requestedDateTime = signal("");
   address = signal<Address>({ street: "", city: "", state: "", zip_code: "" });
   isSubmitting = signal(false);
 
@@ -266,6 +304,7 @@ export class ServiceRequestFormComponent {
       this.title().trim() &&
       this.description().trim() &&
       this.category() &&
+      this.requestedDateTime() &&
       this.address().street.trim() &&
       this.address().city.trim() &&
       this.address().state.trim() &&
@@ -273,8 +312,31 @@ export class ServiceRequestFormComponent {
     );
   });
 
+  // Computed para data mínima (agora + 1 hora)
+  minDateTime = computed(() => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1); // Mínimo 1 hora no futuro
+    return now.toISOString().slice(0, 16); // Formato para datetime-local
+  });
+
+  // Debug function para testar traduções
+  debugTranslation = computed(() => {
+    return this.i18nService.translate("newServiceRequest");
+  });
+
   constructor() {
     console.log("🚀 [FORM] Service Request Form Component inicializado");
+
+    // Debug das traduções
+    effect(() => {
+      const currentLang = this.i18nService.language();
+      const testTranslation = this.i18nService.translate("newServiceRequest");
+      console.log("🌍 [I18N DEBUG] Idioma atual:", currentLang);
+      console.log(
+        "🌍 [I18N DEBUG] Tradução de 'newServiceRequest':",
+        testTranslation
+      );
+    });
 
     // Load Portuguese districts asynchronously
     this.loadPortugueseDistricts();
@@ -437,7 +499,7 @@ export class ServiceRequestFormComponent {
       description: this.description(),
       category: this.category(),
       address: this.address(),
-      requested_date: new Date().toISOString(),
+      requested_datetime: new Date(this.requestedDateTime()).toISOString(),
     };
 
     this.formSubmitted.emit(payload);
@@ -449,6 +511,7 @@ export class ServiceRequestFormComponent {
     this.title.set("");
     this.description.set("");
     this.category.set("");
+    this.requestedDateTime.set("");
     this.address.set({ street: "", city: "", state: "", zip_code: "" });
     this.addressQuery.set("");
   }
