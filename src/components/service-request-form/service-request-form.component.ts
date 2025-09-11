@@ -189,15 +189,23 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
               class="block text-sm font-medium text-gray-700"
               >{{ "concelho" | i18n }}</label
             >
-            <input
+            <select
               id="concelho"
-              type="text"
               [ngModel]="address().concelho || ''"
               (ngModelChange)="updateAddressField('concelho', $event)"
               name="concelho"
-              [placeholder]="'concelhoPlaceholder' | i18n"
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
+              [disabled]="
+                loadingConcelhos() || portugalConcelhos().length === 0
+              "
+            >
+              <option value="">{{ "selectConcelho" | i18n }}</option>
+              @if (loadingConcelhos()) {
+              <option disabled>{{ "loadingConcelhos" | i18n }}...</option>
+              } @for(concelho of portugalConcelhos(); track concelho) {
+              <option [value]="concelho">{{ concelho }}</option>
+              }
+            </select>
           </div>
         </div>
 
@@ -248,9 +256,9 @@ export class ServiceRequestFormComponent {
   categories = this.dataService.categories;
 
   // Portugal-specific data
-  portugueseDistricts = signal(
-    this.portugalValidationService.getPortugueseDistricts()
-  );
+  portugueseDistricts = signal<string[]>([]);
+  portugalConcelhos = signal<string[]>([]);
+  loadingConcelhos = signal(false);
 
   canSubmit = computed(() => {
     return (
@@ -266,6 +274,11 @@ export class ServiceRequestFormComponent {
   });
 
   constructor() {
+    console.log("🚀 [FORM] Service Request Form Component inicializado");
+
+    // Load Portuguese districts asynchronously
+    this.loadPortugueseDistricts();
+
     effect(() => {
       const userAddress = this.user().address;
       if (userAddress) {
@@ -300,49 +313,105 @@ export class ServiceRequestFormComponent {
   }
 
   updatePostalCode(postalCode: string) {
+    console.log("🔍 [POSTAL CODE] Usuário digitou:", postalCode);
+
     const formatted =
       this.portugalValidationService.formatPostalCode(postalCode);
+
+    console.log("✏️ [POSTAL CODE] Código formatado:", formatted);
+
     this.address.update((a) => ({ ...a, zip_code: formatted }));
 
     // Auto-complete city and district based on postal code using new API
     if (this.portugalValidationService.validatePostalCode(formatted)) {
+      console.log(
+        "✅ [POSTAL CODE] Formato válido, iniciando validação completa..."
+      );
+
       // Try API validation first
       this.portugalValidationService
         .validatePostalCodeWithApi(formatted)
         .subscribe({
           next: (result) => {
+            console.log("📊 [POSTAL CODE] Resultado da validação:", result);
+
             if (result.isValid && result.locality && result.district) {
+              console.log("🎯 [POSTAL CODE] Dados encontrados:", {
+                localidade: result.locality,
+                distrito: result.district,
+                concelho: result.municipality || result.locality,
+              });
+
               this.address.update((a) => ({
                 ...a,
                 city: result.locality,
                 state: result.district,
                 concelho: result.municipality || result.locality,
               }));
+
+              // Load concelhos for the auto-filled district
+              if (result.district) {
+                console.log(
+                  "🏛️ [POSTAL CODE] Carregando concelhos para distrito:",
+                  result.district
+                );
+                this.loadConcelhosByDistrito(result.district);
+              }
             } else {
+              console.warn(
+                "⚠️ [POSTAL CODE] Validação falhou, usando fallback offline"
+              );
               // Fallback to existing service if API fails
               this.fallbackToOfflineValidation(formatted);
             }
           },
-          error: () => {
+          error: (error) => {
+            console.error(
+              "❌ [POSTAL CODE] Erro na validação, usando fallback offline:",
+              error
+            );
             // Fallback to existing service if API fails
             this.fallbackToOfflineValidation(formatted);
           },
         });
+    } else {
+      console.warn("⚠️ [POSTAL CODE] Formato inválido:", formatted);
     }
   }
 
   private fallbackToOfflineValidation(postalCode: string) {
+    console.log("💾 [FALLBACK] Tentando validação offline para:", postalCode);
+
     this.addressService
       .getAddressByPostalCode(postalCode)
       .then((addressInfo) => {
         if (addressInfo) {
+          console.log("✅ [FALLBACK] Dados encontrados offline:", addressInfo);
+
           this.address.update((a) => ({
             ...a,
             city: addressInfo.city,
             state: addressInfo.state,
             concelho: addressInfo.concelho,
           }));
+
+          // Load concelhos for the fallback district
+          if (addressInfo.state) {
+            console.log(
+              "🏛️ [FALLBACK] Carregando concelhos para distrito:",
+              addressInfo.state
+            );
+            this.loadConcelhosByDistrito(addressInfo.state);
+          }
+        } else {
+          console.warn(
+            "❌ [FALLBACK] Nenhum dado encontrado offline para:",
+            postalCode
+          );
         }
+      })
+      .catch((error) => {
+        console.error("❌ [FALLBACK] Erro na validação offline:", error);
       });
   }
 
@@ -390,6 +459,84 @@ export class ServiceRequestFormComponent {
   }
 
   updateAddressField(field: keyof Address, value: string) {
+    console.log(`🏠 [ADDRESS] Campo '${field}' atualizado para:`, value);
+
     this.address.update((current) => ({ ...current, [field]: value }));
+
+    // If district changed, load concelhos for that district
+    if (field === "state" && value) {
+      console.log("🏛️ [ADDRESS] Distrito alterado, carregando concelhos...");
+      this.loadConcelhosByDistrito(value);
+
+      // Clear concelho when district changes
+      this.address.update((current) => ({ ...current, concelho: "" }));
+      console.log("🧹 [ADDRESS] Concelho limpo devido à mudança de distrito");
+    }
+  }
+
+  private async loadPortugueseDistricts() {
+    console.log("🏛️ [DISTRICTS] Carregando distritos portugueses...");
+
+    try {
+      const districts =
+        await this.portugalValidationService.getPortugueseDistricts();
+
+      console.log(
+        `✅ [DISTRICTS] ${districts.length} distritos carregados:`,
+        districts
+      );
+      this.portugueseDistricts.set(districts);
+    } catch (error) {
+      console.warn(
+        "⚠️ [DISTRICTS] Erro ao carregar distritos da base de dados, usando fallback:",
+        error
+      );
+
+      // Fallback to offline districts if database fails
+      const fallbackDistricts =
+        this.portugalValidationService.getPortugueseDistrictsOffline();
+
+      console.log(
+        `💾 [DISTRICTS] Usando ${fallbackDistricts.length} distritos offline:`,
+        fallbackDistricts
+      );
+      this.portugueseDistricts.set(fallbackDistricts);
+    }
+  }
+
+  private async loadConcelhosByDistrito(distritoNome: string) {
+    if (!distritoNome) {
+      console.log("🏛️ [CONCELHOS] Distrito vazio, limpando lista de concelhos");
+      this.portugalConcelhos.set([]);
+      return;
+    }
+
+    console.log(
+      "🏛️ [CONCELHOS] Carregando concelhos para distrito:",
+      distritoNome
+    );
+    this.loadingConcelhos.set(true);
+
+    try {
+      const concelhos =
+        await this.portugalValidationService.getConcelhosByDistrito(
+          distritoNome
+        );
+
+      console.log(
+        `✅ [CONCELHOS] ${concelhos.length} concelhos carregados para ${distritoNome}:`,
+        concelhos
+      );
+      this.portugalConcelhos.set(concelhos);
+    } catch (error) {
+      console.error(
+        `❌ [CONCELHOS] Erro ao carregar concelhos para ${distritoNome}:`,
+        error
+      );
+      this.portugalConcelhos.set([]);
+    } finally {
+      this.loadingConcelhos.set(false);
+      console.log("🏛️ [CONCELHOS] Carregamento finalizado");
+    }
   }
 }

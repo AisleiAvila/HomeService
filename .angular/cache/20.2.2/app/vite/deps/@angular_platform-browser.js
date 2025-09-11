@@ -1,13 +1,13 @@
 import {
   withHttpTransferCache
-} from "./chunk-2KYSX7T5.js";
+} from "./chunk-V43GFOKY.js";
 import {
   CommonModule,
   DomAdapter,
   PLATFORM_BROWSER_ID,
   getDOM,
   setRootDomAdapter
-} from "./chunk-LL5TIFB2.js";
+} from "./chunk-NBLH6USX.js";
 import {
   XhrFactory,
   parseCookieValue
@@ -75,10 +75,8 @@ import {
   ɵɵdefineInjector,
   ɵɵdefineNgModule,
   ɵɵinject
-} from "./chunk-4E2GRVD7.js";
-import "./chunk-HWYXSU2G.js";
-import "./chunk-JRFR6BLO.js";
-import "./chunk-MARUHEWW.js";
+} from "./chunk-DGKIVBTR.js";
+import "./chunk-RSS3ODKE.js";
 import {
   __spreadValues
 } from "./chunk-H2SRQSE4.js";
