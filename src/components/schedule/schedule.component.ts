@@ -18,6 +18,7 @@ import {
 } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "../../services/i18n.service";
+import { I18nPipe } from "../../pipes/i18n.pipe";
 import {
   FullCalendarModule,
   FullCalendarComponent,
@@ -31,7 +32,7 @@ import ptBr from "@fullcalendar/core/locales/pt-br";
 @Component({
   selector: "app-schedule",
   standalone: true,
-  imports: [CommonModule, FullCalendarModule],
+  imports: [CommonModule, FullCalendarModule, I18nPipe],
   templateUrl: "./schedule.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
