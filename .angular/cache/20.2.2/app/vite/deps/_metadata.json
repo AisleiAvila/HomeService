@@ -7,97 +7,97 @@
     "@angular/common": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "31455dcf",
+      "fileHash": "e4a83d48",
       "needsInterop": false
     },
     "@angular/common/http": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "4607fc44",
+      "fileHash": "aa13ee4e",
       "needsInterop": false
     },
     "@angular/common/locales/de": {
       "src": "../../../../../../node_modules/@angular/common/locales/de.js",
       "file": "@angular_common_locales_de.js",
-      "fileHash": "61137ec8",
+      "fileHash": "60f091b8",
       "needsInterop": false
     },
     "@angular/common/locales/en": {
       "src": "../../../../../../node_modules/@angular/common/locales/en.js",
       "file": "@angular_common_locales_en.js",
-      "fileHash": "5ff15093",
+      "fileHash": "c901e094",
       "needsInterop": false
     },
     "@angular/common/locales/pt": {
       "src": "../../../../../../node_modules/@angular/common/locales/pt.js",
       "file": "@angular_common_locales_pt.js",
-      "fileHash": "57254fca",
+      "fileHash": "bcf9cd19",
       "needsInterop": false
     },
     "@angular/compiler": {
       "src": "../../../../../../node_modules/@angular/compiler/fesm2022/compiler.mjs",
       "file": "@angular_compiler.js",
-      "fileHash": "1c824243",
+      "fileHash": "ca463d0f",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "b137e73e",
+      "fileHash": "49e784e9",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "9f90e1a1",
+      "fileHash": "c2444757",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "78d80678",
+      "fileHash": "77b3c68e",
       "needsInterop": false
     },
     "@fullcalendar/angular": {
       "src": "../../../../../../node_modules/@fullcalendar/angular/fesm2020/fullcalendar-angular.mjs",
       "file": "@fullcalendar_angular.js",
-      "fileHash": "a95ef63f",
+      "fileHash": "af1e7b09",
       "needsInterop": false
     },
     "@fullcalendar/core/locales/pt-br": {
       "src": "../../../../../../node_modules/@fullcalendar/core/locales/pt-br.js",
       "file": "@fullcalendar_core_locales_pt-br.js",
-      "fileHash": "4560a816",
+      "fileHash": "38bd0f02",
       "needsInterop": false
     },
     "@fullcalendar/daygrid": {
       "src": "../../../../../../node_modules/@fullcalendar/daygrid/index.js",
       "file": "@fullcalendar_daygrid.js",
-      "fileHash": "edc6b6c1",
+      "fileHash": "0fab62d0",
       "needsInterop": false
     },
     "@fullcalendar/interaction": {
       "src": "../../../../../../node_modules/@fullcalendar/interaction/index.js",
       "file": "@fullcalendar_interaction.js",
-      "fileHash": "8e5c0ec3",
+      "fileHash": "6813ba52",
       "needsInterop": false
     },
     "@fullcalendar/timegrid": {
       "src": "../../../../../../node_modules/@fullcalendar/timegrid/index.js",
       "file": "@fullcalendar_timegrid.js",
-      "fileHash": "c1bab768",
+      "fileHash": "bd20fcb3",
       "needsInterop": false
     },
     "@supabase/supabase-js": {
       "src": "../../../../../../node_modules/@supabase/supabase-js/dist/module/index.js",
       "file": "@supabase_supabase-js.js",
-      "fileHash": "a383afe0",
+      "fileHash": "1c45a1b9",
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
-      "fileHash": "48b55237",
+      "fileHash": "6ef257ce",
       "needsInterop": false
     }
   },

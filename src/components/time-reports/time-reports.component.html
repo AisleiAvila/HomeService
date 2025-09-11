@@ -1,0 +1,448 @@
+@if (!canViewReports()) {
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+  <i class="fas fa-exclamation-triangle text-red-600 text-2xl mb-2"></i>
+  <p class="text-red-800">{{ "accessDenied" | i18n }}</p>
+  <p class="text-red-600 text-sm">{{ "adminAccessRequired" | i18n }}</p>
+</div>
+} @else {
+
+<div class="space-y-6">
+  <!-- Header -->
+  <div
+    class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+  >
+    <h1 class="text-2xl font-bold text-gray-900">
+      {{ "timeReports" | i18n }}
+    </h1>
+
+    <button
+      (click)="exportToCSV()"
+      class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+    >
+      <i class="fas fa-file-csv mr-2"></i>
+      {{ "exportCSV" | i18n }}
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg border border-gray-200 p-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      {{ "filters" | i18n }}
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Período -->
+      <div>
+        <label
+          for="dateRange"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          {{ "period" | i18n }}
+        </label>
+        <select
+          id="dateRange"
+          [(ngModel)]="selectedDateRange"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="today">{{ "today" | i18n }}</option>
+          <option value="week">{{ "lastWeek" | i18n }}</option>
+          <option value="month">{{ "lastMonth" | i18n }}</option>
+          <option value="custom">{{ "customPeriod" | i18n }}</option>
+        </select>
+      </div>
+
+      <!-- Categoria -->
+      <div>
+        <label
+          for="category"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          {{ "category" | i18n }}
+        </label>
+        <select
+          id="category"
+          [(ngModel)]="selectedCategory"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">{{ "allCategories" | i18n }}</option>
+          @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Período Customizado (mostrar apenas se selecionado) -->
+      @if (selectedDateRange() === 'custom') {
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label
+            for="startDate"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            {{ "startDate" | i18n }}
+          </label>
+          <input
+            id="startDate"
+            type="date"
+            [(ngModel)]="customStartDate"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label
+            for="endDate"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            {{ "endDate" | i18n }}
+          </label>
+          <input
+            id="endDate"
+            type="date"
+            [(ngModel)]="customEndDate"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Estatísticas Resumidas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-tasks text-2xl text-blue-600"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-2xl font-bold text-gray-900">
+            {{ summaryStats().totalRequests }}
+          </p>
+          <p class="text-sm text-gray-600">{{ "totalRequests" | i18n }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-check-circle text-2xl text-green-600"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-2xl font-bold text-gray-900">
+            {{ summaryStats().completionRate }}%
+          </p>
+          <p class="text-sm text-gray-600">{{ "completionRate" | i18n }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-clock text-2xl text-purple-600"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-2xl font-bold text-gray-900">
+            {{ formatDuration(summaryStats().averageActualDuration) }}
+          </p>
+          <p class="text-sm text-gray-600">{{ "averageDuration" | i18n }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-calendar-check text-2xl text-orange-600"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-2xl font-bold text-gray-900">
+            {{ summaryStats().onTimePercentage }}%
+          </p>
+          <p class="text-sm text-gray-600">{{ "onTimePercentage" | i18n }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relatório de Produtividade dos Profissionais -->
+  <div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ "professionalProductivity" | i18n }}
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "professional" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "completedServices" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "averageDuration" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "onTimePercentage" | i18n }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          @if (productivityReport().length === 0) {
+          <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+              {{ "noDataAvailable" | i18n }}
+            </td>
+          </tr>
+          } @else { @for (report of productivityReport(); track
+          report.professional_id) {
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">
+                {{ report.professional_name }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                {{ report.completed_services }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                {{ formatDuration(report.average_duration_minutes) }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                <span
+                  [class]="
+                    report.on_time_percentage >= 80
+                      ? 'text-green-600'
+                      : report.on_time_percentage >= 60
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                  "
+                >
+                  {{ report.on_time_percentage }}%
+                </span>
+              </div>
+            </td>
+          </tr>
+          } }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Serviços Agendados para Hoje -->
+  @if (todayScheduledRequests().length > 0) {
+  <div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ "todayScheduledServices" | i18n }}
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      @for (request of todayScheduledRequests(); track request.id) {
+      <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+        <div class="flex-1">
+          <h4 class="font-medium text-gray-900">{{ request.title }}</h4>
+          <p class="text-sm text-gray-600">
+            {{ request.professional_name || "Não atribuído" }}
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-medium text-gray-900">
+            {{
+              formatDateTime(
+                request.scheduled_start_datetime || request.scheduled_date
+              )
+            }}
+          </p>
+          <span
+            [class]="getStatusClass(dataService.getSchedulingStatus(request))"
+            class="inline-block px-2 py-1 text-xs font-medium rounded-full"
+          >
+            {{ dataService.getSchedulingStatus(request) }}
+          </span>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Serviços Atrasados -->
+  @if (delayedRequests().length > 0) {
+  <div class="bg-white rounded-lg border border-red-200">
+    <div class="px-6 py-4 border-b border-red-200 bg-red-50">
+      <h2 class="text-lg font-semibold text-red-900">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        {{ "delayedServices" | i18n }}
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      @for (request of delayedRequests(); track request.id) {
+      <div
+        class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200"
+      >
+        <div class="flex-1">
+          <h4 class="font-medium text-red-900">{{ request.title }}</h4>
+          <p class="text-sm text-red-600">
+            {{ request.professional_name || "Não atribuído" }}
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-medium text-red-900">
+            {{ "scheduled" | i18n }}:
+            {{
+              formatDateTime(
+                request.scheduled_start_datetime || request.scheduled_date
+              )
+            }}
+          </p>
+          <span
+            class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
+          >
+            {{ "delayed" | i18n }}
+          </span>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Lista Detalhada de Serviços -->
+  <div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">
+        {{ "detailedServiceList" | i18n }}
+      </h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              ID
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "service" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "professional" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "scheduled" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "duration" | i18n }}
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              {{ "status" | i18n }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          @if (filteredRequests().length === 0) {
+          <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+              {{ "noDataAvailable" | i18n }}
+            </td>
+          </tr>
+          } @else { @for (request of filteredRequests(); track request.id) {
+          <tr class="hover:bg-gray-50">
+            <td
+              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+            >
+              #{{ request.id }}
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-gray-900">
+                {{ request.title }}
+              </div>
+              <div class="text-sm text-gray-500">{{ request.category }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ request.professional_name || "--" }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{
+                formatDateTime(
+                  request.scheduled_start_datetime || request.scheduled_date
+                )
+              }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <div>
+                {{ "estimated" | i18n }}:
+                {{ formatDuration(request.estimated_duration_minutes || 0) }}
+              </div>
+              @if (dataService.calculateActualDuration(request)) {
+              <div class="text-xs text-gray-500">
+                {{ "actual" | i18n }}:
+                {{
+                  formatDuration(dataService.calculateActualDuration(request)!)
+                }}
+                @if (dataService.calculateDurationVariance(request) !== null) {
+                <span
+                  [class]="
+                    dataService.calculateDurationVariance(request)! > 0
+                      ? 'text-red-600'
+                      : 'text-green-600'
+                  "
+                >
+                  ({{
+                    dataService.calculateDurationVariance(request)! > 0
+                      ? "+"
+                      : ""
+                  }}{{ dataService.calculateDurationVariance(request) }}min)
+                </span>
+                }
+              </div>
+              }
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span
+                [class]="
+                  getStatusClass(dataService.getSchedulingStatus(request))
+                "
+                class="inline-block px-2 py-1 text-xs font-medium rounded-full"
+              >
+                {{ dataService.getSchedulingStatus(request) }}
+              </span>
+            </td>
+          </tr>
+          } }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+}

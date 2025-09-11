@@ -12,6 +12,44 @@ export type ServiceStatus =
 export type PaymentStatus = "Unpaid" | "Paid";
 export type ServiceCategory = string; // E.g., 'Plumbing', 'Electrical', 'Cleaning'
 
+// Novos tipos para controle de agendamento
+export type SchedulingStatus =
+  | "Awaiting Schedule"
+  | "Scheduled"
+  | "Scheduled Today"
+  | "Delayed"
+  | "In Progress"
+  | "Completed"
+  | "Pending";
+
+export interface TimeControlData {
+  requested_datetime?: string;
+  scheduled_start_datetime?: string | null;
+  estimated_duration_minutes?: number | null;
+  actual_start_datetime?: string | null;
+  actual_end_datetime?: string | null;
+}
+
+export interface SchedulingReport {
+  id: number;
+  title: string;
+  category: ServiceCategory;
+  status: ServiceStatus;
+  client_name?: string;
+  professional_name?: string;
+  requested_datetime?: string;
+  scheduled_start_datetime?: string | null;
+  estimated_duration_minutes?: number | null;
+  actual_start_datetime?: string | null;
+  actual_end_datetime?: string | null;
+  actual_duration_minutes?: number | null;
+  scheduling_status: SchedulingStatus;
+  duration_variance_minutes?: number | null;
+  full_address: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Address {
   street: string; // Rua/Avenida completa
   city: string; // Localidade (ex: Lisboa, Porto)
@@ -50,11 +88,18 @@ export interface ServiceRequest {
   zip_code: string;
   status: ServiceStatus;
   payment_status: PaymentStatus;
-  requested_date: string; // ISO string
-  scheduled_date: string | null; // ISO string
+  requested_date: string; // ISO string - DEPRECATED: use requested_datetime
+  scheduled_date: string | null; // ISO string - DEPRECATED: use scheduled_start_datetime
   cost: number | null;
   client_name?: string; // Denormalized for convenience
   professional_name?: string; // Denormalized for convenience
+
+  // Novos campos para controle de agendamento e tempo
+  requested_datetime?: string; // Data e hora solicitada pelo cliente (ISO string)
+  scheduled_start_datetime?: string | null; // Data e hora agendada pelo administrador (ISO string)
+  estimated_duration_minutes?: number | null; // Previsão de duração em minutos (administrador)
+  actual_start_datetime?: string | null; // Data e hora real de início (profissional)
+  actual_end_datetime?: string | null; // Data e hora real do final (profissional)
 }
 
 export interface ChatMessage {
@@ -81,5 +126,5 @@ export interface ServiceRequestPayload {
   description: string;
   category: ServiceCategory;
   address: Address;
-  requested_date: string;
+  requested_datetime: string; // Data e hora solicitada pelo cliente (ISO string) - OBRIGATÓRIO
 }

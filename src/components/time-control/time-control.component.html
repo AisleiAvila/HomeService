@@ -1,0 +1,158 @@
+<div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-gray-900">
+      {{ "timeControl" | i18n }}
+    </h3>
+    <span
+      [class]="getStatusClass(schedulingStatus())"
+      class="px-3 py-1 rounded-full text-sm font-medium"
+    >
+      {{ schedulingStatus() }}
+    </span>
+  </div>
+
+  <!-- Informações de Agendamento -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <!-- Data Solicitada -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        {{ "requestedDateTime" | i18n }}
+      </label>
+      <p class="text-sm text-gray-900">
+        {{
+          formatDateTime(
+            request().requested_datetime || request().requested_date
+          )
+        }}
+      </p>
+    </div>
+
+    <!-- Data Agendada -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        {{ "scheduledStartDateTime" | i18n }}
+      </label>
+      <p class="text-sm text-gray-900">
+        {{
+          formatDateTime(
+            request().scheduled_start_datetime || request().scheduled_date
+          )
+        }}
+      </p>
+    </div>
+
+    <!-- Previsão de Duração -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        {{ "estimatedDuration" | i18n }}
+      </label>
+      <p class="text-sm text-gray-900">
+        {{ formatDuration(request().estimated_duration_minutes) }}
+      </p>
+    </div>
+
+    <!-- Duração Real -->
+    <div class="bg-gray-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-gray-600 mb-1">
+        {{ "actualDuration" | i18n }}
+      </label>
+      <p class="text-sm text-gray-900">
+        {{ formatDuration(actualDuration()) }}
+        @if (durationVariance() !== null) {
+        <span
+          [class]="getDurationVarianceClass(durationVariance())"
+          class="ml-2 text-xs"
+        >
+          ({{ durationVariance()! > 0 ? "+" : "" }}{{ durationVariance() }}min)
+        </span>
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- Informações de Execução -->
+  @if (request().actual_start_datetime || request().actual_end_datetime) {
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <!-- Início Real -->
+    <div class="bg-blue-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-blue-600 mb-1">
+        {{ "actualStartDateTime" | i18n }}
+      </label>
+      <p class="text-sm text-blue-900">
+        {{ formatDateTime(request().actual_start_datetime) }}
+      </p>
+    </div>
+
+    <!-- Final Real -->
+    <div class="bg-green-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-green-600 mb-1">
+        {{ "actualEndDateTime" | i18n }}
+      </label>
+      <p class="text-sm text-green-900">
+        {{ formatDateTime(request().actual_end_datetime) }}
+      </p>
+    </div>
+  </div>
+  }
+
+  <!-- Ações do Profissional -->
+  @if (currentUser()?.role === 'professional') {
+  <div class="flex flex-col sm:flex-row gap-3">
+    <!-- Botão Iniciar Trabalho -->
+    @if (canStartWork()) {
+    <button
+      (click)="startWork()"
+      class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+    >
+      <i class="fas fa-play"></i>
+      {{ "startWork" | i18n }}
+    </button>
+    }
+
+    <!-- Botão Finalizar Trabalho -->
+    @if (canFinishWork()) {
+    <button
+      (click)="finishWork()"
+      class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+    >
+      <i class="fas fa-stop"></i>
+      {{ "finishWork" | i18n }}
+    </button>
+    }
+
+    <!-- Status quando não pode agir -->
+    @if (!canStartWork() && !canFinishWork()) {
+    <div
+      class="flex-1 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg text-center"
+    >
+      @switch (schedulingStatus()) { @case ('Completed') {
+      <i class="fas fa-check-circle mr-2 text-green-600"></i>
+      {{ "serviceCompleted" | i18n }}
+      } @case ('In Progress') {
+      <i class="fas fa-clock mr-2 text-blue-600"></i>
+      {{ "serviceInProgress" | i18n }}
+      } @case ('Awaiting Schedule') {
+      <i class="fas fa-calendar-times mr-2 text-yellow-600"></i>
+      {{ "awaitingSchedule" | i18n }}
+      } @default {
+      <i class="fas fa-hourglass-half mr-2"></i>
+      {{ "noActionAvailable" | i18n }}
+      } }
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Informações para Administrador -->
+  @if (canManageSchedule()) {
+  <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+    <h4 class="text-sm font-medium text-yellow-800 mb-2">
+      {{ "adminActions" | i18n }}
+    </h4>
+    <p class="text-sm text-yellow-700">
+      {{ "useSchedulerToManage" | i18n }}
+    </p>
+  </div>
+  }
+</div>
