@@ -7,12 +7,13 @@ import {
   FormGroup,
   Validators,
 } from "@angular/forms";
+import { PostalCodeApiService } from "../../services/postal-code-api.service";
+import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
 import {
-  PostalCodeApiService,
   ValidationResult,
   PostalCodeResult,
-} from "../../services/postal-code-api.service";
-import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
+  BatchTestResult,
+} from "../../interfaces/postal-code.interface";
 
 @Component({
   selector: "app-postal-code-demo",
@@ -384,10 +385,7 @@ export class PostalCodeDemoComponent implements OnInit {
 
   // Batch Testing
   isBatchTesting = false;
-  batchResults: (ValidationResult & {
-    responseTime: number;
-    postalCode: string;
-  })[] = [];
+  batchResults: BatchTestResult[] = [];
   batchProgress = 0;
   batchCurrentIndex = 0;
   batchTotalTests = 0;
@@ -476,26 +474,38 @@ export class PostalCodeDemoComponent implements OnInit {
     if (!this.quickTestCode.trim()) return;
 
     this.isQuickTesting = true;
+    const result = await this.performValidation(this.quickTestCode);
+    this.quickTestResult = result;
+    this.isQuickTesting = false;
+  }
+
+  /**
+   * Método auxiliar para realizar validação com medição de tempo
+   */
+  private async performValidation(
+    postalCode: string
+  ): Promise<BatchTestResult> {
     const startTime = Date.now();
 
     try {
       const result = await this.postalCodeApi
-        .validatePostalCode(this.quickTestCode)
+        .validatePostalCode(postalCode)
         .toPromise();
       const responseTime = Date.now() - startTime;
 
-      this.quickTestResult = {
+      return {
         ...result,
-        isValid: result?.isValid ?? false, // Garantir que isValid seja sempre boolean
+        isValid: result?.isValid ?? false,
+        postalCode,
         responseTime,
-      } as any;
-    } catch (error) {
-      this.quickTestResult = {
-        isValid: false,
-        error: "Erro na validação: " + (error as Error).message,
       };
-    } finally {
-      this.isQuickTesting = false;
+    } catch (error) {
+      return {
+        isValid: false,
+        postalCode,
+        error: "Erro na validação: " + (error as Error).message,
+        responseTime: Date.now() - startTime,
+      };
     }
   }
 
@@ -517,50 +527,53 @@ export class PostalCodeDemoComponent implements OnInit {
       "3100-001",
       "2000-001",
       "8000-001",
+      "2870-005", // Montijo - código adicionado para teste
       "9999-999",
       "0000-000",
       "1234",
       "invalid",
     ];
 
+    this.initializeBatchTest(testCodes.length);
+
+    for (let i = 0; i < testCodes.length; i++) {
+      const code = testCodes[i];
+      this.updateBatchProgress(i + 1, testCodes.length);
+
+      const result = await this.performValidation(code);
+      this.batchResults.push(result);
+
+      // Small delay to prevent overwhelming the API
+      await this.delay(100);
+    }
+
+    this.isBatchTesting = false;
+  }
+
+  /**
+   * Inicializa o teste em lote
+   */
+  private initializeBatchTest(totalTests: number) {
     this.isBatchTesting = true;
     this.batchResults = [];
     this.batchProgress = 0;
     this.batchCurrentIndex = 0;
-    this.batchTotalTests = testCodes.length;
+    this.batchTotalTests = totalTests;
+  }
 
-    for (let i = 0; i < testCodes.length; i++) {
-      const code = testCodes[i];
-      this.batchCurrentIndex = i + 1;
-      this.batchProgress = ((i + 1) / testCodes.length) * 100;
+  /**
+   * Atualiza o progresso do teste em lote
+   */
+  private updateBatchProgress(currentIndex: number, totalTests: number) {
+    this.batchCurrentIndex = currentIndex;
+    this.batchProgress = (currentIndex / totalTests) * 100;
+  }
 
-      const startTime = Date.now();
-      try {
-        const result = await this.postalCodeApi
-          .validatePostalCode(code)
-          .toPromise();
-        const responseTime = Date.now() - startTime;
-
-        this.batchResults.push({
-          ...result,
-          isValid: result?.isValid ?? false, // Garantir que isValid seja sempre boolean
-          postalCode: code,
-          responseTime,
-        });
-      } catch (error) {
-        this.batchResults.push({
-          isValid: false,
-          postalCode: code,
-          error: "Erro: " + (error as Error).message,
-          responseTime: Date.now() - startTime,
-        });
-      }
-
-      // Small delay to prevent overwhelming the API
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-
-    this.isBatchTesting = false;
+  /**
+   * Utilitário para delay assíncrono
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   clearBatchResults() {
