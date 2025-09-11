@@ -15,7 +15,7 @@ import { AuthService } from "./services/auth.service";
 import { DataService } from "./services/data.service";
 import { NotificationService } from "./services/notification.service";
 // FIX: Corrected import path for I18nService
-import { I18nService } from "./services/i18n.service";
+import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
 // Models

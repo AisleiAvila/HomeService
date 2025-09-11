@@ -8,11 +8,12 @@ import {
 import { CommonModule } from "@angular/common";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { TimeControlComponent } from "../time-control/time-control.component";
 
 @Component({
   selector: "app-service-request-details",
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [CommonModule, I18nPipe, TimeControlComponent],
   template: `
     <div class="p-6 bg-white rounded-lg relative max-h-full overflow-y-auto">
       <button
@@ -147,6 +148,15 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
       </div>
       }
 
+      <!-- Time Control Component -->
+      <app-time-control
+        [request]="request()"
+        (onStartWork)="handleStartWork($event)"
+        (onFinishWork)="handleFinishWork($event)"
+        (onUpdateDuration)="handleUpdateDuration($event)"
+      >
+      </app-time-control>
+
       <!-- Action Buttons -->
       <div class="pt-6 flex justify-end space-x-3">
         @if (request() && showActionButtons()) { @if (request().status ===
@@ -249,5 +259,26 @@ export class ServiceRequestDetailsComponent {
     return status === "Paid"
       ? `${baseClass} bg-green-100 text-green-800`
       : `${baseClass} bg-orange-100 text-orange-800`;
+  }
+
+  // Métodos para lidar com eventos do controle de tempo
+  handleStartWork(requestId: number): void {
+    // Evento será capturado pelo componente TimeControl internamente
+    console.log("Trabalho iniciado para pedido:", requestId);
+  }
+
+  handleFinishWork(requestId: number): void {
+    // Evento será capturado pelo componente TimeControl internamente
+    console.log("Trabalho finalizado para pedido:", requestId);
+  }
+
+  handleUpdateDuration(event: { requestId: number; duration: number }): void {
+    // Evento será capturado pelo componente TimeControl internamente
+    console.log(
+      "Duração atualizada para pedido:",
+      event.requestId,
+      "duração:",
+      event.duration
+    );
   }
 }
