@@ -81,7 +81,7 @@
               {{
                 request.professional_id
                   ? getProfessionalName(request.professional_id)
-                  : "Não atribuído"
+                  : ("unassigned" | i18n)
               }}
             </div>
           </td>
@@ -91,7 +91,7 @@
               >R$ {{ request.cost | number : "1.2-2" }}</span
             >
             } @else {
-            <span class="text-gray-400">Aguardando orçamento</span>
+            <span class="text-gray-400">{{ "awaitingQuote" | i18n }}</span>
             }
           </td>
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -280,7 +280,7 @@
                   {{
                     request.professional_id
                       ? getProfessionalName(request.professional_id)
-                      : "Não atribuído"
+                      : ("unassigned" | i18n)
                   }}
                 </span>
               </div>
@@ -335,7 +335,7 @@
               </svg>
               <div class="text-sm min-w-0 flex-1">
                 <span class="font-medium text-gray-700 block mb-1"
-                  >Descrição:</span
+                  >{{ "description" | i18n }}:</span
                 >
                 <span class="text-gray-600 leading-relaxed break-words">
                   {{ request.description }}
