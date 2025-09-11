@@ -134,7 +134,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       <!-- Sidebar -->
       <aside
         [class]="
-          'bg-gray-800 text-white flex flex-col transition-all duration-300 ease-in-out z-40 ' +
+          'bg-gray-800 text-white flex flex-col transition-all duration-300 ease-in-out z-50 ' +
           (isMobile()
             ? isSidebarOpen()
               ? 'fixed inset-y-0 left-0 w-64 transform translate-x-0'
@@ -215,7 +215,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           </div>
           <button
             (click)="handleLogout()"
-            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px]"
+            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px] cursor-pointer relative z-10"
           >
             <i class="fas fa-sign-out-alt w-6 text-center text-lg"></i>
             <span class="ml-3">{{ "logout" | i18n }}</span>
@@ -229,7 +229,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
             />
             <button
               (click)="handleLogout()"
-              class="p-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+              class="p-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center cursor-pointer relative z-10"
               title="{{ 'logout' | i18n }}"
             >
               <i class="fas fa-sign-out-alt text-lg"></i>
@@ -308,6 +308,15 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
                 class="absolute top-1 right-1 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-white"
               ></span>
               }
+            </button>
+            <!-- Mobile Logout Button -->
+            <button
+              (click)="handleLogout()"
+              class="md:hidden text-gray-700 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="{{ 'logout' | i18n }}"
+              title="{{ 'logout' | i18n }}"
+            >
+              <i class="fas fa-sign-out-alt text-lg"></i>
             </button>
           </div>
         </header>
@@ -722,9 +731,31 @@ export class AppComponent implements OnInit {
     this.authService.resetPassword(email);
   }
 
-  handleLogout() {
-    this.authService.logout();
-    this.isSidebarOpen.set(false);
+  async handleLogout() {
+    console.log("🚪 Logout button clicked - iniciando logout");
+    try {
+      await this.authService.logout();
+      console.log("🔄 Logout concluído, redirecionando para landing");
+
+      // Forçar redirecionamento para landing page
+      this.view.set("landing");
+      this.isSidebarOpen.set(false);
+
+      // Limpar todos os modais abertos
+      this.isNewRequestFormOpen.set(false);
+      this.selectedRequest.set(null);
+      this.isChatOpen.set(false);
+      this.isNotificationCenterOpen.set(false);
+    } catch (error) {
+      console.error("❌ Erro durante logout, mas continuando:", error);
+
+      // Mesmo com erro, redirecionar para landing
+      this.view.set("landing");
+      this.isSidebarOpen.set(false);
+
+      // Forçar limpeza do estado local
+      this.authService.appUser.set(null);
+    }
   }
 
   // --- Modal & Action Handlers ---

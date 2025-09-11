@@ -211,108 +211,204 @@
       }
     </div>
     } @case ('requests') {
-    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "service" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "client" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "professional" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "status" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "cost" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "actions" | i18n }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          @for(req of paginatedRequests(); track req.id) {
-          <tr>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-            >
-              {{ req.title }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ getClientName(req.client_id) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ getProfessionalName(req.professional_id) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
-              <span [class]="statusClass(req.status)">{{ req.status }}</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex gap-2 items-center">
-                @if(req.status === 'Pending' || req.status === 'Quoted') {
-                <button
-                  (click)="selectRequestForQuote(req)"
-                  class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
-                  title="{{ 'provideQuote' | i18n }}"
-                >
-                  <i class="fas fa-calculator"></i>
-                </button>
-                } @if(req.status === 'Approved') {
-                <button
-                  (click)="selectRequestForAssignment(req)"
-                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
-                  title="{{ 'assignProfessional' | i18n }}"
-                >
-                  <i class="fas fa-user-plus"></i>
-                </button>
-                }
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "service" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "client" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "professional" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "status" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "cost" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "actions" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for(req of paginatedRequests(); track req.id) {
+            <tr>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ req.title }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ getClientName(req.client_id) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ getProfessionalName(req.professional_id) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span [class]="statusClass(req.status)">{{ req.status }}</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2 items-center">
+                  @if(req.status === 'Pending' || req.status === 'Quoted') {
+                  <button
+                    (click)="selectRequestForQuote(req)"
+                    class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                    title="{{ 'provideQuote' | i18n }}"
+                  >
+                    <i class="fas fa-calculator"></i>
+                  </button>
+                  } @if(req.status === 'Approved') {
+                  <button
+                    (click)="selectRequestForAssignment(req)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'assignProfessional' | i18n }}"
+                  >
+                    <i class="fas fa-user-plus"></i>
+                  </button>
+                  }
 
-                <!-- Always Available Actions -->
+                  <!-- Always Available Actions -->
+                  <button
+                    (click)="viewRequestDetails(req)"
+                    class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                    title="{{ 'viewRequestDetails' | i18n }}"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button
+                    (click)="openChat(req)"
+                    class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors duration-200"
+                    title="{{ 'chat' | i18n }}"
+                  >
+                    <i class="fas fa-comments"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden p-4 space-y-4">
+        @for(req of paginatedRequests(); track req.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <!-- Header with title and status -->
+          <div class="flex justify-between items-start">
+            <h4 class="text-sm font-semibold text-gray-900 flex-1 mr-3">
+              {{ req.title }}
+            </h4>
+            <span
+              [class]="statusClass(req.status)"
+              class="flex-shrink-0 text-xs"
+            >
+              {{ req.status }}
+            </span>
+          </div>
+
+          <!-- Client and Professional info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "client" | i18n }}:</span
+              >
+              <span class="text-gray-900">{{
+                getClientName(req.client_id)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "professional" | i18n }}:</span
+              >
+              <span class="text-gray-900">{{
+                getProfessionalName(req.professional_id)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "cost" | i18n }}:</span
+              >
+              <span class="text-gray-900 font-semibold">
+                {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-3 border-t border-gray-100">
+            <div class="flex flex-wrap gap-2">
+              @if(req.status === 'Pending' || req.status === 'Quoted') {
+              <button
+                (click)="selectRequestForQuote(req)"
+                class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-calculator mr-2"></i>
+                {{
+                  req.status === "Quoted"
+                    ? ("viewQuote" | i18n)
+                    : ("provideQuote" | i18n)
+                }}
+              </button>
+              } @if(req.status === 'Approved') {
+              <button
+                (click)="selectRequestForAssignment(req)"
+                class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-user-plus mr-2"></i>
+                {{ "assign" | i18n }}
+              </button>
+              }
+
+              <!-- Always Available Actions Row -->
+              <div class="flex w-full gap-2 mt-2">
                 <button
                   (click)="viewRequestDetails(req)"
-                  class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
-                  title="{{ 'viewRequestDetails' | i18n }}"
+                  class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors duration-200 flex items-center justify-center"
                 >
-                  <i class="fas fa-eye"></i>
+                  <i class="fas fa-eye mr-2"></i>
+                  {{ "viewDetails" | i18n }}
                 </button>
                 <button
                   (click)="openChat(req)"
-                  class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors duration-200"
-                  title="{{ 'chat' | i18n }}"
+                  class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center justify-center"
                 >
-                  <i class="fas fa-comments"></i>
+                  <i class="fas fa-comments mr-2"></i>
+                  {{ "chat" | i18n }}
                 </button>
               </div>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
 
       <!-- Pagination Controls -->
       @if(allRequests().length > 0) {
       <div
-        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200"
+        class="bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 space-y-3 sm:space-y-0"
       >
         <!-- Items per page selector -->
         <div class="flex items-center space-x-2">
@@ -331,29 +427,25 @@
           </select>
         </div>
 
-        <!-- Pagination info -->
-        <div
-          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
-        >
-          <div>
-            <p class="text-sm text-gray-700">
-              {{ "showing" | i18n }}
-              <span class="font-medium">{{
-                (currentPage() - 1) * itemsPerPage() + 1
-              }}</span>
-              {{ "to" | i18n }}
-              <span class="font-medium">{{
-                Math.min(currentPage() * itemsPerPage(), allRequests().length)
-              }}</span>
-              {{ "of" | i18n }}
-              <span class="font-medium">{{ allRequests().length }}</span>
-              {{ "results" | i18n }}
-            </p>
-          </div>
+        <!-- Pagination info (hidden on mobile) -->
+        <div class="hidden sm:block">
+          <p class="text-sm text-gray-700">
+            {{ "showing" | i18n }}
+            <span class="font-medium">{{
+              (currentPage() - 1) * itemsPerPage() + 1
+            }}</span>
+            {{ "to" | i18n }}
+            <span class="font-medium">{{
+              Math.min(currentPage() * itemsPerPage(), allRequests().length)
+            }}</span>
+            {{ "of" | i18n }}
+            <span class="font-medium">{{ allRequests().length }}</span>
+            {{ "results" | i18n }}
+          </p>
         </div>
 
         <!-- Pagination buttons -->
-        <div class="flex-1 flex justify-center sm:justify-end">
+        <div class="flex justify-center sm:justify-end">
           <nav
             class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
             aria-label="Pagination"
@@ -365,28 +457,38 @@
               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-chevron-left"></i>
+              <span class="sr-only">Previous</span>
             </button>
 
-            <!-- Page numbers -->
-            @for(page of pageNumbers; track page) { @if(page === -1) {
-            <!-- Ellipsis -->
-            <span
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+            <!-- Page numbers (simplified for mobile) -->
+            <div class="hidden sm:flex">
+              @for(page of pageNumbers; track page) { @if(page === -1) {
+              <!-- Ellipsis -->
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+              >
+                ...
+              </span>
+              } @else {
+              <button
+                (click)="goToPage(page)"
+                [class]="
+                  page === currentPage()
+                    ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600'
+                    : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+                "
+              >
+                {{ page }}
+              </button>
+              } }
+            </div>
+
+            <!-- Mobile page indicator -->
+            <div
+              class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
             >
-              ...
-            </span>
-            } @else {
-            <button
-              (click)="goToPage(page)"
-              [class]="
-                page === currentPage()
-                  ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600'
-                  : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
-              "
-            >
-              {{ page }}
-            </button>
-            } }
+              {{ currentPage() }} / {{ totalPages() }}
+            </div>
 
             <!-- Next button -->
             <button
@@ -395,6 +497,7 @@
               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <i class="fas fa-chevron-right"></i>
+              <span class="sr-only">Next</span>
             </button>
           </nav>
         </div>
@@ -402,72 +505,133 @@
       }
     </div>
     } @case ('approvals') {
-    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <h3 class="text-xl font-semibold text-gray-800 p-4 border-b">
         {{ "pendingRegistrations" | i18n }}
       </h3>
       @if(pendingRegistrations().length > 0) {
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "name" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "email" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "phone" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "actions" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for(user of pendingRegistrations(); track user.id) {
+            <tr>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ user.name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ user.email }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ user.phone }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex gap-2 items-center">
+                  <button
+                    (click)="approveClient(user.id)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'approve' | i18n }}"
+                  >
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button
+                    (click)="rejectClient(user.id)"
+                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                    title="{{ 'reject' | i18n }}"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden p-4 space-y-4">
+        @for(user of pendingRegistrations(); track user.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <!-- Header with name -->
+          <div class="flex items-center">
+            <div
+              class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center mr-3"
             >
-              {{ "name" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "email" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "phone" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "actions" | i18n }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          @for(user of pendingRegistrations(); track user.id) {
-          <tr>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-            >
-              {{ user.name }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ user.email }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ user.phone }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex gap-2 items-center">
-                <button
-                  (click)="approveClient(user.id)"
-                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
-                  title="{{ 'approve' | i18n }}"
-                >
-                  <i class="fas fa-check"></i>
-                </button>
-                <button
-                  (click)="rejectClient(user.id)"
-                  class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
-                  title="{{ 'reject' | i18n }}"
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
+              <i class="fas fa-user text-gray-600"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-gray-900">
+                {{ user.name }}
+              </h4>
+              <p class="text-xs text-gray-500">
+                {{ "pendingApproval" | i18n }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Contact info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center">
+              <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
+              <span class="text-gray-900">{{ user.email }}</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-phone text-gray-400 w-4 mr-2"></i>
+              <span class="text-gray-900">{{ user.phone || "N/A" }}</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-3 border-t border-gray-100">
+            <div class="flex gap-2">
+              <button
+                (click)="approveClient(user.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-check mr-2"></i>
+                {{ "approve" | i18n }}
+              </button>
+              <button
+                (click)="rejectClient(user.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-times mr-2"></i>
+                {{ "reject" | i18n }}
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
       } @else {
       <p class="text-center text-gray-500 p-6">
         {{ "noPendingRegistrations" | i18n }}
@@ -475,7 +639,9 @@
       }
     </div>
     } @case ('finances') { @if(financialStats(); as stats) {
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6"
+    >
       <div class="bg-white p-4 rounded-lg shadow">
         <h4 class="text-sm font-medium text-gray-500">
           {{ "completedServices" | i18n }}
@@ -506,104 +672,180 @@
       </div>
     </div>
     }
-    <div class="bg-white rounded-lg shadow-md overflow-hidden table-responsive">
-      <div class="p-4 border-b flex justify-between items-center">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div
+        class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
+      >
         <h3 class="text-xl font-semibold">{{ "financialDetails" | i18n }}</h3>
         <button
           (click)="exportToCSV()"
-          class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+          class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
         >
           <i class="fas fa-file-csv mr-2"></i>{{ "exportToCsv" | i18n }}
         </button>
       </div>
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "service" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "client" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "professional" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "date" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "payment" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "total" | i18n }}
-            </th>
-            <th
-              class="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "action" | i18n }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          @for(req of completedRequests(); track req.id) {
-          <tr>
-            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "service" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "client" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "professional" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "date" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "payment" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "total" | i18n }}
+              </th>
+              <th
+                class="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "action" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for(req of completedRequests(); track req.id) {
+            <tr>
+              <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                {{ req.title }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm">
+                {{ getClientName(req.client_id) }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm">
+                {{ getProfessionalName(req.professional_id) }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm">
+                {{ req.scheduled_date | date }}
+              </td>
+              <td
+                class="px-4 py-4 whitespace-nowrap text-sm font-semibold"
+                [class.text-green-600]="req.payment_status === 'Paid'"
+                [class.text-orange-600]="req.payment_status === 'Unpaid'"
+              >
+                {{ req.payment_status }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-right">
+                {{ formatCost(req.cost) }}
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
+                <button
+                  (click)="generateInvoice(req)"
+                  class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                  title="{{ 'generateInvoice' | i18n }}"
+                >
+                  <i class="fas fa-file-invoice"></i>
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden p-4 space-y-4">
+        @for(req of completedRequests(); track req.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <!-- Header with service title and payment status -->
+          <div class="flex justify-between items-start">
+            <h4 class="text-sm font-semibold text-gray-900 flex-1 mr-3">
               {{ req.title }}
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">
-              {{ getClientName(req.client_id) }}
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">
-              {{ getProfessionalName(req.professional_id) }}
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">
-              {{ req.scheduled_date | date }}
-            </td>
-            <td
-              class="px-4 py-4 whitespace-nowrap text-sm font-semibold"
-              [class.text-green-600]="req.payment_status === 'Paid'"
-              [class.text-orange-600]="req.payment_status === 'Unpaid'"
+            </h4>
+            <span
+              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0"
+              [class.bg-green-100]="req.payment_status === 'Paid'"
+              [class.text-green-800]="req.payment_status === 'Paid'"
+              [class.bg-orange-100]="req.payment_status === 'Unpaid'"
+              [class.text-orange-800]="req.payment_status === 'Unpaid'"
             >
               {{ req.payment_status }}
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm text-right">
-              {{ formatCost(req.cost) }}
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
-              <button
-                (click)="generateInvoice(req)"
-                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
-                title="{{ 'generateInvoice' | i18n }}"
+            </span>
+          </div>
+
+          <!-- Service details -->
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "client" | i18n }}:</span
               >
-                <i class="fas fa-file-invoice"></i>
-              </button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
+              <span class="text-gray-900">{{
+                getClientName(req.client_id)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "professional" | i18n }}:</span
+              >
+              <span class="text-gray-900">{{
+                getProfessionalName(req.professional_id)
+              }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "date" | i18n }}:</span
+              >
+              <span class="text-gray-900">{{ req.scheduled_date | date }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 font-medium"
+                >{{ "total" | i18n }}:</span
+              >
+              <span class="text-gray-900 font-semibold text-lg">{{
+                formatCost(req.cost)
+              }}</span>
+            </div>
+          </div>
+
+          <!-- Action -->
+          <div class="pt-3 border-t border-gray-100">
+            <button
+              (click)="generateInvoice(req)"
+              class="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+            >
+              <i class="fas fa-file-invoice mr-2"></i>
+              {{ "generateInvoice" | i18n }}
+            </button>
+          </div>
+        </div>
+        }
+      </div>
     </div>
     } @case ('professionals') {
-    <div class="bg-white rounded-lg shadow-md table-responsive">
-      <div class="p-4 border-b flex justify-between items-center">
+    <div class="bg-white rounded-lg shadow-md">
+      <div
+        class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
+      >
         <h3 class="text-xl font-semibold">
           {{ "manageProfessionals" | i18n }}
         </h3>
         <button
           (click)="showAddProfessionalForm.set(true)"
-          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+          class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
         >
           <i class="fas fa-plus mr-2"></i>{{ "addProfessional" | i18n }}
         </button>
@@ -642,7 +884,9 @@
               }
             </div>
           </fieldset>
-          <div class="flex justify-end space-x-2">
+          <div
+            class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2"
+          >
             <button
               (click)="resetNewProfessionalForm()"
               class="px-4 py-2 text-sm rounded-md bg-gray-200"
@@ -659,54 +903,117 @@
         </div>
       </div>
       }
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "name" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "email" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "specialties" | i18n }}
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-            >
-              {{ "action" | i18n }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          @for(pro of professionals(); track pro.id) {
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              {{ pro.name }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">{{ pro.email }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
-              {{ pro.specialties?.join(", ") }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
-              <button
-                (click)="startEditProfessional(pro)"
-                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
-                title="{{ 'edit' | i18n }}"
+
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
               >
-                <i class="fas fa-edit"></i>
-              </button>
-            </td>
-          </tr>
+                {{ "name" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "email" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "specialties" | i18n }}
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+              >
+                {{ "action" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for(pro of professionals(); track pro.id) {
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                {{ pro.name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                {{ pro.email }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                {{ pro.specialties?.join(", ") }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <button
+                  (click)="startEditProfessional(pro)"
+                  class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                  title="{{ 'edit' | i18n }}"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden p-4 space-y-4">
+        @for(pro of professionals(); track pro.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <!-- Header with name and edit button -->
+          <div class="flex justify-between items-start">
+            <div class="flex items-center flex-1">
+              <div
+                class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3"
+              >
+                <i class="fas fa-user-tie text-indigo-600"></i>
+              </div>
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-gray-900">
+                  {{ pro.name }}
+                </h4>
+                <p class="text-xs text-gray-500">{{ "professional" | i18n }}</p>
+              </div>
+            </div>
+            <button
+              (click)="startEditProfessional(pro)"
+              class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+              title="{{ 'edit' | i18n }}"
+            >
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+
+          <!-- Contact info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center">
+              <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
+              <span class="text-gray-900">{{ pro.email }}</span>
+            </div>
+          </div>
+
+          <!-- Specialties -->
+          @if(pro.specialties && pro.specialties.length > 0) {
+          <div>
+            <p class="text-xs font-medium text-gray-600 mb-2">
+              {{ "specialties" | i18n }}:
+            </p>
+            <div class="flex flex-wrap gap-1">
+              @for(specialty of pro.specialties; track specialty) {
+              <span
+                class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
+              >
+                {{ specialty }}
+              </span>
+              }
+            </div>
+          </div>
           }
-        </tbody>
-      </table>
+        </div>
+        }
+      </div>
     </div>
     } @case ('categories') {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -799,7 +1106,7 @@
       </div>
     </div>
     } @case ('clients') {
-    <div class="bg-white rounded-lg shadow-md table-responsive">
+    <div class="bg-white rounded-lg shadow-md">
       <div class="p-4 border-b">
         <h3 class="text-xl font-semibold">{{ "manageClients" | i18n }}</h3>
         <p class="text-gray-600 text-sm mt-1">
@@ -807,7 +1114,9 @@
         </p>
       </div>
       @if (clients().length > 0) {
-      <div class="overflow-x-auto">
+
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
@@ -964,6 +1273,129 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Mobile Card View -->
+      <div class="lg:hidden p-4 space-y-4">
+        @for (client of clients(); track client.id) { @if
+        (getClientStats(client.id); as stats) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-4">
+          <!-- Header with avatar, name and status -->
+          <div class="flex items-start justify-between">
+            <div class="flex items-center flex-1">
+              @if (client.avatar_url) {
+              <img
+                [src]="client.avatar_url"
+                [alt]="client.name"
+                class="h-12 w-12 rounded-full mr-3"
+              />
+              } @else {
+              <div
+                class="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center mr-3"
+              >
+                <i class="fas fa-user text-gray-600"></i>
+              </div>
+              }
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-gray-900">
+                  {{ client.name }}
+                </h4>
+                @if (client.email_verified === false) {
+                <p class="text-xs text-orange-600">
+                  {{ "emailNotVerified" | i18n }}
+                </p>
+                }
+              </div>
+            </div>
+            <span
+              class="inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0"
+              [class.bg-green-100]="client.status === 'Active'"
+              [class.text-green-800]="client.status === 'Active'"
+              [class.bg-yellow-100]="client.status === 'Pending'"
+              [class.text-yellow-800]="client.status === 'Pending'"
+              [class.bg-red-100]="client.status === 'Rejected'"
+              [class.text-red-800]="client.status === 'Rejected'"
+            >
+              {{ client.status }}
+            </span>
+          </div>
+
+          <!-- Contact info -->
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center">
+              <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
+              <span class="text-gray-900">{{ client.email }}</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-phone text-gray-400 w-4 mr-2"></i>
+              <span class="text-gray-900">{{ client.phone || "N/A" }}</span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-3 gap-4 py-3 border-t border-gray-100">
+            <div class="text-center">
+              <div class="text-sm font-medium text-gray-900">
+                {{ stats.completedRequests }}
+              </div>
+              <div class="text-xs text-gray-500">{{ "completed" | i18n }}</div>
+            </div>
+            <div class="text-center">
+              <div class="text-sm font-medium text-green-600">
+                {{ formatCost(stats.totalSpent) }}
+              </div>
+              <div class="text-xs text-gray-500">{{ "totalSpent" | i18n }}</div>
+            </div>
+            <div class="text-center">
+              <div class="text-sm font-medium text-gray-900">
+                {{ stats.totalRequests }}
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ "totalServices" | i18n }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="pt-3 border-t border-gray-100">
+            <div class="flex gap-2">
+              @if (client.status === 'Active') {
+              <button
+                (click)="deactivateClient(client.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-user-times mr-2"></i>
+                {{ "deactivate" | i18n }}
+              </button>
+              } @else if (client.status === 'Rejected') {
+              <button
+                (click)="activateClient(client.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-user-check mr-2"></i>
+                {{ "activate" | i18n }}
+              </button>
+              } @if (client.status === 'Pending') {
+              <button
+                (click)="activateClient(client.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-check mr-2"></i>
+                {{ "approve" | i18n }}
+              </button>
+              <button
+                (click)="deactivateClient(client.id)"
+                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 flex items-center justify-center"
+              >
+                <i class="fas fa-times mr-2"></i>
+                {{ "reject" | i18n }}
+              </button>
+              }
+            </div>
+          </div>
+        </div>
+        } }
+      </div>
+
       } @else {
       <div class="text-center py-12">
         <i class="fas fa-user-friends text-4xl text-gray-400 mb-4"></i>

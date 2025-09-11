@@ -464,10 +464,52 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    const { error } = await this.supabase.client.auth.signOut();
-    this.handleAuthError(error, "logging out");
-    if (!error) {
+    console.log("🔓 AuthService - executando logout");
+
+    try {
+      // Verificar se há uma sessão ativa antes de tentar logout
+      const {
+        data: { session },
+      } = await this.supabase.client.auth.getSession();
+
+      if (session) {
+        console.log("📋 Sessão encontrada, fazendo logout via API");
+        const { error } = await this.supabase.client.auth.signOut();
+        if (error) {
+          console.warn(
+            "⚠️ Erro no logout via API, limpando localmente:",
+            error.message
+          );
+          // Se falhar, limpar dados localmente
+          await this.clearLocalSession();
+        } else {
+          console.log("✅ Logout realizado com sucesso via API");
+        }
+      } else {
+        console.log("🔄 Nenhuma sessão ativa, limpando dados localmente");
+        await this.clearLocalSession();
+      }
+
+      // Sempre limpar o estado do usuário
       this.appUser.set(null);
+      console.log("✅ Estado do usuário limpo");
+    } catch (error) {
+      console.error("❌ Erro durante logout, limpando localmente:", error);
+      await this.clearLocalSession();
+      this.appUser.set(null);
+    }
+  }
+
+  private async clearLocalSession(): Promise<void> {
+    // Limpar dados do localStorage/sessionStorage se necessário
+    localStorage.removeItem("supabase.auth.token");
+    sessionStorage.removeItem("supabase.auth.token");
+
+    // Forçar limpeza da sessão no Supabase (sem fazer request se não houver sessão)
+    try {
+      await this.supabase.client.auth.signOut({ scope: "local" });
+    } catch (error) {
+      console.log("🔄 Limpeza local do Supabase concluída");
     }
   }
 
