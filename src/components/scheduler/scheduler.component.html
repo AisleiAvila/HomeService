@@ -93,7 +93,7 @@
             [(ngModel)]="selectedTime"
             class="block w-full px-3 py-3 text-base border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
-            <option value="" disabled>Selecione um horário</option>
+            <option value="" disabled>{{ "selectTime" | i18n }}</option>
             @for(timeSlot of availableTimeSlots; track timeSlot.value) {
             <option [value]="timeSlot.value">{{ timeSlot.label }}</option>
             }
@@ -104,15 +104,15 @@
       <!-- Service Details Card (Mobile Enhancement) -->
       <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <h4 class="text-sm font-semibold text-gray-700 mb-2">
-          Detalhes do Serviço
+          {{ "serviceDetails" | i18n }}
         </h4>
         <div class="space-y-2 text-sm text-gray-600">
           <div>
-            <span class="font-medium">Categoria:</span>
+            <span class="font-medium">{{ "category" | i18n }}:</span>
             <span class="ml-1">{{ serviceRequest().category }}</span>
           </div>
           <div>
-            <span class="font-medium">Endereço:</span>
+            <span class="font-medium">{{ "address" | i18n }}:</span>
             <div class="ml-1 text-xs">
               {{ serviceRequest().street }}, {{ serviceRequest().city }}
               <br />{{ serviceRequest().state }} -
