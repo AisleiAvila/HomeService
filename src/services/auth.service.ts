@@ -27,7 +27,7 @@ export class AuthService {
       if (sUser) {
         console.log("👤 Usuário autenticado, buscando perfil...");
         await this.fetchAppUser(sUser.id, true); // true = chamada automática
-        
+
         // Inicializar NotificationService para o usuário atual
         const currentUser = this.appUser();
         if (currentUser) {
