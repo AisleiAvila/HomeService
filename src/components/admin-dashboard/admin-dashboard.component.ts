@@ -180,9 +180,9 @@ export class AdminDashboardComponent {
   actionableRequests = computed(() =>
     this.allRequests().filter(
       (r) =>
-        r.status === "Pending" ||
-        r.status === "Quoted" ||
-        r.status === "Approved"
+        r.status === "Solicitado" ||
+        r.status === "Orçamento enviado" ||
+        r.status === "Orçamento aprovado"
     )
   );
 
@@ -195,7 +195,7 @@ export class AdminDashboardComponent {
   clients = computed(() => this.allUsers().filter((u) => u.role === "client"));
 
   completedRequests = computed(() =>
-    this.allRequests().filter((r) => r.status === "Completed" && r.cost)
+    this.allRequests().filter((r) => r.status === "Finalizado" && r.cost)
   );
 
   financialStats = computed(() => {
@@ -237,7 +237,7 @@ export class AdminDashboardComponent {
       },
       {
         label: this.i18n.translate("activeServices"),
-        value: requests.filter((r) => r.status === "In Progress").length,
+        value: requests.filter((r) => r.status === "Em execução").length,
         icon: "fas fa-cogs",
         bgColor: "bg-blue-100 text-blue-600",
       },
@@ -372,7 +372,7 @@ export class AdminDashboardComponent {
 
     this.dataService.updateServiceRequest(request.id, {
       cost: amount,
-      status: "Quoted",
+      status: "Orçamento enviado",
     });
 
     this.notificationService.addNotification(
@@ -384,7 +384,7 @@ export class AdminDashboardComponent {
   }
 
   respondToQuote(requestId: number, approved: boolean) {
-    const status = approved ? "Approved" : "Pending";
+    const status = approved ? "Orçamento aprovado" : "Orçamento rejeitado";
     this.dataService.updateServiceRequest(requestId, { status });
 
     this.notificationService.addNotification(
@@ -414,7 +414,7 @@ export class AdminDashboardComponent {
 
     this.dataService.updateServiceRequest(request.id, {
       professional_id: professionalId,
-      status: "Assigned",
+      status: "Profissional selecionado",
     });
 
     this.notificationService.addNotification(
@@ -605,7 +605,7 @@ export class AdminDashboardComponent {
 
   getClientStats(clientId: number) {
     const requests = this.allRequests().filter((r) => r.client_id === clientId);
-    const completedRequests = requests.filter((r) => r.status === "Completed");
+    const completedRequests = requests.filter((r) => r.status === "Finalizado");
     const totalSpent = completedRequests.reduce(
       (sum, r) => sum + (r.cost || 0),
       0

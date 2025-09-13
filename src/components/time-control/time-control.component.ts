@@ -48,7 +48,7 @@ export class TimeControlComponent {
       user?.role === "professional" &&
       req.professional_id === user.id &&
       !req.actual_start_datetime &&
-      req.status === "Scheduled"
+      req.status === "Agendado"
     );
   });
 
@@ -60,7 +60,7 @@ export class TimeControlComponent {
       req.professional_id === user.id &&
       req.actual_start_datetime &&
       !req.actual_end_datetime &&
-      req.status === "In Progress"
+      req.status === "Em execução"
     );
   });
 

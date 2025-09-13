@@ -1,0 +1,181 @@
+<div class="workflow-timeline bg-white rounded-lg shadow-sm border p-6">
+  <!-- Cabeçalho com progresso geral -->
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-semibold text-gray-900">
+        {{ "workflow_progress" | i18n }}
+      </h3>
+      <span class="text-sm text-gray-500">
+        {{ "phase" | i18n }} {{ currentPhaseNumber() }} {{ "of" | i18n }} 4
+      </span>
+    </div>
+
+    <!-- Barra de progresso -->
+    <div class="w-full bg-gray-200 rounded-full h-2">
+      <div
+        class="bg-blue-500 h-2 rounded-full transition-all duration-500"
+        [style.width]="progressPercentage() + '%'"
+      ></div>
+    </div>
+    <div class="text-right mt-1">
+      <span class="text-xs text-gray-500"
+        >{{ progressPercentage() | number : "1.0-0" }}%</span
+      >
+    </div>
+  </div>
+
+  <!-- Status atual -->
+  <div
+    class="mb-6 p-4 rounded-lg"
+    [ngClass]="getStatusColor(serviceRequest().status)"
+  >
+    <div class="flex items-center space-x-2">
+      <span class="font-medium">{{ "current_status" | i18n }}:</span>
+      <span class="font-semibold">{{ serviceRequest().status }}</span>
+    </div>
+  </div>
+
+  <!-- Timeline das fases -->
+  <div class="space-y-6">
+    @for (phase of phases(); track phase.id) {
+    <div class="relative">
+      <!-- Linha conectora (exceto para a última fase) -->
+      @if (phase.id < 4) {
+      <div
+        class="absolute left-6 top-12 w-0.5 h-16 bg-gray-200"
+        [ngClass]="{ 'bg-blue-500': phase.completed }"
+      ></div>
+      }
+
+      <!-- Conteúdo da fase -->
+      <div class="flex items-start space-x-4">
+        <!-- Ícone da fase -->
+        <div
+          class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-lg border-2"
+          [ngClass]="{
+            'bg-blue-500 border-blue-500 text-white': phase.current,
+            'bg-green-500 border-green-500 text-white': phase.completed,
+            'bg-gray-100 border-gray-300 text-gray-400':
+              !phase.current && !phase.completed
+          }"
+        >
+          {{ getPhaseIcon(phase.icon) }}
+        </div>
+
+        <!-- Detalhes da fase -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center space-x-2 mb-1">
+            <h4
+              class="text-sm font-semibold"
+              [ngClass]="{
+                'text-blue-600': phase.current,
+                'text-green-600': phase.completed,
+                'text-gray-500': !phase.current && !phase.completed
+              }"
+            >
+              {{ "phase" | i18n }} {{ phase.id }}: {{ phase.title }}
+            </h4>
+
+            <!-- Status badges -->
+            @if (phase.completed) {
+            <span
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+            >
+              ✓ {{ "completed" | i18n }}
+            </span>
+            } @else if (phase.current) {
+            <span
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
+              ⏳ {{ "in_progress" | i18n }}
+            </span>
+            } @else {
+            <span
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+            >
+              ⏸️ {{ "pending" | i18n }}
+            </span>
+            }
+          </div>
+
+          <p class="text-sm text-gray-600 mb-2">{{ phase.description }}</p>
+
+          <!-- Estados da fase (expandível) -->
+          @if (phase.current) {
+          <div class="mt-3 p-3 bg-gray-50 rounded-md">
+            <h5
+              class="text-xs font-medium text-gray-700 mb-2 uppercase tracking-wide"
+            >
+              {{ "possible_states" | i18n }}:
+            </h5>
+            <div class="flex flex-wrap gap-1">
+              @for (status of phase.statuses; track status) {
+              <span
+                class="inline-flex items-center px-2 py-1 rounded text-xs"
+                [ngClass]="
+                  status === serviceRequest().status
+                    ? 'bg-blue-100 text-blue-800 font-medium ring-2 ring-blue-200'
+                    : 'bg-gray-100 text-gray-600'
+                "
+              >
+                @if (status === serviceRequest().status) {
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                }
+                {{ status }}
+              </span>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Informações de timing -->
+  @if (serviceRequest().requested_datetime ||
+  serviceRequest().scheduled_start_datetime) {
+  <div class="mt-6 pt-6 border-t border-gray-200">
+    <h4 class="text-sm font-medium text-gray-700 mb-3">
+      {{ "timing_information" | i18n }}
+    </h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      @if (serviceRequest().requested_datetime) {
+      <div>
+        <span class="text-gray-500">{{ "requested_at" | i18n }}:</span>
+        <span class="ml-2 font-medium">
+          {{ serviceRequest().requested_datetime | date : "dd/MM/yyyy HH:mm" }}
+        </span>
+      </div>
+      } @if (serviceRequest().scheduled_start_datetime) {
+      <div>
+        <span class="text-gray-500">{{ "scheduled_for" | i18n }}:</span>
+        <span class="ml-2 font-medium">
+          {{
+            serviceRequest().scheduled_start_datetime
+              | date : "dd/MM/yyyy HH:mm"
+          }}
+        </span>
+      </div>
+      } @if (serviceRequest().actual_start_datetime) {
+      <div>
+        <span class="text-gray-500">{{ "started_at" | i18n }}:</span>
+        <span class="ml-2 font-medium">
+          {{
+            serviceRequest().actual_start_datetime | date : "dd/MM/yyyy HH:mm"
+          }}
+        </span>
+      </div>
+      } @if (serviceRequest().actual_end_datetime) {
+      <div>
+        <span class="text-gray-500">{{ "completed_at" | i18n }}:</span>
+        <span class="ml-2 font-medium">
+          {{ serviceRequest().actual_end_datetime | date : "dd/MM/yyyy HH:mm" }}
+        </span>
+      </div>
+      }
+    </div>
+  </div>
+  }
+</div>

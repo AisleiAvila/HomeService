@@ -45,11 +45,11 @@ export class DashboardComponent {
 
   activeRequests = computed(() =>
     this.userRequests().filter(
-      (r) => r.status !== "Completed" && r.status !== "Cancelled"
+      (r) => r.status !== "Finalizado" && r.status !== "Cancelado"
     )
   );
   completedRequests = computed(() =>
-    this.userRequests().filter((r) => r.status === "Completed")
+    this.userRequests().filter((r) => r.status === "Finalizado")
   );
 
   stats = computed(() => {
@@ -74,7 +74,7 @@ export class DashboardComponent {
         },
         {
           label: this.i18n.translate("completed"),
-          value: requests.filter((r) => r.status === "Completed").length,
+          value: requests.filter((r) => r.status === "Finalizado").length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
@@ -95,7 +95,7 @@ export class DashboardComponent {
         },
         {
           label: this.i18n.translate("completedJobs"),
-          value: requests.filter((r) => r.status === "Completed").length,
+          value: requests.filter((r) => r.status === "Finalizado").length,
           icon: "fas fa-check-double text-green-500",
         },
         {

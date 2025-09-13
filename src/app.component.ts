@@ -820,7 +820,9 @@ export class AppComponent implements OnInit {
   }
 
   handleApproveQuote(request: ServiceRequest) {
-    this.dataService.updateServiceRequest(request.id, { status: "Approved" });
+    this.dataService.updateServiceRequest(request.id, {
+      status: "Aprovado pelo cliente",
+    });
     this.notificationService.addNotification(
       `Quote for "${request.title}" approved`
     );
@@ -828,7 +830,7 @@ export class AppComponent implements OnInit {
   }
 
   handleRejectQuote(request: ServiceRequest) {
-    this.dataService.updateServiceRequest(request.id, { status: "Cancelled" });
+    this.dataService.updateServiceRequest(request.id, { status: "Cancelado" });
     this.notificationService.addNotification(
       `Quote for "${request.title}" rejected`
     );
