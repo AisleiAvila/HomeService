@@ -130,28 +130,49 @@ export class ScheduleComponent implements OnDestroy {
 
   private statusColor(status: ServiceStatus): string {
     const colorMap: Record<ServiceStatus, string> = {
-      Pending: "#eab308", // yellow-500
-      Quoted: "#06b6d4", // cyan-500
-      Approved: "#6366f1", // indigo-500
-      Scheduled: "#14b8a6", // teal-500
-      Assigned: "#3b82f6", // blue-500
-      "In Progress": "#8b5cf6", // purple-500
-      Completed: "#22c55e", // green-500
-      Cancelled: "#6b7280", // gray-500
+      Solicitado: "#eab308", // yellow-500
+      "Em análise": "#06b6d4", // cyan-500
+      "Aguardando esclarecimentos": "#f59e0b", // amber-500
+      "Orçamento enviado": "#0ea5e9", // sky-500
+      "Aguardando aprovação do orçamento": "#6366f1", // indigo-500
+      "Orçamento aprovado": "#22c55e", // green-500
+      "Orçamento rejeitado": "#ef4444", // red-500
+      "Buscando profissional": "#a855f7", // purple-500
+      "Profissional selecionado": "#14b8a6", // teal-500
+      "Aguardando confirmação do profissional": "#f97316", // orange-500
+      Agendado: "#3b82f6", // blue-500
+      "Em execução": "#8b5cf6", // purple-500
+      "Concluído - Aguardando aprovação": "#84cc16", // lime-500
+      "Aprovado pelo cliente": "#22c55e", // green-500
+      "Rejeitado pelo cliente": "#ef4444", // red-500
+      Pago: "#10b981", // emerald-500
+      Finalizado: "#059669", // emerald-600
+      Cancelado: "#6b7280", // gray-500
     };
     return colorMap[status] || "#6b7280";
   }
 
   private getStatusTranslation(status: ServiceStatus): string {
     const statusMap: Record<ServiceStatus, string> = {
-      Pending: "statusPending",
-      Quoted: "statusQuoted",
-      Approved: "statusApproved",
-      Scheduled: "statusScheduled",
-      Assigned: "statusAssigned",
-      "In Progress": "statusInProgress",
-      Completed: "statusCompleted",
-      Cancelled: "statusCancelled",
+      Solicitado: "statusPending",
+      "Em análise": "statusAnalyzing",
+      "Aguardando esclarecimentos": "statusAwaitingClarification",
+      "Orçamento enviado": "statusQuoted",
+      "Aguardando aprovação do orçamento": "statusAwaitingQuoteApproval",
+      "Orçamento aprovado": "statusApproved",
+      "Orçamento rejeitado": "statusQuoteRejected",
+      "Buscando profissional": "statusSearchingProfessional",
+      "Profissional selecionado": "statusProfessionalSelected",
+      "Aguardando confirmação do profissional":
+        "statusAwaitingProfessionalConfirmation",
+      Agendado: "statusScheduled",
+      "Em execução": "statusInProgress",
+      "Concluído - Aguardando aprovação": "statusCompletedAwaitingApproval",
+      "Aprovado pelo cliente": "statusApprovedByClient",
+      "Rejeitado pelo cliente": "statusRejectedByClient",
+      Pago: "statusPaid",
+      Finalizado: "statusCompleted",
+      Cancelado: "statusCancelled",
     };
     return this.i18n.translate(statusMap[status] || "statusPending");
   }
