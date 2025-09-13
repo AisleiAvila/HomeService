@@ -3,6 +3,8 @@ import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
 import { AuthService } from "./auth.service";
 import { I18nService } from "./i18n.service";
+import { WorkflowService } from "./workflow.service";
+import { AlertService } from "./alert.service";
 import {
   User,
   ServiceRequest,
@@ -12,6 +14,7 @@ import {
   PaymentStatus,
   ServiceRequestPayload,
   SchedulingStatus,
+  WorkflowStats,
 } from "../models/maintenance.models";
 
 @Injectable({
@@ -50,7 +53,7 @@ export class DataService {
         role: "client",
         status: "Active",
         phone: "11999999999",
-        avatar_url: null,
+        avatar_url: "",
         specialties: [],
         address: {
           street: "Rua A, 123",
@@ -67,7 +70,7 @@ export class DataService {
         role: "professional",
         status: "Active",
         phone: "11888888888",
-        avatar_url: null,
+        avatar_url: "",
         specialties: ["Plumbing", "Electrical"],
         address: {
           street: "Rua B, 456",
@@ -84,7 +87,7 @@ export class DataService {
         role: "admin",
         status: "Active",
         phone: "11777777777",
-        avatar_url: null,
+        avatar_url: "",
         specialties: [],
         address: {
           street: "Rua C, 789",
@@ -125,6 +128,23 @@ export class DataService {
       "Pintura externa",
     ];
 
+    // Novos status para teste
+    const newStatuses: ServiceStatus[] = [
+      "Solicitado",
+      "Em análise",
+      "Orçamento enviado",
+      "Aguardando aprovação do orçamento",
+      "Orçamento aprovado",
+      "Buscando profissional",
+      "Profissional selecionado",
+      "Agendado",
+      "Em execução",
+      "Concluído - Aguardando aprovação",
+      "Aprovado pelo cliente",
+      "Pago",
+      "Finalizado",
+    ];
+
     for (let i = 1; i <= 25; i++) {
       sampleRequests.push({
         id: i,
@@ -145,9 +165,7 @@ export class DataService {
         city: "São Paulo",
         state: "SP",
         zip_code: `0${String(i).padStart(4, "0")}-000`,
-        status: ["Pending", "Quoted", "Approved", "In Progress", "Completed"][
-          i % 5
-        ] as ServiceStatus,
+        status: newStatuses[i % newStatuses.length],
         payment_status: i % 3 === 0 ? "Paid" : ("Unpaid" as PaymentStatus),
         requested_date: new Date(
           Date.now() - i * 24 * 60 * 60 * 1000
@@ -159,6 +177,21 @@ export class DataService {
         cost: i % 2 === 0 ? 100 + i * 10 : null,
         client_name: "João Silva",
         professional_name: i % 3 === 0 ? "Maria Santos" : "Não atribuído",
+
+        // Novos campos de exemplo
+        quote_amount: i % 2 === 0 ? 100 + i * 10 : null,
+        quote_description:
+          i % 2 === 0
+            ? `Orçamento detalhado para: ${serviceNames[i - 1]}`
+            : null,
+        requested_datetime: new Date(
+          Date.now() - i * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        scheduled_start_datetime:
+          i % 4 === 0
+            ? new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString()
+            : null,
+        estimated_duration_minutes: i % 3 === 0 ? 120 + i * 30 : null,
       });
     }
 
@@ -291,10 +324,9 @@ export class DataService {
       state: payload.address.state,
       zip_code: payload.address.zip_code,
       requested_datetime: requestedDateTime, // Campo principal
-      status: "Pending",
+      status: "Solicitado" as ServiceStatus,
       payment_status: "Unpaid",
     };
-
     const { error } = await this.supabase.client
       .from("service_requests")
       .insert(newRequestData);
@@ -367,7 +399,9 @@ export class DataService {
   }
 
   respondToQuote(requestId: number, approved: boolean) {
-    const status: ServiceStatus = approved ? "Approved" : "Pending";
+    const status: ServiceStatus = approved
+      ? "Orçamento aprovado"
+      : "Orçamento rejeitado";
     this.updateServiceRequest(requestId, { status });
     this.notificationService.addNotification(
       `Quote for request #${requestId} has been ${
@@ -384,7 +418,7 @@ export class DataService {
     const updates = {
       professional_id: professionalId,
       scheduled_date: scheduledDate.toISOString(),
-      status: "Scheduled" as ServiceStatus,
+      status: "Agendado" as ServiceStatus,
     };
 
     await this.updateServiceRequest(requestId, updates);
@@ -554,7 +588,7 @@ export class DataService {
   async startServiceWork(requestId: number) {
     const updates = {
       actual_start_datetime: new Date().toISOString(),
-      status: "In Progress" as ServiceStatus,
+      status: "Em execução" as ServiceStatus,
     };
 
     await this.updateServiceRequest(requestId, updates);
@@ -569,7 +603,7 @@ export class DataService {
   async finishServiceWork(requestId: number) {
     const updates = {
       actual_end_datetime: new Date().toISOString(),
-      status: "Completed" as ServiceStatus,
+      status: "Concluído - Aguardando aprovação" as ServiceStatus,
     };
 
     await this.updateServiceRequest(requestId, updates);
@@ -627,7 +661,7 @@ export class DataService {
     const now = new Date();
 
     // Se o serviço está concluído
-    if (request.status === "Completed" && request.actual_end_datetime) {
+    if (request.status === "Finalizado" && request.actual_end_datetime) {
       return "Completed";
     }
 
@@ -706,7 +740,8 @@ export class DataService {
 
     return professionals.map((professional) => {
       const services = this.serviceRequests().filter(
-        (r) => r.professional_id === professional.id && r.status === "Completed"
+        (r) =>
+          r.professional_id === professional.id && r.status === "Finalizado"
       );
 
       const completedServices = services.length;
