@@ -9,6 +9,7 @@ import {
 import { CommonModule } from "@angular/common";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
+import { WorkflowService } from "../../services/workflow.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../services/i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
@@ -26,8 +27,10 @@ export class DashboardComponent {
   openChat = output<ServiceRequest>();
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
+  provideClarification = output<ServiceRequest>();
 
   private dataService = inject(DataService);
+  private workflowService = inject(WorkflowService);
   private i18n = inject(I18nService);
 
   private userRequests = computed(() => {
@@ -111,5 +114,9 @@ export class DashboardComponent {
 
   handleQuoteResponse(request: ServiceRequest, approved: boolean) {
     this.dataService.respondToQuote(request.id, approved);
+  }
+
+  handleProvideClarification(request: ServiceRequest) {
+    this.provideClarification.emit(request);
   }
 }

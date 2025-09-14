@@ -41,6 +41,7 @@ import { ChatComponent } from "./components/chat/chat.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
 import { ModalComponent } from "./components/modal/modal.component";
+import { ClarificationModalComponent } from "./components/clarification-modal/clarification-modal.component";
 
 // Pipes
 import { I18nPipe } from "./pipes/i18n.pipe";
@@ -70,6 +71,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
     NotificationCenterComponent,
     LanguageSwitcherComponent,
     ModalComponent,
+    ClarificationModalComponent,
   ],
   template: `
     <!-- CSS adicional para garantir responsividade -->
@@ -334,6 +336,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
             (openChat)="openChat($event)"
             (payNow)="handlePayment($event)"
             (scheduleRequest)="openScheduler($event)"
+            (provideClarification)="openClarificationModal($event)"
           />
           } } @case('schedule') {
           <app-schedule [user]="user" (viewDetails)="openDetails($event)" />
@@ -414,6 +417,13 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       [message]="'emailVerificationRequired' | i18n"
       [isVisible]="showRegistrationModal()"
       (closed)="handleModalClose()"
+    />
+
+    <!-- Modal de Esclarecimentos -->
+    <app-clarification-modal
+      [isVisible]="isClarificationModalOpen()"
+      [serviceRequest]="selectedRequest() || {}"
+      (close)="closeModal()"
     />
   `,
   styles: [
@@ -510,6 +520,7 @@ export class AppComponent implements OnInit {
   isSchedulerOpen = signal(false);
   isDetailsModalOpen = signal(false);
   showRegistrationModal = signal(false);
+  isClarificationModalOpen = signal(false);
 
   selectedRequest = signal<ServiceRequest | null>(null);
 
@@ -781,6 +792,11 @@ export class AppComponent implements OnInit {
     console.log("Modal state:", this.isDetailsModalOpen());
   }
 
+  openClarificationModal(request: ServiceRequest) {
+    this.selectedRequest.set(request);
+    this.isClarificationModalOpen.set(true);
+  }
+
   handleScheduleConfirmed(event: {
     requestId: number;
     professionalId: number;
@@ -816,6 +832,7 @@ export class AppComponent implements OnInit {
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
     this.isDetailsModalOpen.set(false);
+    this.isClarificationModalOpen.set(false);
     this.selectedRequest.set(null);
   }
 

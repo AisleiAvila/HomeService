@@ -1,0 +1,114 @@
+<!-- Modal Backdrop -->
+<div
+  *ngIf="isVisible()"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+  (click)="onClose()"
+>
+  <!-- Modal Content -->
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 border-b">
+      <h2 class="text-xl font-bold text-gray-900">
+        {{ "provideClarification" | i18n }}
+      </h2>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="text-gray-400 hover:text-gray-600 focus:outline-none"
+      >
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6">
+      <!-- Service Request Info -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h3 class="font-semibold text-gray-800 mb-2">
+          {{ "serviceDetails" | i18n }}
+        </h3>
+        <p class="text-sm text-gray-600">
+          <strong>{{ "service" | i18n }}:</strong>
+          {{ serviceRequest().category }}
+        </p>
+        <p class="text-sm text-gray-600">
+          <strong>{{ "description" | i18n }}:</strong>
+          {{ serviceRequest().description }}
+        </p>
+        <p class="text-sm text-gray-600 mt-2">
+          <strong>{{ "status" | i18n }}:</strong>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+          >
+            {{ serviceRequest().status }}
+          </span>
+        </p>
+      </div>
+
+      <!-- Clarification Request Info -->
+      @if (serviceRequest().admin_notes) {
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+        <h4 class="font-semibold text-blue-800 mb-2">
+          <i class="fas fa-info-circle mr-2"></i>
+          {{ "requestedClarification" | i18n }}
+        </h4>
+        <p class="text-sm text-blue-700">{{ serviceRequest().admin_notes }}</p>
+      </div>
+      }
+
+      <!-- Clarification Form -->
+      <div class="space-y-4">
+        <label
+          for="clarification"
+          class="block text-sm font-medium text-gray-700"
+        >
+          {{ "yourClarification" | i18n }}
+        </label>
+        <textarea
+          id="clarification"
+          [(ngModel)]="clarificationText"
+          rows="6"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          [placeholder]="'enterClarificationPlaceholder' | i18n"
+          [disabled]="isSubmitting()"
+        ></textarea>
+
+        <div class="text-sm text-gray-500">
+          {{ "clarificationHelp" | i18n }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="flex items-center justify-end space-x-4 p-6 border-t bg-gray-50"
+    >
+      <button
+        type="button"
+        (click)="onClose()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [disabled]="isSubmitting()"
+      >
+        {{ "cancel" | i18n }}
+      </button>
+      <button
+        type="button"
+        (click)="submitClarification()"
+        class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        [disabled]="!clarificationText().trim() || isSubmitting()"
+      >
+        @if (isSubmitting()) {
+        <i class="fas fa-spinner fa-spin mr-2"></i>
+        } @else {
+        <i class="fas fa-paper-plane mr-2"></i>
+        }
+        {{
+          isSubmitting() ? ("submitting" | i18n) : ("sendClarification" | i18n)
+        }}
+      </button>
+    </div>
+  </div>
+</div>

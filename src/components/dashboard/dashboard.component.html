@@ -53,6 +53,7 @@
       (approveQuote)="handleQuoteResponse($event, true)"
       (rejectQuote)="handleQuoteResponse($event, false)"
       (scheduleRequest)="scheduleRequest.emit($event)"
+      (provideClarification)="handleProvideClarification($event)"
     >
     </app-service-list>
   </div>

@@ -138,6 +138,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     actions: "Actions",
     viewQuote: "View Quote",
     provideQuote: "Provide Quote",
+    provideClarification: "Provide Clarification",
     assign: "Assign",
     noRequestsNeedAttention: "No requests need attention",
     service: "Service",
@@ -159,6 +160,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestedDateTimeHelp: "When would you like this service to be performed?",
     submitting: "Submitting",
     submitRequest: "Submit Request",
+
+    // Clarification Modal
+    requestedClarification: "Requested Clarification",
+    yourClarification: "Your Clarification",
+    enterClarificationPlaceholder:
+      "Please provide the requested clarification...",
+    clarificationHelp:
+      "Provide as much detail as possible to help us understand your requirements.",
+    sendClarification: "Send Clarification",
 
     // Time Control and Scheduling
     timeControl: "Time Control",
@@ -355,6 +365,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     actions: "Ações",
     viewQuote: "Ver Orçamento",
     provideQuote: "Fornecer Orçamento",
+    provideClarification: "Fornecer Esclarecimentos",
     assign: "Atribuir",
     noRequestsNeedAttention: "Nenhuma solicitação precisa de atenção",
     service: "Serviço",
@@ -377,6 +388,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Quando você gostaria que este serviço fosse realizado?",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
+
+    // Clarification Modal
+    requestedClarification: "Esclarecimentos Solicitados",
+    yourClarification: "Seus Esclarecimentos",
+    enterClarificationPlaceholder:
+      "Por favor, forneça os esclarecimentos solicitados...",
+    clarificationHelp:
+      "Forneça o máximo de detalhes possível para nos ajudar a compreender seus requisitos.",
+    sendClarification: "Enviar Esclarecimentos",
 
     // Time Control and Scheduling
     timeControl: "Controle de Tempo",
