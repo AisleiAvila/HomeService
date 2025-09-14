@@ -12,6 +12,7 @@ import { ServiceRequest, User } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { TimeControlComponent } from "../time-control/time-control.component";
 import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
+import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
 import { WorkflowService } from "../../services/workflow.service";
 import { NotificationService } from "../../services/notification.service";
 
@@ -24,6 +25,7 @@ import { NotificationService } from "../../services/notification.service";
     I18nPipe,
     TimeControlComponent,
     WorkflowTimelineComponent,
+    ServiceClarificationsComponent,
   ],
   template: `
     <div class="p-6 bg-white rounded-lg relative max-h-full overflow-y-auto">
@@ -310,6 +312,14 @@ import { NotificationService } from "../../services/notification.service";
           </h3>
           <p class="text-sm text-gray-600">{{ request().id }}</p>
         </div>
+
+        <!-- Service Clarifications -->
+        <app-service-clarifications
+          [serviceRequest]="request()"
+          [currentUser]="currentUser()"
+          (clarificationAdded)="onClarificationAdded()"
+        >
+        </app-service-clarifications>
       </div>
       }
 
@@ -683,5 +693,12 @@ export class ServiceRequestDetailsComponent {
       "duração:",
       event.duration
     );
+  }
+
+  // Método para lidar com esclarecimentos adicionados
+  onClarificationAdded(): void {
+    console.log("Novo esclarecimento adicionado para pedido:", this.request().id);
+    // O componente de esclarecimentos já atualiza automaticamente
+    // Este método pode ser usado para outras ações se necessário
   }
 }

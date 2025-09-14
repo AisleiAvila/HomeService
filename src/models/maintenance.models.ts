@@ -285,6 +285,22 @@ export interface Dispute {
   resolved_at?: string | null;
 }
 
+// Interface para esclarecimentos (dúvidas e respostas)
+export interface ServiceClarification {
+  id: number;
+  service_request_id: number;
+  user_id: number; // Quem fez a pergunta ou resposta
+  parent_id?: number | null; // ID do esclarecimento pai (para respostas)
+  type: "question" | "answer"; // Tipo: pergunta ou resposta
+  title: string; // Título da dúvida/resposta
+  content: string; // Conteúdo da dúvida/resposta
+  is_read: boolean; // Se foi lida pelo destinatário
+  created_at: string; // Data de criação
+  updated_at?: string; // Data de atualização
+  user_name?: string; // Nome do usuário (denormalizado)
+  user_role?: UserRole; // Papel do usuário (denormalizado)
+}
+
 // Interface para estatísticas de workflow
 export interface WorkflowStats {
   total_requests: number;
