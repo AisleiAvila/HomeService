@@ -364,6 +364,9 @@ export class ServiceRequestDetailsComponent {
     const req = this.request();
     const actions = [];
 
+    console.log("🔍 [Actions Debug] User role:", user.role);
+    console.log("🔍 [Actions Debug] Request status:", req.status);
+
     // Fase 1: Solicitação e Orçamento
     if (req.status === "Aguardando esclarecimentos" && user.role === "client") {
       actions.push({
@@ -375,6 +378,7 @@ export class ServiceRequestDetailsComponent {
     }
 
     if (req.status === "Orçamento enviado" && user.role === "client") {
+      console.log("✅ [Actions Debug] Adding quote actions for client");
       actions.push(
         {
           type: "approve_quote",
@@ -481,6 +485,12 @@ export class ServiceRequestDetailsComponent {
         loading: false,
       });
     }
+
+    console.log("🔍 [Actions Debug] Final actions count:", actions.length);
+    console.log(
+      "🔍 [Actions Debug] Actions:",
+      actions.map((a) => a.type)
+    );
 
     return actions;
   });
@@ -697,7 +707,10 @@ export class ServiceRequestDetailsComponent {
 
   // Método para lidar com esclarecimentos adicionados
   onClarificationAdded(): void {
-    console.log("Novo esclarecimento adicionado para pedido:", this.request().id);
+    console.log(
+      "Novo esclarecimento adicionado para pedido:",
+      this.request().id
+    );
     // O componente de esclarecimentos já atualiza automaticamente
     // Este método pode ser usado para outras ações se necessário
   }
