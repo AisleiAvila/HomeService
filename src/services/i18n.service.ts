@@ -287,6 +287,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     categoryDeleted: "Category '{category}' deleted successfully",
     viewQuote: "View Quote",
     provideQuote: "Provide Quote",
+    analyzeRequest: "Analyze Request",
+    requestClarification: "Request Clarification",
+    sendQuote: "Send Quote",
+    requestAnalysisStarted: "Analysis started for '{title}'",
+    errorAnalyzingRequest: "Error analyzing request. Please try again.",
+    enterClarificationRequest: "Enter your clarification request:",
+    clarificationRequestSent: "Clarification request sent for '{title}'",
+    errorRequestingClarification:
+      "Error requesting clarification. Please try again.",
 
     // Client Management
     manageClients: "Manage Clients",
@@ -629,6 +638,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     categoryDeleted: "Categoria '{category}' excluída com sucesso",
     viewQuote: "Ver Orçamento",
     provideQuote: "Fornecer Orçamento",
+    analyzeRequest: "Analisar Solicitação",
+    requestClarification: "Solicitar Esclarecimentos",
+    sendQuote: "Enviar Orçamento",
+    requestAnalysisStarted: "Análise iniciada para '{title}'",
+    errorAnalyzingRequest: "Erro ao analisar solicitação. Tente novamente.",
+    enterClarificationRequest: "Digite sua solicitação de esclarecimentos:",
+    clarificationRequestSent:
+      "Solicitação de esclarecimentos enviada para '{title}'",
+    errorRequestingClarification:
+      "Erro ao solicitar esclarecimentos. Tente novamente.",
 
     // Client Management
     manageClients: "Gerenciar Clientes",

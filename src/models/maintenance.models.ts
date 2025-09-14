@@ -228,6 +228,7 @@ export interface EnhancedNotification extends Notification {
   priority: "low" | "medium" | "high";
   user_id: number;
   expires_at?: Date;
+  created_at?: string; // ISO string from database
 }
 
 // Interface para contratos
