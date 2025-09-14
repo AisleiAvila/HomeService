@@ -13,6 +13,7 @@ import {
   ServiceStatus,
   PaymentStatus,
   ServiceRequestPayload,
+  ServiceClarification,
   SchedulingStatus,
   WorkflowStats,
 } from "../models/maintenance.models";
@@ -780,5 +781,268 @@ export class DataService {
             : 0,
       };
     });
+  }
+
+  // ==========================================
+  // MÉTODOS PARA ESCLARECIMENTOS (DÚVIDAS E RESPOSTAS)
+  // ==========================================
+
+  // Signal para armazenar esclarecimentos
+  readonly serviceClarifications = signal<ServiceClarification[]>([]);
+
+  /**
+   * Buscar esclarecimentos de uma solicitação específica
+   */
+  async fetchServiceClarifications(serviceRequestId: number) {
+    const { data, error } = await this.supabase.client
+      .from("service_clarifications_with_user")
+      .select("*")
+      .eq("service_request_id", serviceRequestId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching service clarifications:", error);
+      this.notificationService.addNotification(
+        "Erro ao buscar esclarecimentos: " + error.message
+      );
+      return [];
+    } else {
+      const clarifications = data as ServiceClarification[];
+      this.serviceClarifications.set(clarifications);
+      return clarifications;
+    }
+  }
+
+  /**
+   * Adicionar uma nova pergunta
+   */
+  async addClarificationQuestion(serviceRequestId: number, title: string, content: string) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const newQuestion = {
+      service_request_id: serviceRequestId,
+      user_id: currentUser.id,
+      type: "question" as const,
+      title: title,
+      content: content,
+      is_read: false,
+    };
+
+    const { data, error } = await this.supabase.client
+      .from("service_clarifications")
+      .insert(newQuestion)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error adding clarification question:", error);
+      this.notificationService.addNotification(
+        "Erro ao adicionar pergunta: " + error.message
+      );
+      throw error;
+    } else {
+      this.notificationService.addNotification(
+        "Pergunta adicionada com sucesso!"
+      );
+      
+      // Recarregar esclarecimentos
+      await this.fetchServiceClarifications(serviceRequestId);
+      
+      // Criar notificação para outros participantes
+      await this.createClarificationNotification(
+        serviceRequestId, 
+        "clarification_requested",
+        "Nova pergunta adicionada",
+        `${currentUser.name} fez uma nova pergunta: ${title}`
+      );
+      
+      return data;
+    }
+  }
+
+  /**
+   * Adicionar uma resposta a uma pergunta
+   */
+  async addClarificationAnswer(serviceRequestId: number, parentId: number, title: string, content: string) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    }
+
+    const newAnswer = {
+      service_request_id: serviceRequestId,
+      user_id: currentUser.id,
+      parent_id: parentId,
+      type: "answer" as const,
+      title: title,
+      content: content,
+      is_read: false,
+    };
+
+    const { data, error } = await this.supabase.client
+      .from("service_clarifications")
+      .insert(newAnswer)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error adding clarification answer:", error);
+      this.notificationService.addNotification(
+        "Erro ao adicionar resposta: " + error.message
+      );
+      throw error;
+    } else {
+      this.notificationService.addNotification(
+        "Resposta adicionada com sucesso!"
+      );
+      
+      // Recarregar esclarecimentos
+      await this.fetchServiceClarifications(serviceRequestId);
+      
+      // Criar notificação para outros participantes
+      await this.createClarificationNotification(
+        serviceRequestId, 
+        "clarification_provided",
+        "Nova resposta adicionada",
+        `${currentUser.name} respondeu: ${title}`
+      );
+      
+      return data;
+    }
+  }
+
+  /**
+   * Marcar esclarecimentos como lidos para o usuário atual
+   */
+  async markClarificationsAsRead(serviceRequestId: number) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) {
+      return;
+    }
+
+    // Chamar função do banco para marcar como lidas
+    const { data, error } = await this.supabase.client
+      .rpc("mark_clarifications_as_read", {
+        req_id: serviceRequestId,
+        reader_user_id: currentUser.id,
+      });
+
+    if (error) {
+      console.error("Error marking clarifications as read:", error);
+    } else {
+      console.log(`Marked ${data} clarifications as read`);
+      // Recarregar esclarecimentos para refletir mudanças
+      await this.fetchServiceClarifications(serviceRequestId);
+    }
+  }
+
+  /**
+   * Contar esclarecimentos não lidos para uma solicitação
+   */
+  async countUnreadClarifications(serviceRequestId: number): Promise<number> {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) {
+      return 0;
+    }
+
+    const { data, error } = await this.supabase.client
+      .rpc("count_unread_clarifications", {
+        req_id: serviceRequestId,
+        reader_user_id: currentUser.id,
+      });
+
+    if (error) {
+      console.error("Error counting unread clarifications:", error);
+      return 0;
+    }
+
+    return data || 0;
+  }
+
+  /**
+   * Deletar um esclarecimento (apenas o próprio usuário)
+   */
+  async deleteClarification(clarificationId: number, serviceRequestId: number) {
+    const { error } = await this.supabase.client
+      .from("service_clarifications")
+      .delete()
+      .eq("id", clarificationId);
+
+    if (error) {
+      console.error("Error deleting clarification:", error);
+      this.notificationService.addNotification(
+        "Erro ao deletar esclarecimento: " + error.message
+      );
+      throw error;
+    } else {
+      this.notificationService.addNotification(
+        "Esclarecimento deletado com sucesso!"
+      );
+      
+      // Recarregar esclarecimentos
+      await this.fetchServiceClarifications(serviceRequestId);
+    }
+  }
+
+  /**
+   * Criar notificação para esclarecimentos
+   */
+  private async createClarificationNotification(
+    serviceRequestId: number,
+    type: "clarification_requested" | "clarification_provided",
+    title: string,
+    message: string
+  ) {
+    try {
+      // Buscar participantes da solicitação (cliente e profissional)
+      const serviceRequest = this.getServiceRequestById(serviceRequestId);
+      if (!serviceRequest) return;
+
+      const currentUser = this.authService.appUser();
+      if (!currentUser) return;
+
+      // Criar notificações para outros participantes
+      const participants = [serviceRequest.client_id];
+      if (serviceRequest.professional_id) {
+        participants.push(serviceRequest.professional_id);
+      }
+
+      // Filtrar para não notificar o próprio usuário
+      const recipientIds = participants.filter(id => id !== currentUser.id);
+
+      for (const userId of recipientIds) {
+        await this.supabase.client
+          .from("enhanced_notifications")
+          .insert({
+            user_id: userId,
+            type: type,
+            title: title,
+            message: message,
+            service_request_id: serviceRequestId,
+            action_required: true,
+            priority: "medium",
+          });
+      }
+    } catch (error) {
+      console.error("Error creating clarification notification:", error);
+    }
+  }
+
+  /**
+   * Obter esclarecimentos organizados por thread (pergunta e suas respostas)
+   */
+  getClarificationThreads(serviceRequestId: number): any[] {
+    const clarifications = this.serviceClarifications();
+    const questions = clarifications.filter(c => 
+      c.service_request_id === serviceRequestId && c.type === "question"
+    );
+
+    return questions.map(question => ({
+      question,
+      answers: clarifications.filter(c => c.parent_id === question.id)
+    }));
   }
 }
