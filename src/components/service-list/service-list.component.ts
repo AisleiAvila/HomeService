@@ -10,6 +10,7 @@ import {
 import { CommonModule } from "@angular/common";
 import { ServiceRequest, User, Address } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
+import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../services/i18n.service";
 
@@ -32,8 +33,10 @@ export class ServiceListComponent {
   rejectQuote = output<ServiceRequest>();
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
+  provideClarification = output<ServiceRequest>();
 
   private dataService = inject(DataService);
+  private workflowService = inject(WorkflowService);
   private i18n = inject(I18nService);
 
   // Expose Math for template use
@@ -134,6 +137,19 @@ export class ServiceListComponent {
 
   // Computed property to get all users for lookup
   allUsers = this.dataService.users;
+
+  // Check if action is available for a service request
+  isActionAvailable(request: ServiceRequest, action: string): boolean {
+    const currentUser = this.currentUser();
+    if (!currentUser) return false;
+
+    const availableActions = this.workflowService.getAvailableActions(
+      request,
+      currentUser.role
+    );
+
+    return availableActions.includes(action);
+  }
 
   formatAddress(address: Address): string {
     return address.street + ", " + address.city;

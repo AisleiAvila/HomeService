@@ -10,6 +10,7 @@ import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "../../services/i18n.service";
 import { NotificationService } from "../../services/notification.service";
+import { WorkflowService } from "../../services/workflow.service";
 import {
   User,
   ServiceCategory,
@@ -28,6 +29,7 @@ export class AdminDashboardComponent {
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
   private notificationService = inject(NotificationService);
+  private workflowService = inject(WorkflowService);
 
   // Expose Math for template use
   Math = Math;
@@ -392,6 +394,48 @@ export class AdminDashboardComponent {
         ? this.i18n.translate("quoteApproved", { id: requestId.toString() })
         : this.i18n.translate("quoteRejected", { id: requestId.toString() })
     );
+  }
+
+  // Admin workflow methods
+  async analyzeRequest(request: ServiceRequest) {
+    try {
+      await this.workflowService.analyzeRequest(request.id);
+      this.notificationService.addNotification(
+        this.i18n.translate("requestAnalysisStarted", { title: request.title })
+      );
+    } catch (error) {
+      console.error("Error analyzing request:", error);
+      this.notificationService.addNotification(
+        this.i18n.translate("errorAnalyzingRequest")
+      );
+    }
+  }
+
+  async requestClarificationFromClient(request: ServiceRequest) {
+    // In a real implementation, this would open a modal to input the clarification request
+    // For now, we'll use a simple prompt
+    const clarificationText = window.prompt(
+      this.i18n.translate("enterClarificationRequest")
+    );
+
+    if (!clarificationText?.trim()) return;
+
+    try {
+      await this.workflowService.requestClarification(
+        request.id,
+        clarificationText
+      );
+      this.notificationService.addNotification(
+        this.i18n.translate("clarificationRequestSent", {
+          title: request.title,
+        })
+      );
+    } catch (error) {
+      console.error("Error requesting clarification:", error);
+      this.notificationService.addNotification(
+        this.i18n.translate("errorRequestingClarification")
+      );
+    }
   }
 
   // Assignment methods

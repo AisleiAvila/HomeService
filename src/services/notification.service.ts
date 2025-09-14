@@ -227,22 +227,26 @@ export class NotificationService {
    * Marcar notificação aprimorada como lida
    */
   async markEnhancedAsRead(notificationId: number): Promise<void> {
-    const { error } = await this.supabase.client
-      .from("enhanced_notifications")
-      .update({ read: true })
-      .eq("id", notificationId);
+    try {
+      const { error } = await this.supabase.client
+        .from("enhanced_notifications")
+        .update({ read: true })
+        .eq("id", notificationId);
 
-    if (error) {
-      console.error("Error marking notification as read:", error);
-      return;
+      if (error) {
+        console.warn("Enhanced notifications not available:", error.message);
+        return;
+      }
+
+      // Atualizar estado local
+      this.enhancedNotifications.update((notifications) =>
+        notifications.map((n) =>
+          n.id === notificationId ? { ...n, read: true } : n
+        )
+      );
+    } catch (error) {
+      console.warn("Enhanced notifications feature not available");
     }
-
-    // Atualizar estado local
-    this.enhancedNotifications.update((notifications) =>
-      notifications.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
   }
 
   /**
@@ -379,12 +383,32 @@ export class NotificationService {
   private async loadEnhancedNotifications(userId?: number): Promise<void> {
     if (!userId) return;
 
-    const { data, error } = await this.supabase.client
-      .from("enhanced_notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .order("timestamp", { ascending: false })
-      .limit(100);
+    // Tentar diferentes colunas de timestamp que podem existir
+    const timestampColumns = ["created_at", "timestamp", "date_created", "id"];
+    let data = null;
+    let error = null;
+
+    for (const column of timestampColumns) {
+      try {
+        const result = await this.supabase.client
+          .from("enhanced_notifications")
+          .select("*")
+          .eq("user_id", userId)
+          .order(column, { ascending: false })
+          .limit(100);
+
+        if (!result.error) {
+          data = result.data;
+          error = null;
+          break;
+        } else {
+          error = result.error;
+        }
+      } catch (e) {
+        error = e;
+        continue;
+      }
+    }
 
     if (error) {
       console.error("Error loading enhanced notifications:", error);
