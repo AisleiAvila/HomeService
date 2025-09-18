@@ -74,6 +74,11 @@ export class AdminDashboardComponent {
   assigningProfessionalId = signal<number | null>(null);
   invoiceRequest = signal<ServiceRequest | null>(null);
 
+  // Scheduling data for assignment
+  scheduledDate = signal<string>("");
+  scheduledTime = signal<string>("");
+  estimatedDurationMinutes = signal<number | null>(null);
+
   // Pagination data
   currentPage = signal(1);
   itemsPerPage = signal(5); // Changed to 5 to see pagination with fewer items
@@ -442,6 +447,7 @@ export class AdminDashboardComponent {
   selectRequestForAssignment(request: ServiceRequest) {
     this.assignmentRequest.set(request);
     this.assigningProfessionalId.set(null);
+    this.resetSchedulingFields();
   }
 
   getProfessionalsForRequest(category: string): User[] {
@@ -453,23 +459,89 @@ export class AdminDashboardComponent {
   assignProfessional() {
     const request = this.assignmentRequest();
     const professionalId = this.assigningProfessionalId();
+    const date = this.scheduledDate();
+    const time = this.scheduledTime();
+    const duration = this.estimatedDurationMinutes();
 
-    if (!request || !professionalId) return;
+    if (!request || !professionalId || !date || !time || !duration) return;
+
+    // Combine date and time into ISO datetime string
+    const scheduledDateTime = this.combineDateTime(date, time);
 
     this.dataService.updateServiceRequest(request.id, {
       professional_id: professionalId,
-      status: "Profissional selecionado",
+      status: "Agendado",
+      scheduled_start_datetime: scheduledDateTime,
+      estimated_duration_minutes: duration,
     });
 
     this.notificationService.addNotification(
-      this.i18n.translate("professionalAssigned", {
+      this.i18n.translate("professionalAssignedAndScheduled", {
         id: request.id.toString(),
         professional: this.getProfessionalName(professionalId),
+        date: this.formatDateTime(scheduledDateTime),
       })
     );
 
+    this.resetAssignmentForm();
+  }
+
+  // Scheduling helper methods
+  resetSchedulingFields() {
+    this.scheduledDate.set("");
+    this.scheduledTime.set("");
+    this.estimatedDurationMinutes.set(null);
+  }
+
+  resetAssignmentForm() {
     this.assignmentRequest.set(null);
     this.assigningProfessionalId.set(null);
+    this.resetSchedulingFields();
+  }
+
+  cancelAssignment() {
+    this.resetAssignmentForm();
+  }
+
+  getMinDate(): string {
+    // Return today's date in YYYY-MM-DD format
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  }
+
+  setEstimatedDuration(minutes: number) {
+    this.estimatedDurationMinutes.set(minutes);
+  }
+
+  combineDateTime(date: string, time: string): string {
+    // Combine date and time into ISO datetime string
+    return `${date}T${time}:00.000Z`;
+  }
+
+  formatDateTime(isoString: string): string {
+    try {
+      const date = new Date(isoString);
+      const locale = this.i18n.language() === "pt" ? "pt-PT" : "en-US";
+      return date.toLocaleString(locale, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return isoString;
+    }
+  }
+
+  canAssignProfessional(): boolean {
+    return !!(
+      this.assigningProfessionalId() &&
+      this.scheduledDate() &&
+      this.scheduledTime() &&
+      this.estimatedDurationMinutes() &&
+      this.estimatedDurationMinutes()! > 0
+    );
   }
 
   // Professional management
