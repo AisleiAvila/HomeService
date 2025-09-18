@@ -1618,41 +1618,186 @@
 <div
   class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 >
-  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+  <div
+    class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+  >
     <h3 class="text-lg font-bold mb-4">{{ "assignProfessional" | i18n }}</h3>
-    <p class="text-sm text-gray-600 mb-4">
+    <p class="text-sm text-gray-600 mb-6">
       {{ "selectProfessionalFor" | i18n }} "{{ req.title }}".
     </p>
-    <label
-      for="professionalSelect"
-      class="block text-sm font-medium text-gray-700"
-      >{{ "professional" | i18n }}</label
+
+    <div class="space-y-6">
+      <!-- Professional Selection -->
+      <div>
+        <label
+          for="professionalSelect"
+          class="block text-sm font-medium text-gray-700 mb-2"
+          >{{ "professional" | i18n }}</label
+        >
+        <select
+          id="professionalSelect"
+          [(ngModel)]="assigningProfessionalId"
+          class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        >
+          <option [ngValue]="null" disabled>
+            {{ "selectAProfessional" | i18n }}
+          </option>
+          @for(pro of getProfessionalsForRequest(req.category); track pro.id) {
+          <option [ngValue]="pro.id">{{ pro.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Scheduling Section -->
+      <div class="border-t pt-6">
+        <h4 class="text-md font-semibold text-gray-800 mb-4">
+          {{ "schedulingInformation" | i18n }}
+        </h4>
+
+        <!-- Scheduled Start Date and Time -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="scheduledDate"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ "scheduledDate" | i18n }} *
+            </label>
+            <input
+              type="date"
+              id="scheduledDate"
+              [(ngModel)]="scheduledDate"
+              [min]="getMinDate()"
+              class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              for="scheduledTime"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ "scheduledTime" | i18n }} *
+            </label>
+            <input
+              type="time"
+              id="scheduledTime"
+              [(ngModel)]="scheduledTime"
+              class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Estimated Duration -->
+        <div class="mt-4">
+          <label
+            for="estimatedDuration"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            {{ "estimatedDuration" | i18n }} ({{ "inMinutes" | i18n }}) *
+          </label>
+          <div class="relative">
+            <input
+              type="number"
+              id="estimatedDuration"
+              [(ngModel)]="estimatedDurationMinutes"
+              min="15"
+              max="1440"
+              step="15"
+              placeholder="60"
+              class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              required
+            />
+            <div
+              class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"
+            >
+              <span class="text-gray-500 text-sm">min</span>
+            </div>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ "durationHelpText" | i18n }}
+          </p>
+        </div>
+
+        <!-- Quick Duration Buttons -->
+        <div class="mt-3">
+          <p class="text-sm text-gray-600 mb-2">{{ "quickSelect" | i18n }}:</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="setEstimatedDuration(30)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              30min
+            </button>
+            <button
+              type="button"
+              (click)="setEstimatedDuration(60)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              1h
+            </button>
+            <button
+              type="button"
+              (click)="setEstimatedDuration(120)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              2h
+            </button>
+            <button
+              type="button"
+              (click)="setEstimatedDuration(180)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              3h
+            </button>
+            <button
+              type="button"
+              (click)="setEstimatedDuration(240)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              4h
+            </button>
+            <button
+              type="button"
+              (click)="setEstimatedDuration(480)"
+              class="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              8h
+            </button>
+          </div>
+        </div>
+
+        <!-- Requested Date Display -->
+        @if (req.requested_datetime) {
+        <div class="mt-4 p-3 bg-blue-50 rounded-md">
+          <p class="text-sm text-blue-800">
+            <i class="fas fa-info-circle mr-1"></i>
+            {{ "clientRequestedFor" | i18n }}:
+            <strong>{{ formatDateTime(req.requested_datetime) }}</strong>
+          </p>
+        </div>
+        }
+      </div>
+    </div>
+
+    <div
+      class="mt-8 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3"
     >
-    <select
-      id="professionalSelect"
-      [(ngModel)]="assigningProfessionalId"
-      class="mt-1 w-full p-2 border rounded-md"
-    >
-      <option [ngValue]="null" disabled>
-        {{ "selectAProfessional" | i18n }}
-      </option>
-      @for(pro of getProfessionalsForRequest(req.category); track pro.id) {
-      <option [ngValue]="pro.id">{{ pro.name }}</option>
-      }
-    </select>
-    <div class="mt-6 flex justify-end space-x-3">
       <button
-        (click)="assignmentRequest.set(null)"
-        class="px-4 py-2 rounded-md bg-gray-200"
+        (click)="cancelAssignment()"
+        class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 transition-colors"
       >
         {{ "cancel" | i18n }}
       </button>
       <button
         (click)="assignProfessional()"
-        [disabled]="!assigningProfessionalId()"
-        class="px-4 py-2 rounded-md bg-indigo-600 text-white disabled:bg-indigo-300"
+        [disabled]="!canAssignProfessional()"
+        class="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
       >
-        {{ "assign" | i18n }}
+        {{ "assignAndSchedule" | i18n }}
       </button>
     </div>
   </div>

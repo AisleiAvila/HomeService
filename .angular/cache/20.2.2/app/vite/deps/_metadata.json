@@ -7,97 +7,97 @@
     "@angular/common": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "0b009abf",
+      "fileHash": "81ca44f6",
       "needsInterop": false
     },
     "@angular/common/http": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "9cc77d77",
+      "fileHash": "5a93219b",
       "needsInterop": false
     },
     "@angular/common/locales/de": {
       "src": "../../../../../../node_modules/@angular/common/locales/de.js",
       "file": "@angular_common_locales_de.js",
-      "fileHash": "958e6d18",
+      "fileHash": "85cbb646",
       "needsInterop": false
     },
     "@angular/common/locales/en": {
       "src": "../../../../../../node_modules/@angular/common/locales/en.js",
       "file": "@angular_common_locales_en.js",
-      "fileHash": "eb0d3a7b",
+      "fileHash": "ee84c7ce",
       "needsInterop": false
     },
     "@angular/common/locales/pt": {
       "src": "../../../../../../node_modules/@angular/common/locales/pt.js",
       "file": "@angular_common_locales_pt.js",
-      "fileHash": "46053549",
+      "fileHash": "59a5ff8c",
       "needsInterop": false
     },
     "@angular/compiler": {
       "src": "../../../../../../node_modules/@angular/compiler/fesm2022/compiler.mjs",
       "file": "@angular_compiler.js",
-      "fileHash": "8401b94b",
+      "fileHash": "95aa6748",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "7caf32fe",
+      "fileHash": "bf9e95f9",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "0212583c",
+      "fileHash": "c129dae2",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "2a75d47e",
+      "fileHash": "8d40897b",
       "needsInterop": false
     },
     "@fullcalendar/angular": {
       "src": "../../../../../../node_modules/@fullcalendar/angular/fesm2020/fullcalendar-angular.mjs",
       "file": "@fullcalendar_angular.js",
-      "fileHash": "11184755",
+      "fileHash": "acfa8f85",
       "needsInterop": false
     },
     "@fullcalendar/core/locales/pt-br": {
       "src": "../../../../../../node_modules/@fullcalendar/core/locales/pt-br.js",
       "file": "@fullcalendar_core_locales_pt-br.js",
-      "fileHash": "416265de",
+      "fileHash": "51ef6045",
       "needsInterop": false
     },
     "@fullcalendar/daygrid": {
       "src": "../../../../../../node_modules/@fullcalendar/daygrid/index.js",
       "file": "@fullcalendar_daygrid.js",
-      "fileHash": "3b61fd2d",
+      "fileHash": "afa89eaa",
       "needsInterop": false
     },
     "@fullcalendar/interaction": {
       "src": "../../../../../../node_modules/@fullcalendar/interaction/index.js",
       "file": "@fullcalendar_interaction.js",
-      "fileHash": "3aae7b3c",
+      "fileHash": "cc1d21ab",
       "needsInterop": false
     },
     "@fullcalendar/timegrid": {
       "src": "../../../../../../node_modules/@fullcalendar/timegrid/index.js",
       "file": "@fullcalendar_timegrid.js",
-      "fileHash": "6bb93b3e",
+      "fileHash": "7760a942",
       "needsInterop": false
     },
     "@supabase/supabase-js": {
       "src": "../../../../../../node_modules/@supabase/supabase-js/dist/module/index.js",
       "file": "@supabase_supabase-js.js",
-      "fileHash": "a7efcf79",
+      "fileHash": "1cff300c",
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
-      "fileHash": "73a5267f",
+      "fileHash": "5302ee77",
       "needsInterop": false
     }
   },
@@ -111,14 +111,14 @@
     "chunk-BXYYHKAZ": {
       "file": "chunk-BXYYHKAZ.js"
     },
+    "chunk-7EOS75FT": {
+      "file": "chunk-7EOS75FT.js"
+    },
     "chunk-TNLRAHSL": {
       "file": "chunk-TNLRAHSL.js"
     },
     "chunk-V43GFOKY": {
       "file": "chunk-V43GFOKY.js"
-    },
-    "chunk-7EOS75FT": {
-      "file": "chunk-7EOS75FT.js"
     },
     "chunk-NBLH6USX": {
       "file": "chunk-NBLH6USX.js"

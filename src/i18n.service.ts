@@ -257,6 +257,18 @@ const allTranslations: Record<Language, Record<string, string>> = {
     actual: "Actual",
     accessDenied: "Access Denied",
     adminAccessRequired: "Administrator access required",
+
+    // Assignment and Scheduling (New)
+    schedulingInformation: "Scheduling Information",
+    inMinutes: "in minutes",
+    durationHelpText: "Duration in minutes (minimum 15, increments of 15)",
+    quickSelect: "Quick Select",
+    clientRequestedFor: "Client requested for",
+    assignAndSchedule: "Assign & Schedule",
+    professionalAssigned:
+      "Professional {professional} assigned to request #{id}.",
+    professionalAssignedAndScheduled:
+      "Professional {professional} assigned to request #{id} and scheduled for {date}.",
   },
   pt: {
     // General
@@ -515,6 +527,18 @@ const allTranslations: Record<Language, Record<string, string>> = {
     actual: "Real",
     accessDenied: "Acesso Negado",
     adminAccessRequired: "Acesso de administrador necessário",
+
+    // Assignment and Scheduling (New)
+    schedulingInformation: "Informações de Agendamento",
+    inMinutes: "em minutos",
+    durationHelpText: "Duração em minutos (mínimo 15, incrementos de 15)",
+    quickSelect: "Seleção Rápida",
+    clientRequestedFor: "Cliente solicitou para",
+    assignAndSchedule: "Atribuir e Agendar",
+    professionalAssigned:
+      "Profissional {professional} atribuído à solicitação #{id}.",
+    professionalAssignedAndScheduled:
+      "Profissional {professional} atribuído à solicitação #{id} e agendado para {date}.",
   },
 };
 
@@ -539,6 +563,10 @@ export class I18nService {
         "newServiceRequest"
       )}`
     );
+  }
+
+  getCurrentLanguage(): string {
+    return this.language();
   }
 
   setLanguage(lang: Language) {
