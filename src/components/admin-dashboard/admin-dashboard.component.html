@@ -169,6 +169,13 @@
                   </button>
                   } @if(req.status === 'Orçamento aprovado') {
                   <button
+                    (click)="openDateProposalModal(req)"
+                    class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                    title="{{ 'proposeExecutionDate' | i18n }}"
+                  >
+                    <i class="fas fa-calendar-plus"></i>
+                  </button>
+                  <button
                     (click)="selectRequestForAssignment(req)"
                     class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
                     title="{{ 'assignProfessional' | i18n }}"
@@ -1798,6 +1805,127 @@
         class="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
       >
         {{ "assignAndSchedule" | i18n }}
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Propose Execution Date Modal -->
+@if (dateProposalRequest(); as req) {
+<div
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div
+    class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+  >
+    <h3 class="text-lg font-bold mb-4">{{ "proposeExecutionDate" | i18n }}</h3>
+    <p class="text-sm text-gray-600 mb-6">
+      {{ "proposeExecutionDateFor" | i18n }} "{{ req.title }}".
+    </p>
+
+    <div class="space-y-6">
+      <!-- Service Request Info -->
+      <div class="bg-blue-50 p-4 rounded-md">
+        <h4 class="font-semibold text-blue-800 mb-2">
+          {{ "serviceDetails" | i18n }}
+        </h4>
+        <p class="text-sm text-blue-700">
+          <i class="fas fa-user mr-1"></i>
+          {{ "client" | i18n }}: {{ req.client_name }}
+        </p>
+        <p class="text-sm text-blue-700">
+          <i class="fas fa-map-marker-alt mr-1"></i>
+          {{ req.street }}, {{ req.city }}
+        </p>
+        @if (req.quote_amount) {
+        <p class="text-sm text-blue-700">
+          <i class="fas fa-euro-sign mr-1"></i>
+          {{ "approvedAmount" | i18n }}: {{ formatCost(req.quote_amount) }}
+        </p>
+        }
+      </div>
+
+      <!-- Proposed Date and Time -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label
+            for="proposedExecutionDate"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            {{ "proposedDate" | i18n }} *
+          </label>
+          <input
+            type="date"
+            id="proposedExecutionDate"
+            [(ngModel)]="proposedExecutionDate"
+            [min]="getMinDate()"
+            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            for="proposedExecutionTime"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            {{ "proposedTime" | i18n }} *
+          </label>
+          <input
+            type="time"
+            id="proposedExecutionTime"
+            [(ngModel)]="proposedExecutionTime"
+            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Notes for the client -->
+      <div>
+        <label
+          for="proposedExecutionNotes"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          {{ "notesForClient" | i18n }} ({{ "optional" | i18n }})
+        </label>
+        <textarea
+          id="proposedExecutionNotes"
+          [(ngModel)]="proposedExecutionNotes"
+          rows="3"
+          [placeholder]="'notesForClientPlaceholder' | i18n"
+          class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        ></textarea>
+      </div>
+
+      <!-- Client's requested date (for reference) -->
+      @if (req.requested_datetime) {
+      <div class="p-3 bg-yellow-50 rounded-md">
+        <p class="text-sm text-yellow-800">
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "clientOriginallyRequestedFor" | i18n }}:
+          <strong>{{ formatDateTime(req.requested_datetime) }}</strong>
+        </p>
+      </div>
+      }
+    </div>
+
+    <div
+      class="mt-8 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3"
+    >
+      <button
+        (click)="cancelDateProposal()"
+        class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 transition-colors"
+      >
+        {{ "cancel" | i18n }}
+      </button>
+      <button
+        (click)="proposeDateExecution()"
+        [disabled]="!canProposeDate()"
+        class="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+      >
+        {{ "proposeDate" | i18n }}
       </button>
     </div>
   </div>
