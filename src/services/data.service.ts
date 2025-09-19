@@ -435,6 +435,13 @@ export class DataService {
     proposedDate: Date,
     notes?: string
   ) {
+    // Buscar o request para obter o client_id
+    const request = this.serviceRequests().find((r) => r.id === requestId);
+    if (!request) {
+      console.error("Request não encontrado:", requestId);
+      return;
+    }
+
     const updates: Partial<ServiceRequest> = {
       proposed_execution_date: proposedDate.toISOString(),
       proposed_execution_notes: notes || null,
@@ -443,11 +450,32 @@ export class DataService {
     };
 
     await this.updateServiceRequest(requestId, updates);
+
+    // Notificação para o admin (local)
     this.notificationService.addNotification(
       this.i18n.translate("executionDateProposed", {
         id: requestId.toString(),
       })
     );
+
+    // Notificação enhanced para o cliente (banco de dados)
+    if (request.client_id) {
+      await this.notificationService.createEnhancedNotification(
+        request.client_id,
+        "execution_date_proposal",
+        this.i18n.translate("newExecutionDateProposed"),
+        this.i18n.translate("executionDateProposedMessage", {
+          date: proposedDate.toLocaleDateString(),
+          time: proposedDate.toLocaleTimeString(),
+          notes: notes || "",
+        }),
+        {
+          serviceRequestId: requestId,
+          actionRequired: true,
+          priority: "high",
+        }
+      );
+    }
   }
 
   async respondToExecutionDate(
@@ -455,6 +483,13 @@ export class DataService {
     approved: boolean,
     rejectionReason?: string
   ) {
+    // Buscar o request para obter informações
+    const request = this.serviceRequests().find((r) => r.id === requestId);
+    if (!request) {
+      console.error("Request não encontrado:", requestId);
+      return;
+    }
+
     const updates: Partial<ServiceRequest> = {
       execution_date_approval: approved ? "approved" : "rejected",
       execution_date_approved_at: new Date().toISOString(),
@@ -466,7 +501,6 @@ export class DataService {
 
     // Se aprovado, copiar data proposta para agendamento
     if (approved) {
-      const request = this.getServiceRequestById(requestId);
       if (request?.proposed_execution_date) {
         updates.scheduled_start_datetime = request.proposed_execution_date;
         updates.status = "Agendado" as ServiceStatus;
@@ -474,12 +508,62 @@ export class DataService {
     }
 
     await this.updateServiceRequest(requestId, updates);
+
+    // Notificação local para o cliente
     this.notificationService.addNotification(
       this.i18n.translate(
         approved ? "executionDateApproved" : "executionDateRejected",
         { id: requestId.toString() }
       )
     );
+
+    // Notificação enhanced para o admin/profissional
+    const notificationType = approved
+      ? "execution_date_approved"
+      : "execution_date_rejected";
+    const titleKey = approved
+      ? "executionDateApprovedByClient"
+      : "executionDateRejectedByClient";
+    const messageKey = approved
+      ? "executionDateApprovedMessage"
+      : "executionDateRejectedMessage";
+
+    // Notificar admin
+    const adminUsers = this.users().filter((u) => u.role === "admin");
+    for (const admin of adminUsers) {
+      await this.notificationService.createEnhancedNotification(
+        admin.id,
+        notificationType,
+        this.i18n.translate(titleKey),
+        this.i18n.translate(messageKey, {
+          requestId: requestId.toString(),
+          reason: rejectionReason || "",
+        }),
+        {
+          serviceRequestId: requestId,
+          actionRequired: !approved,
+          priority: approved ? "medium" : "high",
+        }
+      );
+    }
+
+    // Notificar profissional se existir
+    if (request.professional_id) {
+      await this.notificationService.createEnhancedNotification(
+        request.professional_id,
+        notificationType,
+        this.i18n.translate(titleKey),
+        this.i18n.translate(messageKey, {
+          requestId: requestId.toString(),
+          reason: rejectionReason || "",
+        }),
+        {
+          serviceRequestId: requestId,
+          actionRequired: false,
+          priority: "medium",
+        }
+      );
+    }
   }
 
   async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
