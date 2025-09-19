@@ -324,7 +324,11 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
         </header>
 
         <main
-          class="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0"
+          [class]="
+            user.role === 'admin'
+              ? 'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
+              : 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0'
+          "
         >
           @switch(currentNav()) { @case('dashboard') { @if(user.role ===
           'admin') {
