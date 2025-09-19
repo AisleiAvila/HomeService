@@ -85,10 +85,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     cancel: "Cancel",
     ok: "OK",
     paid: "Paid",
-
-    // Landing Page
     landingDescription:
-      "Your one-stop solution for reliable and professional home services. Connect with trusted experts for any job, big or small.",
+      "Connect with trusted home service professionals in your area. Quality work, verified experts, and reliable service you can count on.",
 
     // Login / Register
     registerTitle: "Create a new account",
@@ -432,10 +430,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     cancel: "Cancelar",
     ok: "OK",
     paid: "Pago",
-
-    // Landing Page
     landingDescription:
-      "Sua solução completa para serviços domésticos confiáveis e profissionais. Conecte-se com especialistas de confiança para qualquer trabalho, grande ou pequeno.",
+      "Conecte-se com profissionais de serviços domésticos de confiança na sua área. Trabalho de qualidade, especialistas verificados e serviço confiável em que pode confiar.",
 
     // Login / Register
     registerTitle: "Crie uma nova conta",
@@ -709,11 +705,24 @@ export class I18nService {
   readonly language = signal<Language>("en"); // Idioma padrão inglês
 
   constructor() {
+    console.log("🚀 I18nService constructor - Service initialized");
+    console.log("🚀 Available translations:", Object.keys(allTranslations));
+    console.log(
+      "🚀 EN landingDescription:",
+      allTranslations.en?.landingDescription
+    );
+    console.log(
+      "🚀 PT landingDescription:",
+      allTranslations.pt?.landingDescription
+    );
+
     // Carregar idioma salvo do localStorage
     const savedLang = localStorage.getItem("homeservice-language") as Language;
+    console.log("🚀 Saved language from localStorage:", savedLang);
     if (savedLang && (savedLang === "en" || savedLang === "pt")) {
       this.language.set(savedLang);
     }
+    console.log("🚀 Final language set to:", this.language());
   }
 
   setLanguage(lang: Language) {
@@ -725,7 +734,25 @@ export class I18nService {
 
   translate(key: string, params?: Record<string, string | number>): string {
     const lang = this.language();
-    let translation = allTranslations[lang][key] || key;
+
+    // Debug completo para QUALQUER chave
+    console.log("=== I18N TRANSLATE DEBUG ===");
+    console.log("Key requested:", key);
+    console.log("Current language:", lang);
+    console.log("allTranslations exists:", !!allTranslations);
+    console.log("allTranslations[lang] exists:", !!allTranslations[lang]);
+
+    if (allTranslations[lang]) {
+      console.log(
+        "Available keys:",
+        Object.keys(allTranslations[lang]).slice(0, 10)
+      );
+      console.log("Key exists in translations:", key in allTranslations[lang]);
+      console.log("Direct value:", allTranslations[lang][key]);
+    }
+
+    let translation = allTranslations[lang]?.[key] || key;
+
     if (params) {
       Object.keys(params).forEach((paramKey) => {
         translation = translation.replace(
@@ -734,6 +761,10 @@ export class I18nService {
         );
       });
     }
+
+    console.log("Final translation result:", translation);
+    console.log("=== END DEBUG ===");
+
     return translation;
   }
 }
