@@ -269,6 +269,22 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Professional {professional} assigned to request #{id}.",
     professionalAssignedAndScheduled:
       "Professional {professional} assigned to request #{id} and scheduled for {date}.",
+
+    // Execution Date Management
+    newExecutionDateProposed: "New Execution Date Proposed",
+    executionDateProposedMessage:
+      "Proposed date: {date} at {time}. Notes: {notes}",
+    executionDateApprovedByClient: "Execution Date Approved by Client",
+    executionDateRejectedByClient: "Execution Date Rejected by Client",
+    executionDateApprovedMessage:
+      "The client approved the execution date for request #{requestId}.",
+    executionDateRejectedMessage:
+      "The client rejected the execution date for request #{requestId}. Reason: {reason}",
+    approveExecutionDate: "Approve Date",
+    rejectExecutionDate: "Reject Date",
+    executionDateProposed: "Execution date proposed for request #{id}",
+    executionDateApproved: "Execution date approved for request #{id}",
+    executionDateRejected: "Execution date rejected for request #{id}",
   },
   pt: {
     // General
@@ -539,6 +555,22 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Profissional {professional} atribuído à solicitação #{id}.",
     professionalAssignedAndScheduled:
       "Profissional {professional} atribuído à solicitação #{id} e agendado para {date}.",
+
+    // Execution Date Management
+    newExecutionDateProposed: "Nova Data de Execução Proposta",
+    executionDateProposedMessage:
+      "Data proposta: {date} às {time}. Observações: {notes}",
+    executionDateApprovedByClient: "Data de Execução Aprovada pelo Cliente",
+    executionDateRejectedByClient: "Data de Execução Rejeitada pelo Cliente",
+    executionDateApprovedMessage:
+      "O cliente aprovou a data de execução para a solicitação #{requestId}.",
+    executionDateRejectedMessage:
+      "O cliente rejeitou a data de execução para a solicitação #{requestId}. Motivo: {reason}",
+    approveExecutionDate: "Aprovar Data",
+    rejectExecutionDate: "Rejeitar Data",
+    executionDateProposed: "Data de execução proposta para solicitação #{id}",
+    executionDateApproved: "Data de execução aprovada para solicitação #{id}",
+    executionDateRejected: "Data de execução rejeitada para solicitação #{id}",
   },
 };
 
