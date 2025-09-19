@@ -591,6 +591,9 @@ export class WorkflowService {
       quote_sent: "Orçamento enviado",
       quote_approved: "Orçamento aprovado",
       quote_rejected: "Orçamento rejeitado",
+      execution_date_proposal: "Data de execução proposta",
+      execution_date_approved: "Data de execução aprovada",
+      execution_date_rejected: "Data de execução rejeitada",
       professional_assigned: "Profissional atribuído",
       professional_accepted: "Trabalho aceito",
       professional_rejected: "Trabalho rejeitado",
@@ -642,7 +645,31 @@ export class WorkflowService {
         roles: ["client"],
       },
       "Orçamento aprovado": {
-        statuses: ["Buscando profissional"],
+        statuses: [
+          "Aguardando data de execução",
+          "Data proposta pelo administrador",
+          "Buscando profissional",
+        ],
+        roles: ["admin"],
+      },
+      "Aguardando data de execução": {
+        statuses: ["Data proposta pelo administrador"],
+        roles: ["admin"],
+      },
+      "Data proposta pelo administrador": {
+        statuses: ["Data aprovada pelo cliente", "Data rejeitada pelo cliente"],
+        roles: ["client"],
+      },
+      "Aguardando aprovação da data": {
+        statuses: ["Data aprovada pelo cliente", "Data rejeitada pelo cliente"],
+        roles: ["client"],
+      },
+      "Data aprovada pelo cliente": {
+        statuses: ["Agendado"],
+        roles: ["admin"],
+      },
+      "Data rejeitada pelo cliente": {
+        statuses: ["Data proposta pelo administrador", "Cancelado"],
         roles: ["admin"],
       },
       "Orçamento rejeitado": {

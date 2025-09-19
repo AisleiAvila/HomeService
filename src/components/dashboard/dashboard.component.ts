@@ -116,6 +116,18 @@ export class DashboardComponent {
     this.dataService.respondToQuote(request.id, approved);
   }
 
+  handleExecutionDateResponse(
+    request: ServiceRequest,
+    approved: boolean,
+    rejectionReason?: string
+  ) {
+    this.dataService.respondToExecutionDate(
+      request.id,
+      approved,
+      rejectionReason
+    );
+  }
+
   handleProvideClarification(request: ServiceRequest) {
     this.provideClarification.emit(request);
   }

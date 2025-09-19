@@ -171,6 +171,20 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusInProgress: "In Progress",
     statusCompleted: "Completed",
     statusCancelled: "Cancelled",
+    statusAwaitingExecutionDate: "Awaiting Execution Date",
+    statusDateProposedByAdmin: "Date Proposed by Admin",
+    statusAwaitingDateApproval: "Awaiting Date Approval",
+    statusDateApprovedByClient: "Date Approved by Client",
+    statusDateRejectedByClient: "Date Rejected by Client",
+    statusAnalyzing: "Analyzing",
+    statusAwaitingClarification: "Awaiting Clarification",
+    statusAwaitingQuoteApproval: "Awaiting Quote Approval",
+    statusQuoteRejected: "Quote Rejected",
+    statusSearchingProfessional: "Searching Professional",
+    statusProfessionalSelected: "Professional Selected",
+    statusAwaitingProfessionalConfirmation:
+      "Awaiting Professional Confirmation",
+    statusCompletedAwaitingApproval: "Completed - Awaiting Approval",
 
     // Notifications
     notifications: "Notifications",
@@ -258,6 +272,25 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectProfessionalFor: "Select a professional for",
     assign: "Assign",
     editProfessional: "Edit Professional",
+
+    // Execution Date Proposal
+    proposeExecutionDate: "Propose Execution Date",
+    proposeExecutionDateFor: "Propose execution date for",
+    proposedDate: "Proposed Date",
+    proposedTime: "Proposed Time",
+    notesForClient: "Notes for Client",
+    optional: "Optional",
+    notesForClientPlaceholder:
+      "Additional information about the proposed date...",
+    serviceDetails: "Service Details",
+    approvedAmount: "Approved Amount",
+    clientOriginallyRequestedFor: "Client originally requested for",
+    proposeDate: "Propose Date",
+    approveExecutionDate: "Approve Date",
+    rejectExecutionDate: "Reject Date",
+    executionDateProposed: "Execution date proposed for request #{id}",
+    executionDateApproved: "Execution date approved for request #{id}",
+    executionDateRejected: "Execution date rejected for request #{id}",
 
     // Invoice
     invoice: "Invoice",
@@ -516,6 +549,20 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusInProgress: "Em Andamento",
     statusCompleted: "Concluído",
     statusCancelled: "Cancelado",
+    statusAwaitingExecutionDate: "Aguardando Data de Execução",
+    statusDateProposedByAdmin: "Data Proposta pelo Administrador",
+    statusAwaitingDateApproval: "Aguardando Aprovação da Data",
+    statusDateApprovedByClient: "Data Aprovada pelo Cliente",
+    statusDateRejectedByClient: "Data Rejeitada pelo Cliente",
+    statusAnalyzing: "Em Análise",
+    statusAwaitingClarification: "Aguardando Esclarecimentos",
+    statusAwaitingQuoteApproval: "Aguardando Aprovação do Orçamento",
+    statusQuoteRejected: "Orçamento Rejeitado",
+    statusSearchingProfessional: "Buscando Profissional",
+    statusProfessionalSelected: "Profissional Selecionado",
+    statusAwaitingProfessionalConfirmation:
+      "Aguardando Confirmação do Profissional",
+    statusCompletedAwaitingApproval: "Concluído - Aguardando Aprovação",
 
     // Notifications
     notifications: "Notificações",
@@ -607,6 +654,25 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectProfessionalFor: "Selecione um profissional para",
     assign: "Atribuir",
     editProfessional: "Editar Profissional",
+
+    // Execution Date Proposal
+    proposeExecutionDate: "Propor Data de Execução",
+    proposeExecutionDateFor: "Propor data de execução para",
+    proposedDate: "Data Proposta",
+    proposedTime: "Hora Proposta",
+    notesForClient: "Observações para o Cliente",
+    optional: "Opcional",
+    notesForClientPlaceholder:
+      "Informações adicionais sobre a data proposta...",
+    serviceDetails: "Detalhes do Serviço",
+    approvedAmount: "Valor Aprovado",
+    clientOriginallyRequestedFor: "Cliente originalmente solicitou para",
+    proposeDate: "Propor Data",
+    approveExecutionDate: "Aprovar Data",
+    rejectExecutionDate: "Rejeitar Data",
+    executionDateProposed: "Data de execução proposta para solicitação #{id}",
+    executionDateApproved: "Data de execução aprovada para solicitação #{id}",
+    executionDateRejected: "Data de execução rejeitada para solicitação #{id}",
 
     // Invoice
     invoice: "Fatura",

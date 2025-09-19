@@ -31,6 +31,8 @@ export class ServiceListComponent {
   openChat = output<ServiceRequest>();
   approveQuote = output<ServiceRequest>();
   rejectQuote = output<ServiceRequest>();
+  approveExecutionDate = output<ServiceRequest>();
+  rejectExecutionDate = output<{ request: ServiceRequest; reason: string }>();
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
   provideClarification = output<ServiceRequest>();

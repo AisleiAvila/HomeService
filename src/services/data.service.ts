@@ -16,6 +16,7 @@ import {
   ServiceClarification,
   SchedulingStatus,
   WorkflowStats,
+  DateApproval,
 } from "../models/maintenance.models";
 
 @Injectable({
@@ -428,6 +429,59 @@ export class DataService {
     );
   }
 
+  // Novos métodos para controle de data de execução
+  async proposeExecutionDate(
+    requestId: number,
+    proposedDate: Date,
+    notes?: string
+  ) {
+    const updates: Partial<ServiceRequest> = {
+      proposed_execution_date: proposedDate.toISOString(),
+      proposed_execution_notes: notes || null,
+      execution_date_proposed_at: new Date().toISOString(),
+      status: "Data proposta pelo administrador" as ServiceStatus,
+    };
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      this.i18n.translate("executionDateProposed", {
+        id: requestId.toString(),
+      })
+    );
+  }
+
+  async respondToExecutionDate(
+    requestId: number,
+    approved: boolean,
+    rejectionReason?: string
+  ) {
+    const updates: Partial<ServiceRequest> = {
+      execution_date_approval: approved ? "approved" : "rejected",
+      execution_date_approved_at: new Date().toISOString(),
+      execution_date_rejection_reason: approved ? null : rejectionReason,
+      status: approved
+        ? "Data aprovada pelo cliente"
+        : ("Data rejeitada pelo cliente" as ServiceStatus),
+    };
+
+    // Se aprovado, copiar data proposta para agendamento
+    if (approved) {
+      const request = this.getServiceRequestById(requestId);
+      if (request?.proposed_execution_date) {
+        updates.scheduled_start_datetime = request.proposed_execution_date;
+        updates.status = "Agendado" as ServiceStatus;
+      }
+    }
+
+    await this.updateServiceRequest(requestId, updates);
+    this.notificationService.addNotification(
+      this.i18n.translate(
+        approved ? "executionDateApproved" : "executionDateRejected",
+        { id: requestId.toString() }
+      )
+    );
+  }
+
   async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
     await this.updateServiceRequest(requestId, {
       payment_status: paymentStatus,
@@ -816,7 +870,11 @@ export class DataService {
   /**
    * Adicionar uma nova pergunta
    */
-  async addClarificationQuestion(serviceRequestId: number, title: string, content: string) {
+  async addClarificationQuestion(
+    serviceRequestId: number,
+    title: string,
+    content: string
+  ) {
     const currentUser = this.authService.appUser();
     if (!currentUser) {
       throw new Error("User not authenticated");
@@ -847,18 +905,18 @@ export class DataService {
       this.notificationService.addNotification(
         "Pergunta adicionada com sucesso!"
       );
-      
+
       // Recarregar esclarecimentos
       await this.fetchServiceClarifications(serviceRequestId);
-      
+
       // Criar notificação para outros participantes
       await this.createClarificationNotification(
-        serviceRequestId, 
+        serviceRequestId,
         "clarification_requested",
         "Nova pergunta adicionada",
         `${currentUser.name} fez uma nova pergunta: ${title}`
       );
-      
+
       return data;
     }
   }
@@ -866,7 +924,12 @@ export class DataService {
   /**
    * Adicionar uma resposta a uma pergunta
    */
-  async addClarificationAnswer(serviceRequestId: number, parentId: number, title: string, content: string) {
+  async addClarificationAnswer(
+    serviceRequestId: number,
+    parentId: number,
+    title: string,
+    content: string
+  ) {
     const currentUser = this.authService.appUser();
     if (!currentUser) {
       throw new Error("User not authenticated");
@@ -898,18 +961,18 @@ export class DataService {
       this.notificationService.addNotification(
         "Resposta adicionada com sucesso!"
       );
-      
+
       // Recarregar esclarecimentos
       await this.fetchServiceClarifications(serviceRequestId);
-      
+
       // Criar notificação para outros participantes
       await this.createClarificationNotification(
-        serviceRequestId, 
+        serviceRequestId,
         "clarification_provided",
         "Nova resposta adicionada",
         `${currentUser.name} respondeu: ${title}`
       );
-      
+
       return data;
     }
   }
@@ -924,11 +987,13 @@ export class DataService {
     }
 
     // Chamar função do banco para marcar como lidas
-    const { data, error } = await this.supabase.client
-      .rpc("mark_clarifications_as_read", {
+    const { data, error } = await this.supabase.client.rpc(
+      "mark_clarifications_as_read",
+      {
         req_id: serviceRequestId,
         reader_user_id: currentUser.id,
-      });
+      }
+    );
 
     if (error) {
       console.error("Error marking clarifications as read:", error);
@@ -948,11 +1013,13 @@ export class DataService {
       return 0;
     }
 
-    const { data, error } = await this.supabase.client
-      .rpc("count_unread_clarifications", {
+    const { data, error } = await this.supabase.client.rpc(
+      "count_unread_clarifications",
+      {
         req_id: serviceRequestId,
         reader_user_id: currentUser.id,
-      });
+      }
+    );
 
     if (error) {
       console.error("Error counting unread clarifications:", error);
@@ -981,7 +1048,7 @@ export class DataService {
       this.notificationService.addNotification(
         "Esclarecimento deletado com sucesso!"
       );
-      
+
       // Recarregar esclarecimentos
       await this.fetchServiceClarifications(serviceRequestId);
     }
@@ -1011,20 +1078,18 @@ export class DataService {
       }
 
       // Filtrar para não notificar o próprio usuário
-      const recipientIds = participants.filter(id => id !== currentUser.id);
+      const recipientIds = participants.filter((id) => id !== currentUser.id);
 
       for (const userId of recipientIds) {
-        await this.supabase.client
-          .from("enhanced_notifications")
-          .insert({
-            user_id: userId,
-            type: type,
-            title: title,
-            message: message,
-            service_request_id: serviceRequestId,
-            action_required: true,
-            priority: "medium",
-          });
+        await this.supabase.client.from("enhanced_notifications").insert({
+          user_id: userId,
+          type: type,
+          title: title,
+          message: message,
+          service_request_id: serviceRequestId,
+          action_required: true,
+          priority: "medium",
+        });
       }
     } catch (error) {
       console.error("Error creating clarification notification:", error);
@@ -1036,13 +1101,13 @@ export class DataService {
    */
   getClarificationThreads(serviceRequestId: number): any[] {
     const clarifications = this.serviceClarifications();
-    const questions = clarifications.filter(c => 
-      c.service_request_id === serviceRequestId && c.type === "question"
+    const questions = clarifications.filter(
+      (c) => c.service_request_id === serviceRequestId && c.type === "question"
     );
 
-    return questions.map(question => ({
+    return questions.map((question) => ({
       question,
-      answers: clarifications.filter(c => c.parent_id === question.id)
+      answers: clarifications.filter((c) => c.parent_id === question.id),
     }));
   }
 }

@@ -137,6 +137,11 @@ export class ScheduleComponent implements OnDestroy {
       "Aguardando aprovação do orçamento": "#6366f1", // indigo-500
       "Orçamento aprovado": "#22c55e", // green-500
       "Orçamento rejeitado": "#ef4444", // red-500
+      "Aguardando data de execução": "#fbbf24", // amber-400
+      "Data proposta pelo administrador": "#3b82f6", // blue-500
+      "Aguardando aprovação da data": "#6366f1", // indigo-500
+      "Data aprovada pelo cliente": "#22c55e", // green-500
+      "Data rejeitada pelo cliente": "#ef4444", // red-500
       "Buscando profissional": "#a855f7", // purple-500
       "Profissional selecionado": "#14b8a6", // teal-500
       "Aguardando confirmação do profissional": "#f97316", // orange-500
@@ -161,6 +166,11 @@ export class ScheduleComponent implements OnDestroy {
       "Aguardando aprovação do orçamento": "statusAwaitingQuoteApproval",
       "Orçamento aprovado": "statusApproved",
       "Orçamento rejeitado": "statusQuoteRejected",
+      "Aguardando data de execução": "statusAwaitingExecutionDate",
+      "Data proposta pelo administrador": "statusDateProposedByAdmin",
+      "Aguardando aprovação da data": "statusAwaitingDateApproval",
+      "Data aprovada pelo cliente": "statusDateApprovedByClient",
+      "Data rejeitada pelo cliente": "statusDateRejectedByClient",
       "Buscando profissional": "statusSearchingProfessional",
       "Profissional selecionado": "statusProfessionalSelected",
       "Aguardando confirmação do profissional":
