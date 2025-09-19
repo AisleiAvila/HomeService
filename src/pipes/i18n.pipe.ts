@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform, inject } from "@angular/core";
-import { I18nService } from "../i18n.service";
+import { I18nService } from "../services/i18n.service";
 
 @Pipe({
   name: "i18n",
@@ -12,6 +12,14 @@ export class I18nPipe implements PipeTransform {
   transform(key: string, params?: Record<string, string | number>): string {
     // Força a reatividade usando o signal da linguagem
     const currentLang = this.i18n.language();
-    return this.i18n.translate(key, params);
+
+    // Debug para todas as chaves
+    console.log("🔍 I18n Pipe - Key:", key, "Lang:", currentLang);
+
+    const result = this.i18n.translate(key, params);
+
+    console.log("🔍 I18n Pipe - Result:", result);
+
+    return result;
   }
 }
