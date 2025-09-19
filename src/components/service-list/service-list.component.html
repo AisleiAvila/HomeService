@@ -132,6 +132,24 @@
               >
                 <i class="fas fa-times"></i>
               </button>
+              } @if(request.status === 'Data proposta pelo administrador' ||
+              request.status === 'Aguardando aprovação da data') {
+              <button
+                (click)="approveExecutionDate.emit(request)"
+                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                title="{{ 'approveExecutionDate' | i18n }}"
+              >
+                <i class="fas fa-calendar-check"></i>
+              </button>
+              <button
+                (click)="
+                  rejectExecutionDate.emit({ request: request, reason: '' })
+                "
+                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                title="{{ 'rejectExecutionDate' | i18n }}"
+              >
+                <i class="fas fa-calendar-times"></i>
+              </button>
               } @if(request.status === 'Aguardando esclarecimentos' &&
               isActionAvailable(request, 'provide_clarification')) {
               <button
@@ -407,6 +425,26 @@
             >
               <i class="fas fa-times mr-1 sm:mr-2"></i>
               {{ "reject" | i18n }}
+            </button>
+          </div>
+          } @if(request.status === 'Data proposta pelo administrador' ||
+          request.status === 'Aguardando aprovação da data') {
+          <div class="service-list-actions mb-3">
+            <button
+              (click)="approveExecutionDate.emit(request)"
+              class="service-action-primary bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+            >
+              <i class="fas fa-calendar-check mr-1 sm:mr-2"></i>
+              {{ "approveExecutionDate" | i18n }}
+            </button>
+            <button
+              (click)="
+                rejectExecutionDate.emit({ request: request, reason: '' })
+              "
+              class="service-action-primary bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+            >
+              <i class="fas fa-calendar-times mr-1 sm:mr-2"></i>
+              {{ "rejectExecutionDate" | i18n }}
             </button>
           </div>
           } @if(request.status === 'Aguardando esclarecimentos' &&

@@ -79,6 +79,12 @@ export class AdminDashboardComponent {
   scheduledTime = signal<string>("");
   estimatedDurationMinutes = signal<number | null>(null);
 
+  // Execution date proposal data
+  dateProposalRequest = signal<ServiceRequest | null>(null);
+  proposedExecutionDate = signal<string>("");
+  proposedExecutionTime = signal<string>("");
+  proposedExecutionNotes = signal<string>("");
+
   // Pagination data
   currentPage = signal(1);
   itemsPerPage = signal(5); // Changed to 5 to see pagination with fewer items
@@ -542,6 +548,60 @@ export class AdminDashboardComponent {
       this.estimatedDurationMinutes() &&
       this.estimatedDurationMinutes()! > 0
     );
+  }
+
+  // Execution date proposal methods
+  openDateProposalModal(request: ServiceRequest) {
+    this.dateProposalRequest.set(request);
+    this.proposedExecutionDate.set("");
+    this.proposedExecutionTime.set("");
+    this.proposedExecutionNotes.set("");
+  }
+
+  proposeDateExecution() {
+    const request = this.dateProposalRequest();
+    const date = this.proposedExecutionDate();
+    const time = this.proposedExecutionTime();
+    const notes = this.proposedExecutionNotes();
+
+    if (!request || !date || !time) {
+      this.notificationService.addNotification(
+        this.i18n.translate("fillRequiredFields")
+      );
+      return;
+    }
+
+    // Combine date and time into Date object
+    const proposedDateTime = new Date(`${date}T${time}`);
+
+    this.dataService.proposeExecutionDate(
+      request.id,
+      proposedDateTime,
+      notes.trim() || undefined
+    );
+
+    this.notificationService.addNotification(
+      this.i18n.translate("executionDateProposed", {
+        id: request.id.toString(),
+      })
+    );
+
+    this.cancelDateProposal();
+  }
+
+  cancelDateProposal() {
+    this.dateProposalRequest.set(null);
+    this.proposedExecutionDate.set("");
+    this.proposedExecutionTime.set("");
+    this.proposedExecutionNotes.set("");
+  }
+
+  canProposeDate(): boolean {
+    return !!(this.proposedExecutionDate() && this.proposedExecutionTime());
+  }
+
+  isRequestAwaitingDateProposal(request: ServiceRequest): boolean {
+    return request.status === "Orçamento aprovado";
   }
 
   // Professional management

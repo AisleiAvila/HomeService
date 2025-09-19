@@ -8,6 +8,11 @@ export type ServiceStatus =
   | "Aguardando aprovação do orçamento"
   | "Orçamento aprovado"
   | "Orçamento rejeitado"
+  | "Aguardando data de execução"
+  | "Data proposta pelo administrador"
+  | "Aguardando aprovação da data"
+  | "Data aprovada pelo cliente"
+  | "Data rejeitada pelo cliente"
   | "Buscando profissional"
   | "Profissional selecionado"
   | "Aguardando confirmação do profissional"
@@ -34,6 +39,9 @@ export type NotificationType =
   | "quote_sent"
   | "quote_approved"
   | "quote_rejected"
+  | "execution_date_proposal"
+  | "execution_date_approved"
+  | "execution_date_rejected"
   | "professional_assigned"
   | "professional_accepted"
   | "professional_rejected"
@@ -51,6 +59,7 @@ export type NotificationType =
 
 export type ProfessionalResponse = "accepted" | "rejected" | null;
 export type ClientApproval = "approved" | "rejected" | null;
+export type DateApproval = "approved" | "rejected" | null;
 
 // Novos tipos para controle de agendamento
 export type SchedulingStatus =
@@ -157,6 +166,14 @@ export interface ServiceRequest {
   professional_response_at?: string | null; // Data resposta profissional
   contract_generated_at?: string | null; // Data geração contrato
   contract_url?: string | null; // URL do contrato digital
+
+  // NOVOS CAMPOS PARA APROVAÇÃO DE DATA DE EXECUÇÃO
+  proposed_execution_date?: string | null; // Data proposta pelo administrador (ISO string)
+  proposed_execution_notes?: string | null; // Observações sobre a data proposta
+  execution_date_proposed_at?: string | null; // Timestamp da proposta de data
+  execution_date_approval?: DateApproval; // Aprovação da data pelo cliente
+  execution_date_approved_at?: string | null; // Timestamp da aprovação da data
+  execution_date_rejection_reason?: string | null; // Motivo da rejeição da data
 
   // FASE 3: EXECUÇÃO
   work_started_at?: string | null; // Data/hora início real
