@@ -269,6 +269,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quoteValue: "Quote Value",
     submit: "Submit",
     assignProfessional: "Assign Professional",
+    assignProfessionalToScheduled: "Assign Professional to Scheduled Service",
     selectProfessionalFor: "Select a professional for",
     assign: "Assign",
     editProfessional: "Edit Professional",
@@ -651,6 +652,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quoteValue: "Valor do Orçamento",
     submit: "Enviar",
     assignProfessional: "Atribuir Profissional",
+    assignProfessionalToScheduled:
+      "Atribuir Profissional à Solicitação Agendada",
     selectProfessionalFor: "Selecione um profissional para",
     assign: "Atribuir",
     editProfessional: "Editar Profissional",

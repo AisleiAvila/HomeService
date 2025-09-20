@@ -550,6 +550,16 @@ export class AdminDashboardComponent {
     );
   }
 
+  // Verificar se uma solicitação precisa de atribuição de profissional
+  needsProfessionalAssignment(request: ServiceRequest): boolean {
+    return (
+      // Status "Agendado" mas sem profissional
+      (request.status === "Agendado" && !request.professional_id) ||
+      // Status "Orçamento aprovado" (fluxo normal)
+      request.status === "Orçamento aprovado"
+    );
+  }
+
   // Execution date proposal methods
   openDateProposalModal(request: ServiceRequest) {
     this.dateProposalRequest.set(request);
