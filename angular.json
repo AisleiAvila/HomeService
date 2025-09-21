@@ -18,7 +18,12 @@
             },
             "browser": "index.tsx",
             "tsConfig": "tsconfig.json",
-            "assets": ["favicon.ico", "favicon.svg", "service-worker.js"],
+            "assets": [
+              "favicon.ico",
+              "favicon.svg",
+              "service-worker.js",
+              "src/assets"
+            ],
             "allowedCommonJsDependencies": [
               "ws",
               "@supabase/realtime-js",
