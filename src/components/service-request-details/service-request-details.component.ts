@@ -139,12 +139,12 @@ import { NotificationService } from "../../services/notification.service";
                 class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3"
               >
                 <h4 class="font-medium text-gray-800 mb-2 sm:mb-0">
-                  {{ response.professional_name || "Professional" }}
+                  {{ response.professional_name || ("professional" | i18n) }}
                 </h4>
                 <span
                   [class]="getResponseStatusClass(response.response_status)"
                 >
-                  {{ response.response_status || "pending" }}
+                  {{ response.response_status || "pending" | i18n }}
                 </span>
               </div>
               @if (response.quote_amount) {
@@ -244,7 +244,9 @@ import { NotificationService } from "../../services/notification.service";
                   {{ "professionalName" | i18n }}
                 </label>
                 <p class="text-gray-900">
-                  {{ request().professional_name || "Nome não disponível" }}
+                  {{
+                    request().professional_name || ("nameNotAvailable" | i18n)
+                  }}
                 </p>
               </div>
               } @if (request().cost) {
