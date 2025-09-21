@@ -276,10 +276,10 @@ import { NotificationService } from "../../services/notification.service";
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-600">{{
-                "professionalId" | i18n
+                "professionalName" | i18n
               }}</label>
               <p class="text-sm text-gray-900">
-                {{ request().professional_id }}
+                {{ request().professional_name || "Nome não disponível" }}
               </p>
             </div>
             @if (request().professional_confirmed_date) {
