@@ -236,7 +236,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     csvTotalValue: "Total Value",
 
     // Additional translations for missing keys
-    appName: "MaintainApp",
+    appName: "Menu",
     appNameFull: "Home Service Pro",
     newRequest: "New Request",
     loadingUser: "Loading user...",
@@ -381,6 +381,40 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalServices: "Total Services",
     activate: "Activate",
     deactivate: "Deactivate",
+
+    // Service Request Details - Additional translations
+    professionalResponses: "Professional Responses",
+    requestInformation: "Request Information",
+    estimatedDuration: "Estimated Duration",
+    address: "Address",
+    timeControl: "Time Control",
+    availableActions: "Available Actions",
+    loadingServiceRequest: "Loading service request...",
+    scheduleService: "Schedule Service",
+    startService: "Start Service",
+    completeService: "Complete Service",
+    nameNotAvailable: "Name not available",
+    pending: "Pending",
+    createdAt: "Created At",
+    priority: "Priority",
+    high: "High",
+    medium: "Medium",
+    low: "Low",
+    responded: "Responded",
+    accepted: "Accepted",
+    rejected: "Rejected",
+
+    // Workflow Timeline translations
+    workflow_progress: "Workflow Progress",
+    phase: "Phase",
+    current_status: "Current Status",
+    in_progress: "In Progress",
+    possible_states: "Possible States",
+    timing_information: "Timing Information",
+    requested_at: "Requested At",
+    scheduled_for: "Scheduled For",
+    started_at: "Started At",
+    completed_at: "Completed At",
 
     // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
     newServiceRequest: "New Service Request",
@@ -644,7 +678,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     csvTotalValue: "Valor Total",
 
     // Additional translations for missing keys
-    appName: "MaintainApp",
+    appName: "Menu",
     appNameFull: "Home Service Pro",
     newRequest: "Nova Solicitação",
     loadingUser: "Carregando usuário...",
@@ -796,6 +830,40 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalServices: "Total de Serviços",
     activate: "Ativar",
     deactivate: "Desativar",
+
+    // Service Request Details - Additional translations
+    professionalResponses: "Respostas dos Profissionais",
+    requestInformation: "Informações da Solicitação",
+    estimatedDuration: "Duração Estimada",
+    address: "Endereço",
+    timeControl: "Controlo de Tempo",
+    availableActions: "Ações Disponíveis",
+    loadingServiceRequest: "Carregando solicitação de serviço...",
+    scheduleService: "Agendar Serviço",
+    startService: "Iniciar Serviço",
+    completeService: "Completar Serviço",
+    nameNotAvailable: "Nome não disponível",
+    pending: "Pendente",
+    createdAt: "Criado em",
+    priority: "Prioridade",
+    high: "Alta",
+    medium: "Média",
+    low: "Baixa",
+    responded: "Respondeu",
+    accepted: "Aceito",
+    rejected: "Rejeitado",
+
+    // Workflow Timeline translations
+    workflow_progress: "Progresso do Fluxo de Trabalho",
+    phase: "Fase",
+    current_status: "Status Atual",
+    in_progress: "Em Progresso",
+    possible_states: "Estados Possíveis",
+    timing_information: "Informações de Timing",
+    requested_at: "Solicitado em",
+    scheduled_for: "Agendado para",
+    started_at: "Iniciado em",
+    completed_at: "Concluído em",
 
     // Service Request Form - TRADUÇÕES EM FALTA ADICIONADAS
     newServiceRequest: "Nova Solicitação de Serviço",

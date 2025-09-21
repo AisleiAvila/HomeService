@@ -184,10 +184,13 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           [class.justify-center]="!isSidebarOpen()"
           [class.justify-start]="isSidebarOpen()"
         >
-          <i
-            class="fas fa-tools text-indigo-400"
+          <!-- Substituído ícone por logo -->
+          <img
+            src="src/assets/logo.jpg"
+            alt="HomeService Logo"
+            class="h-8 w-8 object-contain"
             [class.mr-3]="isSidebarOpen()"
-          ></i>
+          />
           @if (isSidebarOpen()) {
           <span class="truncate">{{ "appName" | i18n }}</span>
           }

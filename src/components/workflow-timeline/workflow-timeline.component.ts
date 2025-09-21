@@ -43,9 +43,8 @@ export class WorkflowTimelineComponent {
     const phases: WorkflowPhase[] = [
       {
         id: 1,
-        title: "Solicitação e Orçamento",
-        description:
-          "Cliente cria solicitação e profissionais enviam orçamentos",
+        title: this.i18n.translate("requestAndQuote"),
+        description: this.i18n.translate("requestAndQuoteDescription"),
         statuses: [
           "Solicitado",
           "Em análise",
@@ -61,8 +60,8 @@ export class WorkflowTimelineComponent {
       },
       {
         id: 2,
-        title: "Seleção e Agendamento",
-        description: "Cliente seleciona profissional e agenda o serviço",
+        title: this.i18n.translate("selectionAndScheduling"),
+        description: this.i18n.translate("selectionAndSchedulingDescription"),
         statuses: [
           "Orçamento aprovado",
           "Buscando profissional",
@@ -77,8 +76,8 @@ export class WorkflowTimelineComponent {
       },
       {
         id: 3,
-        title: "Execução",
-        description: "Profissional executa o serviço conforme agendado",
+        title: this.i18n.translate("execution"),
+        description: this.i18n.translate("executionDescription"),
         statuses: ["Em execução"],
         completed: this.isPhaseCompleted(3, currentStatus),
         current: this.isCurrentPhase(3, currentStatus),
@@ -87,8 +86,8 @@ export class WorkflowTimelineComponent {
       },
       {
         id: 4,
-        title: "Aprovação e Pagamento",
-        description: "Cliente aprova trabalho e efetua pagamento",
+        title: this.i18n.translate("approvalAndPayment"),
+        description: this.i18n.translate("approvalAndPaymentDescription"),
         statuses: [
           "Concluído - Aguardando aprovação",
           "Aprovado pelo cliente",
