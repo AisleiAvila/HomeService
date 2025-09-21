@@ -5,6 +5,8 @@ import {
   signal,
   inject,
   OnInit,
+  input,
+  effect,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -21,7 +23,10 @@ import { NotificationService } from "../../services/notification.service";
 })
 export class ResetPasswordComponent implements OnInit {
   backToLogin = output<void>();
-  passwordResetSuccess = output<void>();
+  passwordResetComplete = output<void>();
+
+  // Input para receber email da tela anterior
+  initialEmail = input<string>("");
 
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
@@ -37,12 +42,19 @@ export class ResetPasswordComponent implements OnInit {
 
   step = signal<"verify-code" | "new-password">("verify-code");
 
-  ngOnInit() {
-    // Recuperar email da tela anterior
-    const savedEmail = localStorage.getItem("resetPasswordEmail");
-    if (savedEmail) {
-      this.email.set(savedEmail);
-    }
+  constructor() {
+    // Effect para definir email inicial quando recebido
+    effect(() => {
+      const initial = this.initialEmail();
+      if (initial) {
+        this.email.set(initial);
+      }
+    });
+  }
+
+  async ngOnInit() {
+    // Sempre começar com verificação de código
+    this.step.set("verify-code");
   }
 
   async verifyCode() {
@@ -118,7 +130,7 @@ export class ResetPasswordComponent implements OnInit {
         "Senha alterada com sucesso! Faça login com sua nova senha."
       );
 
-      this.passwordResetSuccess.emit();
+      this.passwordResetComplete.emit();
     } catch (error: any) {
       console.error("Erro ao redefinir senha:", error);
       this.errorMessage.set(

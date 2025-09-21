@@ -138,6 +138,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
         <app-language-switcher [theme]="authTheme()" />
       </div>
       <app-forgot-password
+        [initialEmail]="emailForPasswordReset()"
         (codeRequested)="handleForgotPasswordCodeRequested($event)"
         (backToLogin)="showLogin()"
       />
@@ -148,7 +149,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
         <app-language-switcher [theme]="authTheme()" />
       </div>
       <app-reset-password
-        [email]="emailForPasswordReset()"
+        [initialEmail]="emailForPasswordReset()"
         (passwordResetComplete)="handlePasswordResetComplete()"
         (backToLogin)="showLogin()"
       />

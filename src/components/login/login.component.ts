@@ -164,8 +164,7 @@ export class LoginComponent {
 
   handleForgotPassword() {
     console.log("Forgot password for email:", this.email());
-    if (this.email()) {
-      this.forgotPassword.emit(this.email());
-    }
+    // Sempre permitir acesso à tela de reset, mesmo sem email preenchido
+    this.forgotPassword.emit(this.email());
   }
 }

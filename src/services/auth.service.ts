@@ -493,19 +493,19 @@ export class AuthService {
         throw new Error("E-mail não encontrado em nosso sistema");
       }
 
-      // Usar signInWithOtp para enviar código de redefinição
+      // Usar signInWithOtp para enviar código de verificação
       const { error } = await this.supabase.client.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: false, // Não criar usuário, apenas enviar código
+          shouldCreateUser: false,
           data: {
-            type: "password_reset", // Marcar como redefinição de senha
+            isPasswordReset: true, // Flag para identificar que é reset de senha
           },
         },
       });
 
       if (error) {
-        console.error("❌ Erro ao enviar código OTP:", error);
+        console.error("❌ Erro ao enviar código de redefinição:", error);
         throw new Error(
           error.message || "Erro ao enviar código de redefinição"
         );
@@ -550,17 +550,17 @@ export class AuthService {
   }
 
   /**
-   * Atualiza a senha usando o código verificado
+   * Atualiza a senha após verificação do código OTP
    */
   async updatePasswordWithCode(
     email: string,
     code: string,
     newPassword: string
   ): Promise<void> {
-    console.log("🔄 Atualizando senha com código verificado");
+    console.log("🔄 Atualizando senha após verificação OTP");
 
     try {
-      // Primeiro, verificar o código novamente para obter a sessão
+      // Primeiro verificar o código OTP e estabelecer sessão
       const { data, error: verifyError } =
         await this.supabase.client.auth.verifyOtp({
           email,
@@ -569,8 +569,11 @@ export class AuthService {
         });
 
       if (verifyError || !data.user) {
+        console.error("❌ Erro ao verificar código:", verifyError);
         throw new Error("Código inválido ou expirado");
       }
+
+      console.log("✅ Código verificado, atualizando senha...");
 
       // Agora que temos uma sessão válida, atualizar a senha
       const { error: updateError } = await this.supabase.client.auth.updateUser(
@@ -592,6 +595,62 @@ export class AuthService {
       console.error("❌ Erro ao atualizar senha:", error);
       throw error;
     }
+  }
+
+  /**
+   * Manipula reset de senha vindo de link de email
+   */
+  async handlePasswordResetFromUrl(
+    accessToken: string,
+    refreshToken?: string | null
+  ): Promise<void> {
+    console.log("🔑 Configurando sessão para reset de senha");
+
+    try {
+      // Definir a sessão com os tokens recebidos
+      const { error } = await this.supabase.client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || "",
+      });
+
+      if (error) {
+        console.error("❌ Erro ao configurar sessão:", error);
+        throw new Error("Erro ao configurar sessão para reset de senha");
+      }
+
+      console.log("✅ Sessão configurada para reset de senha");
+    } catch (error: any) {
+      console.error("❌ Erro ao configurar sessão:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verifica se há uma sessão ativa no Supabase
+   */
+  async hasActiveSession(): Promise<{
+    hasSession: boolean;
+    userEmail?: string;
+  }> {
+    try {
+      const {
+        data: { session },
+      } = await this.supabase.client.auth.getSession();
+      return {
+        hasSession: !!session?.user,
+        userEmail: session?.user?.email,
+      };
+    } catch (error) {
+      console.error("❌ Erro ao verificar sessão:", error);
+      return { hasSession: false };
+    }
+  }
+
+  /**
+   * Escuta mudanças no estado de autenticação
+   */
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    return this.supabase.client.auth.onAuthStateChange(callback);
   }
 
   async logout(): Promise<void> {
