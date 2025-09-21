@@ -155,6 +155,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Total Tax",
     outstandingAmount: "Outstanding Amount",
     registrationSuccessful: "Registration Successful",
+    password_reset_success:
+      "Password reset successful! You can now log in with your new password.",
 
     // New Service Request Form
     newServiceRequest: "New Service Request",
@@ -439,6 +441,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Imposto Total",
     outstandingAmount: "Valor em Aberto",
     registrationSuccessful: "Registro Bem-sucedido",
+    password_reset_success:
+      "Senha redefinida com sucesso! Agora pode fazer login com a sua nova senha.",
 
     // New Service Request Form
     newServiceRequest: "Nova Solicitação de Serviço",

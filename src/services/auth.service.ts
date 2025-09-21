@@ -469,6 +469,131 @@ export class AuthService {
     }
   }
 
+  /**
+   * Envia um código de redefinição de senha por email
+   */
+  async sendPasswordResetCode(email: string): Promise<void> {
+    console.log("🔑 Enviando código de redefinição de senha para:", email);
+
+    try {
+      // Validar formato do e-mail
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error("Formato de e-mail inválido");
+      }
+
+      // Verificar se o usuário existe na tabela users
+      const { data: existingUser } = await this.supabase.client
+        .from("users")
+        .select("email, auth_id")
+        .eq("email", email)
+        .single();
+
+      if (!existingUser) {
+        throw new Error("E-mail não encontrado em nosso sistema");
+      }
+
+      // Usar signInWithOtp para enviar código de redefinição
+      const { error } = await this.supabase.client.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // Não criar usuário, apenas enviar código
+          data: {
+            type: "password_reset", // Marcar como redefinição de senha
+          },
+        },
+      });
+
+      if (error) {
+        console.error("❌ Erro ao enviar código OTP:", error);
+        throw new Error(
+          error.message || "Erro ao enviar código de redefinição"
+        );
+      }
+
+      console.log("✅ Código de redefinição enviado com sucesso");
+    } catch (error: any) {
+      console.error("❌ Erro ao enviar código de redefinição:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verifica se o código de redefinição de senha é válido
+   */
+  async verifyPasswordResetCode(email: string, code: string): Promise<boolean> {
+    console.log("🔍 Verificando código de redefinição:", code);
+
+    try {
+      const { data, error } = await this.supabase.client.auth.verifyOtp({
+        email,
+        token: code,
+        type: "email",
+      });
+
+      if (error) {
+        console.error("❌ Erro ao verificar código:", error);
+        return false;
+      }
+
+      if (data.user) {
+        console.log("✅ Código verificado com sucesso");
+        // Armazenar temporariamente a sessão para permitir mudança de senha
+        return true;
+      }
+
+      return false;
+    } catch (error: any) {
+      console.error("❌ Erro inesperado ao verificar código:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Atualiza a senha usando o código verificado
+   */
+  async updatePasswordWithCode(
+    email: string,
+    code: string,
+    newPassword: string
+  ): Promise<void> {
+    console.log("🔄 Atualizando senha com código verificado");
+
+    try {
+      // Primeiro, verificar o código novamente para obter a sessão
+      const { data, error: verifyError } =
+        await this.supabase.client.auth.verifyOtp({
+          email,
+          token: code,
+          type: "email",
+        });
+
+      if (verifyError || !data.user) {
+        throw new Error("Código inválido ou expirado");
+      }
+
+      // Agora que temos uma sessão válida, atualizar a senha
+      const { error: updateError } = await this.supabase.client.auth.updateUser(
+        {
+          password: newPassword,
+        }
+      );
+
+      if (updateError) {
+        console.error("❌ Erro ao atualizar senha:", updateError);
+        throw new Error(updateError.message || "Erro ao atualizar senha");
+      }
+
+      console.log("✅ Senha atualizada com sucesso");
+
+      // Fazer logout para forçar novo login com a nova senha
+      await this.supabase.client.auth.signOut();
+    } catch (error: any) {
+      console.error("❌ Erro ao atualizar senha:", error);
+      throw error;
+    }
+  }
+
   async logout(): Promise<void> {
     console.log("🔓 AuthService - executando logout");
 

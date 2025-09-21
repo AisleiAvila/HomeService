@@ -29,6 +29,8 @@ import { LandingComponent } from "./components/landing/landing.component";
 import { LoginComponent } from "./components/login/login.component";
 import { RegisterComponent } from "./components/register/register.component";
 import { VerificationComponent } from "./components/verification/verification.component";
+import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
+import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ScheduleComponent } from "./components/schedule/schedule.component";
 import { SearchComponent } from "./components/search/search.component";
@@ -46,7 +48,14 @@ import { ClarificationModalComponent } from "./components/clarification-modal/cl
 // Pipes
 import { I18nPipe } from "./pipes/i18n.pipe";
 
-type View = "landing" | "login" | "register" | "verification" | "app";
+type View =
+  | "landing"
+  | "login"
+  | "register"
+  | "verification"
+  | "forgot-password"
+  | "reset-password"
+  | "app";
 type Nav = "dashboard" | "schedule" | "search" | "profile";
 
 @Component({
@@ -59,6 +68,8 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
     LoginComponent,
     RegisterComponent,
     VerificationComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
     DashboardComponent,
     ScheduleComponent,
     SearchComponent,
@@ -121,6 +132,27 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
       (resendCode)="handleResendVerification()"
       (backToLanding)="handleBackToLanding()"
     />
+    } @case ('forgot-password') {
+    <div class="relative w-full h-full">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-forgot-password
+        (codeRequested)="handleForgotPasswordCodeRequested($event)"
+        (backToLogin)="showLogin()"
+      />
+    </div>
+    } @case ('reset-password') {
+    <div class="relative w-full h-full">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-reset-password
+        [email]="emailForPasswordReset()"
+        (passwordResetComplete)="handlePasswordResetComplete()"
+        (backToLogin)="showLogin()"
+      />
+    </div>
     } @case ('app') { @if (currentUser(); as user) {
     <div
       class="flex h-screen bg-gray-100 font-sans text-gray-800 overflow-hidden mobile-safe"
@@ -532,6 +564,7 @@ export class AppComponent implements OnInit {
   currentUser = this.authService.appUser;
   pendingEmailConfirmation = this.authService.pendingEmailConfirmation;
   emailForVerification = signal("");
+  emailForPasswordReset = signal("");
 
   // Component References
   @ViewChild(LoginComponent) loginComponent?: LoginComponent;
@@ -743,7 +776,21 @@ export class AppComponent implements OnInit {
   }
 
   handleForgotPassword(email: string) {
-    this.authService.resetPassword(email);
+    this.emailForPasswordReset.set(email);
+    this.view.set("forgot-password");
+  }
+
+  handleForgotPasswordCodeRequested(email: string) {
+    this.emailForPasswordReset.set(email);
+    this.view.set("reset-password");
+  }
+
+  handlePasswordResetComplete() {
+    this.emailForPasswordReset.set("");
+    this.view.set("login");
+    this.notificationService.addNotification(
+      this.i18n.translate("password_reset_success")
+    );
   }
 
   async handleLogout() {
