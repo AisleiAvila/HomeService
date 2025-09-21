@@ -4,6 +4,8 @@ import {
   output,
   signal,
   inject,
+  input,
+  effect,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -20,6 +22,10 @@ import { NotificationService } from "../../services/notification.service";
 })
 export class ForgotPasswordComponent {
   backToLogin = output<void>();
+  codeRequested = output<string>();
+
+  // Input para receber email da tela anterior
+  initialEmail = input<string>("");
 
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
@@ -28,6 +34,16 @@ export class ForgotPasswordComponent {
   isLoading = signal(false);
   isEmailSent = signal(false);
   errorMessage = signal<string | null>(null);
+
+  constructor() {
+    // Effect para definir email inicial quando componente é criado
+    effect(() => {
+      const initial = this.initialEmail();
+      if (initial) {
+        this.email.set(initial);
+      }
+    });
+  }
 
   async sendResetEmail() {
     if (!this.email()) {
@@ -79,8 +95,7 @@ export class ForgotPasswordComponent {
   }
 
   goToVerification() {
-    // Armazenar o email temporariamente para a próxima tela
-    localStorage.setItem("resetPasswordEmail", this.email());
-    this.backToLogin.emit();
+    // Emitir o email para a próxima tela
+    this.codeRequested.emit(this.email());
   }
 }
