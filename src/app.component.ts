@@ -56,7 +56,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile";
+type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
 
 @Component({
   selector: "app-root",
@@ -381,7 +381,18 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           <app-search [user]="user" />
           } @case('profile') {
           <app-profile [user]="user" />
-          } }
+          } @case('details') { @if (selectedRequest()) {
+          <app-service-request-details
+            [request]="selectedRequest()!"
+            [currentUser]="user"
+            (close)="goBackFromDetails()"
+            (openChat)="openChat($event)"
+            (approveQuote)="handleApproveQuote($event)"
+            (rejectQuote)="handleRejectQuote($event)"
+            (scheduleRequest)="openScheduler($event)"
+            (payNow)="handlePayment($event)"
+          />
+          } } }
         </main>
       </div>
     </div>
@@ -424,21 +435,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile";
           [serviceRequest]="selectedRequest()!"
           (close)="closeModal()"
           (appointmentConfirmed)="handleScheduleConfirmed($event)"
-        />
-      </div>
-    </div>
-    } @if (isDetailsModalOpen() && selectedRequest()) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-content max-w-4xl" (click)="$event.stopPropagation()">
-        <app-service-request-details
-          [request]="selectedRequest()!"
-          [currentUser]="user"
-          (close)="closeModal()"
-          (openChat)="openChat($event)"
-          (approveQuote)="handleApproveQuote($event)"
-          (rejectQuote)="handleRejectQuote($event)"
-          (scheduleRequest)="openScheduler($event)"
-          (payNow)="handlePayment($event)"
         />
       </div>
     </div>
@@ -555,7 +551,6 @@ export class AppComponent implements OnInit {
   isChatOpen = signal(false);
   isNewRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
-  isDetailsModalOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
 
@@ -840,8 +835,12 @@ export class AppComponent implements OnInit {
   openDetails(request: ServiceRequest) {
     console.log("openDetails called with request:", request);
     this.selectedRequest.set(request);
-    this.isDetailsModalOpen.set(true);
-    console.log("Modal state:", this.isDetailsModalOpen());
+    this.currentNav.set("details");
+  }
+
+  goBackFromDetails() {
+    this.selectedRequest.set(null);
+    this.currentNav.set("dashboard");
   }
 
   openClarificationModal(request: ServiceRequest) {
@@ -883,7 +882,6 @@ export class AppComponent implements OnInit {
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
-    this.isDetailsModalOpen.set(false);
     this.isClarificationModalOpen.set(false);
     this.selectedRequest.set(null);
   }
