@@ -219,13 +219,13 @@ export class ScheduleComponent implements OnDestroy {
       }
 
       const scheduledEvents = userRequests
-        .filter((r) => r.scheduled_date)
+        .filter((r) => r.scheduled_date || r.scheduled_start_datetime)
         .map((request) => ({
           id: String(request.id),
           title: `${request.title} (${this.getStatusTranslation(
             request.status
           )})`,
-          start: request.scheduled_date!,
+          start: request.scheduled_start_datetime || request.scheduled_date!,
           backgroundColor: this.statusColor(request.status),
           borderColor: this.statusColor(request.status),
           textColor: "#ffffff",
