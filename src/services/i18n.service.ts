@@ -922,8 +922,7 @@ export class I18nService {
   setLanguage(lang: Language) {
     this.language.set(lang);
     localStorage.setItem("homeservice-language", lang);
-    // Força reload da página para garantir que as traduções sejam atualizadas
-    window.location.reload();
+    // Atualiza o idioma sem recarregar a página
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
