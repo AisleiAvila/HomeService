@@ -1,12 +1,26 @@
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
+<div
+  class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-300 mobile-safe"
+>
   <div
-    class="flex flex-col md:flex-row items-center md:items-start md:space-x-8"
+    class="w-full max-w-2xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-indigo-100 transition-all duration-300"
   >
-    <!-- Avatar with upload/camera options -->
-    <div class="flex-shrink-0 mb-6 md:mb-0">
-      <div class="relative group h-32 w-32">
+    <!-- Seletor de idioma no topo direito -->
+    <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
+      <i class="fas fa-globe text-indigo-500 text-lg"></i>
+      <select
+        class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        (change)="i18n.setLanguage($event.target.value)"
+        [value]="i18n.language()"
+        aria-label="Selecionar idioma"
+      >
+        <option value="pt">Português</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <div class="flex flex-col items-center pt-8 pb-2 gap-2">
+      <div class="relative group h-24 w-24 md:h-32 md:w-32 mb-2">
         <img
-          class="h-32 w-32 rounded-full object-cover shadow-lg"
+          class="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover shadow-lg"
           [src]="user().avatar_url"
           [alt]="user().name"
         />
@@ -17,14 +31,14 @@
             <button
               (click)="fileInput.click()"
               [title]="'uploadPhoto' | i18n"
-              class="text-white text-3xl hover:text-gray-300"
+              class="text-white text-2xl md:text-3xl hover:text-gray-300"
             >
               <i class="fas fa-upload"></i>
             </button>
             <button
               (click)="openCameraModal()"
               [title]="'useCamera' | i18n"
-              class="text-white text-3xl hover:text-gray-300"
+              class="text-white text-2xl md:text-3xl hover:text-gray-300"
             >
               <i class="fas fa-camera"></i>
             </button>
@@ -38,105 +52,105 @@
         (change)="onFileSelected($event)"
         accept="image/png, image/jpeg, image/gif"
       />
+      <h2
+        class="text-2xl md:text-3xl font-extrabold text-indigo-700 drop-shadow-sm mt-2"
+      >
+        {{ user().name }}
+      </h2>
+      <p class="text-base text-indigo-400 font-medium mb-2 capitalize">
+        {{ user().role }}
+      </p>
     </div>
-
-    <!-- User Info Form -->
-    <div class="flex-1 w-full">
-      <h2 class="text-3xl font-bold text-gray-800 mb-2">{{ user().name }}</h2>
-      <p class="text-gray-500 mb-6 capitalize">{{ user().role }}</p>
-
-      <form #profileForm="ngForm" (ngSubmit)="saveProfile()">
-        <div class="space-y-6">
-          <!-- Name -->
-          <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">{{
-              "fullName" | i18n
-            }}</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              [ngModel]="name()"
-              (ngModelChange)="name.set($event); checkIfChanged()"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-            />
-          </div>
-
-          <!-- Email -->
-          <div>
-            <label
-              for="email"
-              class="block text-sm font-medium text-gray-700"
-              >{{ "emailAddress" | i18n }}</label
-            >
-            <input
-              type="email"
-              id="email"
-              name="email"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event); checkIfChanged()"
-              required
-              email
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-            />
-          </div>
-
-          <!-- Specialties for Professionals -->
-          @if (user().role === 'professional') {
-          <div>
-            <fieldset>
-              <legend class="block text-sm font-medium text-gray-700 mb-2">
-                {{ "mySpecialties" | i18n }}
-              </legend>
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                @for (cat of allCategories(); track cat) {
-                <div class="flex items-start">
-                  <div class="flex items-center h-5">
-                    <input
-                      [id]="'specialty-' + cat"
-                      type="checkbox"
-                      [checked]="isSpecialtyChecked(cat)"
-                      (change)="onSpecialtyChange(cat, $event)"
-                      class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div class="ml-2 text-sm">
-                    <label
-                      [for]="'specialty-' + cat"
-                      class="font-medium text-gray-700"
-                      >{{ cat }}</label
-                    >
-                  </div>
+    <form
+      #profileForm="ngForm"
+      (ngSubmit)="saveProfile()"
+      class="space-y-7 bg-white/95 shadow-xl rounded-2xl px-6 py-8"
+    >
+      <div class="space-y-6">
+        <div>
+          <label
+            for="name"
+            class="block text-sm font-semibold text-indigo-700 mb-1"
+            >{{ "fullName" | i18n }}</label
+          >
+          <input
+            type="text"
+            id="name"
+            name="name"
+            [ngModel]="name()"
+            (ngModelChange)="name.set($event); checkIfChanged()"
+            required
+            class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+          />
+        </div>
+        <div>
+          <label
+            for="email"
+            class="block text-sm font-semibold text-indigo-700 mb-1"
+            >{{ "emailAddress" | i18n }}</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event); checkIfChanged()"
+            required
+            email
+            class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+          />
+        </div>
+        @if (user().role === 'professional') {
+        <div>
+          <fieldset>
+            <legend class="block text-sm font-semibold text-indigo-700 mb-2">
+              {{ "mySpecialties" | i18n }}
+            </legend>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              @for (cat of allCategories(); track cat) {
+              <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <input
+                    [id]="'specialty-' + cat"
+                    type="checkbox"
+                    [checked]="isSpecialtyChecked(cat)"
+                    (change)="onSpecialtyChange(cat, $event)"
+                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                  />
                 </div>
-                }
+                <div class="ml-2 text-sm">
+                  <label
+                    [for]="'specialty-' + cat"
+                    class="font-medium text-gray-700"
+                    >{{ cat }}</label
+                  >
+                </div>
               </div>
-            </fieldset>
-          </div>
-          }
+              }
+            </div>
+          </fieldset>
         </div>
-
-        <!-- Action Buttons -->
-        <div
-          class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-3"
+        }
+      </div>
+      <div
+        class="flex flex-col sm:flex-row sm:justify-end gap-4 pt-6 border-t border-gray-200"
+      >
+        <button
+          type="button"
+          (click)="goToDashboard()"
+          class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
         >
-          <button
-            type="button"
-            (click)="resetForm()"
-            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-          >
-            {{ "cancel" | i18n }}
-          </button>
-          <button
-            type="submit"
-            [disabled]="profileForm.invalid || !isChanged()"
-            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {{ "saveChanges" | i18n }}
-          </button>
-        </div>
-      </form>
-    </div>
+          {{ "cancel" | i18n }}
+        </button>
+        <button
+          type="submit"
+          [disabled]="profileForm.invalid || !isChanged()"
+          class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-md"
+        >
+          {{ "saveChanges" | i18n }}
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 

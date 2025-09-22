@@ -35,7 +35,10 @@ export class ProfileComponent implements OnDestroy {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private dataService = inject(DataService);
-  private i18n = inject(I18nService);
+  i18n = inject(I18nService);
+  goToDashboard() {
+    window.location.href = "/dashboard";
+  }
 
   fileInput = viewChild<ElementRef<HTMLInputElement>>("fileInput");
   videoElement = viewChild<ElementRef<HTMLVideoElement>>("videoElement");
