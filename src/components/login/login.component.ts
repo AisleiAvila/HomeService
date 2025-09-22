@@ -20,20 +20,22 @@ export interface LoginPayload {
   standalone: true,
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
-    <div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div
+      class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-300 mobile-safe"
+    >
       <div
-        class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md relative"
+        class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-indigo-100 transition-all duration-300"
       >
         <button
           (click)="switchToLanding.emit()"
-          class="absolute top-4 left-4 text-gray-600 hover:text-indigo-600 flex items-center"
+          class="absolute top-3 left-3 text-indigo-400 hover:text-indigo-700 flex items-center focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white/80 px-2 py-1 rounded-lg shadow-sm"
+          aria-label="Voltar para Home"
         >
           <i class="fas fa-arrow-left mr-2"></i>
-          <span>{{ "backToHome" | i18n }}</span>
+          <span class="hidden sm:inline">{{ "backToHome" | i18n }}</span>
         </button>
-
-        <div class="text-center pt-10">
-          <div class="flex flex-col items-center gap-2 mb-2">
+        <div class="flex flex-col items-center pt-6 pb-2 gap-2">
+          <div class="flex flex-col items-center gap-2 mb-2 w-full">
             <img
               src="src/assets/logo.jpg"
               alt="Logo HomeService"
@@ -52,13 +54,17 @@ export interface LoginPayload {
               </select>
             </div>
           </div>
-          <h1 class="text-3xl font-bold text-gray-900">
+          <h1
+            class="text-3xl md:text-4xl font-extrabold text-indigo-700 drop-shadow-sm"
+          >
             {{ "signIn" | i18n }}
           </h1>
-          <p class="mt-2 text-sm text-gray-600">Welcome back to MaintainApp</p>
+          <p class="mt-2 text-base text-indigo-400 font-medium">
+            Welcome back to Home Service Pro
+          </p>
         </div>
 
-        <form (ngSubmit)="login()" class="space-y-6">
+        <form (ngSubmit)="login()" class="space-y-7">
           <!-- Mensagem de Erro -->
           @if (errorMessage()) {
           <div
@@ -74,7 +80,7 @@ export interface LoginPayload {
           <div>
             <label
               for="email"
-              class="block text-sm font-medium text-gray-700"
+              class="block text-sm font-semibold text-indigo-700 mb-1"
               >{{ "email" | i18n }}</label
             >
             <input
@@ -83,7 +89,7 @@ export interface LoginPayload {
               type="email"
               autocomplete="email"
               required
-              class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
               [ngModel]="email()"
               (ngModelChange)="email.set($event)"
             />
@@ -92,7 +98,7 @@ export interface LoginPayload {
           <div>
             <label
               for="password"
-              class="block text-sm font-medium text-gray-700"
+              class="block text-sm font-semibold text-indigo-700 mb-1"
               >{{ "password" | i18n }}</label
             >
             <input
@@ -101,29 +107,27 @@ export interface LoginPayload {
               type="password"
               autocomplete="current-password"
               required
-              class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
               [ngModel]="password()"
               (ngModelChange)="password.set($event)"
             />
           </div>
 
-          <div class="flex items-center justify-between">
-            <div class="text-sm">
-              <button
-                type="button"
-                (click)="handleForgotPassword()"
-                class="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                {{ "forgotPassword" | i18n }}
-              </button>
-            </div>
+          <div class="flex items-center justify-between mt-2">
+            <button
+              type="button"
+              (click)="handleForgotPassword()"
+              class="text-sm font-semibold text-indigo-500 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 px-2 py-1 rounded-lg"
+            >
+              {{ "forgotPassword" | i18n }}
+            </button>
           </div>
 
           <div>
             <button
               type="submit"
               [disabled]="!email() || !password() || isLoading()"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-all duration-150"
             >
               @if (isLoading()) {
               <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -135,15 +139,15 @@ export interface LoginPayload {
           </div>
         </form>
 
-        <p class="mt-4 text-sm text-center text-gray-600">
-          {{ "dontHaveAccount" | i18n }}
+        <div class="mt-6 text-sm text-center text-indigo-500">
+          <span>{{ "dontHaveAccount" | i18n }}</span>
           <button
             (click)="switchToRegister.emit()"
-            class="font-medium text-indigo-600 hover:text-indigo-500"
+            class="font-bold text-indigo-600 hover:text-indigo-800 ml-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 px-2 py-1 rounded-lg"
           >
             {{ "createAccount" | i18n }}
           </button>
-        </p>
+        </div>
       </div>
     </div>
   `,
