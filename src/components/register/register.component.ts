@@ -8,6 +8,8 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { UserRole } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { inject } from "@angular/core";
+import { I18nService } from "../../services/i18n.service";
 
 export interface RegisterPayload {
   name: string;
@@ -32,6 +34,9 @@ export class RegisterComponent {
   email = signal("");
   password = signal("");
   role = signal<UserRole>("client");
+
+  // Injeção do serviço de internacionalização
+  i18n = inject(I18nService);
 
   register() {
     // Validar campos antes de enviar
