@@ -123,22 +123,15 @@
                 id="role-client"
                 name="role"
                 type="radio"
-                value="client"
-                (change)="role.set('client')"
-                [checked]="role() === 'client'"
+                [value]="'client'"
+                [ngModel]="role()"
+                (ngModelChange)="role.set($event)"
                 class="sr-only peer"
               />
               <label
                 for="role-client"
                 class="flex items-center justify-center w-full p-4 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 hover:bg-gray-50 transition-all duration-200"
               >
-                <span
-                  class="w-4 h-4 mr-3 border-2 border-gray-400 rounded-full peer-checked:border-indigo-600 peer-checked:bg-indigo-600 flex items-center justify-center"
-                >
-                  <span
-                    class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"
-                  ></span>
-                </span>
                 {{ "client" | i18n }}
               </label>
             </div>
@@ -147,22 +140,15 @@
                 id="role-professional"
                 name="role"
                 type="radio"
-                value="professional"
-                (change)="role.set('professional')"
-                [checked]="role() === 'professional'"
+                [value]="'professional'"
+                [ngModel]="role()"
+                (ngModelChange)="role.set($event)"
                 class="sr-only peer"
               />
               <label
                 for="role-professional"
                 class="flex items-center justify-center w-full p-4 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 hover:bg-gray-50 transition-all duration-200"
               >
-                <span
-                  class="w-4 h-4 mr-3 border-2 border-gray-400 rounded-full peer-checked:border-indigo-600 peer-checked:bg-indigo-600 flex items-center justify-center"
-                >
-                  <span
-                    class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"
-                  ></span>
-                </span>
                 {{ "professional" | i18n }}
               </label>
             </div>
