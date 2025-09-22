@@ -34,26 +34,26 @@ export interface LoginPayload {
           <i class="fas fa-arrow-left mr-2"></i>
           <span class="hidden sm:inline">{{ "backToHome" | i18n }}</span>
         </button>
-        <div class="flex flex-col items-center pt-6 pb-2 gap-2">
-          <div class="flex flex-col items-center gap-2 mb-2 w-full">
-            <img
-              src="src/assets/logo.jpg"
-              alt="Logo HomeService"
-              class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg"
-            />
-            <div class="flex items-center gap-2 justify-center w-full">
-              <i class="fas fa-globe text-indigo-500 text-lg"></i>
-              <select
-                class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                (change)="i18n.setLanguage($event.target.value)"
-                [value]="i18n.language()"
-                aria-label="Selecionar idioma"
-              >
-                <option value="pt">Português</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-          </div>
+
+        <!-- Seletor de idioma no topo direito -->
+        <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
+          <i class="fas fa-globe text-indigo-500 text-lg"></i>
+          <select
+            class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            (change)="i18n.setLanguage($event.target.value)"
+            [value]="i18n.language()"
+            aria-label="Selecionar idioma"
+          >
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="flex flex-col items-center pt-10 pb-2 gap-2">
+          <img
+            src="src/assets/logo.jpg"
+            alt="Logo HomeService"
+            class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg mb-2"
+          />
           <h1
             class="text-3xl md:text-4xl font-extrabold text-indigo-700 drop-shadow-sm"
           >
