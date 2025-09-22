@@ -136,7 +136,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Please verify your email before logging in. Check your email for the verification link.",
 
     // Dashboard
-    welcomeBack: "Welcome back, {name}!",
+    welcomeBack: "Welcome!",
     dashboardSummary: "Here is a summary of your activity.",
     pendingApproval: "Pending",
     activeRequests: "Active",
@@ -578,7 +578,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Por favor, verifique seu email antes de fazer login. Verifique seu email pelo link de verificação.",
 
     // Dashboard
-    welcomeBack: "Bem-vindo(a) de volta, {name}!",
+    welcomeBack: "Bem-vindo(a)!",
     dashboardSummary: "Aqui está um resumo da sua atividade.",
     pendingApproval: "Pendentes",
     activeRequests: "Ativas",
