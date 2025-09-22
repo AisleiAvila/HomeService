@@ -3,10 +3,12 @@ import {
   ChangeDetectionStrategy,
   output,
   signal,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { I18nService } from "../../services/i18n.service";
 
 export interface LoginPayload {
   email: string;
@@ -31,6 +33,25 @@ export interface LoginPayload {
         </button>
 
         <div class="text-center pt-10">
+          <div class="flex flex-col items-center gap-2 mb-2">
+            <img
+              src="src/assets/logo.jpg"
+              alt="Logo HomeService"
+              class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg"
+            />
+            <div class="flex items-center gap-2 justify-center w-full">
+              <i class="fas fa-globe text-indigo-500 text-lg"></i>
+              <select
+                class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                (change)="i18n.setLanguage($event.target.value)"
+                [value]="i18n.language()"
+                aria-label="Selecionar idioma"
+              >
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
           <h1 class="text-3xl font-bold text-gray-900">
             {{ "signIn" | i18n }}
           </h1>
@@ -138,6 +159,9 @@ export class LoginComponent {
   password = signal("");
   errorMessage = signal<string | null>(null);
   isLoading = signal(false);
+
+  // Injeção do serviço de internacionalização
+  i18n = inject(I18nService);
 
   login() {
     console.log("Logging in with", this.email(), this.password());
