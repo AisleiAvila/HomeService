@@ -60,7 +60,7 @@ export interface LoginPayload {
             {{ "signIn" | i18n }}
           </h1>
           <p class="mt-2 text-base text-indigo-400 font-medium">
-            Welcome back to Home Service Pro
+            {{ "welcomeBack" | i18n }}
           </p>
         </div>
 
