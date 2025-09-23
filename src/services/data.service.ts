@@ -1,4 +1,5 @@
 import { Injectable, signal, inject } from "@angular/core";
+import { environment } from "../environments/environment";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
 import { AuthService } from "./auth.service";
@@ -247,17 +248,55 @@ export class DataService {
 
   private async fetchServiceRequests(currentUser: User) {
     let query = this.supabase.client.from("service_requests").select("*");
-
+    let filtro: { client_auth_id?: string; professional_id?: number } = {};
     if (currentUser.role === "client") {
       query = query.eq("client_auth_id", currentUser.auth_id);
+      filtro = { client_auth_id: currentUser.auth_id };
     } else if (currentUser.role === "professional") {
-      query = query.or(
-        `professional_auth_id.eq.${currentUser.auth_id},professional_id.is.null`
+      // Forçar tipo integer
+      const profId =
+        typeof currentUser.id === "string"
+          ? parseInt(currentUser.id, 10)
+          : currentUser.id;
+      console.log(
+        "[DEBUG] Valor de professional_id usado no filtro:",
+        profId,
+        "Tipo:",
+        typeof profId
       );
+      query = query.eq("professional_id", profId);
+      filtro = { professional_id: profId };
     }
-    // Admin sees all
+    // Admin: sem filtro
+
+    console.log("[fetchServiceRequests] Filtro aplicado:", filtro);
+    // Exibe a query como string SQL simulada para debug
+    let sqlDebug = "SELECT * FROM service_requests";
+    if (filtro.client_auth_id) {
+      sqlDebug += ` WHERE client_auth_id = '${filtro.client_auth_id}'`;
+    } else if (filtro.professional_id) {
+      sqlDebug += ` WHERE professional_id = ${filtro.professional_id}`;
+    }
+    console.log("[DEBUG] SQL simulada:", sqlDebug);
 
     const { data, error } = await query;
+    if (error) {
+      console.log("[fetchServiceRequests] Objeto de erro completo:", error);
+    }
+
+    // Log detalhado do resultado bruto e tipos
+    if (data) {
+      console.log("[DEBUG] Resultado bruto da consulta Supabase:", data);
+      data.forEach((item: any, idx: number) => {
+        console.log(
+          `[DEBUG] Item #${idx} - id: ${item.id}, professional_id:`,
+          item.professional_id,
+          "(typeof:",
+          typeof item.professional_id,
+          ")"
+        );
+      });
+    }
 
     if (error) {
       console.log(
@@ -267,18 +306,25 @@ export class DataService {
       this.notificationService.addNotification(
         "Using sample data - Error fetching service requests: " + error.message
       );
-    } else if (data && data.length > 0) {
-      console.log("Loaded service requests from Supabase:", data.length);
-      const users = this.users();
-      const requests = (data as any[]).map((r) => ({
-        ...r,
-        client_name: users.find((u) => u.id === r.client_id)?.name || "Unknown",
-        professional_name:
-          users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
-      }));
-      this.serviceRequests.set(requests);
     } else {
-      console.log("No service requests found in Supabase, keeping sample data");
+      console.log(
+        "Loaded service requests from Supabase:",
+        data ? data.length : 0
+      );
+      console.log("[fetchServiceRequests] Dados retornados:", data);
+      if (data && data.length > 0) {
+        const users = this.users();
+        const requests = (data as any[]).map((r) => ({
+          ...r,
+          client_name:
+            users.find((u) => u.id === r.client_id)?.name || "Unknown",
+          professional_name:
+            users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
+        }));
+        this.serviceRequests.set(requests);
+      } else {
+        this.serviceRequests.set([]);
+      }
     }
   }
 
@@ -406,8 +452,8 @@ export class DataService {
       : "Orçamento rejeitado";
     this.updateServiceRequest(requestId, { status });
     this.notificationService.addNotification(
-      `Quote for request #${requestId} has been ${
-        approved ? "approved" : "rejected"
+      `Orçamento do pedido #${requestId} foi ${
+        approved ? "aprovado" : "rejeitado"
       }.`
     );
   }
