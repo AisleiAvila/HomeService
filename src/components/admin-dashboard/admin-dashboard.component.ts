@@ -1,33 +1,77 @@
+import { CommonModule } from "@angular/common";
 import {
-  Component,
   ChangeDetectionStrategy,
-  inject,
+  Component,
   computed,
+  inject,
   signal,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import {
+  ServiceCategory,
+  ServiceRequest,
+  User,
+} from "../../models/maintenance.models";
+import { I18nPipe } from "../../pipes/i18n.pipe";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "../../services/i18n.service";
 import { NotificationService } from "../../services/notification.service";
 import { WorkflowService } from "../../services/workflow.service";
-import {
-  User,
-  ServiceCategory,
-  ServiceRequest,
-} from "../../models/maintenance.models";
-import { I18nPipe } from "../../pipes/i18n.pipe";
+import { StatusPieChartComponent } from "../status-pie-chart.component";
 
 @Component({
   selector: "app-admin-dashboard",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [CommonModule, FormsModule, I18nPipe, StatusPieChartComponent],
   templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent {
   private dataService = inject(DataService);
-  private i18n = inject(I18nService);
+  i18n = inject(I18nService);
+  // Labels internacionalizados para status
+  statusLabels: Record<string, string> = {
+    Solicitado: this.i18n.translate("statusRequested"),
+    "Em análise": this.i18n.translate("statusInAnalysis"),
+    "Aguardando esclarecimentos": this.i18n.translate(
+      "statusAwaitingClarifications"
+    ),
+    "Orçamento enviado": this.i18n.translate("statusQuoteSent"),
+    "Aguardando aprovação do orçamento": this.i18n.translate(
+      "statusAwaitingQuoteApproval"
+    ),
+    "Orçamento aprovado": this.i18n.translate("statusQuoteApproved"),
+    "Aguardando data de execução": this.i18n.translate(
+      "statusAwaitingExecutionDate"
+    ),
+    "Data proposta pelo administrador": this.i18n.translate(
+      "statusDateProposedByAdmin"
+    ),
+    "Aguardando aprovação da data": this.i18n.translate(
+      "statusAwaitingDateApproval"
+    ),
+    "Data aprovada pelo cliente": this.i18n.translate(
+      "statusDateApprovedByClient"
+    ),
+    "Buscando profissional": this.i18n.translate("statusSearchingProfessional"),
+    "Profissional selecionado": this.i18n.translate(
+      "statusProfessionalSelected"
+    ),
+    "Aguardando confirmação do profissional": this.i18n.translate(
+      "statusAwaitingProfessionalConfirmation"
+    ),
+    Agendado: this.i18n.translate("statusScheduled"),
+    "Em execução": this.i18n.translate("statusInExecution"),
+    "Concluído - Aguardando aprovação": this.i18n.translate(
+      "statusCompletedAwaitingApproval"
+    ),
+    Assigned: this.i18n.translate("statusAssigned"),
+    Pending: this.i18n.translate("statusPending"),
+    Scheduled: this.i18n.translate("statusScheduledEn"),
+    "In Progress": this.i18n.translate("statusInProgress"),
+    Finalizado: this.i18n.translate("statusCompleted"),
+    Cancelado: this.i18n.translate("statusCancelled"),
+  };
   private notificationService = inject(NotificationService);
   private workflowService = inject(WorkflowService);
 
@@ -78,6 +122,16 @@ export class AdminDashboardComponent {
   scheduledDate = signal<string>("");
   scheduledTime = signal<string>("");
   estimatedDurationMinutes = signal<number | null>(null);
+
+  // Computed: total de serviços por status
+  servicesByStatus = computed(() => {
+    const requests = this.dataService.serviceRequests();
+    const statusMap: Record<string, number> = {};
+    for (const req of requests) {
+      statusMap[req.status] = (statusMap[req.status] || 0) + 1;
+    }
+    return statusMap;
+  });
 
   // Execution date proposal data
   dateProposalRequest = signal<ServiceRequest | null>(null);
@@ -235,6 +289,31 @@ export class AdminDashboardComponent {
     const users = this.allUsers();
     const financialData = this.financialStats();
 
+    // Status ativos em português e inglês
+    const statusAtivos = [
+      // Português
+      "Solicitado",
+      "Em análise",
+      "Aguardando esclarecimentos",
+      "Orçamento enviado",
+      "Aguardando aprovação do orçamento",
+      "Orçamento aprovado",
+      "Aguardando data de execução",
+      "Data proposta pelo administrador",
+      "Aguardando aprovação da data",
+      "Data aprovada pelo cliente",
+      "Buscando profissional",
+      "Profissional selecionado",
+      "Aguardando confirmação do profissional",
+      "Agendado",
+      "Em execução",
+      "Concluído - Aguardando aprovação",
+      // Inglês
+      "Assigned",
+      "Pending",
+      "Scheduled",
+      "In Progress",
+    ];
     return [
       {
         label: this.i18n.translate("totalRevenue"),
@@ -249,8 +328,8 @@ export class AdminDashboardComponent {
         bgColor: "bg-orange-100 text-orange-600",
       },
       {
-        label: this.i18n.translate("activeServices"),
-        value: requests.filter((r) => r.status === "Em execução").length,
+        label: this.i18n.translate("activeRequests"),
+        value: requests.filter((r) => statusAtivos.includes(r.status)).length,
         icon: "fas fa-cogs",
         bgColor: "bg-blue-100 text-blue-600",
       },
