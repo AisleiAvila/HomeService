@@ -899,17 +899,6 @@ export class I18nService {
   readonly language = signal<Language>("en"); // Idioma padrão inglês
 
   constructor() {
-    console.log("🚀 I18nService constructor - Service initialized");
-    console.log("🚀 Available translations:", Object.keys(allTranslations));
-    console.log(
-      "🚀 EN landingDescription:",
-      allTranslations.en?.landingDescription
-    );
-    console.log(
-      "🚀 PT landingDescription:",
-      allTranslations.pt?.landingDescription
-    );
-
     // Carregar idioma salvo do localStorage
     const savedLang = localStorage.getItem("homeservice-language") as Language;
     console.log("🚀 Saved language from localStorage:", savedLang);
@@ -928,21 +917,12 @@ export class I18nService {
   translate(key: string, params?: Record<string, string | number>): string {
     const lang = this.language();
 
-    // Debug completo para QUALQUER chave
-    console.log("=== I18N TRANSLATE DEBUG ===");
-    console.log("Key requested:", key);
-    console.log("Current language:", lang);
-    console.log("allTranslations exists:", !!allTranslations);
-    console.log("allTranslations[lang] exists:", !!allTranslations[lang]);
-
-    if (allTranslations[lang]) {
-      console.log(
-        "Available keys:",
-        Object.keys(allTranslations[lang]).slice(0, 10)
-      );
-      console.log("Key exists in translations:", key in allTranslations[lang]);
-      console.log("Direct value:", allTranslations[lang][key]);
-    }
+    // if (allTranslations[lang]) {
+    //   console.log(
+    //     "Available keys:",
+    //     Object.keys(allTranslations[lang]).slice(0, 10)
+    //   );
+    // }
 
     let translation = allTranslations[lang]?.[key] || key;
 
@@ -954,9 +934,6 @@ export class I18nService {
         );
       });
     }
-
-    console.log("Final translation result:", translation);
-    console.log("=== END DEBUG ===");
 
     return translation;
   }

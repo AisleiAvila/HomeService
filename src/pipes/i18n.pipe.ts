@@ -13,12 +13,7 @@ export class I18nPipe implements PipeTransform {
     // Força a reatividade usando o signal da linguagem
     const currentLang = this.i18n.language();
 
-    // Debug para todas as chaves
-    console.log("🔍 I18n Pipe - Key:", key, "Lang:", currentLang);
-
     const result = this.i18n.translate(key, params);
-
-    console.log("🔍 I18n Pipe - Result:", result);
 
     return result;
   }

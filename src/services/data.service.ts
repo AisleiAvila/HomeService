@@ -1,24 +1,19 @@
-import { Injectable, signal, inject } from "@angular/core";
-import { environment } from "../environments/environment";
-import { SupabaseService } from "./supabase.service";
-import { NotificationService } from "./notification.service";
+import { inject, Injectable, signal } from "@angular/core";
+import {
+  ChatMessage,
+  PaymentStatus,
+  SchedulingStatus,
+  ServiceCategory,
+  ServiceClarification,
+  ServiceRequest,
+  ServiceRequestPayload,
+  ServiceStatus,
+  User,
+} from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { I18nService } from "./i18n.service";
-import { WorkflowService } from "./workflow.service";
-import { AlertService } from "./alert.service";
-import {
-  User,
-  ServiceRequest,
-  ChatMessage,
-  ServiceCategory,
-  ServiceStatus,
-  PaymentStatus,
-  ServiceRequestPayload,
-  ServiceClarification,
-  SchedulingStatus,
-  WorkflowStats,
-  DateApproval,
-} from "../models/maintenance.models";
+import { NotificationService } from "./notification.service";
+import { SupabaseService } from "./supabase.service";
 
 @Injectable({
   providedIn: "root",
@@ -39,178 +34,6 @@ export class DataService {
   constructor() {
     this.listenToServiceRequestChanges();
     this.listenToUserChanges();
-    // Add sample data for pagination testing
-    this.addSampleDataForTesting();
-  }
-
-  private addSampleDataForTesting() {
-    console.log("🔧 Adding sample data for testing...");
-
-    // Add sample users
-    const sampleUsers: User[] = [
-      {
-        id: 1,
-        auth_id: "test-client-1",
-        name: "João Silva",
-        email: "joao@example.com",
-        role: "client",
-        status: "Active",
-        phone: "11999999999",
-        avatar_url: "",
-        specialties: [],
-        address: {
-          street: "Rua A, 123",
-          city: "São Paulo",
-          state: "SP",
-          zip_code: "01234-567",
-        },
-      },
-      {
-        id: 2,
-        auth_id: "test-professional-1",
-        name: "Maria Santos",
-        email: "maria@example.com",
-        role: "professional",
-        status: "Active",
-        phone: "11888888888",
-        avatar_url: "",
-        specialties: ["Plumbing", "Electrical"],
-        address: {
-          street: "Rua B, 456",
-          city: "São Paulo",
-          state: "SP",
-          zip_code: "01234-568",
-        },
-      },
-      {
-        id: 3,
-        auth_id: "test-admin-1",
-        name: "Admin Sistema",
-        email: "admin@example.com",
-        role: "admin",
-        status: "Active",
-        phone: "11777777777",
-        avatar_url: "",
-        specialties: [],
-        address: {
-          street: "Rua C, 789",
-          city: "São Paulo",
-          state: "SP",
-          zip_code: "01234-569",
-        },
-      },
-    ];
-
-    // Add sample service requests with varied names for testing
-    const sampleRequests: ServiceRequest[] = [];
-    const serviceNames = [
-      "Trocar encanamento danificado",
-      "Cortar grama",
-      "Instalação elétrica",
-      "Limpeza geral da casa",
-      "Pintura de parede",
-      "Conserto de vazamento",
-      "Manutenção do jardim",
-      "Troca de tomadas",
-      "Limpeza de piscina",
-      "Pintura de fachada",
-      "Reparo hidráulico",
-      "Poda de árvores",
-      "Instalação de ventilador",
-      "Limpeza de caixa d'água",
-      "Pintura de portão",
-      "Desentupimento",
-      "Jardinagem completa",
-      "Revisão elétrica",
-      "Limpeza pós-obra",
-      "Pintura interna",
-      "Manutenção de bomba",
-      "Corte de cerca viva",
-      "Instalação de interruptor",
-      "Limpeza de calhas",
-      "Pintura externa",
-    ];
-
-    // Novos status para teste
-    const newStatuses: ServiceStatus[] = [
-      "Solicitado",
-      "Em análise",
-      "Orçamento enviado",
-      "Aguardando aprovação do orçamento",
-      "Orçamento aprovado",
-      "Buscando profissional",
-      "Profissional selecionado",
-      "Agendado",
-      "Em execução",
-      "Concluído - Aguardando aprovação",
-      "Aprovado pelo cliente",
-      "Pago",
-      "Finalizado",
-    ];
-
-    for (let i = 1; i <= 25; i++) {
-      sampleRequests.push({
-        id: i,
-        client_id: 1,
-        professional_id: i % 3 === 0 ? 2 : null,
-        client_auth_id: "test-client-1",
-        professional_auth_id: i % 3 === 0 ? "test-professional-1" : null,
-        title: serviceNames[i - 1],
-        description: `Descrição detalhada do serviço: ${serviceNames[i - 1]}`,
-        category: [
-          "Plumbing",
-          "Electrical",
-          "Cleaning",
-          "Gardening",
-          "Painting",
-        ][i % 5] as ServiceCategory,
-        street: `Rua Teste ${i}, ${100 + i}`,
-        city: "São Paulo",
-        state: "SP",
-        zip_code: `0${String(i).padStart(4, "0")}-000`,
-        status: newStatuses[i % newStatuses.length],
-        payment_status: i % 3 === 0 ? "Paid" : ("Unpaid" as PaymentStatus),
-        requested_date: new Date(
-          Date.now() - i * 24 * 60 * 60 * 1000
-        ).toISOString(),
-        scheduled_date:
-          i % 4 === 0
-            ? new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString()
-            : null,
-        cost: i % 2 === 0 ? 100 + i * 10 : null,
-        client_name: "João Silva",
-        professional_name: i % 3 === 0 ? "Maria Santos" : "Não atribuído",
-
-        // Novos campos de exemplo
-        quote_amount: i % 2 === 0 ? 100 + i * 10 : null,
-        quote_description:
-          i % 2 === 0
-            ? `Orçamento detalhado para: ${serviceNames[i - 1]}`
-            : null,
-        requested_datetime: new Date(
-          Date.now() - i * 24 * 60 * 60 * 1000
-        ).toISOString(),
-        scheduled_start_datetime:
-          i % 4 === 0
-            ? new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString()
-            : null,
-        estimated_duration_minutes: i % 3 === 0 ? 120 + i * 30 : null,
-      });
-    }
-
-    this.users.set(sampleUsers);
-    this.serviceRequests.set(sampleRequests);
-    this.categories.set([
-      "Plumbing",
-      "Electrical",
-      "Cleaning",
-      "Gardening",
-      "Painting",
-    ]);
-
-    console.log(
-      `✅ Sample data loaded: ${sampleUsers.length} users, ${sampleRequests.length} requests`
-    );
   }
 
   async loadInitialData(currentUser: User) {
@@ -280,23 +103,6 @@ export class DataService {
     console.log("[DEBUG] SQL simulada:", sqlDebug);
 
     const { data, error } = await query;
-    if (error) {
-      console.log("[fetchServiceRequests] Objeto de erro completo:", error);
-    }
-
-    // Log detalhado do resultado bruto e tipos
-    if (data) {
-      console.log("[DEBUG] Resultado bruto da consulta Supabase:", data);
-      data.forEach((item: any, idx: number) => {
-        console.log(
-          `[DEBUG] Item #${idx} - id: ${item.id}, professional_id:`,
-          item.professional_id,
-          "(typeof:",
-          typeof item.professional_id,
-          ")"
-        );
-      });
-    }
 
     if (error) {
       console.log(

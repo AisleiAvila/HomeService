@@ -155,7 +155,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Total Tax",
     outstandingAmount: "Outstanding Amount",
     registrationSuccessful: "Registration Successful",
-    password_reset_success: "Password reset successful! You can now log in with your new password.",
+    password_reset_success:
+      "Password reset successful! You can now log in with your new password.",
 
     // New Service Request Form
     newServiceRequest: "New Service Request",
@@ -440,7 +441,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalTax: "Imposto Total",
     outstandingAmount: "Valor em Aberto",
     registrationSuccessful: "Registro Bem-sucedido",
-    password_reset_success: "Senha redefinida com sucesso! Agora pode fazer login com a sua nova senha.",
+    password_reset_success:
+      "Senha redefinida com sucesso! Agora pode fazer login com a sua nova senha.",
 
     // New Service Request Form
     newServiceRequest: "Nova Solicitação de Serviço",
@@ -616,29 +618,6 @@ export class I18nService {
     const lang = this.language();
     const translations = allTranslations[lang];
     const translation = translations[key];
-
-    // Debug extremo
-    if (key === "newServiceRequest") {
-      console.log(`� [EXTREME DEBUG] Key: ${key}`);
-      console.log(`🚨 [EXTREME DEBUG] Lang: ${lang}`);
-      console.log(
-        `🚨 [EXTREME DEBUG] Has translations object:`,
-        !!translations
-      );
-      console.log(`🚨 [EXTREME DEBUG] Direct lookup:`, translations[key]);
-      console.log(
-        `� [EXTREME DEBUG] All PT keys starting with 'new':`,
-        Object.keys(allTranslations.pt).filter((k) => k.startsWith("new"))
-      );
-      console.log(
-        `🚨 [EXTREME DEBUG] Key exists in PT:`,
-        key in allTranslations.pt
-      );
-      console.log(
-        `🚨 [EXTREME DEBUG] Expected value:`,
-        allTranslations.pt.newServiceRequest
-      );
-    }
 
     let result = translation || key;
 

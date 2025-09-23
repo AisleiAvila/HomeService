@@ -42,13 +42,39 @@ export class DashboardComponent {
       return allRequests.filter((r) => r.client_id === currentUser.id);
     } else if (currentUser.role === "professional") {
       return allRequests.filter((r) => r.professional_id === currentUser.id);
+    } else if (currentUser.role === "admin") {
+      return allRequests;
     }
     return [];
   });
 
+  // Considera status ativos em português
   activeRequests = computed(() =>
-    this.userRequests().filter(
-      (r) => r.status !== "Finalizado" && r.status !== "Cancelado"
+    this.userRequests().filter((r) =>
+      [
+        // Português
+        "Solicitado",
+        "Em análise",
+        "Aguardando esclarecimentos",
+        "Orçamento enviado",
+        "Aguardando aprovação do orçamento",
+        "Orçamento aprovado",
+        "Aguardando data de execução",
+        "Data proposta pelo administrador",
+        "Aguardando aprovação da data",
+        "Data aprovada pelo cliente",
+        "Buscando profissional",
+        "Profissional selecionado",
+        "Aguardando confirmação do profissional",
+        "Agendado",
+        "Em execução",
+        "Concluído - Aguardando aprovação",
+        // Inglês
+        "Assigned",
+        "Pending",
+        "Scheduled",
+        "In Progress",
+      ].includes(r.status)
     )
   );
   completedRequests = computed(() =>
@@ -59,20 +85,37 @@ export class DashboardComponent {
     const currentUser = this.user();
     const requests = this.userRequests();
 
-    if (currentUser.role === "client") {
+    // Status ativos em português
+    const statusAtivos = [
+      // Português
+      "Solicitado",
+      "Em análise",
+      "Aguardando esclarecimentos",
+      "Orçamento enviado",
+      "Aguardando aprovação do orçamento",
+      "Orçamento aprovado",
+      "Aguardando data de execução",
+      "Data proposta pelo administrador",
+      "Aguardando aprovação da data",
+      "Data aprovada pelo cliente",
+      "Buscando profissional",
+      "Profissional selecionado",
+      "Aguardando confirmação do profissional",
+      "Agendado",
+      "Em execução",
+      "Concluído - Aguardando aprovação",
+      // Inglês
+      "Assigned",
+      "Pending",
+      "Scheduled",
+      "In Progress",
+    ];
+
+    if (currentUser.role === "client" || currentUser.role === "admin") {
       return [
         {
-          label: this.i18n.translate("pendingApproval"),
-          value: requests.filter((r) =>
-            ["Pending", "Quoted", "Approved"].includes(r.status)
-          ).length,
-          icon: "fas fa-hourglass-half text-yellow-500",
-        },
-        {
           label: this.i18n.translate("activeRequests"),
-          value: requests.filter((r) =>
-            ["Assigned", "In Progress", "Scheduled"].includes(r.status)
-          ).length,
+          value: requests.filter((r) => statusAtivos.includes(r.status)).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
@@ -91,9 +134,7 @@ export class DashboardComponent {
       return [
         {
           label: this.i18n.translate("activeJobs"),
-          value: requests.filter((r) =>
-            ["Assigned", "In Progress", "Scheduled"].includes(r.status)
-          ).length,
+          value: requests.filter((r) => statusAtivos.includes(r.status)).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {
