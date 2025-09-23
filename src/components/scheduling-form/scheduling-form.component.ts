@@ -31,19 +31,19 @@ export class SchedulingFormComponent {
   close = output<void>();
   scheduled = output<ServiceRequest>();
 
-  // Services
+  // Serviços
   private dataService = inject(DataService);
   private authService = inject(AuthService);
   private i18n = inject(I18nService);
 
-  // Form state
+  // Estado do formulário
   selectedProfessionalId = signal<number | null>(null);
   scheduledDate = signal<string>("");
   scheduledTime = signal<string>("");
   estimatedDurationHours = signal<number>(1);
   estimatedDurationMinutes = signal<number>(0);
 
-  // Computed properties
+  // Propriedades computadas
   currentUser = this.authService.appUser;
 
   availableProfessionals = computed(() => {
@@ -134,16 +134,25 @@ export class SchedulingFormComponent {
     return "available";
   }
 
-  getAvailabilityClass(status: string): string {
-    switch (status) {
-      case "available":
-        return "text-green-600";
-      case "busy":
-        return "text-red-600";
-      case "partial":
-        return "text-yellow-600";
-      default:
-        return "text-gray-600";
-    }
+  getRequestedDate(): string {
+    const req = this.request?.();
+    const dateStr = req?.requested_datetime || req?.requested_date;
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString();
+  }
+
+  getRequestedTime(): string {
+    const req = this.request?.();
+    const dateStr = req?.requested_datetime || req?.requested_date;
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleTimeString("pt-PT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  getMinDate(): string {
+    // Retorna YYYY-MM-DD para data mínima
+    return new Date().toISOString().split("T")[0];
   }
 }

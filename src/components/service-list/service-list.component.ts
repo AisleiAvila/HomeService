@@ -60,6 +60,15 @@ export class ServiceListComponent {
     return Math.ceil(this.serviceRequests().length / this.itemsPerPage());
   });
 
+  ngOnInit() {
+    // Log para depuração: conteúdo recebido de serviceRequests
+    console.log(
+      "[ServiceListComponent] serviceRequests recebidos:",
+      this.serviceRequests()
+    );
+    console.log("[ServiceListComponent] currentUser:", this.currentUser());
+  }
+
   displayedRequests = computed(() => {
     if (!this.enablePagination()) {
       return this.serviceRequests();

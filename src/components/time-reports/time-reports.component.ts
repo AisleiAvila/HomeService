@@ -100,7 +100,7 @@ export class TimeReportsComponent {
   });
 
   completedRequests = computed(() => {
-    return this.filteredRequests().filter((r) => r.status === "Completed");
+    return this.filteredRequests().filter((r) => r.status === "Finalizado");
   });
 
   delayedRequests = computed(() => {
