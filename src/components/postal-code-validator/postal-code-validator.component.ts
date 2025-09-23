@@ -6,7 +6,7 @@ import {
   OnInit,
   OnDestroy,
 } from "@angular/core";
-import { FormControl } from "@angular/forms";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import {
   debounceTime,
   distinctUntilChanged,
@@ -14,13 +14,12 @@ import {
   takeUntil,
 } from "rxjs/operators";
 import { Subject, of } from "rxjs";
-import {
-  PostalCodeApiService,
-  ValidationResult,
-} from "../../services/postal-code-api.service";
+import { ValidationResult } from "../../interfaces/postal-code.interface";
+import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
 
 @Component({
   selector: "app-postal-code-validator",
+  imports: [ReactiveFormsModule],
   template: `
     <div class="postal-code-validator">
       <!-- Input do código postal -->
@@ -60,7 +59,6 @@ import {
             <circle
               class="opacity-25"
               cx="12"
-              cy="12"
               r="10"
               stroke="currentColor"
               stroke-width="4"
@@ -179,7 +177,7 @@ export class PostalCodeValidatorComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private postalCodeApi: PostalCodeApiService) {}
+  constructor(private postalCodeApi: PortugalAddressValidationService) {}
 
   ngOnInit() {
     // Set initial value
@@ -211,7 +209,7 @@ export class PostalCodeValidatorComponent implements OnInit, OnDestroy {
 
           // Validate with API
           this.isValidating = true;
-          return this.postalCodeApi.validatePostalCode(postalCode);
+          return this.postalCodeApi.validatePostalCodeWithApi(postalCode);
         })
       )
       .subscribe((result) => {

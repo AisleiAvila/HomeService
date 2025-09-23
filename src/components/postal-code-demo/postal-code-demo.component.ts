@@ -488,8 +488,8 @@ export class PostalCodeDemoComponent implements OnInit {
     const startTime = Date.now();
 
     try {
-      const result = await this.postalCodeApi
-        .validatePostalCode(postalCode)
+      const result: ValidationResult = await this.portugalValidation
+        .validatePostalCodeWithApi(postalCode)
         .toPromise();
       const responseTime = Date.now() - startTime;
 
@@ -616,10 +616,19 @@ export class PostalCodeDemoComponent implements OnInit {
     this.isSearchingLocality = true;
 
     try {
-      const results = await this.postalCodeApi
-        .searchByLocality(this.localityQuery)
-        .toPromise();
-      this.localityResults = results || [];
+      const codigos = await this.portugalValidation.getCodigoPostalSuggestions(
+        this.localityQuery,
+        10
+      );
+      // Mapear para PostalCodeResult
+      this.localityResults = (codigos || []).map((cp) => ({
+        cp,
+        cp4: cp.split("-")[0],
+        cp3: cp.split("-")[1] || "",
+        district: "",
+        municipality: "",
+        locality: this.localityQuery,
+      }));
     } catch (error) {
       console.error("Erro na busca por localidade:", error);
       this.localityResults = [];

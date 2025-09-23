@@ -187,7 +187,9 @@ export class DataService {
   }
 
   respondToQuote(requestId: number, approved: boolean) {
-    const status: ServiceStatus = approved ? "Approved" : "Pending";
+    const status: ServiceStatus = approved
+      ? "Orçamento aprovado"
+      : "Orçamento rejeitado";
     this.updateServiceRequest(requestId, { status });
     this.notificationService.addNotification(
       `Quote for request #${requestId} has been ${
