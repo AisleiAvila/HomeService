@@ -69,7 +69,23 @@
       <!-- Content Area -->
       <div class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
         @switch (currentView()) { @case ('overview') {
-        <h2 class="text-2xl font-bold mb-4">{{ "overview" | i18n }}</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold">{{ "overview" | i18n }}</h2>
+          <!-- Language Selector (Header Style) -->
+          <div class="flex items-center space-x-2">
+            <label for="lang-select" class="font-medium text-gray-600">{{
+              "language" | i18n
+            }}</label>
+            <select
+              id="lang-select"
+              (change)="i18n.setLanguage($event.target.value)"
+              class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-700"
+            >
+              <option value="pt">{{ "portuguese" | i18n }}</option>
+              <option value="en">{{ "english" | i18n }}</option>
+            </select>
+          </div>
+        </div>
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mt-6"
         >
@@ -1701,6 +1717,20 @@
       <div
         class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
+        <!-- Language Selector inside Assign Professional Modal -->
+        <div class="flex items-center gap-2 mb-4">
+          <label for="lang-select-modal" class="font-medium">{{
+            "language" | i18n
+          }}</label>
+          <select
+            id="lang-select-modal"
+            (change)="i18n.setLanguage($event.target.value)"
+            class="border rounded px-2 py-1"
+          >
+            <option value="pt">{{ "portuguese" | i18n }}</option>
+            <option value="en">{{ "english" | i18n }}</option>
+          </select>
+        </div>
         <h3 class="text-lg font-bold mb-4">
           {{ "assignProfessional" | i18n }}
         </h3>
