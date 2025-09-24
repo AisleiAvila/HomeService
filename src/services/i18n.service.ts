@@ -917,13 +917,6 @@ export class I18nService {
   translate(key: string, params?: Record<string, string | number>): string {
     const lang = this.language();
 
-    // if (allTranslations[lang]) {
-    //   console.log(
-    //     "Available keys:",
-    //     Object.keys(allTranslations[lang]).slice(0, 10)
-    //   );
-    // }
-
     let translation = allTranslations[lang]?.[key] || key;
 
     if (params) {
