@@ -442,10 +442,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
   },
   pt: {
     // General
+    assignProfessional: "Atribuir Profissional",
+    assignProfessionalToScheduled: "Atribuir Profissional ao Serviço Agendado",
+    selectProfessionalFor: "Selecione um profissional para",
+    assigningProfessional: "Atribuindo profissional...",
+    assignmentSuccess: "Profissional atribuído com sucesso!",
+    assignmentError: "Erro ao atribuir profissional. Tente novamente.",
+    assignmentTitle: "Atribuir Profissional",
+    assignmentDescription: "Selecione um profissional e agende o serviço.",
     signIn: "Entrar",
     createAccount: "Criar Conta",
     email: "Endereço de E-mail",
     password: "Senha",
+    // ...existing code...
     name: "Nome Completo",
     role: "Função",
     client: "Cliente",
@@ -742,10 +751,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quoteFor: "Orçamento para",
     quoteValue: "Valor do Orçamento",
     submit: "Enviar",
-    assignProfessional: "Atribuir Profissional",
-    assignProfessionalToScheduled:
-      "Atribuir Profissional à Solicitação Agendada",
-    selectProfessionalFor: "Selecione um profissional para",
+    // ...duplicatas removidas...
     assign: "Atribuir",
     editProfessional: "Editar Profissional",
 
