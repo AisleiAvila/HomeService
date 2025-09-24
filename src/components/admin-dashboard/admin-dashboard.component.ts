@@ -635,7 +635,9 @@ export class AdminDashboardComponent {
       // Status "Agendado" mas sem profissional
       (request.status === "Agendado" && !request.professional_id) ||
       // Status "Orçamento aprovado" (fluxo normal)
-      request.status === "Orçamento aprovado"
+      request.status === "Orçamento aprovado" ||
+      // Status "Aprovado pelo cliente" (novo fluxo)
+      request.status === "Aprovado pelo cliente"
     );
   }
 
