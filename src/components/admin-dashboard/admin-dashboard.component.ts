@@ -553,12 +553,20 @@ export class AdminDashboardComponent {
     // Combine date and time into ISO datetime string
     const scheduledDateTime = this.combineDateTime(date, time);
 
-    this.dataService.updateServiceRequest(request.id, {
-      professional_id: professionalId,
-      status: "Agendado",
-      scheduled_start_datetime: scheduledDateTime,
-      estimated_duration_minutes: duration,
-    });
+    this.dataService
+      .updateServiceRequest(request.id, {
+        professional_id: professionalId,
+        status: "Agendado",
+        scheduled_start_datetime: scheduledDateTime,
+        estimated_duration_minutes: duration,
+      })
+      .then(() => {
+        // Atualiza a lista após atribuição
+        const currentUser = this.dataService.authService.appUser();
+        if (currentUser) {
+          this.dataService.loadInitialData(currentUser);
+        }
+      });
 
     this.notificationService.addNotification(
       this.i18n.translate("professionalAssignedAndScheduled", {
@@ -992,6 +1000,35 @@ export class AdminDashboardComponent {
         payload: request,
       },
       "*"
+    );
+  }
+
+  // New actions for changing professional and adjusting schedule
+  changeProfessional(request: ServiceRequest) {
+    console.log("Admin Dashboard - changeProfessional called:", request);
+    window.postMessage(
+      {
+        type: "OPEN_CHANGE_PROFESSIONAL",
+        payload: request,
+      },
+      "*"
+    );
+    this.notificationService.addNotification(
+      this.i18n.translate("changeProfessionalAction")
+    );
+  }
+
+  adjustSchedule(request: ServiceRequest) {
+    console.log("Admin Dashboard - adjustSchedule called:", request);
+    window.postMessage(
+      {
+        type: "OPEN_ADJUST_SCHEDULE",
+        payload: request,
+      },
+      "*"
+    );
+    this.notificationService.addNotification(
+      this.i18n.translate("adjustScheduleAction")
     );
   }
 
