@@ -117,20 +117,14 @@
 
               <!-- Conditional Actions -->
               @if(currentUser().role === 'client') { @if(request.status ===
-              'Quoted') {
+              'Orçamento enviado') {
               <button
-                (click)="approveQuote.emit(request)"
-                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
-                title="{{ 'approve' | i18n }}"
+                (click)="openBudgetApprovalModal(request)"
+                class="p-2 text-cyan-600 hover:text-cyan-800 hover:bg-cyan-50 rounded-full transition-colors duration-200"
+                title="{{ 'validateQuote' | i18n }}"
               >
-                <i class="fas fa-check"></i>
-              </button>
-              <button
-                (click)="rejectQuote.emit(request)"
-                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
-                title="{{ 'reject' | i18n }}"
-              >
-                <i class="fas fa-times"></i>
+                <i class="fas fa-file-invoice-dollar"></i>
+                {{ "validateQuote" | i18n }}
               </button>
               } @if(request.status === 'Data proposta pelo administrador' ||
               request.status === 'Aguardando aprovação da data') {
@@ -594,4 +588,15 @@
     </div>
   </div>
   }
+
+  <!-- Modal de Aprovação de Orçamento -->
+  <app-budget-approval-modal
+    *ngIf="showBudgetApprovalModal() && selectedRequestForBudget()"
+    [request]="selectedRequestForBudget()"
+    [user]="currentUser()"
+    [show]="showBudgetApprovalModal()"
+    (approve)="handleApproveQuote($event)"
+    (reject)="handleRejectQuote($event)"
+    (close)="handleCloseBudgetModal()"
+  />
 </div>

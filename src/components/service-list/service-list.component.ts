@@ -13,11 +13,13 @@ import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../services/i18n.service";
+import { BudgetApprovalModalComponent } from "../budget-approval-modal";
+//import { BudgetApprovalModalComponent } from "./budget-approval-modal/budget-approval-modal.component";
 
 @Component({
   selector: "app-service-list",
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [CommonModule, I18nPipe, BudgetApprovalModalComponent],
   templateUrl: "./service-list.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -188,5 +190,27 @@ export class ServiceListComponent {
     return (
       baseClass + " " + (colorClasses[status] || "bg-gray-100 text-gray-800")
     );
+  }
+
+  showBudgetApprovalModal = signal(false);
+  selectedRequestForBudget = signal<ServiceRequest | null>(null);
+
+  handleApproveQuote(request: ServiceRequest) {
+    this.approveQuote.emit(request);
+    this.showBudgetApprovalModal.set(false);
+  }
+
+  handleRejectQuote(request: ServiceRequest) {
+    this.rejectQuote.emit(request);
+    this.showBudgetApprovalModal.set(false);
+  }
+
+  openBudgetApprovalModal(request: ServiceRequest) {
+    this.selectedRequestForBudget.set(request);
+    this.showBudgetApprovalModal.set(true);
+  }
+
+  handleCloseBudgetModal() {
+    this.showBudgetApprovalModal.set(false);
   }
 }
