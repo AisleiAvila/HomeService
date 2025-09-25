@@ -21,7 +21,7 @@ import { SupabaseService } from "./supabase.service";
 export class DataService {
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
+  public readonly authService = inject(AuthService);
   private i18n = inject(I18nService);
 
   // Signals for storing application data
