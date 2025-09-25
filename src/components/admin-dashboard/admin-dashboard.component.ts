@@ -82,6 +82,20 @@ export class AdminDashboardComponent {
     // Component initialized
   }
 
+  /**
+   * Retorna um objeto com todos os status esperados para o gráfico, preenchendo com zero onde não houver dados.
+   */
+  statusPieChartData(): Record<string, number> {
+    // Lista de status esperados (chaves do statusLabels)
+    const allStatuses = Object.keys(this.statusLabels);
+    const statusCounts = this.servicesByStatus();
+    const result: Record<string, number> = {};
+    for (const status of allStatuses) {
+      result[status] = statusCounts[status] ?? 0;
+    }
+    return result;
+  }
+
   // Environment check
   isProduction = false; // Could be injected from environment in production
 
