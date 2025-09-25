@@ -72,6 +72,22 @@ export class StatusPieChartComponent {
     if (!ctx) return;
     const data = this.chartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (total === 0) {
+      // Desenha círculo cinza indicando ausência de dados
+      ctx.beginPath();
+      ctx.arc(110, 110, 100, 0, 2 * Math.PI);
+      ctx.closePath();
+      ctx.fillStyle = "#d1d5db"; // gray-300
+      ctx.fill();
+      // Mensagem central
+      ctx.font = "bold 18px sans-serif";
+      ctx.fillStyle = "#6b7280"; // gray-500
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Sem dados", 110, 110);
+      return;
+    }
     let startAngle = 0;
     data.forEach((item) => {
       const sliceAngle = (item.value / total) * 2 * Math.PI;

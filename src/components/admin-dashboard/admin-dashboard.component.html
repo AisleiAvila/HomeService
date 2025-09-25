@@ -106,7 +106,7 @@
         </div>
         <app-status-pie-chart
           [title]="i18n.translate('servicesPieChart')"
-          [data]="servicesByStatus()"
+          [data]="statusPieChartData()"
           [labels]="statusLabels"
         ></app-status-pie-chart>
         <div class="mt-8">
