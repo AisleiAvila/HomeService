@@ -117,6 +117,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     paid: "Paid",
     requested: "Requested",
     scheduled: "Scheduled",
+    validateQuote: "Validate Quote",
     emailVerificationRequired:
       "Email verification required. Please check your inbox.",
     exportToCsv: "Export to CSV",
@@ -403,6 +404,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     paid: "Pago",
     requested: "Solicitado",
     scheduled: "Agendado",
+    validateQuote: "Validar Orçamento",
     emailVerificationRequired:
       "Verificação de e-mail necessária. Verifique sua caixa de entrada.",
     exportToCsv: "Exportar para CSV",
