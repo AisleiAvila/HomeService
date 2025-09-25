@@ -121,10 +121,10 @@
               <button
                 (click)="openBudgetApprovalModal(request)"
                 class="p-2 text-cyan-600 hover:text-cyan-800 hover:bg-cyan-50 rounded-full transition-colors duration-200"
-                title="{{ 'validateQuote' | i18n }}"
+                [attr.title]="'validateQuote' | i18n"
+                [attr.aria-label]="'validateQuote' | i18n"
               >
                 <i class="fas fa-file-invoice-dollar"></i>
-                {{ "validateQuote" | i18n }}
               </button>
               } @if(request.status === 'Data proposta pelo administrador' ||
               request.status === 'Aguardando aprovação da data') {
