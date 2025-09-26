@@ -550,9 +550,11 @@ export class AdminDashboardComponent {
   }
 
   getProfessionalsForRequest(category: string): User[] {
-    return this.professionals().filter(
+    const filtered = this.professionals().filter(
       (p) => p.specialties?.includes(category) || !p.specialties?.length
     );
+    // Se não houver profissionais filtrados, retorna todos ativos como fallback
+    return filtered.length > 0 ? filtered : this.professionals();
   }
 
   assignProfessional() {
