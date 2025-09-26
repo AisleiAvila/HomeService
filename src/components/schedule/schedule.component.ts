@@ -72,9 +72,6 @@ export class ScheduleComponent implements OnDestroy {
             center: "title",
             right: "dayGridMonth,dayGridWeek",
           },
-      eventDisplay: isMobile ? "block" : "auto",
-      dayMaxEvents: isMobile ? 2 : 5,
-      initialView: isMobile ? "dayGridMonth" : "dayGridMonth",
       dayHeaderFormat: isMobile ? { weekday: "short" } : { weekday: "long" },
     };
   }
@@ -96,20 +93,16 @@ export class ScheduleComponent implements OnDestroy {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
-    // Mobile-responsive header toolbar
     headerToolbar:
       window.innerWidth < 768
         ? {
             left: "prev,next",
-            center: "title",
-            right: "today",
           }
         : {
             left: "prev,next today",
             center: "title",
             right: "dayGridMonth,dayGridWeek",
           },
-    // Mobile-specific responsive settings
     aspectRatio: window.innerWidth < 768 ? 1.0 : 1.35,
     contentHeight: window.innerWidth < 768 ? 400 : "auto",
     weekends: true,
@@ -120,12 +113,11 @@ export class ScheduleComponent implements OnDestroy {
       meridiem: false,
       hour12: false,
     },
-    // Event display settings for mobile
     eventDisplay: window.innerWidth < 768 ? "block" : "auto",
     dayMaxEvents: window.innerWidth < 768 ? 2 : 5,
     moreLinkClick: "popover",
-    // The stable, context-aware event handler is now part of the initial config.
     eventClick: this.handleEventClick,
+    events: [], // Adicionado para reatividade
   };
 
   private statusColor(status: ServiceStatus): string {
@@ -196,15 +188,8 @@ export class ScheduleComponent implements OnDestroy {
 
     // This effect now only handles dynamic data updates (events and locale).
     effect(() => {
-      const calendarApi = this.calendarComponent()?.getApi();
-      if (!calendarApi) {
-        return;
-      }
-
-      // Get new dynamic data from signals
       const allRequests = this.dataService.serviceRequests();
       const currentUser = this.user();
-
       let userRequests: ServiceRequest[];
       if (currentUser.role === "client") {
         userRequests = allRequests.filter(
@@ -217,7 +202,6 @@ export class ScheduleComponent implements OnDestroy {
       } else {
         userRequests = allRequests;
       }
-
       const scheduledEvents = userRequests
         .filter((r) => r.scheduled_date || r.scheduled_start_datetime)
         .map((request) => ({
@@ -230,15 +214,25 @@ export class ScheduleComponent implements OnDestroy {
           borderColor: this.statusColor(request.status),
           textColor: "#ffffff",
         }));
-
+      // LOGS DE DIAGNÓSTICO
+      console.log("[ScheduleComponent] Usuário atual:", currentUser);
+      console.log(
+        "[ScheduleComponent] Todos os pedidos recebidos:",
+        allRequests
+      );
+      console.log("[ScheduleComponent] Pedidos após filtro:", userRequests);
+      console.log(
+        "[ScheduleComponent] Eventos agendados para o calendário:",
+        scheduledEvents
+      );
+      // Atualiza os eventos de forma reativa
+      this.calendarOptions.events = scheduledEvents;
+      const calendarApi = this.calendarComponent()?.getApi();
+      if (!calendarApi) {
+        return;
+      }
       const newLocale = this.i18n.language() === "pt" ? ptBr : "en";
-
-      console.log("Setting locale to:", newLocale);
-
-      // Update calendar imperatively after it has been initialized
       calendarApi.setOption("locale", newLocale);
-
-      // Update button texts based on current language
       calendarApi.setOption("buttonText", {
         today: this.i18n.translate("today"),
         month: this.i18n.translate("month"),
@@ -246,12 +240,7 @@ export class ScheduleComponent implements OnDestroy {
         day: this.i18n.translate("day"),
         list: this.i18n.translate("agenda"),
       });
-
-      // Force calendar to re-render to apply locale changes
       calendarApi.render();
-
-      calendarApi.getEventSources().forEach((source) => source.remove());
-      calendarApi.addEventSource(scheduledEvents);
     });
   }
 
