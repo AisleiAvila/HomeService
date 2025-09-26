@@ -22,6 +22,10 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
+  // Método utilitário para uso no template
+  isArray(val: any): boolean {
+    return Array.isArray(val);
+  }
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
   openChat = output<ServiceRequest>();
@@ -36,47 +40,46 @@ export class DashboardComponent {
   private userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
     const currentUser = this.user();
-    console.log("Dashboard - Total requests:", allRequests.length);
-    console.log("Dashboard - Current user:", currentUser);
+    console.log(
+      "[DashboardComponent] Total requests recebidos:",
+      allRequests.length,
+      allRequests
+    );
+    console.log("[DashboardComponent] Usuário atual:", currentUser);
+    let filtered = [];
     if (currentUser.role === "client") {
-      return allRequests.filter((r) => r.client_id === currentUser.id);
+      filtered = allRequests.filter((r) => r.client_id === currentUser.id);
     } else if (currentUser.role === "professional") {
-      return allRequests.filter((r) => r.professional_id === currentUser.id);
+      filtered = allRequests.filter(
+        (r) => r.professional_id === currentUser.id
+      );
     } else if (currentUser.role === "admin") {
-      return allRequests;
+      filtered = allRequests;
     }
-    return [];
+    console.log(
+      "[DashboardComponent] Requests após filtro:",
+      filtered.length,
+      filtered
+    );
+    return filtered;
   });
 
   // Considera status ativos em português
-  activeRequests = computed(() =>
-    this.userRequests().filter((r) =>
-      [
-        // Português
-        "Solicitado",
-        "Em análise",
-        "Aguardando esclarecimentos",
-        "Orçamento enviado",
-        "Aguardando aprovação do orçamento",
-        "Orçamento aprovado",
-        "Aguardando data de execução",
-        "Data proposta pelo administrador",
-        "Aguardando aprovação da data",
-        "Data aprovada pelo cliente",
-        "Buscando profissional",
-        "Profissional selecionado",
-        "Aguardando confirmação do profissional",
-        "Agendado",
-        "Em execução",
-        "Concluído - Aguardando aprovação",
-        // Inglês
-        "Assigned",
-        "Pending",
-        "Scheduled",
-        "In Progress",
-      ].includes(r.status)
-    )
-  );
+  activeRequests = computed(() => {
+    const reqs = this.userRequests();
+    if (Array.isArray(reqs)) {
+      return reqs;
+    }
+    if (reqs === undefined || reqs === null) {
+      return [];
+    }
+    // Se for outro tipo, tenta converter para array
+    try {
+      return Array.from(reqs);
+    } catch {
+      return [];
+    }
+  });
   completedRequests = computed(() =>
     this.userRequests().filter((r) => r.status === "Finalizado")
   );

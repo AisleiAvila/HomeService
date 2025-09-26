@@ -24,7 +24,15 @@ import { BudgetApprovalModalComponent } from "../budget-approval-modal";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceListComponent {
-  serviceRequests = input.required<ServiceRequest[]>();
+  constructor() {
+    // Log para depuração: array recebido via input
+    console.log(
+      "[ServiceListComponent] CONSTRUCTOR - serviceRequests input:",
+      this.serviceRequests()
+    );
+    this.itemsPerPage.set(this.itemsPerPageDefault());
+  }
+  serviceRequests = input<ServiceRequest[]>();
   currentUser = input.required<User>();
   enablePagination = input<boolean>(false); // New input to enable pagination
   itemsPerPageDefault = input<number>(10); // Default items per page
@@ -51,10 +59,7 @@ export class ServiceListComponent {
   itemsPerPage = signal(10);
 
   // Initialize items per page based on input
-  constructor() {
-    // Set initial value from input
-    this.itemsPerPage.set(this.itemsPerPageDefault());
-  }
+  // ...existing code...
 
   // Computed properties for pagination
   totalPages = computed(() => {
@@ -64,10 +69,32 @@ export class ServiceListComponent {
 
   ngOnInit() {
     // Log para depuração: conteúdo recebido de serviceRequests
-    console.log(
-      "[ServiceListComponent] serviceRequests recebidos:",
-      this.serviceRequests()
-    );
+    const requests = this.serviceRequests() ?? [];
+    console.log("[ServiceListComponent] serviceRequests recebidos:", requests);
+    if (!Array.isArray(requests)) {
+      console.error(
+        "[ServiceListComponent] serviceRequests NÃO é array!",
+        typeof requests,
+        requests
+      );
+    } else {
+      requests.forEach((req, idx) => {
+        console.log(`[ServiceListComponent] Request #${idx}:`, req);
+        if (typeof req !== "object" || req === null) {
+          console.error(
+            `[ServiceListComponent] Request #${idx} NÃO é objeto!`,
+            req
+          );
+        } else {
+          Object.keys(req).forEach((key) => {
+            console.log(
+              `[ServiceListComponent] Request #${idx} propriedade: ${key} =`,
+              req[key]
+            );
+          });
+        }
+      });
+    }
     console.log("[ServiceListComponent] currentUser:", this.currentUser());
   }
 
