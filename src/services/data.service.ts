@@ -714,11 +714,15 @@ export class DataService {
    */
   getTodayScheduledRequests(): ServiceRequest[] {
     const today = new Date();
-    return this.serviceRequests().filter((request) => {
+    const allRequests = this.serviceRequests();
+    console.log("[AGENDA] serviceRequests sinal:", allRequests);
+    const todayRequests = allRequests.filter((request) => {
       if (!request.scheduled_start_datetime) return false;
       const scheduledDate = new Date(request.scheduled_start_datetime);
       return scheduledDate.toDateString() === today.toDateString();
     });
+    console.log("[AGENDA] Pedidos agendados para hoje:", todayRequests);
+    return todayRequests;
   }
 
   /**
