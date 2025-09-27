@@ -9,7 +9,7 @@ import {
 import { CommonModule } from "@angular/common";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 
 @Component({
   selector: "app-budget-approval-modal",
