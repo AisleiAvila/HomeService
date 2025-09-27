@@ -71,31 +71,128 @@
         >
           @for (stat of stats(); track stat.label) {
           <div
-            class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4"
+            class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 flex flex-col relative overflow-hidden"
             [class.cursor-pointer]="isCardClickable(stat.label)"
-            [class.hover:shadow-lg]="isCardClickable(stat.label)"
-            [class.transition-shadow]="isCardClickable(stat.label)"
-            [class.duration-200]="isCardClickable(stat.label)"
             (click)="handleCardClick(stat.label)"
             [title]="getCardTooltip(stat.label)"
           >
-            <div
-              class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full"
-              [class]="stat.bgColor"
-            >
-              <i class="text-2xl" [class]="stat.icon"></i>
+            <!-- Badge de status -->
+            @if (stat.badge) {
+            <div class="absolute top-2 right-2">
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse"
+              >
+                {{ stat.badge }}
+              </span>
             </div>
-            <div>
-              <h3 class="text-gray-500 text-sm font-medium">
-                {{ stat.label }}
-              </h3>
-              <p class="text-2xl font-bold text-gray-800 mt-1">
-                {{ stat.value }}
-              </p>
+            }
+
+            <!-- Ícone com gradiente -->
+            <div class="flex items-center space-x-4 mb-3">
+              <div
+                class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-transform duration-300 hover:scale-110"
+                [class]="stat.bgColor"
+              >
+                <i class="text-2xl" [class]="stat.icon"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-gray-500 text-sm font-medium">
+                  {{ stat.label }}
+                </h3>
+                <p class="text-2xl font-bold text-gray-800 mt-1">
+                  {{ stat.value }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Indicador de tendência -->
+            <div class="flex items-center justify-between mt-2">
+              <div class="flex items-center space-x-1">
+                <i
+                  class="fas fa-arrow-up text-xs"
+                  [class]="stat.trendColor"
+                  [class.fa-arrow-down]="stat.trend.includes('-')"
+                  [class.fa-arrow-up]="stat.trend.includes('+')"
+                ></i>
+                <span class="text-xs font-medium" [class]="stat.trendColor">
+                  {{ stat.trend }}
+                </span>
+              </div>
+              <span class="text-xs text-gray-400">
+                {{ i18n.translate("vsLastMonth") }}
+              </span>
             </div>
           </div>
           }
         </div>
+
+        <!-- Widget de Ações Rápidas -->
+        <div class="mt-8">
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+              <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+              {{ "quickActions" | i18n }}
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button
+                (click)="createNewService()"
+                class="flex flex-col items-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-md"
+              >
+                <div
+                  class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2"
+                >
+                  <i class="fas fa-plus text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-blue-700">{{
+                  "newService" | i18n
+                }}</span>
+              </button>
+
+              <button
+                (click)="generateReport()"
+                class="flex flex-col items-center p-4 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-md"
+              >
+                <div
+                  class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2"
+                >
+                  <i class="fas fa-chart-bar text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-green-700">{{
+                  "generateReport" | i18n
+                }}</span>
+              </button>
+
+              <button
+                (click)="viewAllRequests()"
+                class="flex flex-col items-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-md"
+              >
+                <div
+                  class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mb-2"
+                >
+                  <i class="fas fa-list text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-purple-700">{{
+                  "viewAllRequests" | i18n
+                }}</span>
+              </button>
+
+              <button
+                (click)="manageUsers()"
+                class="flex flex-col items-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-md"
+              >
+                <div
+                  class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mb-2"
+                >
+                  <i class="fas fa-users text-white text-lg"></i>
+                </div>
+                <span class="text-sm font-medium text-orange-700">{{
+                  "manageUsers" | i18n
+                }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Separador visual entre os cards e os gráficos -->
         <div class="my-8"></div>
 
