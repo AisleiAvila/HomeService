@@ -92,17 +92,44 @@ export class AdminDashboardComponent {
     // Mapeamento explícito entre status do banco e labels do gráfico
     const statusMap: Record<string, string> = {
       completed: "statusCompleted",
+      completed_en: "statusCompleted",
+      finalizado: "statusCompleted",
       "profissional selecionado": "statusAssigned",
-      agendado: "statusScheduled",
       assigned: "statusAssigned",
+      agendado: "statusScheduled",
+      scheduled: "statusScheduled",
       // Adicione outros status do banco conforme necessário
     };
     const statusCounts = this.servicesByStatus();
     console.log("[PieChart] Dados brutos recebidos:", statusCounts);
-    const result: Record<string, number> = {};
-    for (const [dbStatus, count] of Object.entries(statusCounts)) {
-      const labelKey = statusMap[dbStatus] || dbStatus;
-      result[labelKey] = count;
+    // Log das chaves normalizadas para debug
+    Object.keys(statusCounts).forEach((key) => {
+      const normalized = key
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+      console.log(
+        `[PieChart] Status original: '${key}' | Normalizado: '${normalized}' | Valor: ${statusCounts[key]}`
+      );
+    });
+    // Normaliza as chaves dos status do banco para lower case e sem acentos
+    function normalize(str: string) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+    }
+    const result: Record<string, number> = {
+      statusCompleted: 0,
+      statusAssigned: 0,
+      statusScheduled: 0,
+    };
+    for (const [rawStatus, count] of Object.entries(statusCounts)) {
+      const normalized = normalize(rawStatus);
+      const labelKey = statusMap[normalized];
+      if (labelKey) {
+        result[labelKey] += count;
+      }
     }
     console.log("[PieChart] Dados enviados ao gráfico:", result);
     return result;
