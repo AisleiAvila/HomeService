@@ -18,11 +18,18 @@ import { I18nService } from "../../i18n.service";
 import { NotificationService } from "../../services/notification.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { StatusPieChartComponent } from "../status-pie-chart.component";
+import { CategoryBarChartComponent } from "../category-bar-chart.component";
 
 @Component({
   selector: "app-admin-dashboard",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe, StatusPieChartComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    I18nPipe,
+    StatusPieChartComponent,
+    CategoryBarChartComponent,
+  ],
   templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -148,6 +155,35 @@ export class AdminDashboardComponent {
       statusMap[normalized] = (statusMap[normalized] || 0) + 1;
     }
     return statusMap;
+  });
+
+  // Computed: distribuição de pedidos por categoria
+  ordersByCategory = computed(() => {
+    const requests = this.dataService.serviceRequests();
+    const categoryMap: Record<string, number> = {};
+
+    for (const req of requests) {
+      const category = req.category || "Sem categoria";
+      categoryMap[category] = (categoryMap[category] || 0) + 1;
+    }
+
+    return categoryMap;
+  });
+
+  // Labels para o gráfico de categorias
+  categoryLabels = computed(() => {
+    const categories = this.dataService.categories();
+    const labels: Record<string, string> = {};
+
+    // Mapeia as categorias existentes
+    categories.forEach((category) => {
+      labels[category] = category;
+    });
+
+    // Adiciona label para "Sem categoria"
+    labels["Sem categoria"] = this.i18n.translate("noCategory");
+
+    return labels;
   });
 
   // Execution date proposal data
@@ -364,6 +400,13 @@ export class AdminDashboardComponent {
         icon: "fas fa-users-cog",
         bgColor: "bg-indigo-100 text-indigo-600",
       },
+      {
+        label: this.i18n.translate("activeClients"),
+        value: users.filter((u) => u.role === "client" && u.status === "Active")
+          .length,
+        icon: "fas fa-user-friends",
+        bgColor: "bg-purple-100 text-purple-600",
+      },
     ];
   });
 
@@ -406,6 +449,11 @@ export class AdminDashboardComponent {
     return statLabel === this.i18n.translate("totalProfessionals");
   }
 
+  // Check if a stat is the active clients card
+  isActiveClientsCard(statLabel: string): boolean {
+    return statLabel === this.i18n.translate("activeClients");
+  }
+
   // Navigate to approvals tab when pending approvals card is clicked
   navigateToApprovals() {
     this.setView("approvals");
@@ -421,6 +469,11 @@ export class AdminDashboardComponent {
     this.setView("professionals");
   }
 
+  // Navigate to clients tab when active clients card is clicked
+  navigateToClients() {
+    this.setView("clients");
+  }
+
   // Generic method to handle card clicks
   handleCardClick(statLabel: string) {
     if (this.isRevenueCard(statLabel)) {
@@ -431,6 +484,8 @@ export class AdminDashboardComponent {
       this.navigateToRequests();
     } else if (this.isTotalProfessionalsCard(statLabel)) {
       this.navigateToProfessionals();
+    } else if (this.isActiveClientsCard(statLabel)) {
+      this.navigateToClients();
     }
   }
 
@@ -440,7 +495,8 @@ export class AdminDashboardComponent {
       this.isRevenueCard(statLabel) ||
       this.isPendingApprovalsCard(statLabel) ||
       this.isActiveServicesCard(statLabel) ||
-      this.isTotalProfessionalsCard(statLabel)
+      this.isTotalProfessionalsCard(statLabel) ||
+      this.isActiveClientsCard(statLabel)
     );
   }
 
@@ -454,6 +510,8 @@ export class AdminDashboardComponent {
       return this.i18n.translate("clickToViewRequests");
     } else if (this.isTotalProfessionalsCard(statLabel)) {
       return this.i18n.translate("clickToViewProfessionals");
+    } else if (this.isActiveClientsCard(statLabel)) {
+      return this.i18n.translate("clickToViewClients");
     }
     return "";
   }
