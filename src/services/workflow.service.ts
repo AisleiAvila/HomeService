@@ -289,9 +289,25 @@ export class WorkflowService {
     const currentUser = this.authService.appUser();
     if (!currentUser) throw new Error("User not authenticated");
 
+    // Buscar pedido atual para validação da data agendada
+    const request = await this.getServiceRequest(requestId);
+    if (!request) throw new Error("Service request not found");
+
+    const now = new Date();
+    const scheduledDate = request.scheduled_date
+      ? new Date(request.scheduled_date)
+      : null;
+    if (scheduledDate && now < scheduledDate) {
+      // Notificar usuário e impedir início
+      this.notificationService.addNotification(
+        "Não é permitido iniciar o serviço antes da data agendada!"
+      );
+      throw new Error("Tentativa de início antes da data agendada");
+    }
+
     const updates: Partial<ServiceRequest> = {
-      work_started_at: new Date().toISOString(),
-      actual_start_datetime: new Date().toISOString(), // Manter compatibilidade
+      work_started_at: now.toISOString(),
+      actual_start_datetime: now.toISOString(), // Manter compatibilidade
       status: "Em execução",
     };
 

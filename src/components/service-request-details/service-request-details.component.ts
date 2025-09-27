@@ -2,7 +2,8 @@ import {
   Component,
   ChangeDetectionStrategy,
   input,
-  output,
+  Output,
+  EventEmitter,
   computed,
   inject,
   signal,
@@ -28,6 +29,7 @@ import { NotificationService } from "../../services/notification.service";
     WorkflowTimelineComponent,
     ServiceClarificationsComponent,
   ],
+  outputs: ["businessRuleError"],
   template: `
     <!-- Cabeçalho Responsivo -->
     <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -364,6 +366,7 @@ import { NotificationService } from "../../services/notification.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceRequestDetailsComponent {
+  @Output() businessRuleError = new EventEmitter<string>();
   request = input.required<ServiceRequest>();
   currentUser = input.required<User>();
 
@@ -375,19 +378,18 @@ export class ServiceRequestDetailsComponent {
   showMobileActions = signal(false);
 
   // Outputs para eventos
-  close = output<void>();
-  openChat = output<ServiceRequest>();
-  approveQuote = output<ServiceRequest>();
-  rejectQuote = output<ServiceRequest>();
-  scheduleRequest = output<ServiceRequest>();
-  payNow = output<ServiceRequest>();
-  selectProfessional = output<{
+  @Output() close = new EventEmitter<void>();
+  @Output() openChat = new EventEmitter<ServiceRequest>();
+  @Output() approveQuote = new EventEmitter<ServiceRequest>();
+  @Output() rejectQuote = new EventEmitter<ServiceRequest>();
+  @Output() scheduleRequest = new EventEmitter<ServiceRequest>();
+  @Output() payNow = new EventEmitter<ServiceRequest>();
+  @Output() selectProfessional = new EventEmitter<{
     request: ServiceRequest;
     professionalId: string;
   }>();
 
-  // Output para refresh do pedido após ação
-  refreshRequest = output<void>();
+  @Output() refreshRequest = new EventEmitter<void>();
 
   // Computed properties
   availableActions = computed(() => {
@@ -606,11 +608,26 @@ export class ServiceRequestDetailsComponent {
           this.scheduleRequest.emit(this.request());
           break;
         case "start":
-          await this.workflowService.startWork(this.request().id);
-          this.notificationService.addNotification(
-            "Serviço iniciado com sucesso!"
-          );
-          this.refreshRequest.emit();
+          try {
+            await this.workflowService.startWork(this.request().id);
+            this.notificationService.addNotification(
+              "Serviço iniciado com sucesso!"
+            );
+            this.refreshRequest.emit();
+          } catch (error: any) {
+            if (
+              error instanceof Error &&
+              error.message.includes(
+                "Tentativa de início antes da data agendada"
+              )
+            ) {
+              this.businessRuleError.emit(
+                "Não é permitido iniciar o serviço antes da data agendada!"
+              );
+            } else {
+              throw error;
+            }
+          }
           break;
         case "complete":
           // Lógica para completar serviço
