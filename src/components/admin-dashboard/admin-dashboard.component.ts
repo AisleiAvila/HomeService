@@ -28,7 +28,9 @@ import { StatusPieChartComponent } from "../status-pie-chart.component";
 })
 export class AdminDashboardComponent {
   private dataService = inject(DataService);
-  i18n = inject(I18nService);
+  private i18n = inject(I18nService);
+  // Título do gráfico de status, internacionalizado
+  statusGraphTitle = this.i18n.translate("statusGraphTitle");
   // Labels internacionalizados para status
   statusLabels: Record<string, string> = {
     Solicitado: this.i18n.translate("statusRequested"),
@@ -89,50 +91,10 @@ export class AdminDashboardComponent {
    * Adiciona logs para depuração dos dados recebidos e enviados ao gráfico.
    */
   statusPieChartData(): Record<string, number> {
-    // Mapeamento explícito entre status do banco e labels do gráfico
-    const statusMap: Record<string, string> = {
-      completed: "statusCompleted",
-      completed_en: "statusCompleted",
-      finalizado: "statusCompleted",
-      "profissional selecionado": "statusAssigned",
-      assigned: "statusAssigned",
-      agendado: "statusScheduled",
-      scheduled: "statusScheduled",
-      // Adicione outros status do banco conforme necessário
-    };
+    // Retorna todos os status presentes nos dados, sem filtrar
     const statusCounts = this.servicesByStatus();
-    console.log("[PieChart] Dados brutos recebidos:", statusCounts);
-    // Log das chaves normalizadas para debug
-    Object.keys(statusCounts).forEach((key) => {
-      const normalized = key
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
-      console.log(
-        `[PieChart] Status original: '${key}' | Normalizado: '${normalized}' | Valor: ${statusCounts[key]}`
-      );
-    });
-    // Normaliza as chaves dos status do banco para lower case e sem acentos
-    function normalize(str: string) {
-      return str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
-    }
-    const result: Record<string, number> = {
-      statusCompleted: 0,
-      statusAssigned: 0,
-      statusScheduled: 0,
-    };
-    for (const [rawStatus, count] of Object.entries(statusCounts)) {
-      const normalized = normalize(rawStatus);
-      const labelKey = statusMap[normalized];
-      if (labelKey) {
-        result[labelKey] += count;
-      }
-    }
-    console.log("[PieChart] Dados enviados ao gráfico:", result);
-    return result;
+    console.log("[PieChart] Dados enviados ao gráfico:", statusCounts);
+    return statusCounts;
   }
 
   // Environment check

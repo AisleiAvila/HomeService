@@ -565,9 +565,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     creditCard: "Credit Card",
     mbway: "MB WAY",
     bankTransfer: "Bank Transfer",
+    statusGraphTitle: "Service Status Overview",
   },
   pt: {
     // General
+
     signIn: "Entrar",
     createAccount: "Criar Conta",
     email: "E-mail",
@@ -1150,6 +1152,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     creditCard: "Cartão de Crédito",
     mbway: "MB WAY",
     bankTransfer: "Transferência Bancária",
+    statusGraphTitle: "Distribuição dos Pedidos por Status",
   },
 };
 
