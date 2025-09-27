@@ -47,6 +47,17 @@ export class DashboardComponent {
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
   provideClarification = output<ServiceRequest>();
+  startService = output<ServiceRequest>();
+  finishService = output<ServiceRequest>();
+  async handleFinishService(request: ServiceRequest) {
+    try {
+      await this.dataService.finishServiceWork(request.id);
+      this.selectedRequest.set(null);
+    } catch (error) {
+      this.showBusinessRuleError("Erro ao finalizar serviço. Tente novamente.");
+      console.error("Erro ao finalizar serviço:", error);
+    }
+  }
   public selectedRequest = signal<ServiceRequest | null>(null);
 
   private dataService = inject(DataService);

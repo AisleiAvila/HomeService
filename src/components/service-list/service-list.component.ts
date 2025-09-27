@@ -45,6 +45,8 @@ export class ServiceListComponent {
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
   provideClarification = output<ServiceRequest>();
+  startService = output<ServiceRequest>();
+  finishService = output<ServiceRequest>();
 
   private dataService = inject(DataService);
   private workflowService = inject(WorkflowService);
