@@ -917,12 +917,22 @@ export class AppComponent implements OnInit {
   }
 
   handlePayment(request: ServiceRequest) {
-    // In a real app, this would integrate with a payment provider.
-    this.dataService.updatePaymentStatus(request.id, "Paid");
-    this.notificationService.addNotification(
-      `Payment for request #${request.id} processed.`
-    );
-    this.closeModal();
+    // Integrar com provider real em produção
+    this.dataService
+      .updatePaymentStatus(request.id, "Paid")
+      .then(async () => {
+        this.notificationService.addNotification(
+          `Payment for request #${request.id} processed.`
+        );
+        // Atualiza dados do usuário e listas
+        await this.dataService.loadInitialData(this.currentUser());
+        this.closeModal();
+      })
+      .catch((error) => {
+        this.notificationService.addNotification(
+          `Erro ao processar pagamento: ${error.message}`
+        );
+      });
   }
 
   handleModalClose() {
