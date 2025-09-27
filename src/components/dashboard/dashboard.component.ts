@@ -31,6 +31,7 @@ export class DashboardComponent {
       "[Dashboard] selectedRequest após set:",
       this.selectedRequest()
     );
+    this.viewDetails.emit(request);
     // Aqui pode abrir modal, navegar ou atualizar view conforme necessário
   }
   // Signal para exibir erro de negócio
