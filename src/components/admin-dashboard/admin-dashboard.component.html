@@ -72,16 +72,12 @@
           @for (stat of stats(); track stat.label) {
           <div
             class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-4"
-            [class.cursor-pointer]="isRevenueCard(stat.label)"
-            [class.hover:shadow-lg]="isRevenueCard(stat.label)"
-            [class.transition-shadow]="isRevenueCard(stat.label)"
-            [class.duration-200]="isRevenueCard(stat.label)"
-            (click)="isRevenueCard(stat.label) ? navigateToFinances() : null"
-            [title]="
-              isRevenueCard(stat.label)
-                ? (i18n.translate('clickToViewFinances') | i18n)
-                : ''
-            "
+            [class.cursor-pointer]="isCardClickable(stat.label)"
+            [class.hover:shadow-lg]="isCardClickable(stat.label)"
+            [class.transition-shadow]="isCardClickable(stat.label)"
+            [class.duration-200]="isCardClickable(stat.label)"
+            (click)="handleCardClick(stat.label)"
+            [title]="getCardTooltip(stat.label)"
           >
             <div
               class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full"
