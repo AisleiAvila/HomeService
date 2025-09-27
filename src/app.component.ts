@@ -394,6 +394,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
             (rejectQuote)="handleRejectQuote($event)"
             (scheduleRequest)="openScheduler($event)"
             (payNow)="handlePayment($event)"
+            (refreshRequest)="handleRefreshRequest()"
           />
           } } }
         </main>
@@ -537,6 +538,14 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
+  async handleRefreshRequest() {
+    // Recarrega o ServiceRequest selecionado do backend após iniciar serviço
+    const req = this.selectedRequest();
+    if (req) {
+      const updated = await this.dataService.fetchServiceRequestById(req.id);
+      if (updated) this.selectedRequest.set(updated);
+    }
+  }
   // Services
   authService = inject(AuthService);
   dataService = inject(DataService);

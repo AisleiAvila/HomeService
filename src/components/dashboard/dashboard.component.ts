@@ -13,6 +13,7 @@ import { WorkflowService } from "../../services/workflow.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../services/i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { signal } from "@angular/core";
 
 @Component({
   selector: "app-dashboard",
@@ -32,6 +33,7 @@ export class DashboardComponent {
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
   provideClarification = output<ServiceRequest>();
+  public selectedRequest = signal<ServiceRequest | null>(null);
 
   private dataService = inject(DataService);
   private workflowService = inject(WorkflowService);

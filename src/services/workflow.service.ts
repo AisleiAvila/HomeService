@@ -510,17 +510,25 @@ export class WorkflowService {
       updates.status_history = [...currentHistory, historyEntry];
     }
 
+    // Log do id e tipo antes do update
+    console.log(
+      "[WorkflowService] updateRequestWithHistory - requestId:",
+      requestId,
+      "tipo:",
+      typeof requestId
+    );
     // Atualizar no banco
-    const { error } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from("service_requests")
       .update(updates)
-      .eq("id", requestId);
+      .eq("id", requestId)
+      .select("*");
 
     if (error) {
       console.error("Error updating service request:", error);
       throw error;
     }
-
+    console.log("[WorkflowService] Update result:", data);
     this.notificationService.addNotification(
       `Pedido #${requestId} atualizado: ${notes || updates.status}`
     );

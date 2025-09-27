@@ -48,7 +48,7 @@
       [currentUser]="user()"
       [enablePagination]="true"
       [itemsPerPageDefault]="10"
-      (viewDetails)="viewDetails.emit($event)"
+      (viewDetails)="handleViewDetails($event)"
       (openChat)="openChat.emit($event)"
       (payNow)="payNow.emit($event)"
       (approveQuote)="handleQuoteResponse($event, true)"
@@ -61,6 +61,16 @@
       (provideClarification)="handleProvideClarification($event)"
     >
     </app-service-list>
+    }
+
+    <!-- Modal de detalhes do serviço -->
+    @if (selectedRequest()) {
+    <app-service-request-details
+      [request]="selectedRequest()"
+      [currentUser]="user()"
+      (close)="selectedRequest.set(null)"
+      (refreshRequest)="selectedRequest.set(null)"
+    ></app-service-request-details>
     } @else {
     <div class="text-center text-gray-500 p-4">
       Nenhum agendamento encontrado.
