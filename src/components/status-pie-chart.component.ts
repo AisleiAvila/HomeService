@@ -12,12 +12,20 @@ import { CommonModule } from "@angular/common";
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full p-4">
-      <h3 class="text-lg font-semibold mb-2">{{ title }}</h3>
-      <div class="flex justify-center items-center">
-        <canvas id="pieCanvas" #pieCanvas width="220" height="220"></canvas>
+    <div
+      class="w-full max-w-xs md:max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-4 mobile-safe flex flex-col items-center"
+    >
+      <h3 class="text-lg font-semibold mb-2 text-center">{{ title }}</h3>
+      <div class="w-full flex justify-center items-center">
+        <canvas
+          id="pieCanvas"
+          #pieCanvas
+          class="w-full h-auto max-h-64 aspect-square"
+          width="220"
+          height="220"
+        ></canvas>
       </div>
-      <div class="flex flex-wrap gap-2 justify-center mt-4">
+      <div class="flex flex-wrap gap-2 justify-center mt-4 w-full">
         <ng-container *ngFor="let item of chartData()">
           <span
             class="px-2 py-1 rounded text-xs font-medium"
@@ -34,12 +42,13 @@ import { CommonModule } from "@angular/common";
 })
 export class StatusPieChartComponent {
   constructor() {
-    // Atualiza o gráfico sempre que chartData mudar
+    // Log para depuração do valor do título
     effect(() => {
+      console.log("[PieChart] Título recebido:", this.title());
       this.renderPieChart();
     });
   }
-  title = input<string>("Distribuição de Serviços por Status");
+  title = input.required<string>();
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
 
