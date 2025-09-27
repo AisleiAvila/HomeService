@@ -18,7 +18,7 @@ import {
 } from "../../models/maintenance.models";
 import { AuthService } from "../../services/auth.service";
 import { NotificationService } from "../../services/notification.service";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { DataService } from "../../services/data.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 

@@ -11,7 +11,7 @@ import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { signal } from "@angular/core";
 
@@ -151,12 +151,12 @@ export class DashboardComponent {
     if (currentUser.role === "client" || currentUser.role === "admin") {
       return [
         {
-          label: this.i18n.translate("activeRequests"),
+          label: "activeRequests",
           value: requests.filter((r) => statusAtivos.includes(r.status)).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
-          label: this.i18n.translate("completed"),
+          label: "completed",
           value: requests.filter(
             (r) => r.status === "Finalizado" || r.status === "Completed"
           ).length,
@@ -172,17 +172,17 @@ export class DashboardComponent {
 
       return [
         {
-          label: this.i18n.translate("activeJobs"),
+          label: "activeJobs",
           value: requests.filter((r) => statusAtivos.includes(r.status)).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {
-          label: this.i18n.translate("completedJobs"),
+          label: "completedJobs",
           value: requests.filter((r) => r.status === "Finalizado").length,
           icon: "fas fa-check-double text-green-500",
         },
         {
-          label: this.i18n.translate("totalEarnings"),
+          label: "totalEarnings",
           value: `€${earnings.toFixed(2)}`,
           icon: "fas fa-euro-sign text-emerald-500",
         },

@@ -17,7 +17,6 @@ import {
   ServiceStatus,
 } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
-import { I18nService } from "../../services/i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import {
   FullCalendarModule,
@@ -28,6 +27,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ptBr from "@fullcalendar/core/locales/pt-br";
+import { I18nService } from "@/src/i18n.service";
 
 @Component({
   selector: "app-schedule",

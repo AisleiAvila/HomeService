@@ -12,9 +12,9 @@ import { ServiceRequest, User, Address } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { I18nService } from "../../services/i18n.service";
 import { BudgetApprovalModalComponent } from "../budget-approval-modal";
 import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
+import { I18nService } from "@/src/i18n.service";
 
 @Component({
   selector: "app-service-list",

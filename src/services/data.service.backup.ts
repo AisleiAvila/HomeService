@@ -2,7 +2,6 @@ import { Injectable, signal, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
 import { AuthService } from "./auth.service";
-import { I18nService } from "./i18n.service";
 import {
   User,
   ServiceRequest,
@@ -12,6 +11,7 @@ import {
   PaymentStatus,
   ServiceRequestPayload,
 } from "../models/maintenance.models";
+import { I18nService } from "../i18n.service";
 
 @Injectable({
   providedIn: "root",

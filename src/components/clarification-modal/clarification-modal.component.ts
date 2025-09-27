@@ -10,7 +10,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { ServiceRequest } from "../../models/maintenance.models";
 import { WorkflowService } from "../../services/workflow.service";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
