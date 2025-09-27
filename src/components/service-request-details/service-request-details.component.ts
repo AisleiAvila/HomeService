@@ -386,6 +386,9 @@ export class ServiceRequestDetailsComponent {
     professionalId: string;
   }>();
 
+  // Output para refresh do pedido após ação
+  refreshRequest = output<void>();
+
   // Computed properties
   availableActions = computed(() => {
     const user = this.currentUser();
@@ -603,7 +606,11 @@ export class ServiceRequestDetailsComponent {
           this.scheduleRequest.emit(this.request());
           break;
         case "start":
-          // Lógica para iniciar serviço
+          await this.workflowService.startWork(this.request().id);
+          this.notificationService.addNotification(
+            "Serviço iniciado com sucesso!"
+          );
+          this.refreshRequest.emit();
           break;
         case "complete":
           // Lógica para completar serviço
