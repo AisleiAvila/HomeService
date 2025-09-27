@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   input,
   computed,
+  effect,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
@@ -32,6 +33,12 @@ import { CommonModule } from "@angular/common";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusPieChartComponent {
+  constructor() {
+    // Atualiza o gráfico sempre que chartData mudar
+    effect(() => {
+      this.renderPieChart();
+    });
+  }
   title = input<string>("Distribuição de Serviços por Status");
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
@@ -76,10 +83,9 @@ export class StatusPieChartComponent {
       console.warn("[PieChart] Contexto 2D não encontrado");
       return;
     }
+    // Usa todos os itens da legenda, mesmo com valor zero
     const data = this.chartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
-    console.log("[PieChart] Dados recebidos:", data);
-    console.log("[PieChart] Total:", total);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (total === 0) {
       // Desenha círculo cinza indicando ausência de dados
