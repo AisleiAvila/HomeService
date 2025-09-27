@@ -34,7 +34,10 @@ import { NotificationService } from "../../services/notification.service";
     @if (!request()) {
     <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold">
       Erro: Nenhuma solicitação selecionada ou dados inválidos.<br />
-      Volte e selecione uma solicitação válida.
+      Volte e selecione uma solicitação válida.<br />
+      <span style="font-size:12px;"
+        >[DEBUG] request(): {{ request() | json }}</span
+      >
     </div>
     } @else {
     <!-- Cabeçalho Responsivo -->

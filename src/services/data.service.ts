@@ -133,16 +133,6 @@ export class DataService {
         "Using sample data - Error fetching service requests: " + error.message
       );
     } else {
-      console.log(
-        "Loaded service requests from Supabase:",
-        data ? data.length : 0
-      );
-      console.log("[fetchServiceRequests] Dados retornados:", data);
-      // LOG: Antes de setar no signal
-      console.log(
-        "[DataService] Antes do set: serviceRequests sinal:",
-        this.serviceRequests()
-      );
       if (data && data.length > 0) {
         const users = this.users();
         const requests = (data as any[]).map((r) => ({
@@ -152,17 +142,9 @@ export class DataService {
           professional_name:
             users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
         }));
-        // LOG: Dados que serão setados
-        console.log("[DataService] Setando serviceRequests sinal:", requests);
         this.serviceRequests.set(requests);
-        // LOG: Após setar no signal
-        console.log(
-          "[DataService] Após set: serviceRequests sinal:",
-          this.serviceRequests()
-        );
       } else {
         this.serviceRequests.set([]);
-        console.log("[DataService] Setando serviceRequests vazio");
       }
     }
   }
