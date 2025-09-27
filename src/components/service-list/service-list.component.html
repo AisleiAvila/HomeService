@@ -117,6 +117,28 @@
               >
                 <i class="fas fa-comments"></i>
               </button>
+              <!-- Profissional: Iniciar serviço para status Agendado -->
+              @if(currentUser().role === 'professional' && (request.status ===
+              'Agendado' || request.status === 'Scheduled')) {
+              <button
+                (click)="startService.emit(request)"
+                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                title="{{ 'startService' | i18n }}"
+              >
+                <i class="fas fa-play"></i>
+              </button>
+              }
+              <!-- Profissional: Finalizar serviço para status Em execução -->
+              @if(currentUser().role === 'professional' && (request.status ===
+              'Em Progresso' || request.status === 'In Progress')) {
+              <button
+                (click)="finishService.emit(request)"
+                class="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-full transition-colors duration-200"
+                title="{{ 'finishService' | i18n }}"
+              >
+                <i class="fas fa-check"></i>
+              </button>
+              }
 
               <!-- Conditional Actions -->
               @if(currentUser().role === 'client') { @if(request.status ===
