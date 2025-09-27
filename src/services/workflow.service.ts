@@ -1,14 +1,13 @@
 import { Injectable, inject } from "@angular/core";
-import { SupabaseService } from "./supabase.service";
-import { NotificationService } from "./notification.service";
 import { AuthService } from "./auth.service";
-import { I18nService } from "./i18n.service";
+import { NotificationService } from "./notification.service";
+import { SupabaseService } from "./supabase.service";
+import { I18nService } from "../i18n.service";
 import {
+  ClientApproval,
+  ProfessionalResponse,
   ServiceRequest,
   ServiceStatus,
-  User,
-  ProfessionalResponse,
-  ClientApproval,
 } from "../models/maintenance.models";
 
 @Injectable({

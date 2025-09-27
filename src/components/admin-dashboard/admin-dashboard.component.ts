@@ -14,7 +14,7 @@ import {
 } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { DataService } from "../../services/data.service";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { NotificationService } from "../../services/notification.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { StatusPieChartComponent } from "../status-pie-chart.component";

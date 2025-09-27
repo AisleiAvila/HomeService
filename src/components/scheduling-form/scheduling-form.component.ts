@@ -12,7 +12,7 @@ import { FormsModule } from "@angular/forms";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({

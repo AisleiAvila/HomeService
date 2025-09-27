@@ -9,7 +9,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
-import { I18nService } from "../../services/i18n.service";
+import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import {
   ServiceRequest,

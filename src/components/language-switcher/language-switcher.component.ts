@@ -6,7 +6,7 @@ import {
   input,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { I18nService, Language } from "../../services/i18n.service";
+import { I18nService, Language } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
