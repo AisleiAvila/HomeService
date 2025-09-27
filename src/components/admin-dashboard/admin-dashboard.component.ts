@@ -345,7 +345,7 @@ export class AdminDashboardComponent {
         bgColor: "bg-orange-100 text-orange-600",
       },
       {
-        label: this.i18n.translate("activeRequests"),
+        label: this.i18n.translate("activeServices"),
         value: requests.filter((r) => statusAtivos.includes(r.status)).length,
         icon: "fas fa-cogs",
         bgColor: "bg-blue-100 text-blue-600",
