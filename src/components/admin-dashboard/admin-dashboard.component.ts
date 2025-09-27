@@ -381,6 +381,16 @@ export class AdminDashboardComponent {
     this.currentView.set(view);
   }
 
+  // Navigate to finances tab when revenue card is clicked
+  navigateToFinances() {
+    this.setView("finances");
+  }
+
+  // Check if a stat is the revenue card
+  isRevenueCard(statLabel: string): boolean {
+    return statLabel === this.i18n.translate("totalRevenue");
+  }
+
   // Pagination methods
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
