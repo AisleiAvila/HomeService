@@ -96,13 +96,25 @@
           </div>
           }
         </div>
-        <!-- Separador visual entre os cards e o gráfico -->
+        <!-- Separador visual entre os cards e os gráficos -->
         <div class="my-8"></div>
+
+        <!-- Gráfico de Status -->
         <app-status-pie-chart
           [title]="statusGraphTitle"
           [data]="statusPieChartData()"
           [labels]="statusLabels"
         ></app-status-pie-chart>
+
+        <!-- Separador visual entre os gráficos -->
+        <div class="my-8"></div>
+
+        <!-- Gráfico de Distribuição por Categoria -->
+        <app-category-bar-chart
+          [title]="i18n.translate('categoryDistributionTitle')"
+          [data]="ordersByCategory()"
+          [labels]="categoryLabels()"
+        ></app-category-bar-chart>
 
         } @case ('requests') {
         <div class="bg-white rounded-lg shadow-md overflow-hidden">

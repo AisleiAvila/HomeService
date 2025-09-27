@@ -566,6 +566,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     mbway: "MB WAY",
     bankTransfer: "Bank Transfer",
     statusGraphTitle: "Service Status Overview",
+    categoryDistributionTitle: "Order Distribution by Category",
+    categoryDistributionChart: "Category Distribution Chart",
+    ordersByCategory: "Orders by Category",
+    totalOrders: "Total Orders",
+    activeClients: "Active Clients",
+    noCategory: "No Category",
   },
   pt: {
     // General
@@ -1153,6 +1159,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     mbway: "MB WAY",
     bankTransfer: "Transferência Bancária",
     statusGraphTitle: "Distribuição dos Pedidos por Status",
+    categoryDistributionTitle: "Distribuição de Pedidos por Categoria",
+    categoryDistributionChart: "Gráfico de Distribuição por Categoria",
+    ordersByCategory: "Pedidos por Categoria",
+    totalOrders: "Total de Pedidos",
+    activeClients: "Clientes Ativos",
+    noCategory: "Sem Categoria",
   },
 };
 
