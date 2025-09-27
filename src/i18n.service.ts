@@ -572,6 +572,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalOrders: "Total Orders",
     activeClients: "Active Clients",
     noCategory: "No Category",
+    quickActions: "Quick Actions",
+    newService: "New Service",
+    generateReport: "Generate Report",
+    viewAllRequests: "View All Requests",
+    manageUsers: "Manage Users",
+    vsLastMonth: "vs last month",
+    vsLastWeek: "vs last week",
+    newToday: "new today",
+    urgentItems: "urgent items",
+    featureComingSoon: "Feature coming soon",
   },
   pt: {
     // General
@@ -1165,6 +1175,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalOrders: "Total de Pedidos",
     activeClients: "Clientes Ativos",
     noCategory: "Sem Categoria",
+    quickActions: "Ações Rápidas",
+    newService: "Novo Serviço",
+    generateReport: "Gerar Relatório",
+    viewAllRequests: "Ver Todas as Solicitações",
+    manageUsers: "Gerenciar Usuários",
+    vsLastMonth: "vs mês anterior",
+    vsLastWeek: "vs semana anterior",
+    newToday: "novos hoje",
+    urgentItems: "itens urgentes",
+    featureComingSoon: "Funcionalidade em breve",
   },
 };
 

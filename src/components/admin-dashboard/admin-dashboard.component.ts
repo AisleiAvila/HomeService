@@ -373,24 +373,49 @@ export class AdminDashboardComponent {
       "Scheduled",
       "In Progress",
     ];
+    // Calcular tendências (simuladas para demonstração)
+    const trends = this.calculateTrends();
+
     return [
       {
         label: this.i18n.translate("totalRevenue"),
         value: this.formatCost(financialData.totalRevenue),
         icon: "fas fa-euro-sign",
-        bgColor: "bg-green-100 text-green-600",
+        bgColor: "bg-gradient-to-br from-green-100 to-green-200 text-green-700",
+        trend: trends.revenue,
+        trendColor: trends.revenue.includes("+")
+          ? "text-green-600"
+          : "text-red-600",
+        badge: null,
       },
       {
         label: this.i18n.translate("pendingApprovals"),
         value: this.pendingApprovalCount(),
         icon: "fas fa-user-clock",
-        bgColor: "bg-orange-100 text-orange-600",
+        bgColor:
+          "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700",
+        trend: trends.approvals,
+        trendColor: trends.approvals.includes("+")
+          ? "text-red-600"
+          : "text-green-600",
+        badge:
+          this.getNewTodayCount() > 0
+            ? `${this.getNewTodayCount()} ${this.i18n.translate("newToday")}`
+            : null,
       },
       {
         label: this.i18n.translate("activeServices"),
         value: requests.filter((r) => statusAtivos.includes(r.status)).length,
         icon: "fas fa-cogs",
-        bgColor: "bg-blue-100 text-blue-600",
+        bgColor: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700",
+        trend: trends.activeServices,
+        trendColor: trends.activeServices.includes("+")
+          ? "text-green-600"
+          : "text-red-600",
+        badge:
+          this.getUrgentCount() > 0
+            ? `${this.getUrgentCount()} ${this.i18n.translate("urgentItems")}`
+            : null,
       },
       {
         label: this.i18n.translate("totalProfessionals"),
@@ -398,14 +423,26 @@ export class AdminDashboardComponent {
           (u) => u.role === "professional" && u.status === "Active"
         ).length,
         icon: "fas fa-users-cog",
-        bgColor: "bg-indigo-100 text-indigo-600",
+        bgColor:
+          "bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700",
+        trend: trends.professionals,
+        trendColor: trends.professionals.includes("+")
+          ? "text-green-600"
+          : "text-red-600",
+        badge: null,
       },
       {
         label: this.i18n.translate("activeClients"),
         value: users.filter((u) => u.role === "client" && u.status === "Active")
           .length,
         icon: "fas fa-user-friends",
-        bgColor: "bg-purple-100 text-purple-600",
+        bgColor:
+          "bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700",
+        trend: trends.clients,
+        trendColor: trends.clients.includes("+")
+          ? "text-green-600"
+          : "text-red-600",
+        badge: null,
       },
     ];
   });
@@ -1195,4 +1232,50 @@ export class AdminDashboardComponent {
   // Computed properties for backward compatibility
   pendingProfessionals = this.pendingRegistrations;
   categories = this.allCategories;
+
+  // Métodos para calcular tendências e badges
+  calculateTrends() {
+    // Simulação de tendências baseada em dados aleatórios para demonstração
+    // Em um sistema real, isso seria calculado comparando com dados históricos
+    return {
+      revenue: "+12%",
+      approvals: "+3",
+      activeServices: "-5%",
+      professionals: "+2",
+      clients: "+8%",
+    };
+  }
+
+  getNewTodayCount(): number {
+    // Simulação: contar registros criados hoje
+    // Em um sistema real, isso seria baseado em timestamps
+    return Math.floor(Math.random() * 5);
+  }
+
+  getUrgentCount(): number {
+    // Simulação: contar itens urgentes (pendentes há mais de 3 dias)
+    // Em um sistema real, isso seria baseado em datas de criação
+    return Math.floor(Math.random() * 3);
+  }
+
+  // Métodos para ações rápidas
+  createNewService() {
+    this.notificationService.addNotification(
+      this.i18n.translate("newService") +
+        " - " +
+        this.i18n.translate("featureComingSoon")
+    );
+  }
+
+  generateReport() {
+    this.exportToCSV();
+  }
+
+  viewAllRequests() {
+    this.setView("requests");
+  }
+
+  manageUsers() {
+    this.setView("approvals");
+  }
 }
