@@ -213,6 +213,60 @@
           [labels]="categoryLabels()"
         ></app-category-bar-chart>
 
+        <!-- Separador visual entre os gráficos -->
+        <div class="my-8"></div>
+
+        <!-- Gráfico de Evolução Temporal -->
+        <app-temporal-evolution-chart
+          [title]="i18n.translate('temporalEvolutionTitle')"
+          [data]="temporalData()"
+        ></app-temporal-evolution-chart>
+
+        <!-- Separador visual entre os gráficos e atividades -->
+        <div class="my-8"></div>
+
+        <!-- Lista de Atividades Recentes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold flex items-center">
+              <i class="fas fa-history text-indigo-500 mr-2"></i>
+              {{ "recentActivities" | i18n }}
+            </h3>
+            <div class="text-sm text-gray-500 flex items-center">
+              <i class="fas fa-sync-alt mr-1"></i>
+              {{ "lastUpdate" | i18n }}: {{ lastUpdate() | date : "short" }}
+            </div>
+          </div>
+
+          @if (recentActivities().length > 0) {
+          <div class="space-y-3">
+            @for (activity of recentActivities(); track activity.message) {
+            <div
+              class="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+              >
+                <i
+                  class="text-sm"
+                  [class]="activity.icon + ' ' + activity.color"
+                ></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-900">{{ activity.message }}</p>
+                <p class="text-xs text-gray-500">{{ activity.time }}</p>
+              </div>
+            </div>
+            }
+          </div>
+          } @else {
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-4xl text-gray-300 mb-2"></i>
+            <p class="text-gray-500">{{ "noRecentActivities" | i18n }}</p>
+          </div>
+          }
+        </div>
+
         } @case ('requests') {
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
           <!-- Desktop Table View -->
