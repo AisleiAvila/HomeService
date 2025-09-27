@@ -279,7 +279,11 @@ export class AdminDashboardComponent {
   clients = computed(() => this.allUsers().filter((u) => u.role === "client"));
 
   completedRequests = computed(() =>
-    this.allRequests().filter((r) => r.status === "Finalizado" && r.cost)
+    this.allRequests().filter(
+      (r) =>
+        (r.status === "Finalizado" || r.status === ("Completed" as any)) &&
+        r.cost
+    )
   );
 
   financialStats = computed(() => {
