@@ -5,6 +5,8 @@ import {
   computed,
   inject,
   signal,
+  OnInit,
+  OnDestroy,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
@@ -19,6 +21,7 @@ import { NotificationService } from "../../services/notification.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { StatusPieChartComponent } from "../status-pie-chart.component";
 import { CategoryBarChartComponent } from "../category-bar-chart.component";
+import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.component";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -29,11 +32,12 @@ import { CategoryBarChartComponent } from "../category-bar-chart.component";
     I18nPipe,
     StatusPieChartComponent,
     CategoryBarChartComponent,
+    TemporalEvolutionChartComponent,
   ],
   templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminDashboardComponent {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
   // Título do gráfico de status, internacionalizado
@@ -93,6 +97,10 @@ export class AdminDashboardComponent {
     // Component initialized
   }
 
+  ngOnInit() {
+    this.startAutoRefresh();
+  }
+
   /**
    * Retorna um objeto com todos os status esperados para o gráfico, preenchendo com zero onde não houver dados.
    * Adiciona logs para depuração dos dados recebidos e enviados ao gráfico.
@@ -120,6 +128,10 @@ export class AdminDashboardComponent {
   showAddProfessionalForm = signal(false);
   editingCategory = signal<string | null>(null);
   editingCategoryName = signal("");
+
+  // Auto-refresh state
+  lastUpdate = signal<Date>(new Date());
+  refreshInterval: any = null;
 
   // Form data
   newCategory = signal("");
@@ -184,6 +196,62 @@ export class AdminDashboardComponent {
     labels["Sem categoria"] = this.i18n.translate("noCategory");
 
     return labels;
+  });
+
+  // Dados temporais para o gráfico de evolução
+  temporalData = computed(() => {
+    const requests = this.allRequests();
+    const data: Record<string, number> = {};
+
+    // Gerar dados dos últimos 30 dias
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+
+      // Contar solicitações criadas neste dia
+      const count = requests.filter((req) => {
+        const reqDate = new Date(req.requested_date);
+        return reqDate.toISOString().split("T")[0] === dateStr;
+      }).length;
+
+      data[dateStr] = count;
+    }
+
+    return data;
+  });
+
+  // Atividades recentes
+  recentActivities = computed(() => {
+    const requests = this.allRequests();
+    const users = this.allUsers();
+    const activities: any[] = [];
+
+    // Simular atividades recentes baseadas nos dados existentes
+    requests.slice(0, 5).forEach((req) => {
+      activities.push({
+        type: "request",
+        message: this.i18n.translate("requestCreated") + ` #${req.id}`,
+        time: this.getRelativeTime(req.requested_date),
+        icon: "fas fa-file-alt",
+        color: "text-blue-600",
+      });
+    });
+
+    users.slice(0, 3).forEach((user) => {
+      activities.push({
+        type: "user",
+        message: this.i18n.translate("userRegistered") + `: ${user.name}`,
+        time: this.getRelativeTime(new Date().toISOString()),
+        icon: "fas fa-user-plus",
+        color: "text-green-600",
+      });
+    });
+
+    // Ordenar por tempo (mais recente primeiro)
+    return activities
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .slice(0, 8);
   });
 
   // Execution date proposal data
@@ -1277,5 +1345,56 @@ export class AdminDashboardComponent {
 
   manageUsers() {
     this.setView("approvals");
+  }
+
+  // Métodos para auto-refresh e atividades
+  getRelativeTime(dateString: string): string {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} ${this.i18n.translate("minutesAgo")}`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} ${this.i18n.translate("hoursAgo")}`;
+    } else {
+      const days = Math.floor(diffInMinutes / 1440);
+      return `${days} ${this.i18n.translate("daysAgo")}`;
+    }
+  }
+
+  startAutoRefresh() {
+    // Limpar intervalo existente se houver
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+
+    // Configurar auto-refresh a cada 30 segundos
+    this.refreshInterval = setInterval(() => {
+      this.refreshData();
+    }, 30000);
+  }
+
+  stopAutoRefresh() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
+  refreshData() {
+    // Atualizar dados do serviço
+    const currentUser = this.dataService.authService.appUser();
+    if (currentUser) {
+      this.dataService.loadInitialData(currentUser);
+      this.lastUpdate.set(new Date());
+    }
+  }
+
+  ngOnDestroy() {
+    this.stopAutoRefresh();
   }
 }
