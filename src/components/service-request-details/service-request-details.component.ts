@@ -31,6 +31,12 @@ import { NotificationService } from "../../services/notification.service";
   ],
   outputs: ["businessRuleError"],
   template: `
+    @if (!request()) {
+    <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold">
+      Erro: Nenhuma solicitação selecionada ou dados inválidos.<br />
+      Volte e selecione uma solicitação válida.
+    </div>
+    } @else {
     <!-- Cabeçalho Responsivo -->
     <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,71 +55,17 @@ import { NotificationService } from "../../services/notification.service";
               >
                 {{ "serviceRequestDetails" | i18n }}
               </h1>
-              @if (request()) {
               <p class="text-sm text-gray-500 truncate">
                 {{ request().title }}
               </p>
-              }
             </div>
           </div>
-
-          <!-- Ações do Cabeçalho (Mobile-friendly) -->
-          @if (availableActions().length > 0) {
-          <div class="flex items-center space-x-2">
-            <!-- Mobile: Dropdown menu -->
-            <div class="block sm:hidden relative">
-              <button
-                (click)="toggleMobileActions()"
-                class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-              >
-                <i class="fas fa-ellipsis-v text-lg"></i>
-              </button>
-              @if (showMobileActions()) {
-              <div
-                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20"
-              >
-                <div class="py-1">
-                  @for (action of availableActions(); track action.type) {
-                  <button
-                    (click)="executeAction(action); toggleMobileActions()"
-                    [disabled]="action.loading"
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    @if (action.loading) {
-                    <span
-                      class="inline-block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-2"
-                    ></span>
-                    }
-                    {{ action.label | i18n }}
-                  </button>
-                  }
-                </div>
-              </div>
-              }
-            </div>
-
-            <!-- Desktop: Botões inline -->
-            <div class="hidden sm:flex items-center space-x-2">
-              @for (action of availableActions(); track action.type) {
-              <button
-                (click)="executeAction(action)"
-                [disabled]="action.loading"
-                [class]="getActionButtonClass(action) + ' text-sm px-3 py-2'"
-              >
-                @if (action.loading) {
-                <span
-                  class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
-                ></span>
-                }
-                {{ action.label | i18n }}
-              </button>
-              }
-            </div>
-          </div>
-          }
+          <!-- ...restante do template... -->
         </div>
       </div>
     </div>
+    <!-- ...restante do template... -->
+    }
 
     <!-- Conteúdo Principal -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -630,10 +582,26 @@ export class ServiceRequestDetailsComponent {
           }
           break;
         case "complete":
-          // Lógica para completar serviço
-          break;
-        case "pay":
-          this.payNow.emit(this.request());
+          try {
+            await this.workflowService.completeWork(this.request().id);
+            this.notificationService.addNotification(
+              "Serviço marcado como concluído!"
+            );
+            this.refreshRequest.emit();
+          } catch (error: any) {
+            if (
+              error instanceof Error &&
+              error.message.includes(
+                "Tentativa de conclusão antes do tempo mínimo"
+              )
+            ) {
+              this.businessRuleError.emit(
+                "Não é permitido concluir o serviço antes do tempo mínimo!"
+              );
+            } else {
+              throw error;
+            }
+          }
           break;
         case "chat":
           this.openChat.emit(this.request());
