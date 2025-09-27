@@ -391,6 +391,73 @@ export class AdminDashboardComponent {
     return statLabel === this.i18n.translate("totalRevenue");
   }
 
+  // Check if a stat is the pending approvals card
+  isPendingApprovalsCard(statLabel: string): boolean {
+    return statLabel === this.i18n.translate("pendingApprovals");
+  }
+
+  // Check if a stat is the active services card
+  isActiveServicesCard(statLabel: string): boolean {
+    return statLabel === this.i18n.translate("activeServices");
+  }
+
+  // Check if a stat is the total professionals card
+  isTotalProfessionalsCard(statLabel: string): boolean {
+    return statLabel === this.i18n.translate("totalProfessionals");
+  }
+
+  // Navigate to approvals tab when pending approvals card is clicked
+  navigateToApprovals() {
+    this.setView("approvals");
+  }
+
+  // Navigate to requests tab when active services card is clicked
+  navigateToRequests() {
+    this.setView("requests");
+  }
+
+  // Navigate to professionals tab when total professionals card is clicked
+  navigateToProfessionals() {
+    this.setView("professionals");
+  }
+
+  // Generic method to handle card clicks
+  handleCardClick(statLabel: string) {
+    if (this.isRevenueCard(statLabel)) {
+      this.navigateToFinances();
+    } else if (this.isPendingApprovalsCard(statLabel)) {
+      this.navigateToApprovals();
+    } else if (this.isActiveServicesCard(statLabel)) {
+      this.navigateToRequests();
+    } else if (this.isTotalProfessionalsCard(statLabel)) {
+      this.navigateToProfessionals();
+    }
+  }
+
+  // Check if a card is clickable
+  isCardClickable(statLabel: string): boolean {
+    return (
+      this.isRevenueCard(statLabel) ||
+      this.isPendingApprovalsCard(statLabel) ||
+      this.isActiveServicesCard(statLabel) ||
+      this.isTotalProfessionalsCard(statLabel)
+    );
+  }
+
+  // Get tooltip text for clickable cards
+  getCardTooltip(statLabel: string): string {
+    if (this.isRevenueCard(statLabel)) {
+      return this.i18n.translate("clickToViewFinances");
+    } else if (this.isPendingApprovalsCard(statLabel)) {
+      return this.i18n.translate("clickToViewApprovals");
+    } else if (this.isActiveServicesCard(statLabel)) {
+      return this.i18n.translate("clickToViewRequests");
+    } else if (this.isTotalProfessionalsCard(statLabel)) {
+      return this.i18n.translate("clickToViewProfessionals");
+    }
+    return "";
+  }
+
   // Pagination methods
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
