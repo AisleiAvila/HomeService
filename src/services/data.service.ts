@@ -19,6 +19,26 @@ import { SupabaseService } from "./supabase.service";
   providedIn: "root",
 })
 export class DataService {
+  /**
+   * Busca um ServiceRequest atualizado do Supabase pelo id
+   */
+  async fetchServiceRequestById(id: number): Promise<ServiceRequest | null> {
+    const { data, error } = await this.supabase.client
+      .from("service_requests")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) {
+      console.error("Erro ao buscar ServiceRequest por id:", error);
+      return null;
+    }
+    console.log(
+      "[DataService] fetchServiceRequestById status:",
+      data?.status,
+      data
+    );
+    return data as ServiceRequest;
+  }
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
   public readonly authService = inject(AuthService);
