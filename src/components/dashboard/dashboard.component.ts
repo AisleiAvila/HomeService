@@ -93,7 +93,9 @@ export class DashboardComponent {
 
   // Considera status ativos em português
   activeRequests = computed(() => {
-    const reqs = this.userRequests();
+    const reqs = this.userRequests().filter(
+      (r) => r.status !== "Finalizado" && r.status !== "Completed"
+    );
     if (Array.isArray(reqs)) {
       return reqs;
     }
@@ -108,7 +110,9 @@ export class DashboardComponent {
     }
   });
   completedRequests = computed(() =>
-    this.userRequests().filter((r) => r.status === "Finalizado")
+    this.userRequests().filter(
+      (r) => r.status === "Finalizado" || r.status === "Completed"
+    )
   );
 
   stats = computed(() => {
@@ -139,6 +143,9 @@ export class DashboardComponent {
       "Pending",
       "Scheduled",
       "In Progress",
+      "Completed - Awaiting Approval",
+      "Quoted",
+      "Awaiting Quote Approval",
     ];
 
     if (currentUser.role === "client" || currentUser.role === "admin") {
@@ -150,7 +157,9 @@ export class DashboardComponent {
         },
         {
           label: this.i18n.translate("completed"),
-          value: requests.filter((r) => r.status === "Finalizado").length,
+          value: requests.filter(
+            (r) => r.status === "Finalizado" || r.status === "Completed"
+          ).length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
