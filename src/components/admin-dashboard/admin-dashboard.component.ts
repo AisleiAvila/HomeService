@@ -71,6 +71,8 @@ export class AdminDashboardComponent {
     "In Progress": this.i18n.translate("statusInProgress"),
     Finalizado: this.i18n.translate("statusCompleted"),
     Cancelado: this.i18n.translate("statusCancelled"),
+    // Adicionados para garantir exibição dos dados reais do banco
+    Completed: this.i18n.translate("statusCompletedEn"),
   };
   private notificationService = inject(NotificationService);
   private workflowService = inject(WorkflowService);
@@ -84,15 +86,25 @@ export class AdminDashboardComponent {
 
   /**
    * Retorna um objeto com todos os status esperados para o gráfico, preenchendo com zero onde não houver dados.
+   * Adiciona logs para depuração dos dados recebidos e enviados ao gráfico.
    */
   statusPieChartData(): Record<string, number> {
-    // Lista de status esperados (chaves do statusLabels)
-    const allStatuses = Object.keys(this.statusLabels);
+    // Mapeamento explícito entre status do banco e labels do gráfico
+    const statusMap: Record<string, string> = {
+      completed: "statusCompleted",
+      "profissional selecionado": "statusAssigned",
+      agendado: "statusScheduled",
+      assigned: "statusAssigned",
+      // Adicione outros status do banco conforme necessário
+    };
     const statusCounts = this.servicesByStatus();
+    console.log("[PieChart] Dados brutos recebidos:", statusCounts);
     const result: Record<string, number> = {};
-    for (const status of allStatuses) {
-      result[status] = statusCounts[status] ?? 0;
+    for (const [dbStatus, count] of Object.entries(statusCounts)) {
+      const labelKey = statusMap[dbStatus] || dbStatus;
+      result[labelKey] = count;
     }
+    console.log("[PieChart] Dados enviados ao gráfico:", result);
     return result;
   }
 
@@ -142,7 +154,9 @@ export class AdminDashboardComponent {
     const requests = this.dataService.serviceRequests();
     const statusMap: Record<string, number> = {};
     for (const req of requests) {
-      statusMap[req.status] = (statusMap[req.status] || 0) + 1;
+      // Normaliza status: remove espaços e converte para minúsculas
+      const normalized = req.status?.trim().toLowerCase();
+      statusMap[normalized] = (statusMap[normalized] || 0) + 1;
     }
     return statusMap;
   });
