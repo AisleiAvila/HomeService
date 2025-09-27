@@ -14,7 +14,7 @@ import { CommonModule } from "@angular/common";
     <div class="w-full p-4">
       <h3 class="text-lg font-semibold mb-2">{{ title }}</h3>
       <div class="flex justify-center items-center">
-        <canvas #pieCanvas width="220" height="220"></canvas>
+        <canvas id="pieCanvas" #pieCanvas width="220" height="220"></canvas>
       </div>
       <div class="flex flex-wrap gap-2 justify-center mt-4">
         <ng-container *ngFor="let item of chartData()">
@@ -67,11 +67,19 @@ export class StatusPieChartComponent {
     const canvas = document.querySelector(
       "canvas#pieCanvas"
     ) as HTMLCanvasElement;
-    if (!canvas) return;
+    if (!canvas) {
+      console.warn("[PieChart] Canvas não encontrado");
+      return;
+    }
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      console.warn("[PieChart] Contexto 2D não encontrado");
+      return;
+    }
     const data = this.chartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
+    console.log("[PieChart] Dados recebidos:", data);
+    console.log("[PieChart] Total:", total);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (total === 0) {
       // Desenha círculo cinza indicando ausência de dados

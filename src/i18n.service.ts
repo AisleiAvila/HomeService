@@ -561,6 +561,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scheduled_for: "Scheduled For",
     started_at: "Started At",
     completed_at: "Completed At",
+
+    creditCard: "Credit Card",
+    mbway: "MB WAY",
+    bankTransfer: "Bank Transfer",
   },
   pt: {
     // General
@@ -1142,6 +1146,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     completed_at: "Concluído em",
 
     selectConcelho: "Selecione o concelho",
+
+    creditCard: "Cartão de Crédito",
+    mbway: "MB WAY",
+    bankTransfer: "Transferência Bancária",
   },
 };
 

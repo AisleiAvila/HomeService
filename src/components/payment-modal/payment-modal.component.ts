@@ -30,7 +30,7 @@ export class PaymentModalComponent {
 
   paymentMethods = [
     { id: "card", label: this.i18n.translate("creditCard") },
-    { id: "pix", label: this.i18n.translate("pix") },
+    { id: "mbway", label: this.i18n.translate("mbway") },
     { id: "bank", label: this.i18n.translate("bankTransfer") },
   ];
 
