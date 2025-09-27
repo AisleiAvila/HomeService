@@ -189,7 +189,7 @@
               } @if(request.status === 'Completed' && request.payment_status ===
               'Unpaid') {
               <button
-                (click)="payNow.emit(request)"
+                (click)="handlePayNow(request)"
                 class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
                 title="{{ 'payNow' | i18n }}"
               >
@@ -620,5 +620,13 @@
     (approve)="handleApproveQuote($event)"
     (reject)="handleRejectQuote($event)"
     (close)="handleCloseBudgetModal()"
+  />
+  <!-- Modal de Pagamento -->
+  <app-payment-modal
+    *ngIf="showPaymentModal() && selectedRequestForPayment()"
+    [request]="selectedRequestForPayment()"
+    [show]="showPaymentModal()"
+    (onPay)="handlePaymentConfirmed($event)"
+    (onClose)="handlePaymentModalClose()"
   />
 </div>
