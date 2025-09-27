@@ -14,11 +14,17 @@ import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../services/i18n.service";
 import { BudgetApprovalModalComponent } from "../budget-approval-modal";
+import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
 
 @Component({
   selector: "app-service-list",
   standalone: true,
-  imports: [CommonModule, I18nPipe, BudgetApprovalModalComponent],
+  imports: [
+    CommonModule,
+    I18nPipe,
+    BudgetApprovalModalComponent,
+    PaymentModalComponent,
+  ],
   templateUrl: "./service-list.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -43,6 +49,8 @@ export class ServiceListComponent {
   approveExecutionDate = output<ServiceRequest>();
   rejectExecutionDate = output<{ request: ServiceRequest; reason: string }>();
   payNow = output<ServiceRequest>();
+  showPaymentModal = signal(false);
+  selectedRequestForPayment = signal<ServiceRequest | null>(null);
   scheduleRequest = output<ServiceRequest>();
   provideClarification = output<ServiceRequest>();
   startService = output<ServiceRequest>();
@@ -199,6 +207,23 @@ export class ServiceListComponent {
   handleApproveQuote(request: ServiceRequest) {
     this.approveQuote.emit(request);
     this.showBudgetApprovalModal.set(false);
+  }
+
+  handlePayNow(request: ServiceRequest) {
+    this.selectedRequestForPayment.set(request);
+    this.showPaymentModal.set(true);
+  }
+
+  handlePaymentModalClose() {
+    this.showPaymentModal.set(false);
+    this.selectedRequestForPayment.set(null);
+  }
+
+  handlePaymentConfirmed(event: { request: ServiceRequest; method: string }) {
+    // Emitir evento para processar pagamento
+    this.payNow.emit(event.request);
+    this.showPaymentModal.set(false);
+    this.selectedRequestForPayment.set(null);
   }
 
   handleRejectQuote(request: ServiceRequest) {
