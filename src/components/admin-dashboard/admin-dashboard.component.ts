@@ -255,7 +255,9 @@ export class AdminDashboardComponent {
 
   pendingRegistrations = computed(() =>
     this.allUsers().filter(
-      (u) => u.role === "professional" && u.status === "Pending"
+      (u) =>
+        (u.role === "professional" || u.role === "client") &&
+        (u.status === "Pending" || u.email_verified === false)
     )
   );
 
