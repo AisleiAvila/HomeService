@@ -104,10 +104,7 @@
             <div class="flex gap-2 items-center">
               <!-- Always Available Actions -->
               <button
-                (click)="
-                  viewDetails.emit(request);
-                  console.log('Clique no ícone detalhar detectado!', request)
-                "
+                (click)="viewDetails.emit(request)"
                 class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
                 title="{{ 'viewRequestDetails' | i18n }}"
               >

@@ -14,7 +14,6 @@ import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../services/i18n.service";
 import { BudgetApprovalModalComponent } from "../budget-approval-modal";
-//import { BudgetApprovalModalComponent } from "./budget-approval-modal/budget-approval-modal.component";
 
 @Component({
   selector: "app-service-list",
@@ -68,34 +67,7 @@ export class ServiceListComponent {
   });
 
   ngOnInit() {
-    // Log para depuração: conteúdo recebido de serviceRequests
-    const requests = this.serviceRequests() ?? [];
-    console.log("[ServiceListComponent] serviceRequests recebidos:", requests);
-    if (!Array.isArray(requests)) {
-      console.error(
-        "[ServiceListComponent] serviceRequests NÃO é array!",
-        typeof requests,
-        requests
-      );
-    } else {
-      requests.forEach((req, idx) => {
-        console.log(`[ServiceListComponent] Request #${idx}:`, req);
-        if (typeof req !== "object" || req === null) {
-          console.error(
-            `[ServiceListComponent] Request #${idx} NÃO é objeto!`,
-            req
-          );
-        } else {
-          Object.keys(req).forEach((key) => {
-            console.log(
-              `[ServiceListComponent] Request #${idx} propriedade: ${key} =`,
-              req[key]
-            );
-          });
-        }
-      });
-    }
-    console.log("[ServiceListComponent] currentUser:", this.currentUser());
+    console.log("[ServiceListComponent] currentUser:", this.currentUser().name);
   }
 
   displayedRequests = computed(() => {

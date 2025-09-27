@@ -23,6 +23,16 @@ import { signal } from "@angular/core";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
+  // Handler para detalhar solicitação
+  handleViewDetails(request: ServiceRequest) {
+    console.log("[Dashboard] handleViewDetails chamado:", request);
+    this.selectedRequest.set(request);
+    console.log(
+      "[Dashboard] selectedRequest após set:",
+      this.selectedRequest()
+    );
+    // Aqui pode abrir modal, navegar ou atualizar view conforme necessário
+  }
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
@@ -50,7 +60,7 @@ export class DashboardComponent {
       allRequests.length,
       allRequests
     );
-    console.log("[DashboardComponent] Usuário atual:", currentUser);
+    console.log("[DashboardComponent] Usuário atual:", currentUser.name);
     let filtered = [];
     if (currentUser.role === "client") {
       filtered = allRequests.filter((r) => r.client_id === currentUser.id);

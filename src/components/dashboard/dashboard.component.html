@@ -1,4 +1,5 @@
 <!-- Modal de erro de negócio -->
+
 @if (showBusinessError()) {
 <div
   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
@@ -18,6 +19,7 @@
   </div>
 </div>
 }
+
 <div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
   <div>
     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 break-words">
@@ -43,76 +45,66 @@
       >
         <i class="text-lg sm:text-2xl" [class]="stat.icon"></i>
       </div>
-      <div class="min-w-0 flex-1">
-        <h3 class="text-gray-500 text-xs sm:text-sm font-medium truncate">
-          {{ stat.label }}
-        </h3>
-        <p class="text-lg sm:text-2xl font-bold text-gray-800 mt-1">
-          {{ stat.value }}
-        </p>
+      <div class="flex-1 min-w-0">
+        <span class="font-semibold text-gray-700">{{ stat.label }}</span>
+        <span class="ml-2 text-gray-900">{{ stat.value }}</span>
       </div>
     </div>
     }
   </div>
 
-  <!-- Service Lists -->
-  <div class="min-w-0">
-    <h3
-      class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
-    >
-      {{ "activeRequests" | i18n }}
-    </h3>
-    @if (user() && isArray(activeRequests()) && activeRequests().length > 0) {
-    <app-service-list
-      [serviceRequests]="activeRequests()"
-      [currentUser]="user()"
-      [enablePagination]="true"
-      [itemsPerPageDefault]="10"
-      (viewDetails)="handleViewDetails($event)"
-      (openChat)="openChat.emit($event)"
-      (payNow)="payNow.emit($event)"
-      (approveQuote)="handleQuoteResponse($event, true)"
-      (rejectQuote)="handleQuoteResponse($event, false)"
-      (approveExecutionDate)="handleExecutionDateResponse($event, true)"
-      (rejectExecutionDate)="
-        handleExecutionDateResponse($event.request, false, $event.reason)
-      "
-      (scheduleRequest)="scheduleRequest.emit($event)"
-      (provideClarification)="handleProvideClarification($event)"
-    >
-    </app-service-list>
-    }
-
-    <!-- Modal de detalhes do serviço -->
-    @if (selectedRequest()) {
-    <app-service-request-details
-      [request]="selectedRequest()"
-      [currentUser]="user()"
-      (close)="selectedRequest.set(null)"
-      (refreshRequest)="selectedRequest.set(null)"
-    ></app-service-request-details>
-    } @else {
-    <div class="text-center text-gray-500 p-4">
-      Nenhum agendamento encontrado.
-    </div>
-    }
+  <!-- Service Lists OU Detalhes -->
+  @if (selectedRequest()) {
+  <app-service-request-details
+    [request]="selectedRequest()"
+    [currentUser]="user()"
+    (close)="selectedRequest.set(null)"
+    (refreshRequest)="selectedRequest.set(null)"
+  ></app-service-request-details>
+  } @else {
+  <h3
+    class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
+  >
+    {{ "activeRequests" | i18n }}
+  </h3>
+  @if (user() && isArray(activeRequests()) && activeRequests().length > 0) {
+  <app-service-list
+    [serviceRequests]="activeRequests()"
+    [currentUser]="user()"
+    [enablePagination]="true"
+    [itemsPerPageDefault]="10"
+    (viewDetails)="handleViewDetails($event)"
+    (openChat)="openChat.emit($event)"
+    (payNow)="payNow.emit($event)"
+    (approveQuote)="handleQuoteResponse($event, true)"
+    (rejectQuote)="handleQuoteResponse($event, false)"
+    (approveExecutionDate)="handleExecutionDateResponse($event, true)"
+    (rejectExecutionDate)="
+      handleExecutionDateResponse($event.request, false, $event.reason)
+    "
+    (scheduleRequest)="scheduleRequest.emit($event)"
+    (provideClarification)="handleProvideClarification($event)"
+  >
+  </app-service-list>
+  } @else {
+  <div class="text-center text-gray-500 p-4">
+    Nenhum agendamento encontrado.
   </div>
-
-  <div class="min-w-0">
-    <h3
-      class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
-    >
-      {{ "completedRequests" | i18n }}
-    </h3>
-    <app-service-list
-      [serviceRequests]="completedRequests()"
-      [currentUser]="user()"
-      [enablePagination]="true"
-      [itemsPerPageDefault]="10"
-      (viewDetails)="viewDetails.emit($event)"
-      (openChat)="openChat.emit($event)"
-      (payNow)="payNow.emit($event)"
-    >
-    </app-service-list>
-  </div>
+  }
+  <h3
+    class="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 px-1 sm:px-0"
+  >
+    {{ "completedRequests" | i18n }}
+  </h3>
+  <app-service-list
+    [serviceRequests]="completedRequests()"
+    [currentUser]="user()"
+    [enablePagination]="true"
+    [itemsPerPageDefault]="10"
+    (viewDetails)="viewDetails.emit($event)"
+    (openChat)="openChat.emit($event)"
+    (payNow)="payNow.emit($event)"
+  >
+  </app-service-list>
+  }
 </div>
