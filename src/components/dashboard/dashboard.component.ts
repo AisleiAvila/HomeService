@@ -23,6 +23,9 @@ import { signal } from "@angular/core";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
+  // Signal para exibir erro de negócio
+  showBusinessError = signal(false);
+  businessErrorMessage = signal<string>("");
   // Método utilitário para uso no template
   isArray(val: any): boolean {
     return Array.isArray(val);
@@ -176,5 +179,12 @@ export class DashboardComponent {
 
   handleProvideClarification(request: ServiceRequest) {
     this.provideClarification.emit(request);
+  }
+
+  // Método para exibir erro de negócio
+  showBusinessRuleError(message: string) {
+    this.businessErrorMessage.set(message);
+    this.showBusinessError.set(true);
+    setTimeout(() => this.showBusinessError.set(false), 6000);
   }
 }
