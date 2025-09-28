@@ -7,6 +7,10 @@ import {
   signal,
   OnInit,
   OnDestroy,
+  HostListener,
+  ElementRef,
+  ViewChildren,
+  QueryList,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
@@ -40,10 +44,18 @@ import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.com
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   // Filtros avançados e pesquisa
   filterStatus = signal<string>("");
-  filterDate = signal<string>("");
+  filterStartDate = signal<string>("");
+  filterEndDate = signal<string>("");
   filterDistrict = signal<string>("");
   filterProfessional = signal<string>("");
   searchTerm = signal<string>("");
+
+  quickFilterOptions = [
+    { status: 'Solicitado', label: 'statusRequested' },
+    { status: 'Em análise', label: 'statusInAnalysis' },
+    { status: 'Agendado', label: 'statusScheduled' },
+    { status: 'Finalizado', label: 'statusCompleted' }
+  ];
 
   // Opções para filtros (mock, pode ser ajustado para buscar do serviço)
   statusOptions = [
@@ -75,25 +87,88 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.professionalOptions = this.professionals();
   }
 
+  applyQuickFilter(status: string) {
+    // Se o filtro rápido clicado já estiver ativo, desativa-o. Senão, ativa-o.
+    this.filterStatus.set(this.filterStatus() === status ? "" : status);
+  }
+
   clearFilters() {
     this.filterStatus.set("");
-    this.filterDate.set("");
+    this.filterStartDate.set("");
+    this.filterEndDate.set("");
     this.filterDistrict.set("");
     this.filterProfessional.set("");
     this.searchTerm.set("");
   }
 
+  removeFilter(filterType: 'status' | 'period' | 'district' | 'professional' | 'search') {
+    switch (filterType) {
+      case 'status':
+        this.filterStatus.set("");
+        break;
+      case 'period':
+        this.filterStartDate.set("");
+        this.filterEndDate.set("");
+        break;
+      case 'district':
+        this.filterDistrict.set("");
+        break;
+      case 'professional':
+        this.filterProfessional.set("");
+        break;
+      case 'search':
+        this.searchTerm.set("");
+        break;
+    }
+  }
+
+  // Computed para gerar a lista de filtros ativos
+  activeFilters = computed(() => {
+    const filters: { type: any; label: string; value: string }[] = [];
+    if (this.filterStatus()) {
+      filters.push({ type: 'status', label: 'status', value: this.filterStatus() });
+    }
+    if (this.filterStartDate() && this.filterEndDate()) {
+      filters.push({ type: 'period', label: 'period', value: `${this.filterStartDate()} - ${this.filterEndDate()}` });
+    }
+    if (this.filterDistrict()) {
+      filters.push({ type: 'district', label: 'district', value: this.filterDistrict() });
+    }
+    if (this.filterProfessional()) {
+      const profName = this.professionalOptions.find(p => String(p.id) === String(this.filterProfessional()))?.name || '';
+      filters.push({ type: 'professional', label: 'professional', value: profName });
+    }
+    if (this.searchTerm()) {
+      filters.push({ type: 'search', label: 'search', value: this.searchTerm() });
+    }
+    return filters;
+  });
+
   // Computed para filtrar e pesquisar solicitações
   filteredRequests = computed(() => {
     let reqs = this.allRequests();
     const status = this.filterStatus();
-    const date = this.filterDate();
+    const startDate = this.filterStartDate();
+    const endDate = this.filterEndDate();
     const district = this.filterDistrict();
     const professional = this.filterProfessional();
     const search = this.searchTerm().toLowerCase();
 
     if (status) reqs = reqs.filter((r) => r.status === status);
-    if (date) reqs = reqs.filter((r) => r.requested_date?.startsWith(date));
+
+    if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        // Adjust end date to include the whole day
+        end.setHours(23, 59, 59, 999);
+
+        reqs = reqs.filter(r => {
+            if (!r.requested_date) return false;
+            const reqDate = new Date(r.requested_date);
+            return reqDate >= start && reqDate <= end;
+        });
+    }
+
     if (district) reqs = reqs.filter((r) => r.state === district);
     if (professional)
       reqs = reqs.filter(
@@ -192,6 +267,25 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // Environment check
   isProduction = false; // Could be injected from environment in production
+
+  // UI State for Actions Menu
+  openActionsMenuId = signal<number | null>(null);
+  @ViewChildren("actionsMenu") actionsMenus!: QueryList<ElementRef>;
+
+  @HostListener("document:click", ["$event"])
+  onDocumentClick(event: MouseEvent) {
+    if (this.openActionsMenuId() === null) {
+      return; // No menu is open, do nothing
+    }
+
+    const clickedInside = this.actionsMenus.some((menuRef) =>
+      menuRef.nativeElement.contains(event.target as Node)
+    );
+
+    if (!clickedInside) {
+      this.openActionsMenuId.set(null); // Close the menu
+    }
+  }
 
   // UI State
   currentView = signal<
@@ -760,6 +854,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       statusClasses[status as keyof typeof statusClasses] ||
       "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
     );
+  }
+
+  // Actions Menu methods
+  toggleActionsMenu(requestId: number) {
+    this.openActionsMenuId.set(
+      this.openActionsMenuId() === requestId ? null : requestId
+    );
+  }
+
+  isActionsMenuOpen(requestId: number): boolean {
+    return this.openActionsMenuId() === requestId;
   }
 
   formatCost(amount: number | null | undefined): string {
