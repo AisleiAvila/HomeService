@@ -9,6 +9,9 @@ import {
   Injector,
   runInInjectionContext,
   OnDestroy,
+  signal,
+  computed,
+  AfterViewInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -22,11 +25,13 @@ import {
   FullCalendarModule,
   FullCalendarComponent,
 } from "@fullcalendar/angular";
-import { CalendarOptions, EventClickArg } from "@fullcalendar/core";
+import { CalendarOptions, EventClickArg, CalendarApi } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import ptBr from "@fullcalendar/core/locales/pt-br";
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
 import { I18nService } from "@/src/i18n.service";
 
 @Component({
@@ -39,117 +44,245 @@ import { I18nService } from "@/src/i18n.service";
     class: "block h-full",
   },
 })
-export class ScheduleComponent implements OnDestroy {
+export class ScheduleComponent implements OnDestroy, AfterViewInit {
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
 
   private dataService = inject(DataService);
-  private i18n = inject(I18nService);
-  private injector = inject(Injector); // Inject the injector to provide context
+  i18n = inject(I18nService);
+  private injector = inject(Injector);
   private resizeHandler?: () => void;
 
   calendarComponent = viewChild.required<FullCalendarComponent>("calendar");
+  private calendarApi = signal<CalendarApi | undefined>(undefined);
 
-  private isMobile(): boolean {
-    return window.innerWidth < 768;
-  }
+  // Signal para controlar os status visíveis no calendário
+  visibleStatuses = signal<Set<ServiceStatus>>(new Set());
 
-  private getResponsiveCalendarOptions(): Partial<CalendarOptions> {
-    const isMobile = this.isMobile();
+  private statusColorMap: Record<ServiceStatus, string> = {
+    Solicitado: "#eab308",
+    "Em análise": "#06b6d4",
+    "Aguardando esclarecimentos": "#f59e0b",
+    "Orçamento enviado": "#0ea5e9",
+    "Aguardando aprovação do orçamento": "#6366f1",
+    "Orçamento aprovado": "#22c55e",
+    "Orçamento rejeitado": "#ef4444",
+    "Aguardando data de execução": "#fbbf24",
+    "Data proposta pelo administrador": "#3b82f6",
+    "Aguardando aprovação da data": "#6366f1",
+    "Data aprovada pelo cliente": "#22c55e",
+    "Data rejeitada pelo cliente": "#ef4444",
+    "Buscando profissional": "#a855f7",
+    "Profissional selecionado": "#14b8a6",
+    "Aguardando confirmação do profissional": "#f97316",
+    Agendado: "#3b82f6",
+    "Em execução": "#8b5cf6",
+    "Concluído - Aguardando aprovação": "#84cc16",
+    "Aprovado pelo cliente": "#22c55e",
+    "Rejeitado pelo cliente": "#ef4444",
+    Pago: "#10b981",
+    Finalizado: "#059669",
+    Cancelado: "#6b7280",
+  };
 
-    return {
-      aspectRatio: isMobile ? 1.0 : 1.35,
-      contentHeight: isMobile ? 400 : "auto",
-      height: isMobile ? 500 : "100%",
-      headerToolbar: isMobile
-        ? {
-            left: "prev,next",
-            center: "title",
-            right: "today",
-          }
-        : {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,dayGridWeek",
-          },
-      dayHeaderFormat: isMobile ? { weekday: "short" } : { weekday: "long" },
-    };
-  }
+  // Gera a legenda de status a partir do mapa de cores
+  statusLegend = computed(() => {
+    return (Object.keys(this.statusColorMap) as ServiceStatus[]).map(status => ({
+      name: status,
+      color: this.statusColorMap[status]
+    }));
+  });
 
-  // A stable arrow function that uses `runInInjectionContext` to safely access DI.
-  // This is the robust way to handle callbacks from third-party libraries in zoneless Angular.
   private handleEventClick = (clickInfo: EventClickArg) => {
     runInInjectionContext(this.injector, () => {
-      const dataService = inject(DataService);
-      const requestId = Number(clickInfo.event.id);
-      const request = dataService.getServiceRequestById(requestId);
-      if (request) {
-        this.viewDetails.emit(request);
-      }
+      const request = this.dataService.getServiceRequestById(Number(clickInfo.event.id));
+      if (request) this.viewDetails.emit(request);
     });
   };
 
-  // Static options for stable initialization, now including the event click handler.
+  private handleEventDidMount = (info: { event: EventClickArg['event'], el: HTMLElement }) => {
+    runInInjectionContext(this.injector, () => {
+      const request = this.dataService.getServiceRequestById(Number(info.event.id));
+      if (!request) return;
+
+      const professionalName = this.getProfessionalName(request.professional_id);
+      const clientName = this.getClientName(request.client_id);
+      const startTime = this.formatTime(request.scheduled_start_datetime);
+
+      const tooltipContent = `
+        <div class="p-2 text-sm text-left">
+          <div class="font-bold mb-1">${request.title}</div>
+          <div class="mb-1"><i class="fas fa-clock w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('time')}:</strong> ${startTime}</div>
+          <div class="mb-1"><i class="fas fa-info-circle w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('status')}:</strong> ${this.getStatusTranslation(request.status)}</div>
+          ${this.user().role !== 'client' ? `<div class="mb-1"><i class="fas fa-user w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('client')}:</strong> ${clientName}</div>` : ''}
+          ${this.user().role !== 'professional' ? `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('professional')}:</strong> ${professionalName}</div>` : ''}
+        </div>
+      `;
+
+      tippy(info.el, {
+        content: tooltipContent,
+        allowHTML: true,
+        theme: 'light-border',
+        placement: 'top',
+        animation: 'shift-away',
+      });
+    });
+  };
+
+  // Opções estáticas do calendário
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
-    headerToolbar:
-      window.innerWidth < 768
-        ? {
-            left: "prev,next",
-          }
-        : {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,dayGridWeek",
-          },
-    aspectRatio: window.innerWidth < 768 ? 1.0 : 1.35,
-    contentHeight: window.innerWidth < 768 ? 400 : "auto",
     weekends: true,
-    height: window.innerWidth < 768 ? 500 : "100%",
+    moreLinkClick: "popover",
+    eventClick: this.handleEventClick,
+    eventDidMount: this.handleEventDidMount,
+    events: [],
     eventTimeFormat: {
       hour: "2-digit",
       minute: "2-digit",
       meridiem: false,
       hour12: false,
     },
-    eventDisplay: window.innerWidth < 768 ? "block" : "auto",
-    dayMaxEvents: window.innerWidth < 768 ? 2 : 5,
-    moreLinkClick: "popover",
-    eventClick: this.handleEventClick,
-    events: [], // Adicionado para reatividade
   };
 
-  private statusColor(status: ServiceStatus): string {
-    const colorMap: Record<ServiceStatus, string> = {
-      Solicitado: "#eab308", // yellow-500
-      "Em análise": "#06b6d4", // cyan-500
-      "Aguardando esclarecimentos": "#f59e0b", // amber-500
-      "Orçamento enviado": "#0ea5e9", // sky-500
-      "Aguardando aprovação do orçamento": "#6366f1", // indigo-500
-      "Orçamento aprovado": "#22c55e", // green-500
-      "Orçamento rejeitado": "#ef4444", // red-500
-      "Aguardando data de execução": "#fbbf24", // amber-400
-      "Data proposta pelo administrador": "#3b82f6", // blue-500
-      "Aguardando aprovação da data": "#6366f1", // indigo-500
-      "Data aprovada pelo cliente": "#22c55e", // green-500
-      "Data rejeitada pelo cliente": "#ef4444", // red-500
-      "Buscando profissional": "#a855f7", // purple-500
-      "Profissional selecionado": "#14b8a6", // teal-500
-      "Aguardando confirmação do profissional": "#f97316", // orange-500
-      Agendado: "#3b82f6", // blue-500
-      "Em execução": "#8b5cf6", // purple-500
-      "Concluído - Aguardando aprovação": "#84cc16", // lime-500
-      "Aprovado pelo cliente": "#22c55e", // green-500
-      "Rejeitado pelo cliente": "#ef4444", // red-500
-      Pago: "#10b981", // emerald-500
-      Finalizado: "#059669", // emerald-600
-      Cancelado: "#6b7280", // gray-500
-    };
-    return colorMap[status] || "#6b7280";
+  constructor() {
+    this.selectAllStatuses();
+    this.setupEffects();
   }
 
-  private getStatusTranslation(status: ServiceStatus): string {
+  ngAfterViewInit() {
+    this.calendarApi.set(this.calendarComponent().getApi());
+    this.setupResizeListener();
+  }
+
+  ngOnDestroy() {
+    if (this.resizeHandler && typeof window !== "undefined") {
+      window.removeEventListener("resize", this.resizeHandler);
+    }
+  }
+
+  // --- Métodos do Filtro de Status ---
+  public toggleStatusFilter(status: ServiceStatus) {
+    this.visibleStatuses.update(currentSet => {
+      const newSet = new Set(currentSet);
+      if (newSet.has(status)) newSet.delete(status); else newSet.add(status);
+      return newSet;
+    });
+  }
+
+  public isStatusVisible(status: ServiceStatus): boolean {
+    return this.visibleStatuses().has(status);
+  }
+
+  public selectAllStatuses() {
+    this.visibleStatuses.set(new Set(this.statusLegend().map(s => s.name)));
+  }
+
+  public deselectAllStatuses() {
+    this.visibleStatuses.set(new Set());
+  }
+
+  // --- Effects ---
+  private setupEffects() {
+    // Effect para atualizar os eventos do calendário
+    effect(() => {
+      const allRequests = this.dataService.serviceRequests();
+      const currentUser = this.user();
+      const visible = this.visibleStatuses();
+      let userRequests: ServiceRequest[];
+
+      if (currentUser.role === "client") {
+        userRequests = allRequests.filter(r => r.client_id === currentUser.id);
+      } else if (currentUser.role === "professional") {
+        userRequests = allRequests.filter(r => r.professional_id === currentUser.id);
+      } else {
+        userRequests = allRequests;
+      }
+
+      const scheduledEvents = userRequests
+        .filter(r => (r.scheduled_date || r.scheduled_start_datetime) && visible.has(r.status))
+        .map(request => ({
+          id: String(request.id),
+          title: `${request.title} (${this.getStatusTranslation(request.status)})`,
+          start: request.scheduled_start_datetime || request.scheduled_date!,
+          backgroundColor: this.statusColor(request.status),
+          borderColor: this.statusColor(request.status),
+          textColor: "#ffffff",
+        }));
+
+      const calendarApi = this.calendarApi();
+      if (calendarApi) {
+        calendarApi.setOption('events', scheduledEvents);
+      }
+    });
+
+    // Effect para atualizar o idioma do calendário
+    effect(() => {
+      const language = this.i18n.language(); // Dependência do sinal de idioma
+      const calendarApi = this.calendarApi(); // Dependência do sinal da API
+      if (calendarApi) {
+        this.updateCalendarLocale(calendarApi);
+      }
+    });
+  }
+
+  private setupResizeListener() {
+    if (typeof window !== "undefined") {
+      this.resizeHandler = () => this.updateCalendarForResize();
+      window.addEventListener("resize", this.resizeHandler);
+      this.updateCalendarForResize(); // Initial call
+    }
+  }
+
+  private updateCalendarForResize() {
+    const calendarApi = this.calendarApi();
+    if (!calendarApi) return;
+
+    const isMobile = window.innerWidth < 768;
+    calendarApi.setOption('aspectRatio', isMobile ? 1.0 : 1.35);
+    calendarApi.setOption('height', isMobile ? 500 : "100%");
+    calendarApi.setOption('contentHeight', isMobile ? 400 : "auto");
+    calendarApi.setOption('dayMaxEvents', isMobile ? 2 : 5);
+    calendarApi.setOption('eventDisplay', isMobile ? "block" : "auto");
+    calendarApi.setOption('headerToolbar', isMobile
+      ? { left: "prev,next", center: "title", right: "today" }
+      : { left: "prev,next today", center: "title", right: "dayGridMonth,dayGridWeek" }
+    );
+  }
+
+  private updateCalendarLocale(calendarApi: CalendarApi) {
+    const newLocale = this.i18n.language() === "pt" ? ptBr : "en";
+    calendarApi.setOption("locale", newLocale);
+    calendarApi.setOption("buttonText", {
+      today: this.i18n.translate("today"),
+      month: this.i18n.translate("month"),
+      week: this.i18n.translate("week"),
+      day: this.i18n.translate("day"),
+      list: this.i18n.translate("agenda"),
+    });
+  };
+
+  private getClientName(clientId: number): string {
+    return this.dataService.users().find(u => u.id === clientId)?.name || this.i18n.translate('unknownClient');
+  }
+
+  private getProfessionalName(professionalId: number | null): string {
+    if (!professionalId) return this.i18n.translate('unassigned');
+    return this.dataService.users().find(u => u.id === professionalId)?.name || this.i18n.translate('unassigned');
+  }
+
+  private formatTime(isoDate: string | null | undefined): string {
+    if (!isoDate) return '';
+    const date = new Date(isoDate);
+    return date.toLocaleTimeString(this.i18n.language() === 'pt' ? 'pt-PT' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private statusColor(status: ServiceStatus): string {
+    return this.statusColorMap[status] || "#6b7280";
+  }
+
+  public getStatusTranslation(status: ServiceStatus): string {
     const statusMap: Record<ServiceStatus, string> = {
       Solicitado: "statusPending",
       "Em análise": "statusAnalyzing",
@@ -165,8 +298,7 @@ export class ScheduleComponent implements OnDestroy {
       "Data rejeitada pelo cliente": "statusDateRejectedByClient",
       "Buscando profissional": "statusSearchingProfessional",
       "Profissional selecionado": "statusProfessionalSelected",
-      "Aguardando confirmação do profissional":
-        "statusAwaitingProfessionalConfirmation",
+      "Aguardando confirmação do profissional": "statusAwaitingProfessionalConfirmation",
       Agendado: "statusScheduled",
       "Em execução": "statusInProgress",
       "Concluído - Aguardando aprovação": "statusCompletedAwaitingApproval",
@@ -177,108 +309,5 @@ export class ScheduleComponent implements OnDestroy {
       Cancelado: "statusCancelled",
     };
     return this.i18n.translate(statusMap[status] || "statusPending");
-  }
-
-  constructor() {
-    // Window resize handler for responsive calendar
-    if (typeof window !== "undefined") {
-      this.resizeHandler = () => this.updateCalendarForResize();
-      window.addEventListener("resize", this.resizeHandler);
-    }
-
-    // This effect now only handles dynamic data updates (events and locale).
-    effect(() => {
-      const allRequests = this.dataService.serviceRequests();
-      const currentUser = this.user();
-      let userRequests: ServiceRequest[];
-      if (currentUser.role === "client") {
-        userRequests = allRequests.filter(
-          (r) => r.client_id === currentUser.id
-        );
-      } else if (currentUser.role === "professional") {
-        userRequests = allRequests.filter(
-          (r) => r.professional_id === currentUser.id
-        );
-      } else {
-        userRequests = allRequests;
-      }
-      const scheduledEvents = userRequests
-        .filter((r) => r.scheduled_date || r.scheduled_start_datetime)
-        .map((request) => ({
-          id: String(request.id),
-          title: `${request.title} (${this.getStatusTranslation(
-            request.status
-          )})`,
-          start: request.scheduled_start_datetime || request.scheduled_date!,
-          backgroundColor: this.statusColor(request.status),
-          borderColor: this.statusColor(request.status),
-          textColor: "#ffffff",
-        }));
-      // LOGS DE DIAGNÓSTICO
-      console.log("[ScheduleComponent] Usuário atual:", currentUser);
-      console.log(
-        "[ScheduleComponent] Todos os pedidos recebidos:",
-        allRequests
-      );
-      console.log("[ScheduleComponent] Pedidos após filtro:", userRequests);
-      console.log(
-        "[ScheduleComponent] Eventos agendados para o calendário:",
-        scheduledEvents
-      );
-      // Atualiza os eventos de forma reativa
-      this.calendarOptions.events = scheduledEvents;
-      const calendarApi = this.calendarComponent()?.getApi();
-      if (!calendarApi) {
-        return;
-      }
-      const newLocale = this.i18n.language() === "pt" ? ptBr : "en";
-      calendarApi.setOption("locale", newLocale);
-      calendarApi.setOption("buttonText", {
-        today: this.i18n.translate("today"),
-        month: this.i18n.translate("month"),
-        week: this.i18n.translate("week"),
-        day: this.i18n.translate("day"),
-        list: this.i18n.translate("agenda"),
-      });
-      calendarApi.render();
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.resizeHandler && typeof window !== "undefined") {
-      window.removeEventListener("resize", this.resizeHandler);
-    }
-  }
-
-  private updateCalendarForResize() {
-    const calendarApi = this.calendarComponent()?.getApi();
-    if (!calendarApi) return;
-
-    const isMobile = this.isMobile();
-
-    // Update responsive settings on window resize
-    calendarApi.setOption("aspectRatio", isMobile ? 1.0 : 1.35);
-    calendarApi.setOption("height", isMobile ? 500 : "100%");
-    calendarApi.setOption("contentHeight", isMobile ? 400 : "auto");
-    calendarApi.setOption("dayMaxEvents", isMobile ? 2 : 5);
-    calendarApi.setOption("eventDisplay", isMobile ? "block" : "auto");
-
-    // Update header toolbar for mobile
-    calendarApi.setOption(
-      "headerToolbar",
-      isMobile
-        ? {
-            left: "prev,next",
-            center: "title",
-            right: "today",
-          }
-        : {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,dayGridWeek",
-          }
-    );
-
-    calendarApi.render();
   }
 }
