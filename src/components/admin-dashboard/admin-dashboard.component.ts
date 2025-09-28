@@ -38,6 +38,86 @@ import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.com
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
+  // Filtros avançados e pesquisa
+  filterStatus = signal<string>("");
+  filterDate = signal<string>("");
+  filterDistrict = signal<string>("");
+  filterProfessional = signal<string>("");
+  searchTerm = signal<string>("");
+
+  // Opções para filtros (mock, pode ser ajustado para buscar do serviço)
+  statusOptions = [
+    "Pending",
+    "Quoted",
+    "Approved",
+    "In Progress",
+    "Completed",
+    "Cancelled",
+    "Solicitado",
+    "Em análise",
+    "Orçamento enviado",
+    "Orçamento aprovado",
+    "Agendado",
+    "Finalizado",
+  ];
+  districtOptions = [
+    "Lisboa",
+    "Porto",
+    "Setúbal",
+    "Braga",
+    "Coimbra",
+    "Aveiro",
+  ];
+  professionalOptions: User[] = [];
+  ngOnInit() {
+    this.startAutoRefresh();
+    // Inicializa professionalOptions após os dados estarem disponíveis
+    this.professionalOptions = this.professionals();
+  }
+
+  clearFilters() {
+    this.filterStatus.set("");
+    this.filterDate.set("");
+    this.filterDistrict.set("");
+    this.filterProfessional.set("");
+    this.searchTerm.set("");
+  }
+
+  // Computed para filtrar e pesquisar solicitações
+  filteredRequests = computed(() => {
+    let reqs = this.allRequests();
+    const status = this.filterStatus();
+    const date = this.filterDate();
+    const district = this.filterDistrict();
+    const professional = this.filterProfessional();
+    const search = this.searchTerm().toLowerCase();
+
+    if (status) reqs = reqs.filter((r) => r.status === status);
+    if (date) reqs = reqs.filter((r) => r.requested_date?.startsWith(date));
+    if (district) reqs = reqs.filter((r) => r.state === district);
+    if (professional)
+      reqs = reqs.filter(
+        (r) => String(r.professional_id) === String(professional)
+      );
+    if (search) {
+      reqs = reqs.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(search) ||
+          this.getClientName(r.client_id)?.toLowerCase().includes(search) ||
+          r.zip_code?.toLowerCase().includes(search) ||
+          String(r.id).includes(search)
+      );
+    }
+    return reqs;
+  });
+
+  // Computed para paginação dos resultados filtrados
+  filteredPaginatedRequests = computed(() => {
+    const reqs = this.filteredRequests();
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return reqs.slice(start, end);
+  });
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
   // Título do gráfico de status, internacionalizado
@@ -97,9 +177,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     // Component initialized
   }
 
-  ngOnInit() {
-    this.startAutoRefresh();
-  }
+  // ngOnInit já definido acima
 
   /**
    * Retorna um objeto com todos os status esperados para o gráfico, preenchendo com zero onde não houver dados.
