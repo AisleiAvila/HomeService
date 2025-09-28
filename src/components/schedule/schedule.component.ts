@@ -58,6 +58,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
 
   // Signal para controlar os status visíveis no calendário
   visibleStatuses = signal<Set<ServiceStatus>>(new Set());
+  isFilterVisible = signal(false);
 
   private statusColorMap: Record<ServiceStatus, string> = {
     Solicitado: "#eab308",
@@ -86,6 +87,13 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   };
 
   // Gera a legenda de status a partir do mapa de cores
+  activeFilterCount = computed(() => {
+    const total = this.statusLegend().length;
+    const active = this.visibleStatuses().size;
+    // Só mostra a contagem se houver um filtro parcial
+    return active > 0 && active < total ? active : 0;
+  });
+
   statusLegend = computed(() => {
     return (Object.keys(this.statusColorMap) as ServiceStatus[]).map(status => ({
       name: status,
@@ -177,6 +185,10 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
 
   public selectAllStatuses() {
     this.visibleStatuses.set(new Set(this.statusLegend().map(s => s.name)));
+  }
+
+  public toggleFilterVisibility() {
+    this.isFilterVisible.update(v => !v);
   }
 
   public deselectAllStatuses() {
