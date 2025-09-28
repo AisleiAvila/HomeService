@@ -594,6 +594,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     minutesAgo: "minutes ago",
     hoursAgo: "hours ago",
     daysAgo: "days ago",
+    clearFilters: "Clear Filters",
   },
   pt: {
     // General
@@ -1209,6 +1210,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     minutesAgo: "minutos atrás",
     hoursAgo: "horas atrás",
     daysAgo: "dias atrás",
+    clearFilters: "Limpar Filtros",
   },
 };
 
