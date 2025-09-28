@@ -56,7 +56,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   calendarComponent = viewChild.required<FullCalendarComponent>("calendar");
   private calendarApi = signal<CalendarApi | undefined>(undefined);
 
-  // Signal para controlar os status visíveis no calendário
   visibleStatuses = signal<Set<ServiceStatus>>(new Set());
   isFilterVisible = signal(false);
 
@@ -86,11 +85,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     Cancelado: "#6b7280",
   };
 
-  // Gera a legenda de status a partir do mapa de cores
   activeFilterCount = computed(() => {
     const total = this.statusLegend().length;
     const active = this.visibleStatuses().size;
-    // Só mostra a contagem se houver um filtro parcial
     return active > 0 && active < total ? active : 0;
   });
 
@@ -137,10 +134,14 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     });
   };
 
-  // Opções estáticas do calendário
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: "dayGridMonth",
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
     weekends: true,
     moreLinkClick: "popover",
     eventClick: this.handleEventClick,
@@ -170,7 +171,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     }
   }
 
-  // --- Métodos do Filtro de Status ---
   public toggleStatusFilter(status: ServiceStatus) {
     this.visibleStatuses.update(currentSet => {
       const newSet = new Set(currentSet);
@@ -195,9 +195,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     this.visibleStatuses.set(new Set());
   }
 
-  // --- Effects ---
   private setupEffects() {
-    // Effect para atualizar os eventos do calendário
     effect(() => {
       const allRequests = this.dataService.serviceRequests();
       const currentUser = this.user();
@@ -212,16 +210,28 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
         userRequests = allRequests;
       }
 
+      const pastEventStatuses: ServiceStatus[] = ["Finalizado", "Pago", "Cancelado", "Concluído - Aguardando aprovação"];
+
       const scheduledEvents = userRequests
-        .filter(r => (r.scheduled_date || r.scheduled_start_datetime) && visible.has(r.status))
-        .map(request => ({
-          id: String(request.id),
-          title: `${request.title} (${this.getStatusTranslation(request.status)})`,
-          start: request.scheduled_start_datetime || request.scheduled_date!,
-          backgroundColor: this.statusColor(request.status),
-          borderColor: this.statusColor(request.status),
-          textColor: "#ffffff",
-        }));
+        .filter(r => r.scheduled_date || r.scheduled_start_datetime)
+        .map(request => {
+          const isPastEvent = pastEventStatuses.includes(request.status);
+          
+          if (!isPastEvent && !visible.has(request.status)) {
+            return null;
+          }
+
+          return {
+            id: String(request.id),
+            title: `${request.title} (${this.getStatusTranslation(request.status)})`,
+            start: request.scheduled_start_datetime || request.scheduled_date!,
+            backgroundColor: isPastEvent ? this.statusColor(request.status) + '80' : this.statusColor(request.status),
+            borderColor: isPastEvent ? this.statusColor(request.status) + '80' : this.statusColor(request.status),
+            textColor: isPastEvent ? '#e5e7eb' : '#ffffff',
+            classNames: isPastEvent ? ['past-event'] : [],
+          };
+        })
+        .filter((event): event is NonNullable<typeof event> => event !== null);
 
       const calendarApi = this.calendarApi();
       if (calendarApi) {
@@ -229,10 +239,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       }
     });
 
-    // Effect para atualizar o idioma do calendário
     effect(() => {
-      const language = this.i18n.language(); // Dependência do sinal de idioma
-      const calendarApi = this.calendarApi(); // Dependência do sinal da API
+      const language = this.i18n.language();
+      const calendarApi = this.calendarApi();
       if (calendarApi) {
         this.updateCalendarLocale(calendarApi);
       }
@@ -243,7 +252,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     if (typeof window !== "undefined") {
       this.resizeHandler = () => this.updateCalendarForResize();
       window.addEventListener("resize", this.resizeHandler);
-      this.updateCalendarForResize(); // Initial call
+      this.updateCalendarForResize();
     }
   }
 
@@ -257,10 +266,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     calendarApi.setOption('contentHeight', isMobile ? 400 : "auto");
     calendarApi.setOption('dayMaxEvents', isMobile ? 2 : 5);
     calendarApi.setOption('eventDisplay', isMobile ? "block" : "auto");
-    calendarApi.setOption('headerToolbar', isMobile
-      ? { left: "prev,next", center: "title", right: "today" }
-      : { left: "prev,next today", center: "title", right: "dayGridMonth,dayGridWeek" }
-    );
   }
 
   private updateCalendarLocale(calendarApi: CalendarApi) {
@@ -271,9 +276,8 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       month: this.i18n.translate("month"),
       week: this.i18n.translate("week"),
       day: this.i18n.translate("day"),
-      list: this.i18n.translate("agenda"),
     });
-  };
+  }
 
   private getClientName(clientId: number): string {
     return this.dataService.users().find(u => u.id === clientId)?.name || this.i18n.translate('unknownClient');
