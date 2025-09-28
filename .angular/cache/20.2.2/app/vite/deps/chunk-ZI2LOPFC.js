@@ -2937,6 +2937,10 @@ function computeVisibleDayRange(timedRange, nextDayThreshold = createDuration(0)
   }
   return { start: startDay, end: endDay };
 }
+function isMultiDayRange(range) {
+  let visibleRange = computeVisibleDayRange(range);
+  return diffDays(visibleRange.start, visibleRange.end) > 1;
+}
 function diffDates(date0, date1, dateEnv, largeUnit) {
   if (largeUnit === "year") {
     return createDuration(dateEnv.diffWholeYears(date0, date1), "year");
@@ -9433,6 +9437,7 @@ export {
   intersectRanges,
   rangeContainsRange,
   rangeContainsMarker,
+  isMultiDayRange,
   diffDates,
   DateProfileGenerator,
   createEventInstance,
@@ -9447,6 +9452,7 @@ export {
   applyMutationToEventStore,
   EventImpl,
   buildEventApis,
+  sliceEventStore,
   hasBgRendering,
   getElSeg,
   sortEventSegs,
@@ -9465,6 +9471,8 @@ export {
   getRectCenter,
   diffPoints,
   Splitter,
+  getDateMeta,
+  getDayClassNames,
   buildNavLinkAttrs,
   computeInnerRect,
   computeRect,
@@ -9489,6 +9497,7 @@ export {
   Slicer,
   isInteractionValid,
   isDateSelectionValid,
+  Scroller,
   RefMap,
   renderScrollShim,
   getStickyHeaderDates,
@@ -9508,4 +9517,4 @@ export {
   createPlugin,
   Calendar
 };
-//# sourceMappingURL=chunk-7EOS75FT.js.map
+//# sourceMappingURL=chunk-ZI2LOPFC.js.map

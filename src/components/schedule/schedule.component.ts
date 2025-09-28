@@ -29,6 +29,7 @@ import { CalendarOptions, EventClickArg, CalendarApi } from "@fullcalendar/core"
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from '@fullcalendar/list';
 import ptBr from "@fullcalendar/core/locales/pt-br";
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
@@ -135,12 +136,12 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   };
 
   calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
     initialView: "dayGridMonth",
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
     },
     weekends: true,
     moreLinkClick: "popover",
@@ -276,6 +277,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       month: this.i18n.translate("month"),
       week: this.i18n.translate("week"),
       day: this.i18n.translate("day"),
+      list: this.i18n.translate("agenda"),
     });
   }
 
