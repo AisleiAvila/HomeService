@@ -25,14 +25,18 @@ import {
   FullCalendarModule,
   FullCalendarComponent,
 } from "@fullcalendar/angular";
-import { CalendarOptions, EventClickArg, CalendarApi } from "@fullcalendar/core";
+import {
+  CalendarOptions,
+  EventClickArg,
+  CalendarApi,
+} from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import listPlugin from '@fullcalendar/list';
+import listPlugin from "@fullcalendar/list";
 import ptBr from "@fullcalendar/core/locales/pt-br";
-import tippy from 'tippy.js';
-import 'tippy.js/dist/tippy.css';
+import tippy from "tippy.js";
+import "tippy.js/dist/tippy.css";
 import { I18nService } from "@/src/i18n.service";
 
 @Component({
@@ -42,7 +46,7 @@ import { I18nService } from "@/src/i18n.service";
   templateUrl: "./schedule.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: "block h-full",
+    class: "block h-full font-sans",
   },
 })
 export class ScheduleComponent implements OnDestroy, AfterViewInit {
@@ -59,6 +63,14 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
 
   visibleStatuses = signal<Set<ServiceStatus>>(new Set());
   isFilterVisible = signal(false);
+
+  // Font classes for dashboard standardization
+  public fontHeading =
+    "font-heading text-2xl font-bold text-gray-900 dark:text-gray-100";
+  public fontSubheading =
+    "font-heading text-lg font-semibold text-gray-800 dark:text-gray-200";
+  public fontText = "font-sans text-base text-gray-700 dark:text-gray-300";
+  public fontSmall = "font-sans text-sm text-gray-500 dark:text-gray-400";
 
   private statusColorMap: Record<ServiceStatus, string> = {
     Solicitado: "#eab308",
@@ -93,44 +105,75 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   });
 
   statusLegend = computed(() => {
-    return (Object.keys(this.statusColorMap) as ServiceStatus[]).map(status => ({
-      name: status,
-      color: this.statusColorMap[status]
-    }));
+    return (Object.keys(this.statusColorMap) as ServiceStatus[]).map(
+      (status) => ({
+        name: status,
+        color: this.statusColorMap[status],
+      })
+    );
   });
 
   private handleEventClick = (clickInfo: EventClickArg) => {
     runInInjectionContext(this.injector, () => {
-      const request = this.dataService.getServiceRequestById(Number(clickInfo.event.id));
+      const request = this.dataService.getServiceRequestById(
+        Number(clickInfo.event.id)
+      );
       if (request) this.viewDetails.emit(request);
     });
   };
 
-  private handleEventDidMount = (info: { event: EventClickArg['event'], el: HTMLElement }) => {
+  private handleEventDidMount = (info: {
+    event: EventClickArg["event"];
+    el: HTMLElement;
+  }) => {
     runInInjectionContext(this.injector, () => {
-      const request = this.dataService.getServiceRequestById(Number(info.event.id));
+      const request = this.dataService.getServiceRequestById(
+        Number(info.event.id)
+      );
       if (!request) return;
 
-      const professionalName = this.getProfessionalName(request.professional_id);
+      const professionalName = this.getProfessionalName(
+        request.professional_id
+      );
       const clientName = this.getClientName(request.client_id);
       const startTime = this.formatTime(request.scheduled_start_datetime);
 
       const tooltipContent = `
-        <div class="p-2 text-sm text-left">
-          <div class="font-bold mb-1">${request.title}</div>
-          <div class="mb-1"><i class="fas fa-clock w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('time')}:</strong> ${startTime}</div>
-          <div class="mb-1"><i class="fas fa-info-circle w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('status')}:</strong> ${this.getStatusTranslation(request.status)}</div>
-          ${this.user().role !== 'client' ? `<div class="mb-1"><i class="fas fa-user w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('client')}:</strong> ${clientName}</div>` : ''}
-          ${this.user().role !== 'professional' ? `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong>${this.i18n.translate('professional')}:</strong> ${professionalName}</div>` : ''}
+        <div class="p-2 text-left font-sans text-sm">
+          <div class="font-heading text-base font-bold mb-1">${
+            request.title
+          }</div>
+          <div class="mb-1"><i class="fas fa-clock w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
+            "time"
+          )}:</strong> <span class="font-sans">${startTime}</span></div>
+          <div class="mb-1"><i class="fas fa-info-circle w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
+            "status"
+          )}:</strong> <span class="font-sans">${this.getStatusTranslation(
+        request.status
+      )}</span></div>
+          ${
+            this.user().role !== "client"
+              ? `<div class="mb-1"><i class="fas fa-user w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
+                  "client"
+                )}:</strong> <span class="font-sans">${clientName}</span></div>`
+              : ""
+          }
+          ${
+            this.user().role !== "professional"
+              ? `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
+                  "professional"
+                )}:</strong> <span class="font-sans">${professionalName}</span></div>`
+              : ""
+          }
         </div>
       `;
 
       tippy(info.el, {
         content: tooltipContent,
         allowHTML: true,
-        theme: 'light-border',
-        placement: 'top',
-        animation: 'shift-away',
+        theme: "light-border",
+        placement: "top",
+        animation: "shift-away",
       });
     });
   };
@@ -139,9 +182,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
     initialView: "dayGridMonth",
     headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+      left: "prev,next today",
+      center: "title",
+      right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
     },
     weekends: true,
     moreLinkClick: "popover",
@@ -173,9 +216,10 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   }
 
   public toggleStatusFilter(status: ServiceStatus) {
-    this.visibleStatuses.update(currentSet => {
+    this.visibleStatuses.update((currentSet) => {
       const newSet = new Set(currentSet);
-      if (newSet.has(status)) newSet.delete(status); else newSet.add(status);
+      if (newSet.has(status)) newSet.delete(status);
+      else newSet.add(status);
       return newSet;
     });
   }
@@ -185,11 +229,11 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   }
 
   public selectAllStatuses() {
-    this.visibleStatuses.set(new Set(this.statusLegend().map(s => s.name)));
+    this.visibleStatuses.set(new Set(this.statusLegend().map((s) => s.name)));
   }
 
   public toggleFilterVisibility() {
-    this.isFilterVisible.update(v => !v);
+    this.isFilterVisible.update((v) => !v);
   }
 
   public deselectAllStatuses() {
@@ -204,39 +248,54 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       let userRequests: ServiceRequest[];
 
       if (currentUser.role === "client") {
-        userRequests = allRequests.filter(r => r.client_id === currentUser.id);
+        userRequests = allRequests.filter(
+          (r) => r.client_id === currentUser.id
+        );
       } else if (currentUser.role === "professional") {
-        userRequests = allRequests.filter(r => r.professional_id === currentUser.id);
+        userRequests = allRequests.filter(
+          (r) => r.professional_id === currentUser.id
+        );
       } else {
         userRequests = allRequests;
       }
 
-      const pastEventStatuses: ServiceStatus[] = ["Finalizado", "Pago", "Cancelado", "Concluído - Aguardando aprovação"];
+      const pastEventStatuses: ServiceStatus[] = [
+        "Finalizado",
+        "Pago",
+        "Cancelado",
+        "Concluído - Aguardando aprovação",
+      ];
 
       const scheduledEvents = userRequests
-        .filter(r => r.scheduled_date || r.scheduled_start_datetime)
-        .map(request => {
+        .filter((r) => r.scheduled_date || r.scheduled_start_datetime)
+        .map((request) => {
           const isPastEvent = pastEventStatuses.includes(request.status);
-          
+
           if (!isPastEvent && !visible.has(request.status)) {
             return null;
           }
 
           return {
             id: String(request.id),
-            title: `${request.title} (${this.getStatusTranslation(request.status)})`,
+            title: `${request.title} (${this.getStatusTranslation(
+              request.status
+            )})`,
             start: request.scheduled_start_datetime || request.scheduled_date!,
-            backgroundColor: isPastEvent ? this.statusColor(request.status) + '80' : this.statusColor(request.status),
-            borderColor: isPastEvent ? this.statusColor(request.status) + '80' : this.statusColor(request.status),
-            textColor: isPastEvent ? '#e5e7eb' : '#ffffff',
-            classNames: isPastEvent ? ['past-event'] : [],
+            backgroundColor: isPastEvent
+              ? this.statusColor(request.status) + "80"
+              : this.statusColor(request.status),
+            borderColor: isPastEvent
+              ? this.statusColor(request.status) + "80"
+              : this.statusColor(request.status),
+            textColor: isPastEvent ? "#e5e7eb" : "#ffffff",
+            classNames: isPastEvent ? ["past-event"] : [],
           };
         })
         .filter((event): event is NonNullable<typeof event> => event !== null);
 
       const calendarApi = this.calendarApi();
       if (calendarApi) {
-        calendarApi.setOption('events', scheduledEvents);
+        calendarApi.setOption("events", scheduledEvents);
       }
     });
 
@@ -262,11 +321,11 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     if (!calendarApi) return;
 
     const isMobile = window.innerWidth < 768;
-    calendarApi.setOption('aspectRatio', isMobile ? 1.0 : 1.35);
-    calendarApi.setOption('height', isMobile ? 500 : "100%");
-    calendarApi.setOption('contentHeight', isMobile ? 400 : "auto");
-    calendarApi.setOption('dayMaxEvents', isMobile ? 2 : 5);
-    calendarApi.setOption('eventDisplay', isMobile ? "block" : "auto");
+    calendarApi.setOption("aspectRatio", isMobile ? 1.0 : 1.35);
+    calendarApi.setOption("height", isMobile ? 500 : "100%");
+    calendarApi.setOption("contentHeight", isMobile ? 400 : "auto");
+    calendarApi.setOption("dayMaxEvents", isMobile ? 2 : 5);
+    calendarApi.setOption("eventDisplay", isMobile ? "block" : "auto");
   }
 
   private updateCalendarLocale(calendarApi: CalendarApi) {
@@ -282,18 +341,27 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   }
 
   private getClientName(clientId: number): string {
-    return this.dataService.users().find(u => u.id === clientId)?.name || this.i18n.translate('unknownClient');
+    return (
+      this.dataService.users().find((u) => u.id === clientId)?.name ||
+      this.i18n.translate("unknownClient")
+    );
   }
 
   private getProfessionalName(professionalId: number | null): string {
-    if (!professionalId) return this.i18n.translate('unassigned');
-    return this.dataService.users().find(u => u.id === professionalId)?.name || this.i18n.translate('unassigned');
+    if (!professionalId) return this.i18n.translate("unassigned");
+    return (
+      this.dataService.users().find((u) => u.id === professionalId)?.name ||
+      this.i18n.translate("unassigned")
+    );
   }
 
   private formatTime(isoDate: string | null | undefined): string {
-    if (!isoDate) return '';
+    if (!isoDate) return "";
     const date = new Date(isoDate);
-    return date.toLocaleTimeString(this.i18n.language() === 'pt' ? 'pt-PT' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(
+      this.i18n.language() === "pt" ? "pt-PT" : "en-US",
+      { hour: "2-digit", minute: "2-digit" }
+    );
   }
 
   private statusColor(status: ServiceStatus): string {
@@ -316,7 +384,8 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       "Data rejeitada pelo cliente": "statusDateRejectedByClient",
       "Buscando profissional": "statusSearchingProfessional",
       "Profissional selecionado": "statusProfessionalSelected",
-      "Aguardando confirmação do profissional": "statusAwaitingProfessionalConfirmation",
+      "Aguardando confirmação do profissional":
+        "statusAwaitingProfessionalConfirmation",
       Agendado: "statusScheduled",
       "Em execução": "statusInProgress",
       "Concluído - Aguardando aprovação": "statusCompletedAwaitingApproval",
