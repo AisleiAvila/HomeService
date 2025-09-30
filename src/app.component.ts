@@ -332,6 +332,13 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
             </h1>
           </div>
 
+          <!-- App Name Centered -->
+          <div class="flex-1 flex justify-center items-center">
+            <span class="text-xl font-bold text-indigo-700 select-none">{{
+              "appNameFull" | i18n
+            }}</span>
+          </div>
+
           <!-- Right Section: Controls -->
           <div class="flex items-center space-x-2 flex-shrink-0">
             <app-language-switcher theme="light" />
