@@ -186,7 +186,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
         >
           <!-- Substituído ícone por logo -->
           <img
-            src="src/assets/logo.jpg"
+            src="src/assets/logo_dasad_transparent.png"
             alt="HomeService Logo"
             class="h-8 w-8 object-contain"
             [class.mr-3]="isSidebarOpen()"

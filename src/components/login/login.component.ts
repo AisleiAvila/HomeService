@@ -50,7 +50,7 @@ export interface LoginPayload {
         </div>
         <div class="flex flex-col items-center pt-10 pb-2 gap-2">
           <img
-            src="src/assets/logo.jpg"
+            src="src/assets/logo_dasad.png"
             alt="Logo HomeService"
             class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg mb-2"
           />
