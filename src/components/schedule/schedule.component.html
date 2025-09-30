@@ -39,6 +39,28 @@
       </div>
     </div>
 
+    <!-- Legenda de cores por status -->
+    <div
+      class="mt-4 flex flex-wrap gap-3 items-center"
+      aria-label="Legenda de status"
+    >
+      @for (status of statusLegend(); track status.name) {
+      <div
+        class="flex items-center gap-2 px-2 py-1 rounded bg-gray-100"
+        style="min-width: 120px"
+      >
+        <span
+          class="w-4 h-4 rounded-full border border-gray-300"
+          [style.backgroundColor]="status.color"
+          aria-label="Cor do status"
+        ></span>
+        <span class="text-xs font-medium text-gray-700" [ngClass]="fontSmall">{{
+          getStatusTranslation(status.name)
+        }}</span>
+      </div>
+      }
+    </div>
+
     <!-- Painel de Filtro Recolhível -->
     @if (isFilterVisible()) {
     <div
