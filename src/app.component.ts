@@ -169,7 +169,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
       <!-- Sidebar -->
       <aside
         [class]="
-          'bg-gray-800 text-white flex flex-col transition-all duration-300 ease-in-out z-50 ' +
+          'bg-white text-black flex flex-col transition-all duration-300 ease-in-out z-50 ' +
           (isMobile()
             ? isSidebarOpen()
               ? 'fixed inset-y-0 left-0 w-64 transform translate-x-0'
@@ -201,8 +201,8 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           <a
             (click)="navigate(item.id)"
             class="flex items-center text-sm md:text-base rounded-lg cursor-pointer transition-colors min-h-[48px]"
-            [class.bg-gray-700]="currentNav() === item.id"
-            [class.hover:bg-gray-700]="currentNav() !== item.id"
+            [class.bg-blue-400]="currentNav() === item.id"
+            [class.hover:bg-blue-400]="currentNav() !== item.id"
             [class.px-4]="isSidebarOpen()"
             [class.py-3]="isSidebarOpen()"
             [class.px-3]="!isSidebarOpen()"
@@ -238,7 +238,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           }
         </nav>
 
-        <div class="border-t border-gray-700 p-4">
+        <div class="border-t border-blue-400 p-4">
           @if (isSidebarOpen()) {
           <div class="flex items-center mb-4">
             <img
@@ -253,7 +253,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           </div>
           <button
             (click)="handleLogout()"
-            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-gray-700 transition-colors min-h-[48px] cursor-pointer relative z-10"
+            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-blue-400 transition-colors min-h-[48px] cursor-pointer relative z-10"
           >
             <i class="fas fa-sign-out-alt w-6 text-center text-lg"></i>
             <span class="ml-3">{{ "logout" | i18n }}</span>
