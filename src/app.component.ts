@@ -192,7 +192,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
             [class.mr-3]="isSidebarOpen()"
           />
           @if (isSidebarOpen()) {
-          <span class="truncate">{{ "appName" | i18n }}</span>
+          <span class="truncate">{{ "menu" | i18n }}</span>
           }
         </div>
 
@@ -201,8 +201,8 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           <a
             (click)="navigate(item.id)"
             class="flex items-center text-sm md:text-base rounded-lg cursor-pointer transition-colors min-h-[48px]"
-            [class.bg-blue-400]="currentNav() === item.id"
-            [class.hover:bg-blue-400]="currentNav() !== item.id"
+            [class.bg-indigo-400]="currentNav() === item.id"
+            [class.hover:bg-indigo-400]="currentNav() !== item.id"
             [class.px-4]="isSidebarOpen()"
             [class.py-3]="isSidebarOpen()"
             [class.px-3]="!isSidebarOpen()"
@@ -238,7 +238,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           }
         </nav>
 
-        <div class="border-t border-blue-400 p-4">
+        <div class="border-t border-indigo-400 p-4">
           @if (isSidebarOpen()) {
           <div class="flex items-center mb-4">
             <img
@@ -253,7 +253,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
           </div>
           <button
             (click)="handleLogout()"
-            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-blue-400 transition-colors min-h-[48px] cursor-pointer relative z-10"
+            class="w-full text-left flex items-center px-4 py-3 text-sm rounded-lg hover:bg-indigo-400 transition-colors min-h-[48px] cursor-pointer relative z-10"
           >
             <i class="fas fa-sign-out-alt w-6 text-center text-lg"></i>
             <span class="ml-3">{{ "logout" | i18n }}</span>
