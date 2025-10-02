@@ -171,6 +171,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestedDateTimeHelp: "When would you like this service to be performed?",
     submitting: "Submitting",
     submitRequest: "Submit Request",
+    formErrorGeneric: "There was an error processing your request. Please try again.",
+    formSuccessGeneric: "Your request was submitted successfully!",
+    addressNotFound: "Address information not found. Please check your input.",
+    searchingAddress: "Searching for address...",
+    validatingPostalCode: "Validating postal code...",
+    addressSelected: "Address selected successfully!",
+    formProgress: "Form progress: {percent}% complete",
+    fieldRequired: "This field is required",
+    invalidPostalCode: "Invalid postal code format",
+    dateInPast: "The date must be in the future",
 
     // Clarification Modal
     requestedClarification: "Requested Clarification",
@@ -768,6 +778,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Quando você gostaria que este serviço fosse realizado?",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
+    formErrorGeneric: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
+    formSuccessGeneric: "Sua solicitação foi enviada com sucesso!",
+    addressNotFound: "Informações de endereço não encontradas. Por favor, verifique sua entrada.",
+    searchingAddress: "Procurando endereço...",
+    validatingPostalCode: "Validando código postal...",
+    addressSelected: "Endereço selecionado com sucesso!",
+    formProgress: "Progresso do formulário: {percent}% completo",
+    fieldRequired: "Este campo é obrigatório",
+    invalidPostalCode: "Formato de código postal inválido",
+    dateInPast: "A data deve ser no futuro",
 
     // Clarification Modal
     requestedClarification: "Esclarecimentos Solicitados",
