@@ -1,5 +1,6 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
+import { scheduled } from "rxjs";
 
 export type Language = "en" | "pt";
 
@@ -171,7 +172,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestedDateTimeHelp: "When would you like this service to be performed?",
     submitting: "Submitting",
     submitRequest: "Submit Request",
-    formErrorGeneric: "There was an error processing your request. Please try again.",
+    formErrorGeneric:
+      "There was an error processing your request. Please try again.",
     formSuccessGeneric: "Your request was submitted successfully!",
     addressNotFound: "Address information not found. Please check your input.",
     searchingAddress: "Searching for address...",
@@ -606,6 +608,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "hours ago",
     daysAgo: "days ago",
     clearFilters: "Clear Filters",
+    quickfilters: "Quick Filters",
+    statusRequested: "Requested",
+    statusInAnalysis: "In Analysis",
   },
   pt: {
     // General
@@ -778,9 +783,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Quando você gostaria que este serviço fosse realizado?",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
-    formErrorGeneric: "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
+    formErrorGeneric:
+      "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
     formSuccessGeneric: "Sua solicitação foi enviada com sucesso!",
-    addressNotFound: "Informações de endereço não encontradas. Por favor, verifique sua entrada.",
+    addressNotFound:
+      "Informações de endereço não encontradas. Por favor, verifique sua entrada.",
     searchingAddress: "Procurando endereço...",
     validatingPostalCode: "Validando código postal...",
     addressSelected: "Endereço selecionado com sucesso!",
@@ -1233,6 +1240,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "horas atrás",
     daysAgo: "dias atrás",
     clearFilters: "Limpar Filtros",
+    quickfilters: "Filtros Rápidos",
+    statusRequested: "Solicitado",
+    statusInAnalysis: "Em Análise",
   },
 };
 
