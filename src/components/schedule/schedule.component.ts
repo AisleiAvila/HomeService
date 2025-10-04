@@ -199,6 +199,16 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       meridiem: false,
       hour12: false,
     },
+    customButtons: {}, // Mantém para futuras customizações
+    buttonText: {
+      today: this.i18n.translate("today"),
+      month: this.i18n.translate("month"),
+      week: this.i18n.translate("week"),
+      day: this.i18n.translate("day"),
+      list: this.i18n.translate("agenda"),
+    },
+    themeSystem: "standard",
+    // Removido: buttonClassNames (não suportado pelo CalendarOptions)
   };
 
   constructor() {
@@ -238,9 +248,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     this.isFilterVisible.update((v) => !v);
   }
 
-  // public deselectAllStatuses() {
-  //   this.visibleStatuses.set(new Set());
-  // }
+  public clearAllFilters() {
+    this.visibleStatuses.set(new Set());
+  }
 
   private setupEffects() {
     effect(() => {

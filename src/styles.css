@@ -1,3 +1,40 @@
+.fc .fc-button {
+  margin-bottom: 0.5rem !important;
+}
+/* FullCalendar custom button styles - garantir aplicação forçada */
+.fc .fc-button-group {
+  display: flex !important;
+  gap: 0.75rem !important;
+  flex-wrap: wrap !important;
+}
+.fc .fc-button {
+  padding: 1rem 1.25rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #d1d5db !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  background: #fff !important;
+  color: #374151 !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+  margin: 0 !important;
+  transition: all 0.2s;
+}
+.fc .fc-button:hover {
+  background: #eef2ff !important;
+  color: #3730a3 !important;
+}
+.fc .fc-button.fc-button-active,
+.fc .fc-button:active,
+.fc .fc-button:focus {
+  background: #4f46e5 !important;
+  color: #fff !important;
+  border-color: #4f46e5 !important;
+  box-shadow: 0 4px 12px 0 rgb(79 70 229 / 0.15) !important;
+}
+.fc .fc-button:focus-visible {
+  outline: 2px solid #6366f1 !important;
+  outline-offset: 2px !important;
+}
 /* Tailwind CSS directives - Using CDN instead to avoid build issues */
 /*
 @tailwind base;

@@ -24,6 +24,7 @@
               "service-worker.js",
               "src/assets"
             ],
+            "styles": ["src/styles.css"],
             "allowedCommonJsDependencies": [
               "ws",
               "@supabase/realtime-js",
