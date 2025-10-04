@@ -15,13 +15,25 @@ import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
 
+import { StatusService } from "../services/status.service";
+import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
+
 @Injectable({
   providedIn: "root",
 })
 export class DataService {
-  /**
-   * Busca um ServiceRequest atualizado do Supabase pelo id
-   */
+  private supabase = inject(SupabaseService);
+  private notificationService = inject(NotificationService);
+  public readonly authService = inject(AuthService);
+  private i18n = inject(I18nService);
+
+  // Signals for storing application data
+  readonly users = signal<User[]>([]);
+  readonly serviceRequests = signal<ServiceRequest[]>([]);
+  readonly chatMessages = signal<ChatMessage[]>([]);
+  readonly categories = signal<ServiceCategory[]>([]);
+
+  /** Busca um ServiceRequest atualizado do Supabase pelo id */
   async fetchServiceRequestById(id: number): Promise<ServiceRequest | null> {
     const { data, error } = await this.supabase.client
       .from("service_requests")
@@ -39,17 +51,13 @@ export class DataService {
     );
     return data as ServiceRequest;
   }
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
-  public readonly authService = inject(AuthService);
-  private i18n = inject(I18nService);
 
-  // Signals for storing application data
-  readonly users = signal<User[]>([]);
-  readonly serviceRequests = signal<ServiceRequest[]>([]);
-  readonly chatMessages = signal<ChatMessage[]>([]);
-  // Service categories - will be loaded from Supabase
-  readonly categories = signal<ServiceCategory[]>([]);
+  /** Auxiliar para atualizar status usando StatusService enum */
+  private setServiceStatus(requestId: number, status: StatusService) {
+    this.updateServiceRequest(requestId, {
+      status: statusServiceToServiceStatus[status],
+    });
+  }
 
   constructor() {
     this.listenToServiceRequestChanges();
@@ -182,6 +190,7 @@ export class DataService {
     // Usar requested_datetime (agora obrigatório)
     const requestedDateTime = payload.requested_datetime;
 
+    const { StatusService } = await import("../services/status.service");
     const newRequestData = {
       client_id: currentUser.id,
       client_auth_id: currentUser.auth_id,
@@ -193,7 +202,7 @@ export class DataService {
       state: payload.address.state,
       zip_code: payload.address.zip_code,
       requested_datetime: requestedDateTime, // Campo principal
-      status: "Solicitado" as ServiceStatus,
+      status: StatusService.Requested,
       payment_status: "Unpaid",
     };
     const { error } = await this.supabase.client
@@ -268,10 +277,10 @@ export class DataService {
   }
 
   respondToQuote(requestId: number, approved: boolean) {
-    const status: ServiceStatus = approved
-      ? "Orçamento aprovado"
-      : "Orçamento rejeitado";
-    this.updateServiceRequest(requestId, { status });
+    const status = approved
+      ? StatusService.QuoteApproved
+      : StatusService.QuoteRejected;
+    this.setServiceStatus(requestId, status);
     this.notificationService.addNotification(
       `Orçamento do pedido #${requestId} foi ${
         approved ? "aprovado" : "rejeitado"
@@ -287,9 +296,8 @@ export class DataService {
     const updates = {
       professional_id: professionalId,
       scheduled_date: scheduledDate.toISOString(),
-      status: "Agendado" as ServiceStatus,
+      status: statusServiceToServiceStatus[StatusService.Scheduled],
     };
-
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
       `Service request #${requestId} has been scheduled.`
@@ -302,30 +310,23 @@ export class DataService {
     proposedDate: Date,
     notes?: string
   ) {
-    // Buscar o request para obter o client_id
     const request = this.serviceRequests().find((r) => r.id === requestId);
     if (!request) {
       console.error("Request não encontrado:", requestId);
       return;
     }
-
     const updates: Partial<ServiceRequest> = {
       proposed_execution_date: proposedDate.toISOString(),
       proposed_execution_notes: notes || null,
       execution_date_proposed_at: new Date().toISOString(),
-      status: "Data proposta pelo administrador" as ServiceStatus,
+      status: statusServiceToServiceStatus[StatusService.DateProposedByAdmin],
     };
-
     await this.updateServiceRequest(requestId, updates);
-
-    // Notificação para o admin (local)
     this.notificationService.addNotification(
       this.i18n.translate("executionDateProposed", {
         id: requestId.toString(),
       })
     );
-
-    // Notificação enhanced para o cliente (banco de dados)
     if (request.client_id) {
       await this.notificationService.createEnhancedNotification(
         request.client_id,
@@ -350,41 +351,30 @@ export class DataService {
     approved: boolean,
     rejectionReason?: string
   ) {
-    // Buscar o request para obter informações
     const request = this.serviceRequests().find((r) => r.id === requestId);
     if (!request) {
       console.error("Request não encontrado:", requestId);
       return;
     }
-
     const updates: Partial<ServiceRequest> = {
       execution_date_approval: approved ? "approved" : "rejected",
       execution_date_approved_at: new Date().toISOString(),
       execution_date_rejection_reason: approved ? null : rejectionReason,
       status: approved
-        ? "Data aprovada pelo cliente"
-        : ("Data rejeitada pelo cliente" as ServiceStatus),
+        ? statusServiceToServiceStatus[StatusService.DateApprovedByClient]
+        : statusServiceToServiceStatus[StatusService.DateRejectedByClient],
     };
-
-    // Se aprovado, copiar data proposta para agendamento
-    if (approved) {
-      if (request?.proposed_execution_date) {
-        updates.scheduled_start_datetime = request.proposed_execution_date;
-        updates.status = "Agendado" as ServiceStatus;
-      }
+    if (approved && request?.proposed_execution_date) {
+      updates.scheduled_start_datetime = request.proposed_execution_date;
+      updates.status = statusServiceToServiceStatus[StatusService.Scheduled];
     }
-
     await this.updateServiceRequest(requestId, updates);
-
-    // Notificação local para o cliente
     this.notificationService.addNotification(
       this.i18n.translate(
         approved ? "executionDateApproved" : "executionDateRejected",
         { id: requestId.toString() }
       )
     );
-
-    // Notificação enhanced para o admin/profissional
     const notificationType = approved
       ? "execution_date_approved"
       : "execution_date_rejected";
@@ -394,8 +384,6 @@ export class DataService {
     const messageKey = approved
       ? "executionDateApprovedMessage"
       : "executionDateRejectedMessage";
-
-    // Notificar admin
     const adminUsers = this.users().filter((u) => u.role === "admin");
     for (const admin of adminUsers) {
       await this.notificationService.createEnhancedNotification(
@@ -413,8 +401,6 @@ export class DataService {
         }
       );
     }
-
-    // Notificar profissional se existir
     if (request.professional_id) {
       await this.notificationService.createEnhancedNotification(
         request.professional_id,
@@ -579,9 +565,8 @@ export class DataService {
       professional_id: professionalId,
       scheduled_start_datetime: scheduledStartDateTime.toISOString(),
       estimated_duration_minutes: estimatedDurationMinutes,
-      status: "Scheduled" as ServiceStatus,
+      status: statusServiceToServiceStatus[StatusService.Scheduled],
     };
-
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
       `Serviço #${requestId} foi agendado para ${scheduledStartDateTime.toLocaleDateString()} às ${scheduledStartDateTime.toLocaleTimeString()}.`
@@ -594,9 +579,8 @@ export class DataService {
   async startServiceWork(requestId: number) {
     const updates = {
       actual_start_datetime: new Date().toISOString(),
-      status: "Em execução" as ServiceStatus,
+      status: statusServiceToServiceStatus[StatusService.InProgress],
     };
-
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
       `Atendimento do serviço #${requestId} foi iniciado.`
@@ -609,9 +593,9 @@ export class DataService {
   async finishServiceWork(requestId: number) {
     const updates = {
       actual_end_datetime: new Date().toISOString(),
-      status: "Concluído - Aguardando aprovação" as ServiceStatus,
+      status:
+        statusServiceToServiceStatus[StatusService.CompletedAwaitingApproval],
     };
-
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
       `Atendimento do serviço #${requestId} foi finalizado.`
