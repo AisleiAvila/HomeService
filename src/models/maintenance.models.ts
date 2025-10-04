@@ -119,7 +119,7 @@ export interface User {
   email_verified?: boolean; // Campo para verificação de email
   specialties?: ServiceCategory[];
   address?: Address;
-  phone?: string;
+  phone?: string; // Número de telefone do usuário
 }
 
 export interface ServiceRequest {
