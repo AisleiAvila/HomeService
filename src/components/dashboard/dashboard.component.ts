@@ -14,6 +14,7 @@ import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { signal } from "@angular/core";
+import { StatusService } from "../../services/status.service";
 
 @Component({
   selector: "app-dashboard",
@@ -25,12 +26,6 @@ import { signal } from "@angular/core";
 export class DashboardComponent {
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
-    console.log("[Dashboard] handleViewDetails chamado:", request);
-    this.selectedRequest.set(request);
-    console.log(
-      "[Dashboard] selectedRequest após set:",
-      this.selectedRequest()
-    );
     this.viewDetails.emit(request);
     // Aqui pode abrir modal, navegar ou atualizar view conforme necessário
   }
@@ -49,6 +44,9 @@ export class DashboardComponent {
   provideClarification = output<ServiceRequest>();
   startService = output<ServiceRequest>();
   finishService = output<ServiceRequest>();
+
+  statusAtivos = signal<{ value: string; label: string }[]>([]);
+
   async handleFinishService(request: ServiceRequest) {
     try {
       await this.dataService.finishServiceWork(request.id);
@@ -58,6 +56,16 @@ export class DashboardComponent {
       console.error("Erro ao finalizar serviço:", error);
     }
   }
+
+  public ngOnInit() {
+    this.statusAtivos.set(
+      Object.values(StatusService).map((status) => ({
+        value: status,
+        label: this.i18n.translateStatus(status),
+      }))
+    );
+  }
+
   public selectedRequest = signal<ServiceRequest | null>(null);
 
   private dataService = inject(DataService);
@@ -67,12 +75,7 @@ export class DashboardComponent {
   private userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
     const currentUser = this.user();
-    console.log(
-      "[DashboardComponent] Total requests recebidos:",
-      allRequests.length,
-      allRequests
-    );
-    console.log("[DashboardComponent] Usuário atual:", currentUser.name);
+
     let filtered = [];
     if (currentUser.role === "client") {
       filtered = allRequests.filter((r) => r.client_id === currentUser.id);
@@ -119,40 +122,15 @@ export class DashboardComponent {
     const currentUser = this.user();
     const requests = this.userRequests();
 
-    // Status ativos em português
-    const statusAtivos = [
-      // Português
-      "Solicitado",
-      "Em análise",
-      "Aguardando esclarecimentos",
-      "Orçamento enviado",
-      "Aguardando aprovação do orçamento",
-      "Orçamento aprovado",
-      "Aguardando data de execução",
-      "Data proposta pelo administrador",
-      "Aguardando aprovação da data",
-      "Data aprovada pelo cliente",
-      "Buscando profissional",
-      "Profissional selecionado",
-      "Aguardando confirmação do profissional",
-      "Agendado",
-      "Em execução",
-      "Concluído - Aguardando aprovação",
-      // Inglês
-      "Assigned",
-      "Pending",
-      "Scheduled",
-      "In Progress",
-      "Completed - Awaiting Approval",
-      "Quoted",
-      "Awaiting Quote Approval",
-    ];
-
     if (currentUser.role === "client" || currentUser.role === "admin") {
       return [
         {
           label: "activeRequests",
-          value: requests.filter((r) => statusAtivos.includes(r.status)).length,
+          value: requests.filter((r) =>
+            this.statusAtivos()
+              .map((s) => s.value)
+              .includes(r.status)
+          ).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
@@ -173,7 +151,11 @@ export class DashboardComponent {
       return [
         {
           label: "activeJobs",
-          value: requests.filter((r) => statusAtivos.includes(r.status)).length,
+          value: requests.filter((r) =>
+            this.statusAtivos()
+              .map((s) => s.value)
+              .includes(r.status)
+          ).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {

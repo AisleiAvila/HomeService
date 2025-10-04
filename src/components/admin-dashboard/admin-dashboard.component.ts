@@ -606,7 +606,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const requests = this.allRequests();
     const users = this.allUsers();
     const financialData = this.financialStats();
-    // const statusAtivos = Object.values(StatusService);
 
     // Calcular tendências (simuladas para demonstração)
     const trends = this.calculateTrends();
