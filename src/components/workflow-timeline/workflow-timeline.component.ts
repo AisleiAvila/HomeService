@@ -6,7 +6,8 @@ import {
   ChangeDetectionStrategy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ServiceRequest, ServiceStatus } from "../../models/maintenance.models";
+import { ServiceRequest, ServiceStatus } from "@/src/models/maintenance.models";
+import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
@@ -205,31 +206,7 @@ export class WorkflowTimelineComponent {
   }
 
   getStatusColor(status: ServiceStatus): string {
-    // Status de problemas/cancelamento
-    if (
-      ["Cancelado", "Orçamento rejeitado", "Rejeitado pelo cliente"].includes(
-        status
-      )
-    ) {
-      return "text-red-600 bg-red-50";
-    }
-
-    // Status de aguardo
-    if (status.includes("Aguardando")) {
-      return "text-yellow-600 bg-yellow-50";
-    }
-
-    // Status concluído
-    if (["Finalizado", "Pago", "Aprovado pelo cliente"].includes(status)) {
-      return "text-green-600 bg-green-50";
-    }
-
-    // Status em progresso
-    if (["Em execução", "Em análise", "Agendado"].includes(status)) {
-      return "text-blue-600 bg-blue-50";
-    }
-
-    // Status padrão
-    return "text-gray-600 bg-gray-50";
+    // Usa cor do utilitário centralizado
+    return StatusUtilsService.getColor(status);
   }
 }

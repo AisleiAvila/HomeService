@@ -8,7 +8,13 @@ import {
   signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ServiceRequest, User, Address } from "../../models/maintenance.models";
+import {
+  ServiceRequest,
+  User,
+  Address,
+  ServiceStatus,
+} from "@/src/models/maintenance.models";
+import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
@@ -183,22 +189,17 @@ export class ServiceListComponent {
     return professional?.name || this.i18n.translate("unknownProfessional");
   }
 
-  statusClass(status: string): string {
+  statusClass(status: ServiceStatus): string {
     const baseClass =
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
-    const colorClasses: { [key: string]: string } = {
-      Pending: "bg-yellow-100 text-yellow-800",
-      Quoted: "bg-cyan-100 text-cyan-800",
-      Approved: "bg-indigo-100 text-indigo-800",
-      Scheduled: "bg-teal-100 text-teal-800",
-      Assigned: "bg-blue-100 text-blue-800",
-      "In Progress": "bg-purple-100 text-purple-800",
-      Completed: "bg-green-100 text-green-800",
-      Cancelled: "bg-gray-100 text-gray-800",
-    };
-    return (
-      baseClass + " " + (colorClasses[status] || "bg-gray-100 text-gray-800")
-    );
+    const color = StatusUtilsService.getColor(status);
+    // Gera classes Tailwind a partir da cor hex (padrão: bg-[cor] text-white)
+    // Para manter compatibilidade, usa bg-[cor] inline style e text color fixo
+    return `${baseClass} text-white`;
+  }
+
+  getStatusLabel(status: ServiceStatus): string {
+    return StatusUtilsService.getLabel(status, this.i18n);
   }
 
   showBudgetApprovalModal = signal(false);
