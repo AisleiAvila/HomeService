@@ -10,6 +10,7 @@ export enum StatusService {
   DateProposedByAdmin = "DateProposedByAdmin",
   AwaitingDateApproval = "AwaitingDateApproval",
   DateApprovedByClient = "DateApprovedByClient",
+  DateRejectedByClient = "DateRejectedByClient",
   SearchingProfessional = "SearchingProfessional",
   ProfessionalSelected = "ProfessionalSelected",
   AwaitingProfessionalConfirmation = "AwaitingProfessionalConfirmation",
