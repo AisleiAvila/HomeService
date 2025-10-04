@@ -81,6 +81,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalRevenue: "Total Revenue",
     pendingApprovals: "Pending Approvals",
     activeServices: "Active Services",
+    // phoneFormatError já definido acima
     totalProfessionals: "Total Professionals",
     csvId: "ID",
     csvClient: "Client",
@@ -138,6 +139,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectAProfessional: "Select a Professional",
     selectDate: "Select Date",
     cancel: "Cancel",
+    // phoneFormatError já definido acima
     confirmSchedule: "Confirm Schedule",
     pendingActions: "Pending Actions",
     request: "Request",
@@ -615,6 +617,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scheduleTitle: "Schedule",
     selectStatus: "Select Status",
     filterByStatus: "Filter by Status",
+    phoneNumber: "Phone Number",
+    phoneFormatError:
+      "Please enter the country code and phone number (e.g. +351 912 345 678)",
   },
   pt: {
     // General
@@ -1250,6 +1255,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scheduleTitle: "Agenda",
     selectStatus: "Selecione o Status",
     filterByStatus: "Filtrar por Status",
+    phoneNumber: "Número de Telefone",
+    phoneFormatError:
+      "Informe o código do país e o número do telefone (ex: +351 912 345 678)",
   },
 };
 
