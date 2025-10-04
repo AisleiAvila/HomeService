@@ -606,32 +606,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const requests = this.allRequests();
     const users = this.allUsers();
     const financialData = this.financialStats();
+    // const statusAtivos = Object.values(StatusService);
 
-    // Status ativos em português e inglês
-    const statusAtivos = [
-      // Português
-      "Solicitado",
-      "Em análise",
-      "Aguardando esclarecimentos",
-      "Orçamento enviado",
-      "Aguardando aprovação do orçamento",
-      "Orçamento aprovado",
-      "Aguardando data de execução",
-      "Data proposta pelo administrador",
-      "Aguardando aprovação da data",
-      "Data aprovada pelo cliente",
-      "Buscando profissional",
-      "Profissional selecionado",
-      "Aguardando confirmação do profissional",
-      "Agendado",
-      "Em execução",
-      "Concluído - Aguardando aprovação",
-      // Inglês
-      "Assigned",
-      "Pending",
-      "Scheduled",
-      "In Progress",
-    ];
     // Calcular tendências (simuladas para demonstração)
     const trends = this.calculateTrends();
 
@@ -664,7 +640,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       {
         label: this.i18n.translate("activeServices"),
-        value: requests.filter((r) => statusAtivos.includes(r.status)).length,
+        value: requests.filter((r) =>
+          (Object.values(StatusService) as string[]).includes(r.status)
+        ).length,
         icon: "fas fa-cogs",
         bgColor: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700",
         trend: trends.activeServices,
