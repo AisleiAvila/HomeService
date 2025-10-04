@@ -612,6 +612,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quickfilters: "Quick Filters",
     statusRequested: "Requested",
     statusInAnalysis: "In Analysis",
+    scheduleTitle: "Schedule",
+    selectStatus: "Select Status",
+    filterByStatus: "Filter by Status",
   },
   pt: {
     // General
@@ -1244,6 +1247,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quickfilters: "Filtros Rápidos",
     statusRequested: "Solicitado",
     statusInAnalysis: "Em Análise",
+    scheduleTitle: "Agenda",
+    selectStatus: "Selecione o Status",
+    filterByStatus: "Filtrar por Status",
   },
 };
 

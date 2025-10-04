@@ -51,6 +51,19 @@ import { I18nService } from "@/src/i18n.service";
   },
 })
 export class ScheduleComponent implements OnDestroy, AfterViewInit {
+  // Controla a exibição do dropdown customizado
+  showStatusDropdown = signal(false);
+
+  // Retorna os status selecionados como array
+  public selectedStatuses(): ServiceStatus[] {
+    return Array.from(this.visibleStatuses());
+  }
+
+  // Retorna os status selecionados formatados para exibir na combo
+  public getSelectedStatusLabel(): string {
+    const selected = this.selectedStatuses();
+    return this.i18n.translate("selectStatus");
+  }
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
 
@@ -211,9 +224,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     this.isFilterVisible.update((v) => !v);
   }
 
-  public deselectAllStatuses() {
-    this.visibleStatuses.set(new Set());
-  }
+  // public deselectAllStatuses() {
+  //   this.visibleStatuses.set(new Set());
+  // }
 
   private setupEffects() {
     effect(() => {
