@@ -26,6 +26,7 @@ import { WorkflowService } from "../../services/workflow.service";
 import { StatusPieChartComponent } from "../status-pie-chart.component";
 import { CategoryBarChartComponent } from "../category-bar-chart.component";
 import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.component";
+import { StatusService } from "@/src/services/status.service";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -51,27 +52,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   searchTerm = signal<string>("");
 
   quickFilterOptions = [
-    { status: 'Solicitado', label: 'statusRequested' },
-    { status: 'Em análise', label: 'statusInAnalysis' },
-    { status: 'Agendado', label: 'statusScheduled' },
-    { status: 'Finalizado', label: 'statusCompleted' }
+    { status: "Solicitado", label: "statusRequested" },
+    { status: "Em análise", label: "statusInAnalysis" },
+    { status: "Agendado", label: "statusScheduled" },
+    { status: "Finalizado", label: "statusCompleted" },
   ];
 
-  // Opções para filtros (mock, pode ser ajustado para buscar do serviço)
-  statusOptions = [
-    "Pending",
-    "Quoted",
-    "Approved",
-    "In Progress",
-    "Completed",
-    "Cancelled",
-    "Solicitado",
-    "Em análise",
-    "Orçamento enviado",
-    "Orçamento aprovado",
-    "Agendado",
-    "Finalizado",
-  ];
+  statusOptions = signal<{ value: string; label: string }[]>([]);
+
   districtOptions = [
     "Lisboa",
     "Porto",
@@ -83,8 +71,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   professionalOptions: User[] = [];
   ngOnInit() {
     this.startAutoRefresh();
-    // Inicializa professionalOptions após os dados estarem disponíveis
     this.professionalOptions = this.professionals();
+
+    this.statusOptions.set(
+      Object.values(StatusService).map((status) => ({
+        value: status,
+        label: this.i18n.translateStatus(status),
+      }))
+    );
   }
 
   applyQuickFilter(status: string) {
@@ -101,22 +95,24 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.searchTerm.set("");
   }
 
-  removeFilter(filterType: 'status' | 'period' | 'district' | 'professional' | 'search') {
+  removeFilter(
+    filterType: "status" | "period" | "district" | "professional" | "search"
+  ) {
     switch (filterType) {
-      case 'status':
+      case "status":
         this.filterStatus.set("");
         break;
-      case 'period':
+      case "period":
         this.filterStartDate.set("");
         this.filterEndDate.set("");
         break;
-      case 'district':
+      case "district":
         this.filterDistrict.set("");
         break;
-      case 'professional':
+      case "professional":
         this.filterProfessional.set("");
         break;
-      case 'search':
+      case "search":
         this.searchTerm.set("");
         break;
     }
@@ -126,20 +122,43 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   activeFilters = computed(() => {
     const filters: { type: any; label: string; value: string }[] = [];
     if (this.filterStatus()) {
-      filters.push({ type: 'status', label: 'status', value: this.filterStatus() });
+      filters.push({
+        type: "status",
+        label: "status",
+        value: this.filterStatus(),
+      });
     }
     if (this.filterStartDate() && this.filterEndDate()) {
-      filters.push({ type: 'period', label: 'period', value: `${this.filterStartDate()} - ${this.filterEndDate()}` });
+      filters.push({
+        type: "period",
+        label: "period",
+        value: `${this.filterStartDate()} - ${this.filterEndDate()}`,
+      });
     }
     if (this.filterDistrict()) {
-      filters.push({ type: 'district', label: 'district', value: this.filterDistrict() });
+      filters.push({
+        type: "district",
+        label: "district",
+        value: this.filterDistrict(),
+      });
     }
     if (this.filterProfessional()) {
-      const profName = this.professionalOptions.find(p => String(p.id) === String(this.filterProfessional()))?.name || '';
-      filters.push({ type: 'professional', label: 'professional', value: profName });
+      const profName =
+        this.professionalOptions.find(
+          (p) => String(p.id) === String(this.filterProfessional())
+        )?.name || "";
+      filters.push({
+        type: "professional",
+        label: "professional",
+        value: profName,
+      });
     }
     if (this.searchTerm()) {
-      filters.push({ type: 'search', label: 'search', value: this.searchTerm() });
+      filters.push({
+        type: "search",
+        label: "search",
+        value: this.searchTerm(),
+      });
     }
     return filters;
   });
@@ -157,16 +176,16 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (status) reqs = reqs.filter((r) => r.status === status);
 
     if (startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        // Adjust end date to include the whole day
-        end.setHours(23, 59, 59, 999);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      // Adjust end date to include the whole day
+      end.setHours(23, 59, 59, 999);
 
-        reqs = reqs.filter(r => {
-            if (!r.requested_date) return false;
-            const reqDate = new Date(r.requested_date);
-            return reqDate >= start && reqDate <= end;
-        });
+      reqs = reqs.filter((r) => {
+        if (!r.requested_date) return false;
+        const reqDate = new Date(r.requested_date);
+        return reqDate >= start && reqDate <= end;
+      });
     }
 
     if (district) reqs = reqs.filter((r) => r.state === district);

@@ -1,6 +1,7 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
 import { scheduled } from "rxjs";
+import { StatusService } from "./services/status.service";
 
 export type Language = "en" | "pt";
 
@@ -1295,5 +1296,70 @@ export class I18nService {
       });
     }
     return result;
+  }
+
+  statusTranslations: Record<StatusService, { pt: string; en: string }> = {
+    [StatusService.Requested]: { pt: "Solicitado", en: "Requested" },
+    [StatusService.InAnalysis]: { pt: "Em análise", en: "In Analysis" },
+    [StatusService.AwaitingClarifications]: {
+      pt: "Aguardando esclarecimentos",
+      en: "Awaiting Clarifications",
+    },
+    [StatusService.QuoteSent]: { pt: "Orçamento enviado", en: "Quote Sent" },
+    [StatusService.AwaitingQuoteApproval]: {
+      pt: "Aguardando aprovação do orçamento",
+      en: "Awaiting Quote Approval",
+    },
+    [StatusService.QuoteApproved]: {
+      pt: "Orçamento aprovado",
+      en: "Quote Approved",
+    },
+    [StatusService.QuoteRejected]: {
+      pt: "Orçamento rejeitado",
+      en: "Quote Rejected",
+    },
+    [StatusService.AwaitingExecutionDate]: {
+      pt: "Aguardando data de execução",
+      en: "Awaiting Execution Date",
+    },
+    [StatusService.DateProposedByAdmin]: {
+      pt: "Data proposta pelo administrador",
+      en: "Date Proposed By Admin",
+    },
+    [StatusService.AwaitingDateApproval]: {
+      pt: "Aguardando aprovação da data",
+      en: "Awaiting Date Approval",
+    },
+    [StatusService.DateApprovedByClient]: {
+      pt: "Data aprovada pelo cliente",
+      en: "Date Approved By Client",
+    },
+    [StatusService.SearchingProfessional]: {
+      pt: "Buscando profissional",
+      en: "Searching Professional",
+    },
+    [StatusService.ProfessionalSelected]: {
+      pt: "Profissional selecionado",
+      en: "Professional Selected",
+    },
+    [StatusService.AwaitingProfessionalConfirmation]: {
+      pt: "Aguardando confirmação do profissional",
+      en: "Awaiting Professional Confirmation",
+    },
+    [StatusService.Assigned]: { pt: "Atribuído", en: "Assigned" },
+    [StatusService.Pending]: { pt: "Pendente", en: "Pending" },
+    [StatusService.Scheduled]: { pt: "Agendado", en: "Scheduled" },
+    [StatusService.InProgress]: { pt: "Em execução", en: "In Progress" },
+    [StatusService.CompletedAwaitingApproval]: {
+      pt: "Concluído - Aguardando aprovação",
+      en: "Completed - Awaiting Approval",
+    },
+    [StatusService.Completed]: { pt: "Finalizado", en: "Completed" },
+    [StatusService.Cancelled]: { pt: "Cancelado", en: "Cancelled" },
+  };
+
+  translateStatus(status: StatusService): string {
+    const lang = this.language(); // 'pt' ou 'en'
+    return this.statusTranslations[status]?.[lang] || status;
   }
 }
