@@ -1334,6 +1334,10 @@ export class I18nService {
       pt: "Data aprovada pelo cliente",
       en: "Date Approved By Client",
     },
+    [StatusService.DateRejectedByClient]: {
+      pt: "Data rejeitada pelo cliente",
+      en: "Date Rejected By Client",
+    },
     [StatusService.SearchingProfessional]: {
       pt: "Buscando profissional",
       en: "Searching Professional",
