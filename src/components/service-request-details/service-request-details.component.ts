@@ -10,7 +10,13 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { ServiceRequest, User } from "../../models/maintenance.models";
+import {
+  ServiceRequest,
+  User,
+  ServiceStatus,
+} from "@/src/models/maintenance.models";
+import { I18nService } from "@/src/i18n.service";
+import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { TimeControlComponent } from "../time-control/time-control.component";
 import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
@@ -486,31 +492,15 @@ export class ServiceRequestDetailsComponent {
     }
   }
 
-  getStatusClass(status: string): string {
+  getStatusClass(status: ServiceStatus): string {
     const baseClasses = "px-2 py-1 text-xs font-medium rounded-full";
+    // Usa cor do utilitário centralizado
+    const color = StatusUtilsService.getColor(status);
+    return `${baseClasses} text-white`;
+  }
 
-    switch (status) {
-      case "Solicitado":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "Em análise":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
-      case "Orçamento enviado":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
-      case "Orçamento aprovado":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Agendado":
-        return `${baseClasses} bg-purple-100 text-purple-800`;
-      case "Em execução":
-        return `${baseClasses} bg-indigo-100 text-indigo-800`;
-      case "Concluído - Aguardando aprovação":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Finalizado":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "Orçamento rejeitado":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
+  getStatusLabel(status: ServiceStatus): string {
+    return StatusUtilsService.getLabel(status, inject(I18nService));
   }
 
   getPriorityClass(priority: string): string {
