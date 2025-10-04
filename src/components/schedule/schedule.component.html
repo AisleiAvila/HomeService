@@ -23,26 +23,7 @@
         >
         }
       </button>
-
-      <!-- <div class="flex gap-2 mt-3 sm:mt-0">
-        <button
-          (click)="selectAllStatuses()"
-          class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-          [ngClass]="fontSmall"
-        >
-          {{ "selectAll" | i18n }}
-        </button>
-        <button
-          (click)="deselectAllStatuses()"
-          class="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-          [ngClass]="fontSmall"
-        >
-          {{ "deselectAll" | i18n }}
-        </button>
-      </div> -->
     </div>
-
-    <!-- ...Legenda removida conforme solicitado... -->
 
     <!-- Painel de Filtro Recolhível -->
     @if (isFilterVisible()) {
@@ -118,7 +99,7 @@
     </div>
     }
   </div>
-  <div class="flex-1 p-4 bg-white rounded-b-lg">
+  <div class="flex-1 p-6 bg-white rounded-b-lg mt-6 border-t border-gray-200">
     <full-calendar
       #calendar
       [options]="calendarOptions"
