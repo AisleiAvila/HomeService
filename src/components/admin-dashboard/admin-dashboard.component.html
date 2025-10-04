@@ -273,11 +273,20 @@
           <div class="p-4 border-b border-gray-200 bg-gray-50 space-y-4">
             <!-- Filtros Rápidos -->
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-sm font-semibold text-gray-700 mr-2">{{ "quickFilters" | i18n }}:</span>
-              @for(quickFilter of quickFilterOptions; track quickFilter.status) {
-              <button 
-                (click)="applyQuickFilter(quickFilter.status)" 
-                [class]="'px-3 py-1 text-xs font-medium rounded-full ' + (filterStatus() === quickFilter.status ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')">
+              <span class="text-sm font-semibold text-gray-700 mr-2"
+                >{{ "quickFilters" | i18n }}:</span
+              >
+              @for(quickFilter of quickFilterOptions; track quickFilter.status)
+              {
+              <button
+                (click)="applyQuickFilter(quickFilter.status)"
+                [class]="
+                  'px-3 py-1 text-xs font-medium rounded-full ' +
+                  (filterStatus() === quickFilter.status
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                "
+              >
                 {{ quickFilter.label | i18n }}
               </button>
               }
@@ -287,63 +296,113 @@
             <div class="flex flex-wrap gap-4 items-end">
               <!-- Filtro de Status (Dropdown) -->
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ "status" | i18n }}</label>
-                <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)" class="border rounded px-2 py-1 text-sm">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{
+                  "status" | i18n
+                }}</label>
+                <select
+                  [ngModel]="filterStatus()"
+                  (ngModelChange)="filterStatus.set($event)"
+                  class="border rounded px-2 py-1 text-sm"
+                >
                   <option value="">{{ "all" | i18n }}</option>
-                  @for(status of statusOptions; track status) {
-                    <option [value]="status">{{ status }}</option>
+                  @for(status of statusOptions(); track status.value) {
+                  <option [value]="status.value">{{ status.label }}</option>
                   }
                 </select>
               </div>
 
               <!-- Filtro por Período -->
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ "period" | i18n }}</label>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{
+                  "period" | i18n
+                }}</label>
                 <div class="flex items-center gap-2">
-                  <input type="date" [ngModel]="filterStartDate()" (ngModelChange)="filterStartDate.set($event)" class="border rounded px-2 py-1 text-sm" />
+                  <input
+                    type="date"
+                    [ngModel]="filterStartDate()"
+                    (ngModelChange)="filterStartDate.set($event)"
+                    class="border rounded px-2 py-1 text-sm"
+                  />
                   <span class="text-gray-500">-</span>
-                  <input type="date" [ngModel]="filterEndDate()" (ngModelChange)="filterEndDate.set($event)" class="border rounded px-2 py-1 text-sm" />
+                  <input
+                    type="date"
+                    [ngModel]="filterEndDate()"
+                    (ngModelChange)="filterEndDate.set($event)"
+                    class="border rounded px-2 py-1 text-sm"
+                  />
                 </div>
               </div>
 
               <!-- Outros filtros (Bairro, Profissional) -->
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ "district" | i18n }}</label>
-                <select [ngModel]="filterDistrict()" (ngModelChange)="filterDistrict.set($event)" class="border rounded px-2 py-1 text-sm">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{
+                  "district" | i18n
+                }}</label>
+                <select
+                  [ngModel]="filterDistrict()"
+                  (ngModelChange)="filterDistrict.set($event)"
+                  class="border rounded px-2 py-1 text-sm"
+                >
                   <option value="">{{ "all" | i18n }}</option>
                   @for(district of districtOptions; track district) {
-                    <option [value]="district">{{ district }}</option>
+                  <option [value]="district">{{ district }}</option>
                   }
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ "professional" | i18n }}</label>
-                <select [ngModel]="filterProfessional()" (ngModelChange)="filterProfessional.set($event)" class="border rounded px-2 py-1 text-sm">
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{
+                  "professional" | i18n
+                }}</label>
+                <select
+                  [ngModel]="filterProfessional()"
+                  (ngModelChange)="filterProfessional.set($event)"
+                  class="border rounded px-2 py-1 text-sm"
+                >
                   <option value="">{{ "all" | i18n }}</option>
                   @for(prof of professionalOptions; track prof.id) {
-                    <option [value]="prof.id">{{ prof.name }}</option>
+                  <option [value]="prof.id">{{ prof.name }}</option>
                   }
                 </select>
               </div>
 
               <!-- Barra de Pesquisa -->
               <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs font-semibold text-gray-600 mb-1">{{ "search" | i18n }}</label>
-                <input type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchPlaceholder' | i18n }}" class="border rounded px-2 py-1 text-sm w-full" />
+                <label class="block text-xs font-semibold text-gray-600 mb-1">{{
+                  "search" | i18n
+                }}</label>
+                <input
+                  type="text"
+                  [ngModel]="searchTerm()"
+                  (ngModelChange)="searchTerm.set($event)"
+                  placeholder="{{ 'searchPlaceholder' | i18n }}"
+                  class="border rounded px-2 py-1 text-sm w-full"
+                />
               </div>
-              <button (click)="clearFilters()" class="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400">
+              <button
+                (click)="clearFilters()"
+                class="px-3 py-1 text-xs bg-gray-300 rounded hover:bg-gray-400"
+              >
                 {{ "clearFilters" | i18n }}
               </button>
             </div>
 
             <!-- Indicadores de Filtros Ativos -->
             @if (activeFilters().length > 0) {
-            <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-200 mt-3">
-              <span class="text-sm font-medium text-gray-600">{{ "activeFilters" | i18n }}:</span>
+            <div
+              class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-200 mt-3"
+            >
+              <span class="text-sm font-medium text-gray-600"
+                >{{ "activeFilters" | i18n }}:</span
+              >
               @for(filter of activeFilters(); track filter.type) {
-              <span class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+              <span
+                class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-teal-100 text-teal-800"
+              >
                 {{ filter.label | i18n }}: {{ filter.value }}
-                <button (click)="removeFilter(filter.type)" class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-teal-600 hover:bg-teal-200 hover:text-teal-500">
+                <button
+                  (click)="removeFilter(filter.type)"
+                  class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-teal-600 hover:bg-teal-200 hover:text-teal-500"
+                >
                   <i class="fas fa-times text-xs"></i>
                 </button>
               </span>
@@ -414,45 +473,101 @@
                     <div class="flex items-center gap-2">
                       <!-- Ação Principal -->
                       @if (req.status === 'Solicitado') {
-                      <button (click)="analyzeRequest(req)" class="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-search mr-1"></i> {{ 'analyzeRequest' | i18n }}
+                      <button
+                        (click)="analyzeRequest(req)"
+                        class="px-3 py-1 text-xs font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        <i class="fas fa-search mr-1"></i>
+                        {{ "analyzeRequest" | i18n }}
                       </button>
                       } @else if (req.status === 'Em análise') {
-                      <button (click)="selectRequestForQuote(req)" class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
-                        <i class="fas fa-calculator mr-1"></i> {{ 'sendQuote' | i18n }}
+                      <button
+                        (click)="selectRequestForQuote(req)"
+                        class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        <i class="fas fa-calculator mr-1"></i>
+                        {{ "sendQuote" | i18n }}
                       </button>
                       } @else if (needsProfessionalAssignment(req)) {
-                      <button (click)="selectRequestForAssignment(req)" class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
-                        <i class="fas fa-user-plus mr-1"></i> {{ req.status === 'Agendado' && !req.professional_id ? ('assignProfessionalToScheduled' | i18n) : ('assign' | i18n) }}
+                      <button
+                        (click)="selectRequestForAssignment(req)"
+                        class="px-3 py-1 text-xs font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        <i class="fas fa-user-plus mr-1"></i>
+                        {{
+                          req.status === "Agendado" && !req.professional_id
+                            ? ("assignProfessionalToScheduled" | i18n)
+                            : ("assign" | i18n)
+                        }}
                       </button>
-                      } @else if (req.status === 'Pending' || req.status === 'Quoted') {
-                        <button (click)="selectRequestForQuote(req)" class="px-3 py-1 text-xs font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors">
-                          <i class="fas fa-calculator mr-1"></i> {{ req.status === 'Quoted' ? ('viewQuote' | i18n) : ('provideQuote' | i18n) }}
-                        </button>
+                      } @else if (req.status === 'Pending' || req.status ===
+                      'Quoted') {
+                      <button
+                        (click)="selectRequestForQuote(req)"
+                        class="px-3 py-1 text-xs font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors"
+                      >
+                        <i class="fas fa-calculator mr-1"></i>
+                        {{
+                          req.status === "Quoted"
+                            ? ("viewQuote" | i18n)
+                            : ("provideQuote" | i18n)
+                        }}
+                      </button>
                       }
 
                       <!-- Menu Dropdown para Ações Secundárias -->
                       <div class="relative" #actionsMenu>
-                        <button (click)="toggleActionsMenu(req.id)" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+                        <button
+                          (click)="toggleActionsMenu(req.id)"
+                          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                        >
                           <i class="fas fa-ellipsis-v"></i>
                         </button>
 
                         <!-- Painel do Dropdown -->
                         @if (isActionsMenuOpen(req.id)) {
-                        <div class="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                          <div class="py-1" role="menu" aria-orientation="vertical">
+                        <div
+                          class="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        >
+                          <div
+                            class="py-1"
+                            role="menu"
+                            aria-orientation="vertical"
+                          >
                             <!-- Ações sempre disponíveis -->
-                            <a href="#" (click)="viewRequestDetails(req); false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i class="fas fa-eye w-5 mr-2"></i> {{ 'viewDetails' | i18n }}
+                            <a
+                              href="#"
+                              (click)="viewRequestDetails(req); (false)"
+                              class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              role="menuitem"
+                            >
+                              <i class="fas fa-eye w-5 mr-2"></i>
+                              {{ "viewDetails" | i18n }}
                             </a>
-                            <a href="#" (click)="openChat(req); false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i class="fas fa-comments w-5 mr-2"></i> {{ 'chat' | i18n }}
+                            <a
+                              href="#"
+                              (click)="openChat(req); (false)"
+                              class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              role="menuitem"
+                            >
+                              <i class="fas fa-comments w-5 mr-2"></i>
+                              {{ "chat" | i18n }}
                             </a>
 
                             <!-- Ações condicionais -->
-                            @if (req.status === 'Solicitado' || req.status === 'Em análise' || req.status === 'Orçamento aprovado') {
-                            <a href="#" (click)="requestClarificationFromClient(req); false" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
-                              <i class="fas fa-question-circle w-5 mr-2"></i> {{ 'requestClarification' | i18n }}
+                            @if (req.status === 'Solicitado' || req.status ===
+                            'Em análise' || req.status === 'Orçamento aprovado')
+                            {
+                            <a
+                              href="#"
+                              (click)="
+                                requestClarificationFromClient(req); (false)
+                              "
+                              class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              role="menuitem"
+                            >
+                              <i class="fas fa-question-circle w-5 mr-2"></i>
+                              {{ "requestClarification" | i18n }}
                             </a>
                             }
                           </div>
