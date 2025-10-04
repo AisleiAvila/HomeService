@@ -51,6 +51,20 @@ import { I18nService } from "@/src/i18n.service";
   },
 })
 export class ScheduleComponent implements OnDestroy, AfterViewInit {
+  public toggleStatusDropdown() {
+    this.showStatusDropdown.update((v) => !v);
+  }
+  // Atualiza os status visíveis conforme seleção do <select multiple>
+  public onStatusMultiSelectChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const selected: ServiceStatus[] = [];
+    for (const option of Array.from(select.options)) {
+      if (option.selected) {
+        selected.push(option.value as ServiceStatus);
+      }
+    }
+    this.visibleStatuses.set(new Set(selected));
+  }
   // Controla a exibição do dropdown customizado
   showStatusDropdown = signal(false);
 
