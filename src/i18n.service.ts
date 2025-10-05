@@ -620,6 +620,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     phoneNumber: "Phone Number",
     phoneFormatError:
       "Please enter the country code and phone number (e.g. +351 912 345 678)",
+    sendVerificationCode: "Send Verification Code",
+    enterSmsCode: "Enter the 6-digit code sent via SMS",
+    smsSentInfo: "A verification code has been sent to",
+    smsCodeValid: "Verification code is valid!",
+    smsCodeInvalid: "Invalid code. Please try again.",
+    validateCode: "Validate Code",
   },
   pt: {
     // General
@@ -1258,6 +1264,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     phoneNumber: "Número de Telefone",
     phoneFormatError:
       "Informe o código do país e o número do telefone (ex: +351 912 345 678)",
+    sendVerificationCode: "Enviar Código de Verificação",
+    enterSmsCode: "Digite o código de 6 dígitos enviado via SMS",
+    smsSentInfo: "Um código de verificação foi enviado para",
+    smsCodeValid: "Código válido",
+    smsCodeInvalid: "Código inválido. Por favor, tente novamente.",
+    validateCode: "Validar Código",
   },
 };
 

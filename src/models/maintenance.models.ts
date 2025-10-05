@@ -120,6 +120,7 @@ export interface User {
   specialties?: ServiceCategory[];
   address?: Address;
   phone?: string; // Número de telefone do usuário
+  phone_verified?: boolean; // Indica se o telefone foi validado
 }
 
 export interface ServiceRequest {
