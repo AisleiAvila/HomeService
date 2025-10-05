@@ -128,11 +128,11 @@
           <span *ngIf="smsSent" class="text-green-600 text-xs mt-1">{{
             "smsSentInfo" | i18n
           }}</span>
-          <div *ngIf="smsSent" class="mt-2">
+          <div *ngIf="!user().phone_verified && user().sms_code" class="mt-2">
             <label
               for="smsCode"
               class="block text-sm font-semibold text-indigo-700 mb-1"
-              >{{ "enterSmsCode" | i18n }}</label
+              >Digite o código de 6 dígitos enviado via SMS</label
             >
             <input
               type="text"
@@ -148,7 +148,7 @@
               (click)="validateSmsCode()"
               class="ml-2 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
             >
-              {{ "validateCode" | i18n }}
+              Validar Código
             </button>
             <span
               *ngIf="smsValid === true"
@@ -160,6 +160,9 @@
               class="text-red-500 text-xs ml-2"
               >{{ "smsCodeInvalid" | i18n }}</span
             >
+            <div *ngIf="lastNotification()" class="text-red-500 text-xs mt-2">
+              {{ lastNotification() }}
+            </div>
           </div>
         </div>
         <div>
