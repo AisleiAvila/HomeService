@@ -16,6 +16,7 @@ import {
   Address,
   ServiceCategory,
 } from "../../models/maintenance.models";
+import { SmsVerificationService } from "../../services/sms-verification.service";
 import { AuthService } from "../../services/auth.service";
 import { NotificationService } from "../../services/notification.service";
 import { I18nService } from "../../i18n.service";
@@ -35,6 +36,7 @@ export class ProfileComponent implements OnDestroy {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private dataService = inject(DataService);
+  private smsVerificationService = inject(SmsVerificationService);
   i18n = inject(I18nService);
   goToDashboard() {
     window.location.href = "/dashboard";
@@ -59,6 +61,11 @@ export class ProfileComponent implements OnDestroy {
   showSaveToast = signal(false);
   saveToastMessage = signal("");
   saveToastType = signal<"success" | "error">("success");
+
+  // SMS verification state
+  smsSent = false;
+  smsCode = "";
+  smsValid: boolean | null = null;
 
   allCategories = this.dataService.categories;
   private cameraStream: MediaStream | null = null;
@@ -526,6 +533,50 @@ export class ProfileComponent implements OnDestroy {
   saveProfile() {
     console.log("💾 saveProfile() called - calling saveChanges()");
     this.saveChanges();
+  }
+
+  async sendSmsVerification() {
+    // Chamada ao backend para enviar SMS
+    try {
+      // Exemplo: await this.dataService.sendSmsVerification(this.phone());
+      this.smsSent = true;
+      this.smsValid = null;
+      this.notificationService.addNotification(
+        this.i18n.translate("smsSentInfo")
+      );
+    } catch (err) {
+      this.notificationService.addNotification(
+        this.i18n.translate("smsSendError")
+      );
+    }
+  }
+
+  async validateSmsCode() {
+    try {
+      const response: any = await this.smsVerificationService
+        .validateCode(this.phone(), this.smsCode)
+        .toPromise();
+      this.smsValid = response.valid;
+      if (response.valid && response.update) {
+        this.notificationService.addNotification(
+          this.i18n.translate("smsCodeValid")
+        );
+        // Recarrega perfil do usuário após validação
+        const authId = this.user().auth_id;
+        if (authId) {
+          await this.authService.refreshAppUser(authId);
+        }
+      } else {
+        this.notificationService.addNotification(
+          this.i18n.translate("smsCodeInvalid")
+        );
+      }
+    } catch (err) {
+      this.notificationService.addNotification(
+        this.i18n.translate("smsCodeInvalid")
+      );
+      this.smsValid = false;
+    }
   }
 
   private showToast(message: string, type: "success" | "error" = "success") {
