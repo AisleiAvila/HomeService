@@ -634,6 +634,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     receiveSmsNotifications: "Receive SMS Notifications",
     personalData: "Personal Data",
     contactPreferences: "Contact Preferences",
+    smsCodeLabel: "Code described in the SMS",
+    smsCodePlaceholder: "Enter the code",
   },
   pt: {
     // General
@@ -1285,6 +1287,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     receiveSmsNotifications: "Receber Notificações por SMS",
     personalData: "Dados Pessoais",
     contactPreferences: "Preferências de Contato",
+    smsCodeLabel: "Código descrito no SMS",
+    smsCodePlaceholder: "Digite o código",
   },
 };
 
