@@ -506,26 +506,45 @@ export class ProfileComponent implements OnDestroy {
       this.user().role === "professional" &&
       JSON.stringify(this.specialties()) !==
         JSON.stringify(originalUser.specialties || []);
+    const smsPrefChanged =
+      this.receiveSmsNotifications() !==
+      (originalUser.receive_sms_notifications ?? false);
 
     const hasChanges =
       nameChanged ||
       phoneChanged ||
       emailChanged ||
       avatarChanged ||
-      specialtiesChanged;
+      specialtiesChanged ||
+      smsPrefChanged;
 
     return hasChanges;
   }
   resetForm() {
+    // Removido: resetForm (duplicado, consolidado em resetProfile)
+  }
+
+  /**
+   * Restaura os dados do perfil para o estado original (descarta alterações)
+   */
+  resetProfile() {
     const currentUser = this.user();
-    this.name.set(currentUser.name);
-    this.phone.set(currentUser.phone || "");
-    this.email.set(currentUser.email || "");
-    this.address.set(
-      currentUser.address || { street: "", city: "", state: "", zip_code: "" }
-    );
-    this.specialties.set(currentUser.specialties || []);
-    this.isEditing.set(false);
+    if (currentUser) {
+      this.name.set(currentUser.name);
+      this.phone.set(currentUser.phone || "");
+      this.email.set(currentUser.email || "");
+      this.address.set(
+        currentUser.address || { street: "", city: "", state: "", zip_code: "" }
+      );
+      this.specialties.set(currentUser.specialties || []);
+      this.receiveSmsNotifications.set(
+        currentUser.receive_sms_notifications ?? false
+      );
+      this.isEditing.set(false);
+      // Limpar estados de UI relacionados a SMS/modal/erros se existirem
+      this.showSmsModal.set(false);
+      this.lastNotification.set("");
+    }
   }
 
   saveProfile() {
