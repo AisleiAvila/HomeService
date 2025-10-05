@@ -66,6 +66,8 @@ export class ProfileComponent implements OnDestroy {
   smsSent = false;
   smsCode = "";
   smsValid: boolean | null = null;
+  // Signal para modal de SMS
+  showSmsModal = signal(false);
 
   allCategories = this.dataService.categories;
   private cameraStream: MediaStream | null = null;
@@ -524,6 +526,7 @@ export class ProfileComponent implements OnDestroy {
       // Exemplo: await this.dataService.sendSmsVerification(this.phone());
       this.smsSent = true;
       this.smsValid = null;
+      this.showSmsModal.set(true); // Exibe modal de simulação
       this.notificationService.addNotification(
         this.i18n.translate("smsSentInfo")
       );
