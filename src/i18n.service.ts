@@ -636,6 +636,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     contactPreferences: "Contact Preferences",
     smsCodeLabel: "Code described in the SMS",
     smsCodePlaceholder: "Enter the code",
+    value: "Value",
   },
   pt: {
     // General
@@ -1289,6 +1290,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     contactPreferences: "Preferências de Contato",
     smsCodeLabel: "Código descrito no SMS",
     smsCodePlaceholder: "Digite o código",
+    value: "Valor",
   },
 };
 
