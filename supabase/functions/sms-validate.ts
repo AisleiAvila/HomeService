@@ -22,13 +22,34 @@ serve(async (req: Request) => {
   // Log do valor recebido
   console.log("[SMS-VALIDATE] phone recebido:", phone);
   console.log("[SMS-VALIDATE] code recebido:", code);
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
+
   if (!phone || !code)
     return new Response(JSON.stringify({ error: "Missing data" }), {
       status: 400,
+      headers: corsHeaders,
     });
   // Simulação: sempre aceita código 123456
   if (code === "123456") {
     // Atualiza o campo phone_verified para true
+    const queryInfo = {
+      table: "users",
+      update: { phone_verified: true },
+      where: { phone },
+    };
+    console.log("[SMS-VALIDATE] QUERY:", JSON.stringify(queryInfo));
     const { data, error } = await supabase
       .from("users")
       .update({ phone_verified: true })
@@ -38,7 +59,7 @@ serve(async (req: Request) => {
     if (error) {
       return new Response(
         JSON.stringify({ valid: true, update: false, error: error.message }),
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
     return new Response(
@@ -49,6 +70,7 @@ serve(async (req: Request) => {
       }),
       {
         status: 200,
+        headers: corsHeaders,
       }
     );
   }
@@ -57,5 +79,8 @@ serve(async (req: Request) => {
   // if (valid) {
   //   await supabase.from("users").update({ phone_verified: true }).eq("phone", phone);
   // }
-  return new Response(JSON.stringify({ valid: false }), { status: 200 });
+  return new Response(JSON.stringify({ valid: false }), {
+    status: 200,
+    headers: corsHeaders,
+  });
 });
