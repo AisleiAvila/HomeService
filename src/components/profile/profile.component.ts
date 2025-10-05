@@ -521,15 +521,24 @@ export class ProfileComponent implements OnDestroy {
   }
 
   async sendSmsVerification() {
-    // Chamada ao backend para enviar SMS
     try {
-      // Exemplo: await this.dataService.sendSmsVerification(this.phone());
-      this.smsSent = true;
-      this.smsValid = null;
-      this.showSmsModal.set(true); // Exibe modal de simulação
-      this.notificationService.addNotification(
-        this.i18n.translate("smsSentInfo")
-      );
+      const userId = this.user().id;
+      const phoneWithId = `${userId}|${this.phone()}`;
+      const response: any = await this.smsVerificationService
+        .sendVerification(phoneWithId)
+        .toPromise();
+      if (response.sent) {
+        this.smsSent = true;
+        this.smsValid = null;
+        this.showSmsModal.set(true);
+        this.notificationService.addNotification(
+          this.i18n.translate("smsSentInfo")
+        );
+      } else {
+        this.notificationService.addNotification(
+          this.i18n.translate("smsSendError")
+        );
+      }
     } catch (err) {
       this.notificationService.addNotification(
         this.i18n.translate("smsSendError")
@@ -559,10 +568,15 @@ export class ProfileComponent implements OnDestroy {
           await this.authService.refreshAppUser(authId);
         }
       } else {
-        console.log("SMS code invalid");
-        this.notificationService.addNotification(
-          this.i18n.translate("smsCodeInvalid")
-        );
+        if (response.error === "expired") {
+          this.notificationService.addNotification(
+            this.i18n.translate("smsCodeExpired")
+          );
+        } else {
+          this.notificationService.addNotification(
+            this.i18n.translate("smsCodeInvalid")
+          );
+        }
       }
     } catch (err) {
       console.error("Error validating SMS code:", err);
