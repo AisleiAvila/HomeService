@@ -31,6 +31,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnDestroy {
+  lastNotification = signal<string>("");
   user = input.required<User>();
 
   private authService = inject(AuthService);
@@ -547,9 +548,10 @@ export class ProfileComponent implements OnDestroy {
   }
 
   async validateSmsCode() {
+    // Limpa mensagem anterior antes de validar
+    this.lastNotification.set("");
     try {
       console.log("Validating SMS code:", this.smsCode);
-      // Envia id|telefone conforme esperado pelo serviço
       const userId = this.user().id;
       const phoneWithId = `${userId}|${this.phone()}`;
       console.log("Telefone (id|telefone):", phoneWithId);
@@ -557,8 +559,9 @@ export class ProfileComponent implements OnDestroy {
         .validateCode(phoneWithId, this.smsCode)
         .toPromise();
       console.log("SMS verification response:", response);
-      this.smsValid = response.valid;
       if (response.valid && response.update) {
+        this.smsValid = true;
+        this.lastNotification.set("");
         this.notificationService.addNotification(
           this.i18n.translate("smsCodeValid")
         );
@@ -567,23 +570,23 @@ export class ProfileComponent implements OnDestroy {
         if (authId) {
           await this.authService.refreshAppUser(authId);
         }
+      } else if (response.error === "expired") {
+        this.smsValid = null;
+        const msg = this.i18n.translate("smsCodeExpired");
+        this.lastNotification.set(msg);
+        this.notificationService.addNotification(msg);
       } else {
-        if (response.error === "expired") {
-          this.notificationService.addNotification(
-            this.i18n.translate("smsCodeExpired")
-          );
-        } else {
-          this.notificationService.addNotification(
-            this.i18n.translate("smsCodeInvalid")
-          );
-        }
+        this.smsValid = null;
+        const msg = this.i18n.translate("smsCodeInvalid");
+        this.lastNotification.set(msg);
+        this.notificationService.addNotification(msg);
       }
     } catch (err) {
       console.error("Error validating SMS code:", err);
-      this.notificationService.addNotification(
-        this.i18n.translate("smsCodeInvalid")
-      );
-      this.smsValid = false;
+      this.smsValid = null;
+      const msg = this.i18n.translate("smsCodeInvalid");
+      this.lastNotification.set(msg);
+      this.notificationService.addNotification(msg);
     }
   }
 
