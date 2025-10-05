@@ -499,23 +499,6 @@ export class ProfileComponent implements OnDestroy {
       avatarChanged ||
       specialtiesChanged;
 
-    console.log("🔍 Change detection:", {
-      nameChanged: nameChanged
-        ? `"${originalUser.name}" → "${this.name()}"`
-        : false,
-      phoneChanged: phoneChanged
-        ? `"${originalUser.phone || ""}" → "${this.phone()}"`
-        : false,
-      emailChanged: emailChanged
-        ? `"${originalUser.email || ""}" → "${this.email()}"`
-        : false,
-      avatarChanged: avatarChanged
-        ? `"${initialState?.avatar_url}" → "${this.user().avatar_url}"`
-        : false,
-      specialtiesChanged,
-      hasChanges,
-    });
-
     return hasChanges;
   }
   resetForm() {
@@ -553,9 +536,15 @@ export class ProfileComponent implements OnDestroy {
 
   async validateSmsCode() {
     try {
+      console.log("Validating SMS code:", this.smsCode);
+      // Envia id|telefone conforme esperado pelo serviço
+      const userId = this.user().id;
+      const phoneWithId = `${userId}|${this.phone()}`;
+      console.log("Telefone (id|telefone):", phoneWithId);
       const response: any = await this.smsVerificationService
-        .validateCode(this.phone(), this.smsCode)
+        .validateCode(phoneWithId, this.smsCode)
         .toPromise();
+      console.log("SMS verification response:", response);
       this.smsValid = response.valid;
       if (response.valid && response.update) {
         this.notificationService.addNotification(
@@ -567,11 +556,13 @@ export class ProfileComponent implements OnDestroy {
           await this.authService.refreshAppUser(authId);
         }
       } else {
+        console.log("SMS code invalid");
         this.notificationService.addNotification(
           this.i18n.translate("smsCodeInvalid")
         );
       }
     } catch (err) {
+      console.error("Error validating SMS code:", err);
       this.notificationService.addNotification(
         this.i18n.translate("smsCodeInvalid")
       );
