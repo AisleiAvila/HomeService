@@ -1,0 +1,58 @@
+<div
+  class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+>
+  <div
+    class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-sm mobile-safe"
+  >
+    <h2 class="text-lg font-bold mb-2 text-center">Verificação por SMS</h2>
+    <div class="mb-4 text-center">
+      <button
+        *ngIf="
+          !!user().phone &&
+          user().phone.trim().length >= 9 &&
+          !user().phone_verified
+        "
+        class="bg-blue-600 text-white px-4 py-2 rounded"
+        (click)="sendCode()"
+        [disabled]="loading()"
+      >
+        Enviar código SMS
+      </button>
+      <div *ngIf="sentCode()" class="mt-2 text-sm text-gray-500">
+        <span class="font-mono text-lg"
+          >Código enviado: <b>{{ sentCode() }}</b></span
+        >
+        <br />
+        <span *ngIf="expiresAt(); else noExpire">
+          Expira em: {{ expiresAt() | date : "shortTime" }}
+        </span>
+        <ng-template #noExpire> Expira em: -- </ng-template>
+      </div>
+    </div>
+    <form (ngSubmit)="validate()" class="space-y-3">
+      <input
+        type="text"
+        maxlength="6"
+        class="w-full border rounded px-3 py-2 text-center font-mono"
+        placeholder="Digite o código recebido"
+        [value]="code()"
+        (input)="code.set($event.target.value)"
+        name="smsCode"
+        required
+      />
+      <button
+        type="submit"
+        class="w-full bg-green-600 text-white py-2 rounded"
+        [disabled]="loading() || !code()"
+      >
+        Validar
+      </button>
+    </form>
+    <div *ngIf="error()" class="mt-2 text-red-600 text-center">
+      {{ error() }}
+    </div>
+    <div *ngIf="success()" class="mt-2 text-green-600 text-center">
+      Telefone verificado com sucesso!
+    </div>
+  </div>
+</div>
