@@ -123,6 +123,7 @@ export interface User {
   phone_verified?: boolean; // Indica se o telefone foi validado
   sms_code?: string; // Código SMS para verificação
   sms_code_expires_at?: string; // Data/hora de expiração do código SMS (ISO)
+  receive_sms_notifications?: boolean;
 }
 
 export interface ServiceRequest {
