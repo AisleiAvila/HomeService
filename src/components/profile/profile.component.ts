@@ -33,6 +33,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 export class ProfileComponent implements OnDestroy {
   lastNotification = signal<string>("");
   user = input.required<User>();
+  receiveSmsNotifications = signal<boolean>(false);
 
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
@@ -94,6 +95,9 @@ export class ProfileComponent implements OnDestroy {
         );
         this.specialties.set(currentUser.specialties || []);
         this.email.set(currentUser.email || "");
+        this.receiveSmsNotifications.set(
+          currentUser.receive_sms_notifications ?? false
+        );
       }
     });
   }
@@ -134,6 +138,14 @@ export class ProfileComponent implements OnDestroy {
     }
     if (this.phone() !== (originalUser.phone || "")) {
       updatedUserData.phone = this.phone();
+      hasChanges = true;
+    }
+    if (
+      this.receiveSmsNotifications() !==
+      (originalUser.receive_sms_notifications ?? false)
+    ) {
+      updatedUserData.receive_sms_notifications =
+        this.receiveSmsNotifications();
       hasChanges = true;
     }
     // TODO: Address update needs to be implemented separately
