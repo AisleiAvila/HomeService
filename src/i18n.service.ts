@@ -632,6 +632,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeExpired:
       "The verification code has expired. Please request a new one.",
     receiveSmsNotifications: "Receive SMS Notifications",
+    personalData: "Personal Data",
+    contactPreferences: "Contact Preferences",
   },
   pt: {
     // General
@@ -1281,6 +1283,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeSentTo: "Código SMS enviado para",
     smsCodeExpired: "O código de verificação expirou. Solicite um novo.",
     receiveSmsNotifications: "Receber Notificações por SMS",
+    personalData: "Dados Pessoais",
+    contactPreferences: "Preferências de Contato",
   },
 };
 
