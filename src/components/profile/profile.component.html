@@ -2,10 +2,10 @@
   class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-300 mobile-safe"
 >
   <div
-    class="w-full max-w-2xl md:max-w-4xl p-0 md:p-8 space-y-8 relative transition-all duration-300 mx-auto"
+    class="w-full max-w-2xl md:max-w-4xl p-0 md:p-8 space-y-8 relative transition-all duration-300 mx-auto mobile-safe"
   >
     <div
-      class="flex flex-col items-center justify-center relative group h-24 w-24 md:h-32 md:w-32 mb-2 mx-auto"
+      class="flex flex-col items-center justify-center relative group h-24 w-24 md:h-32 md:w-32 mb-2 mx-auto mobile-safe"
     >
       <img
         class="h-24 w-24 md:h-32 md:w-32 rounded-full object-cover shadow-lg"
@@ -57,7 +57,7 @@
     >
       <!-- Card: Dados Pessoais -->
       <div
-        class="rounded-xl border border-indigo-100 bg-white/80 shadow-sm p-4 md:p-6 mb-4 flex flex-col gap-4 w-full"
+        class="rounded-xl border border-indigo-100 bg-white/80 shadow-sm p-4 md:p-6 mb-4 flex flex-col gap-4 w-full mobile-safe"
       >
         <h3 class="text-lg font-bold text-indigo-700 mb-2">
           {{ "personalData" | i18n }}
@@ -101,7 +101,7 @@
 
       <!-- Card: Contato e Preferências -->
       <div
-        class="rounded-xl border border-indigo-100 bg-white/80 shadow-sm p-4 md:p-6 mb-4 flex flex-col gap-4 w-full"
+        class="rounded-xl border border-indigo-100 bg-white/80 shadow-sm p-4 md:p-6 mb-4 flex flex-col gap-4 w-full mobile-safe"
       >
         <h3 class="text-lg font-bold text-indigo-700 mb-4">
           {{ "contactPreferences" | i18n }}
@@ -244,13 +244,13 @@
         <button
           type="button"
           (click)="resetProfile()"
-          class="w-full md:w-auto px-6 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
+          class="w-full md:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition"
         >
           {{ "cancel" | i18n }}
         </button>
         <button
           type="submit"
-          class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+          class="w-full md:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
         >
           {{ "saveChanges" | i18n }}
         </button>
