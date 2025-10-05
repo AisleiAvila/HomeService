@@ -8,6 +8,12 @@ import { AuthError, AuthResponse } from "@supabase/supabase-js";
   providedIn: "root",
 })
 export class AuthService {
+  /**
+   * Recarrega o perfil do usuário autenticado (público)
+   */
+  async refreshAppUser(authId: string): Promise<void> {
+    await this.fetchAppUser(authId, false);
+  }
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
 
