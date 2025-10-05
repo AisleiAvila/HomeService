@@ -626,6 +626,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeValid: "Verification code is valid!",
     smsCodeInvalid: "Invalid code. Please try again.",
     validateCode: "Validate Code",
+    smsVerification: "SMS Verification",
+    smsSentSimulation: "(For simulation, the code is 123456)",
+    smsCodeSentTo: "SMS code sent to",
   },
   pt: {
     // General
@@ -1270,6 +1273,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeValid: "Código válido",
     smsCodeInvalid: "Código inválido. Por favor, tente novamente.",
     validateCode: "Validar Código",
+    smsVerification: "Verificação por SMS",
+    smsSentSimulation: "(Para simulação, o código é 123456)",
+    smsCodeSentTo: "Código SMS enviado para",
   },
 };
 
