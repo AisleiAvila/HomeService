@@ -150,7 +150,7 @@ export class DashboardComponent {
 
       return [
         {
-          label: "activeJobs",
+          label: this.i18n.translate("activeJobs"),
           value: requests.filter((r) =>
             this.statusAtivos()
               .map((s) => s.value)
@@ -159,12 +159,12 @@ export class DashboardComponent {
           icon: "fas fa-briefcase text-blue-500",
         },
         {
-          label: "completedJobs",
+          label: this.i18n.translate("completedJobs"),
           value: requests.filter((r) => r.status === "Finalizado").length,
           icon: "fas fa-check-double text-green-500",
         },
         {
-          label: "totalEarnings",
+          label: this.i18n.translate("totalEarnings"),
           value: `€${earnings.toFixed(2)}`,
           icon: "fas fa-euro-sign text-emerald-500",
         },
