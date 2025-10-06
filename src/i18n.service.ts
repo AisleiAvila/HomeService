@@ -611,7 +611,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "hours ago",
     daysAgo: "days ago",
     clearFilters: "Clear Filters",
-    quickfilters: "Quick Filters",
+    quickFilters: "Quick Filters",
     statusRequested: "Requested",
     statusInAnalysis: "In Analysis",
     scheduleTitle: "Schedule",
@@ -638,6 +638,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodePlaceholder: "Enter the code",
     value: "Value",
     errorFinishingService: "Error finishing service. Please try again.",
+    searchPlaceholder: "Search by ID, title, client, professional...",
   },
   pt: {
     // General
@@ -1267,7 +1268,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "horas atrás",
     daysAgo: "dias atrás",
     clearFilters: "Limpar Filtros",
-    quickfilters: "Filtros Rápidos",
+    quickFilters: "Filtros Rápidos",
     statusRequested: "Solicitado",
     statusInAnalysis: "Em Análise",
     scheduleTitle: "Agenda",
@@ -1293,6 +1294,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodePlaceholder: "Digite o código",
     value: "Valor",
     errorFinishingService: "Erro ao finalizar serviço. Tente novamente.",
+    searchPlaceholder: "Buscar por ID, título, cliente, profissional...",
   },
 };
 
