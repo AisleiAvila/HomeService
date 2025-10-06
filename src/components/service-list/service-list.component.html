@@ -1,50 +1,36 @@
-<div class="bg-white rounded-lg shadow overflow-hidden">
+<div class="service-list-container">
   <!-- Desktop Table View -->
   <div class="hidden md:block overflow-x-auto">
     <table class="w-full min-w-full">
       <thead class="bg-gray-50">
         <tr>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "service" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "address" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "date" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "status" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "professional" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "value" | i18n }}
           </th>
-          <th
-            class="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
-          >
+          <th class="service-list-header">
             {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="service-list-table-body">
         @if (displayedRequests().length === 0) {
         <tr>
-          <td colspan="7" class="px-4 lg:px-6 py-4 text-center text-gray-500">
+          <td colspan="7" class="service-list-empty-row">
             {{ "noServiceRequestsFound" | i18n }}
           </td>
         </tr>
@@ -60,12 +46,12 @@
               </div>
             </div>
           </td>
-          <td class="px-4 lg:px-6 py-4 text-sm text-gray-500">
+          <td class="service-list-empty-row">
             <div class="max-w-xs truncate">
               {{ formatAddress(request) }}
             </div>
           </td>
-          <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          <td class="service-list-empty-row">
             @if (request.scheduled_start_datetime) {
             <span class="font-semibold text-indigo-700">
               {{ request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
@@ -105,14 +91,14 @@
               <!-- Always Available Actions -->
               <button
                 (click)="viewDetails.emit(request)"
-                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                class="service-list-action-view-details"
                 title="{{ 'viewRequestDetails' | i18n }}"
               >
                 <i class="fas fa-eye"></i>
               </button>
               <button
                 (click)="openChat.emit(request)"
-                class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors duration-200"
+                class="service-list-action-view-details"
                 title="{{ 'chat' | i18n }}"
               >
                 <i class="fas fa-comments"></i>
@@ -122,7 +108,7 @@
               'Agendado' || request.status === 'Scheduled')) {
               <button
                 (click)="startService.emit(request)"
-                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                class="service-list-action-start-service"
                 title="{{ 'startService' | i18n }}"
               >
                 <i class="fas fa-play"></i>
@@ -133,7 +119,7 @@
               'Em Progresso' || request.status === 'In Progress')) {
               <button
                 (click)="finishService.emit(request)"
-                class="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-full transition-colors duration-200"
+                class="service-list-action-finish-service"
                 title="{{ 'finishService' | i18n }}"
               >
                 <i class="fas fa-check"></i>
@@ -145,7 +131,7 @@
               'Orçamento enviado') {
               <button
                 (click)="openBudgetApprovalModal(request)"
-                class="p-2 text-cyan-600 hover:text-cyan-800 hover:bg-cyan-50 rounded-full transition-colors duration-200"
+                class="service-list-action-budget-approval"
                 [attr.title]="'validateQuote' | i18n"
                 [attr.aria-label]="'validateQuote' | i18n"
               >
@@ -155,7 +141,7 @@
               request.status === 'Aguardando aprovação da data') {
               <button
                 (click)="approveExecutionDate.emit(request)"
-                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                class="service-list-action-approve-date"
                 title="{{ 'approveExecutionDate' | i18n }}"
               >
                 <i class="fas fa-calendar-check"></i>
@@ -164,7 +150,7 @@
                 (click)="
                   rejectExecutionDate.emit({ request: request, reason: '' })
                 "
-                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                class="service-list-action-reject-date"
                 title="{{ 'rejectExecutionDate' | i18n }}"
               >
                 <i class="fas fa-calendar-times"></i>
@@ -173,7 +159,7 @@
               isActionAvailable(request, 'provide_clarification')) {
               <button
                 (click)="provideClarification.emit(request)"
-                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                class="service-list-action-clarification"
                 title="{{ 'provideClarification' | i18n }}"
               >
                 <i class="fas fa-comment-dots"></i>
@@ -181,7 +167,7 @@
               } @if(request.status === 'Approved') {
               <button
                 (click)="scheduleRequest.emit(request)"
-                class="p-2 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-full transition-colors duration-200"
+                class="service-list-action-schedule"
                 title="{{ 'schedule' | i18n }}"
               >
                 <i class="fas fa-calendar"></i>
@@ -190,7 +176,7 @@
               'Unpaid') {
               <button
                 (click)="handlePayNow(request)"
-                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                class="service-list-action-pay-now"
                 title="{{ 'payNow' | i18n }}"
               >
                 <i class="fas fa-credit-card"></i>
@@ -395,9 +381,7 @@
 
           <!-- Quote/Cost -->
           @if (request.status === 'Quoted' && request.cost) {
-          <div
-            class="service-request-info-item bg-green-50 rounded-lg p-3 border border-green-200"
-          >
+          <div class="service-request-info-item service-list-quote-info">
             <div class="flex items-center gap-2 sm:gap-3">
               <svg
                 class="w-4 h-4 text-green-600 flex-shrink-0"
@@ -435,14 +419,14 @@
           <div class="service-list-actions mb-3">
             <button
               (click)="approveQuote.emit(request)"
-              class="service-action-primary bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+              class="service-list-action-approve"
             >
               <i class="fas fa-check mr-1 sm:mr-2"></i>
               {{ "approve" | i18n }}
             </button>
             <button
               (click)="rejectQuote.emit(request)"
-              class="service-action-primary bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+              class="service-list-action-reject"
             >
               <i class="fas fa-times mr-1 sm:mr-2"></i>
               {{ "reject" | i18n }}
@@ -453,7 +437,7 @@
           <div class="service-list-actions mb-3">
             <button
               (click)="approveExecutionDate.emit(request)"
-              class="service-action-primary bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+              class="service-list-action-approve-date"
             >
               <i class="fas fa-calendar-check mr-1 sm:mr-2"></i>
               {{ "approveExecutionDate" | i18n }}
@@ -462,7 +446,7 @@
               (click)="
                 rejectExecutionDate.emit({ request: request, reason: '' })
               "
-              class="service-action-primary bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 text-sm sm:text-base"
+              class="service-list-action-reject-date"
             >
               <i class="fas fa-calendar-times mr-1 sm:mr-2"></i>
               {{ "rejectExecutionDate" | i18n }}
@@ -472,7 +456,7 @@
           isActionAvailable(request, 'provide_clarification')) {
           <button
             (click)="provideClarification.emit(request)"
-            class="service-action-primary bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 w-full mb-3 text-sm sm:text-base"
+            class="service-list-action-clarification"
           >
             <i class="fas fa-comment-dots mr-1 sm:mr-2"></i>
             {{ "provideClarification" | i18n }}
@@ -480,7 +464,7 @@
           } @if(request.status === 'Approved') {
           <button
             (click)="scheduleRequest.emit(request)"
-            class="service-action-primary bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors duration-200 w-full mb-3 text-sm sm:text-base"
+            class="service-list-action-schedule"
           >
             <i class="fas fa-calendar mr-1 sm:mr-2"></i>
             {{ "schedule" | i18n }}
@@ -489,7 +473,7 @@
           'Unpaid') {
           <button
             (click)="payNow.emit(request)"
-            class="service-action-primary bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 w-full mb-3 text-sm sm:text-base"
+            class="service-list-action-schedule"
           >
             <i class="fas fa-credit-card mr-1 sm:mr-2"></i>
             {{ "payNow" | i18n }}
@@ -500,7 +484,7 @@
           <div class="service-list-actions">
             <button
               (click)="viewDetails.emit(request)"
-              class="service-action-secondary bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors duration-200 border border-blue-200 text-sm"
+              class="service-list-action-secondary-details"
               title="{{ 'viewRequestDetails' | i18n }}"
               style="display: flex; align-items: center"
             >
@@ -509,7 +493,7 @@
             </button>
             <button
               (click)="openChat.emit(request)"
-              class="service-action-secondary bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors duration-200 border border-gray-200 text-sm"
+              class="service-list-action-secondary-chat"
               title="{{ 'chat' | i18n }}"
             >
               <i class="fas fa-comments mr-1"></i>
@@ -525,9 +509,7 @@
 
   <!-- Pagination Controls -->
   @if(enablePagination() && totalPages() > 1) {
-  <div
-    class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200"
-  >
+  <div class="service-list-pagination-bar">
     <!-- Items per page selector -->
     <div class="flex items-center space-x-2">
       <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
@@ -564,15 +546,12 @@
 
     <!-- Pagination buttons -->
     <div class="flex-1 flex justify-center sm:justify-end">
-      <nav
-        class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-        aria-label="Pagination"
-      >
+      <nav class="service-list-pagination-flex" aria-label="Pagination">
         <!-- Previous button -->
         <button
           (click)="previousPage()"
           [disabled]="currentPage() === 1"
-          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="service-list-pagination-prev"
         >
           <i class="fas fa-chevron-left"></i>
         </button>
@@ -580,11 +559,7 @@
         <!-- Page numbers -->
         @for(page of pageNumbers; track page) { @if(page === -1) {
         <!-- Ellipsis -->
-        <span
-          class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
-        >
-          ...
-        </span>
+        <span class="service-list-pagination-ellipsis"> ... </span>
         } @else {
         <button
           (click)="goToPage(page)"
@@ -602,7 +577,7 @@
         <button
           (click)="nextPage()"
           [disabled]="currentPage() === totalPages()"
-          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="service-list-pagination-next"
         >
           <i class="fas fa-chevron-right"></i>
         </button>
