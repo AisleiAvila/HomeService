@@ -637,6 +637,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeLabel: "Code described in the SMS",
     smsCodePlaceholder: "Enter the code",
     value: "Value",
+    errorFinishingService: "Error finishing service. Please try again.",
   },
   pt: {
     // General
@@ -1291,6 +1292,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeLabel: "Código descrito no SMS",
     smsCodePlaceholder: "Digite o código",
     value: "Valor",
+    errorFinishingService: "Erro ao finalizar serviço. Tente novamente.",
   },
 };
 

@@ -24,6 +24,31 @@ import { StatusService } from "../../services/status.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent {
+  // Mapeamento entre status do enum e status dos dados
+  private statusMap: Record<string, string> = {
+    Requested: "Solicitado",
+    InAnalysis: "Em análise",
+    AwaitingClarifications: "Aguardando esclarecimentos",
+    QuoteSent: "Orçamento enviado",
+    AwaitingQuoteApproval: "Aguardando aprovação do orçamento",
+    QuoteApproved: "Orçamento aprovado",
+    QuoteRejected: "Orçamento rejeitado",
+    AwaitingExecutionDate: "Aguardando data de execução",
+    DateProposedByAdmin: "Data proposta pelo administrador",
+    AwaitingDateApproval: "Aguardando aprovação da data",
+    DateApprovedByClient: "Data aprovada pelo cliente",
+    DateRejectedByClient: "Data rejeitada pelo cliente",
+    SearchingProfessional: "Buscando profissional",
+    ProfessionalSelected: "Profissional selecionado",
+    AwaitingProfessionalConfirmation: "Aguardando confirmação do profissional",
+    Assigned: "Agendado",
+    Pending: "Pendente",
+    Scheduled: "Agendado",
+    InProgress: "Em execução",
+    CompletedAwaitingApproval: "Concluído - Aguardando aprovação",
+    Completed: "Finalizado",
+    Cancelled: "Cancelado",
+  };
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
     this.viewDetails.emit(request);
@@ -33,7 +58,7 @@ export class DashboardComponent {
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
   // Método utilitário para uso no template
-  isArray(val: any): boolean {
+  isArray(val: unknown): boolean {
     return Array.isArray(val);
   }
   user = input.required<User>();
@@ -52,8 +77,10 @@ export class DashboardComponent {
       await this.dataService.finishServiceWork(request.id);
       this.selectedRequest.set(null);
     } catch (error) {
-      this.showBusinessRuleError("Erro ao finalizar serviço. Tente novamente.");
-      console.error("Erro ao finalizar serviço:", error);
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(
+        this.i18n.translate("errorFinishingService")
+      );
     }
   }
 
@@ -86,58 +113,51 @@ export class DashboardComponent {
     } else if (currentUser.role === "admin") {
       filtered = allRequests;
     }
-    console.log(
-      "[DashboardComponent] Requests após filtro:",
-      filtered.length,
-      filtered
-    );
+
     return filtered;
   });
 
-  // Considera status ativos em português
+  // Filtros consistentes usando statusAtivos
   activeRequests = computed(() => {
-    const reqs = this.userRequests().filter(
-      (r) => r.status !== "Finalizado" && r.status !== "Completed"
-    );
-    if (Array.isArray(reqs)) {
-      return reqs;
-    }
-    if (reqs === undefined || reqs === null) {
-      return [];
-    }
-    // Se for outro tipo, tenta converter para array
-    try {
-      return Array.from(reqs);
-    } catch {
-      return [];
-    }
+    // Obtém os status ativos em português
+    const ativosPt = this.statusAtivos()
+      .map((s) => this.statusMap[s.value])
+      .filter(Boolean);
+    const requests = this.userRequests();
+    console.log("[DashboardComponent] Status ativos (pt):", ativosPt);
+    console.log("[DashboardComponent] Requests:", requests);
+    const ativos = requests.filter((r) => ativosPt.includes(r.status));
+    console.log("[DashboardComponent] Requests ativos:", ativos);
+    return ativos;
   });
-  completedRequests = computed(() =>
-    this.userRequests().filter(
-      (r) => r.status === "Finalizado" || r.status === "Completed"
-    )
-  );
+  completedRequests = computed(() => {
+    // Considera como completados os que não estão nos ativos
+    const ativosPt = this.statusAtivos()
+      .map((s) => this.statusMap[s.value])
+      .filter(Boolean);
+    const requests = this.userRequests();
+    const completados = requests.filter((r) => !ativosPt.includes(r.status));
+    console.log("[DashboardComponent] Requests completados:", completados);
+    return completados;
+  });
 
   stats = computed(() => {
     const currentUser = this.user();
     const requests = this.userRequests();
 
+    const ativosPt = this.statusAtivos()
+      .map((s) => this.statusMap[s.value])
+      .filter(Boolean);
     if (currentUser.role === "client" || currentUser.role === "admin") {
       return [
         {
-          label: "activeRequests",
-          value: requests.filter((r) =>
-            this.statusAtivos()
-              .map((s) => s.value)
-              .includes(r.status)
-          ).length,
+          label: this.i18n.translate("activeRequests"),
+          value: requests.filter((r) => ativosPt.includes(r.status)).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
-          label: "completed",
-          value: requests.filter(
-            (r) => r.status === "Finalizado" || r.status === "Completed"
-          ).length,
+          label: this.i18n.translate("completedRequests"),
+          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
@@ -151,21 +171,17 @@ export class DashboardComponent {
       return [
         {
           label: this.i18n.translate("activeJobs"),
-          value: requests.filter((r) =>
-            this.statusAtivos()
-              .map((s) => s.value)
-              .includes(r.status)
-          ).length,
+          value: requests.filter((r) => ativosPt.includes(r.status)).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {
           label: this.i18n.translate("completedJobs"),
-          value: requests.filter((r) => r.status === "Finalizado").length,
+          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
           icon: "fas fa-check-double text-green-500",
         },
         {
           label: this.i18n.translate("totalEarnings"),
-          value: `€${earnings.toFixed(2)}`,
+          value: `€ ${earnings.toFixed(2)}`,
           icon: "fas fa-euro-sign text-emerald-500",
         },
       ];
