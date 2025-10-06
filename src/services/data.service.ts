@@ -173,8 +173,6 @@ export class DataService {
       );
       // Keep default categories if fetch fails
     } else if (data && data.length > 0) {
-      console.log("Loaded categories from Supabase:", data.length);
-      // Assuming the table has a 'name' column
       this.categories.set(data.map((cat: any) => cat.name));
     } else {
       console.log("No categories found in Supabase, keeping sample data");
