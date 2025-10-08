@@ -1,1 +1,224 @@
-full contents of src/components/service-request-form/service-request-form.component.html
+<form class="space-y-6 p-4" autocomplete="off">
+  <h2 class="text-xl font-bold mb-2">Nova Solicitação de Serviço</h2>
+
+  <!-- Título -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="title">Título</label>
+    <input
+      id="title"
+      type="text"
+      class="w-full border rounded px-3 py-2"
+      [value]="title()"
+      (input)="updateField('title', $event.target.value)"
+      required
+      minlength="3"
+    />
+    @if (!validFields().title && title()) {
+    <span class="text-xs text-red-500"
+      >Título deve ter pelo menos 3 caracteres.</span
+    >
+    }
+  </div>
+
+  <!-- Descrição -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="description"
+      >Descrição</label
+    >
+    <textarea
+      id="description"
+      class="w-full border rounded px-3 py-2"
+      [value]="description()"
+      (input)="updateField('description', $event.target.value)"
+      required
+      minlength="10"
+    ></textarea>
+    @if (!validFields().description && description()) {
+    <span class="text-xs text-red-500"
+      >Descrição deve ter pelo menos 10 caracteres.</span
+    >
+    }
+  </div>
+
+  <!-- Categoria -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="category"
+      >Categoria</label
+    >
+    <select
+      id="category"
+      class="w-full border rounded px-3 py-2"
+      [value]="category()"
+      (change)="updateField('category', $event.target.value)"
+      required
+    >
+      <option value="" disabled selected>Selecione...</option>
+      @for (cat of categories(); track cat) {
+      <option [value]="cat">{{ cat }}</option>
+      }
+    </select>
+    @if (!validFields().category && category()) {
+    <span class="text-xs text-red-500">Selecione uma categoria.</span>
+    }
+  </div>
+
+  <!-- Data/Hora solicitada -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="requestedDateTime"
+      >Data/Hora</label
+    >
+    <input
+      id="requestedDateTime"
+      type="datetime-local"
+      class="w-full border rounded px-3 py-2"
+      [value]="requestedDateTime()"
+      (input)="updateField('requestedDateTime', $event.target.value)"
+      required
+    />
+    @if (!validFields().requestedDateTime && requestedDateTime()) {
+    <span class="text-xs text-red-500"
+      >Informe uma data/hora futura válida.</span
+    >
+    }
+  </div>
+
+  <!-- Endereço -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1" for="street">Rua</label>
+      <input
+        id="street"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [value]="street()"
+        (input)="updateField('street', $event.target.value)"
+        required
+        minlength="5"
+      />
+      @if (!validFields().street && street()) {
+      <span class="text-xs text-red-500"
+        >Rua deve ter pelo menos 5 caracteres.</span
+      >
+      }
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="city">Cidade</label>
+      <input
+        id="city"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [value]="city()"
+        (input)="updateField('city', $event.target.value)"
+        required
+        minlength="3"
+      />
+      @if (!validFields().city && city()) {
+      <span class="text-xs text-red-500"
+        >Cidade deve ter pelo menos 3 caracteres.</span
+      >
+      }
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="zip_code"
+        >Código Postal</label
+      >
+      <input
+        id="zip_code"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [value]="zip_code()"
+        (input)="updateField('zip_code', $event.target.value)"
+        required
+      />
+      @if (!validFields().zip_code && zip_code()) {
+      <span class="text-xs text-red-500">
+        {{ formError() ? formError() : "Código postal inválido." }}
+      </span>
+      }
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="number">Número</label>
+      <input
+        id="number"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [value]="number()"
+        (input)="updateField('number', $event.target.value)"
+        required
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="complement"
+        >Complemento</label
+      >
+      <input
+        id="complement"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [value]="complement()"
+        (input)="updateField('complement', $event.target.value)"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="locality"
+        >Localidade</label
+      >
+      <input
+        id="locality"
+        type="text"
+        class="w-full border rounded px-3 py-2 bg-gray-100"
+        [value]="locality()"
+        readonly
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="district"
+        >Distrito</label
+      >
+      <input
+        id="district"
+        type="text"
+        class="w-full border rounded px-3 py-2 bg-gray-100"
+        [value]="district()"
+        readonly
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="county"
+        >Concelho</label
+      >
+      <input
+        id="county"
+        type="text"
+        class="w-full border rounded px-3 py-2 bg-gray-100"
+        [value]="county()"
+        readonly
+      />
+    </div>
+  </div>
+
+  <!-- Mensagens de erro/sucesso -->
+  @if (formError()) {
+  <div class="text-red-600 text-sm mt-2">{{ formError() }}</div>
+  } @if (formSuccess()) {
+  <div class="text-green-600 text-sm mt-2">{{ formSuccess() }}</div>
+  }
+
+  <!-- Botões -->
+  <div class="flex justify-end gap-2 mt-6">
+    <button
+      type="button"
+      class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+      (click)="close.emit()"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+      [disabled]="!isFormValid()"
+    >
+      Enviar
+    </button>
+  </div>
+</form>

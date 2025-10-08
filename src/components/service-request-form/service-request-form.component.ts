@@ -1,24 +1,53 @@
-import { Component, signal } from '@angular/core';
+import {
+  Component,
+  signal,
+  Output,
+  EventEmitter,
+  inject,
+  OnInit,
+} from "@angular/core";
 
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { DataService } from "../../services/data.service";
 @Component({
-  selector: 'app-service-request-form',
-  templateUrl: './service-request-form.component.html'
+  selector: "app-service-request-form",
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: "./service-request-form.component.html",
 })
-export class ServiceRequestFormComponent {
+export class ServiceRequestFormComponent implements OnInit {
+  @Output() close = new EventEmitter<void>();
+  private dataService = inject(DataService);
+
+  categories = signal<string[]>([]);
   // Sinais para os campos do formulário
-  title = signal<string>('');
-  description = signal<string>('');
-  category = signal<string>('');
-  requestedDateTime = signal<string>('');
-  street = signal<string>('');
-  city = signal<string>('');
-  state = signal<string>('');
-  zip_code = signal<string>('');
-  
+  title = signal<string>("");
+  description = signal<string>("");
+  category = signal<string>("");
+  ngOnInit() {
+    // Busca categorias do DataService (signal)
+    const cats = this.dataService.categories();
+    // Se ServiceCategory for objeto, mapeie para string
+    this.categories.set(
+      cats.map((c: any) => (typeof c === "string" ? c : c.name || String(c)))
+    );
+  }
+  requestedDateTime = signal<string>("");
+  street = signal<string>("");
+  city = signal<string>("");
+  state = signal<string>("");
+  zip_code = signal<string>("");
+  number = signal<string>("");
+  complement = signal<string>("");
+  locality = signal<string>("");
+  district = signal<string>("");
+  county = signal<string>("");
+
   // Sinais para feedback visual
   formError = signal<string | null>(null);
   formSuccess = signal<string | null>(null);
-  
+
   // Sinal para controlar a validade dos campos
   validFields = signal<{
     title: boolean;
@@ -37,80 +66,111 @@ export class ServiceRequestFormComponent {
     street: false,
     city: false,
     state: false,
-    zip_code: false
+    zip_code: false,
   });
 
+  // Método para verificar se o formulário está válido
+  isFormValid(): boolean {
+    const fields = this.validFields();
+    return (
+      fields.title &&
+      fields.description &&
+      fields.category &&
+      fields.requestedDateTime &&
+      fields.street &&
+      fields.city &&
+      fields.state &&
+      fields.zip_code
+    );
+  }
+
   // Validar e atualizar campos simples
-  updateField(field: string, value: string | null | undefined) {
+  async updateField(field: string, value: string | null | undefined) {
     if (value === null || value === undefined) {
-      // Tratamento para valores nulos ou indefinidos
       return;
     }
-    
-    // Limpar mensagens de erro quando o usuário começa a corrigir o formulário
     this.formError.set(null);
-    
     switch (field) {
-      case 'title':
+      case "title":
         this.title.set(value);
-        this.validFields.update(fields => ({ ...fields, title: value.length >= 3 }));
+        this.validFields.update((fields) => ({
+          ...fields,
+          title: value.length >= 3,
+        }));
         break;
-      case 'description':
+      case "description":
         this.description.set(value);
-        this.validFields.update(fields => ({ ...fields, description: value.length >= 10 }));
+        this.validFields.update((fields) => ({
+          ...fields,
+          description: value.length >= 10,
+        }));
         break;
-      case 'category':
+      case "category":
         this.category.set(value);
-        this.validFields.update(fields => ({ ...fields, category: !!value }));
+        this.validFields.update((fields) => ({ ...fields, category: !!value }));
         break;
-      case 'requestedDateTime':
+      case "requestedDateTime":
         this.requestedDateTime.set(value);
         const isValid = !!value && new Date(value) > new Date();
-        this.validFields.update(fields => ({ ...fields, requestedDateTime: isValid }));
+        this.validFields.update((fields) => ({
+          ...fields,
+          requestedDateTime: isValid,
+        }));
         break;
-      // Campos de endereço
-      case 'street':
-        this.street.set(value);
-        this.validFields.update(fields => ({ ...fields, street: value.length >= 5 }));
-        break;
-      case 'city':
-        this.city.set(value);
-        this.validFields.update(fields => ({ ...fields, city: value.length >= 3 }));
-        break;
-      case 'state':
-        this.state.set(value);
-        this.validFields.update(fields => ({ ...fields, state: value.length === 2 }));
-        break;
-      case 'zip_code':
+      case "zip_code":
         this.zip_code.set(value);
         const isValidZip = this.isValidPostalCode(value);
-        this.validFields.update(fields => ({ ...fields, zip_code: isValidZip }));
+        this.validFields.update((fields) => ({
+          ...fields,
+          zip_code: isValidZip,
+        }));
+        if (isValidZip) {
+          // Consultar tabela codigos_postais
+          const result = await this.dataService.getPostalCodeInfo(value);
+          if (result) {
+            this.locality.set(result.localidade || "");
+            this.district.set(result.distrito || "");
+            this.county.set(result.concelho || "");
+          } else {
+            this.locality.set("");
+            this.district.set("");
+            this.county.set("");
+            this.formError.set("Código postal não encontrado.");
+          }
+        } else {
+          this.locality.set("");
+          this.district.set("");
+          this.county.set("");
+        }
+        break;
+      case "number":
+        this.number.set(value);
+        break;
+      case "complement":
+        this.complement.set(value);
         break;
     }
   }
-  
-  // Método para validação específica de CEP brasileiro
+
+  // Método para validação de código postal português
   isValidPostalCode(postalCode: string): boolean {
-    // Remove caracteres não numéricos
-    const cleanedPostalCode = postalCode.replace(/\D/g, '');
-    
-    // Verifica se tem 8 dígitos (formato padrão do CEP brasileiro)
-    if (cleanedPostalCode.length !== 8) {
-      return false;
+    // Aceita formato 'XXXX-XXX' ou apenas dígitos (7 caracteres)
+    const regex = /^\d{4}-\d{3}$/;
+    const digitsOnly = postalCode.replace(/\D/g, "");
+    // Aceita 'XXXX-XXX' ou 'XXXXXXX'
+    if (regex.test(postalCode)) {
+      return true;
     }
-    
-    // Verifica se não é uma sequência de números iguais (ex: 00000000)
-    if (/^(\d)\1+$/.test(cleanedPostalCode)) {
-      return false;
+    if (digitsOnly.length === 7) {
+      return true;
     }
-    
-    return true;
+    return false;
   }
-  
+
   // Método para exibir mensagem de sucesso com temporizador para remoção
   showSuccessMessage(message: string, duration: number = 5000): void {
     this.formSuccess.set(message);
-    
+
     // Remover a mensagem de sucesso após o período especificado
     setTimeout(() => {
       this.formSuccess.set(null);
