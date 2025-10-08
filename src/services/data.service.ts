@@ -14,7 +14,6 @@ import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
-
 import { StatusService } from "../services/status.service";
 import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 
@@ -22,35 +21,56 @@ import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
   providedIn: "root",
 })
 export class DataService {
+  /** Consulta tabela codigos_postais e retorna dados do endereço */
+  async getPostalCodeInfo(postalCode: string): Promise<{
+    localidade: string;
+    distrito: string;
+    concelho: string;
+  } | null> {
+    // Normaliza para formato 'XXXX-XXX'
+    let normalized = postalCode.replace(/\D/g, "");
+    if (normalized.length === 7) {
+      normalized = normalized.slice(0, 4) + "-" + normalized.slice(4);
+    } else if (normalized.length === 8) {
+      normalized = normalized.slice(0, 4) + "-" + normalized.slice(4, 7);
+    }
+    console.log("[getPostalCodeInfo] Valor recebido:", postalCode);
+    console.log("[getPostalCodeInfo] Valor normalizado:", normalized);
+    console.log("[getPostalCodeInfo] Query:", {
+      table: "vw_enderecos_completos",
+      select:
+        "id, codigo_postal, distrito, concelho, localidade, designacao_postal, tipo_arteria, arteria_completa, local_arteria, porta, cliente",
+      where: { codigo_postal: normalized },
+    });
+    const { data, error } = await this.supabase.client
+      .from("vw_enderecos_completos")
+      .select(
+        "id, codigo_postal, distrito, concelho, localidade, designacao_postal, tipo_arteria, arteria_completa, local_arteria, porta, cliente"
+      )
+      .eq("codigo_postal", normalized)
+      .limit(1)
+      .single();
+    console.log("[getPostalCodeInfo] Resultado Supabase:", { data, error });
+    if (error || !data) {
+      return null;
+    }
+    return {
+      localidade: data.localidade || "",
+      distrito: data.distrito || "",
+      concelho: data.concelho || "",
+    };
+  }
+  // Serviços injetados
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
   public readonly authService = inject(AuthService);
   private i18n = inject(I18nService);
 
-  // Signals for storing application data
+  // Signals para dados principais
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly categories = signal<ServiceCategory[]>([]);
-
-  /** Busca um ServiceRequest atualizado do Supabase pelo id */
-  async fetchServiceRequestById(id: number): Promise<ServiceRequest | null> {
-    const { data, error } = await this.supabase.client
-      .from("service_requests")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (error) {
-      console.error("Erro ao buscar ServiceRequest por id:", error);
-      return null;
-    }
-    console.log(
-      "[DataService] fetchServiceRequestById status:",
-      data?.status,
-      data
-    );
-    return data as ServiceRequest;
-  }
 
   /** Auxiliar para atualizar status usando StatusService enum */
   private setServiceStatus(requestId: number, status: StatusService) {
