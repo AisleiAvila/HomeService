@@ -549,7 +549,7 @@ export class AppComponent implements OnInit {
     // Recarrega o ServiceRequest selecionado do backend após iniciar serviço
     const req = this.selectedRequest();
     if (req) {
-      const updated = await this.dataService.fetchServiceRequestById(req.id);
+      const updated = await this.dataService.getServiceRequestById(req.id);
       if (updated) this.selectedRequest.set(updated);
     }
   }
