@@ -10,15 +10,18 @@ import {
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
+import { I18nService } from "@/src/i18n.service";
+import { I18nPipe } from "@/src/pipes/i18n.pipe";
 @Component({
   selector: "app-service-request-form",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
   private dataService = inject(DataService);
+  private i18n = inject(I18nService);
 
   categories = signal<string[]>([]);
   // Sinais para os campos do formulário
@@ -131,16 +134,19 @@ export class ServiceRequestFormComponent implements OnInit {
             this.locality.set(result.localidade || "");
             this.district.set(result.distrito || "");
             this.county.set(result.concelho || "");
+            this.street.set(result.arteria_completa || "");
           } else {
             this.locality.set("");
             this.district.set("");
             this.county.set("");
+            this.street.set("");
             this.formError.set("Código postal não encontrado.");
           }
         } else {
           this.locality.set("");
           this.district.set("");
           this.county.set("");
+          this.street.set("");
         }
         break;
       case "number":
