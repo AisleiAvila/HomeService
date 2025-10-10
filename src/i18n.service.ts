@@ -49,6 +49,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Address fields (Portugal context)
     streetAddress: "Complete Address",
+    logradouro: "Street",
+    dateTime: "Date/Time",
+    number: "Number",
+    complement: "Complement",
     streetAddressPlaceholder:
       "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
     postalCode: "Postal Code",
@@ -57,7 +61,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     localityPlaceholder: "Lisbon, Porto, Coimbra...",
     district: "District",
     selectDistrict: "Select district",
-    concelho: "Municipality (Optional)",
+    concelho: "Municipality",
     concelhoPlaceholder: "Lisbon, Porto, Sintra...",
     freguesia: "Parish (Optional)",
     postalCodeInvalidFormat: "Format: 0000-000",
@@ -693,7 +697,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     localityPlaceholder: "Lisboa, Porto, Coimbra...",
     district: "Distrito",
     selectDistrict: "Selecione o distrito",
-    concelho: "Concelho (Opcional)",
+    concelho: "Concelho",
     concelhoPlaceholder: "Lisboa, Porto, Sintra...",
     freguesia: "Freguesia (Opcional)",
     postalCodeInvalidFormat: "Formato: 0000-000",
@@ -860,6 +864,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Time Control and Scheduling
     timeControl: "Controle de Tempo",
     requestedDateTime: "Data e Hora Solicitada",
+    dateTime: "Data/Hora",
+    number: "Número",
+    complement: "Complemento",
     scheduledStartDateTime: "Data e Hora Agendada para Início",
     estimatedDuration: "Duração Estimada",
     actualDuration: "Duração Real",

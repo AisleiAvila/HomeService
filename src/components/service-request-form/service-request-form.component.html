@@ -1,9 +1,11 @@
 <form class="space-y-6 p-4" autocomplete="off">
-  <h2 class="text-xl font-bold mb-2">Nova Solicitação de Serviço</h2>
+  <h2 class="text-xl font-bold mb-2">{{ "newServiceRequest" | i18n }}</h2>
 
   <!-- Título -->
   <div>
-    <label class="block text-sm font-medium mb-1" for="title">Título</label>
+    <label class="block text-sm font-medium mb-1" for="title">{{
+      "title" | i18n
+    }}</label>
     <input
       id="title"
       type="text"
@@ -14,17 +16,17 @@
       minlength="3"
     />
     @if (!validFields().title && title()) {
-    <span class="text-xs text-red-500"
-      >Título deve ter pelo menos 3 caracteres.</span
-    >
+    <span class="text-xs text-red-500">
+      {{ "titleMinLength" | i18n }}
+    </span>
     }
   </div>
 
   <!-- Descrição -->
   <div>
-    <label class="block text-sm font-medium mb-1" for="description"
-      >Descrição</label
-    >
+    <label class="block text-sm font-medium mb-1" for="description">
+      {{ "description" | i18n }}
+    </label>
     <textarea
       id="description"
       class="w-full border rounded px-3 py-2"
@@ -34,17 +36,17 @@
       minlength="10"
     ></textarea>
     @if (!validFields().description && description()) {
-    <span class="text-xs text-red-500"
-      >Descrição deve ter pelo menos 10 caracteres.</span
-    >
+    <span class="text-xs text-red-500">
+      {{ "descriptionMinLength" | i18n }}
+    </span>
     }
   </div>
 
   <!-- Categoria -->
   <div>
-    <label class="block text-sm font-medium mb-1" for="category"
-      >Categoria</label
-    >
+    <label class="block text-sm font-medium mb-1" for="category">
+      {{ "category" | i18n }}
+    </label>
     <select
       id="category"
       class="w-full border rounded px-3 py-2"
@@ -52,21 +54,21 @@
       (change)="updateField('category', $event.target.value)"
       required
     >
-      <option value="" disabled selected>Selecione...</option>
+      <option value="" disabled selected>{{ "select" | i18n }}</option>
       @for (cat of categories(); track cat) {
       <option [value]="cat">{{ cat }}</option>
       }
     </select>
     @if (!validFields().category && category()) {
-    <span class="text-xs text-red-500">Selecione uma categoria.</span>
+    <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
     }
   </div>
 
   <!-- Data/Hora solicitada -->
   <div>
-    <label class="block text-sm font-medium mb-1" for="requestedDateTime"
-      >Data/Hora</label
-    >
+    <label class="block text-sm font-medium mb-1" for="requestedDateTime">
+      {{ "dateTime" | i18n }}
+    </label>
     <input
       id="requestedDateTime"
       type="datetime-local"
@@ -76,52 +78,18 @@
       required
     />
     @if (!validFields().requestedDateTime && requestedDateTime()) {
-    <span class="text-xs text-red-500"
-      >Informe uma data/hora futura válida.</span
-    >
+    <span class="text-xs text-red-500">
+      {{ "validFutureDateTime" | i18n }}
+    </span>
     }
   </div>
 
   <!-- Endereço -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm font-medium mb-1" for="street">Rua</label>
-      <input
-        id="street"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="street()"
-        (input)="updateField('street', $event.target.value)"
-        required
-        minlength="5"
-      />
-      @if (!validFields().street && street()) {
-      <span class="text-xs text-red-500"
-        >Rua deve ter pelo menos 5 caracteres.</span
-      >
-      }
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="city">Cidade</label>
-      <input
-        id="city"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="city()"
-        (input)="updateField('city', $event.target.value)"
-        required
-        minlength="3"
-      />
-      @if (!validFields().city && city()) {
-      <span class="text-xs text-red-500"
-        >Cidade deve ter pelo menos 3 caracteres.</span
-      >
-      }
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="zip_code"
-        >Código Postal</label
-      >
+      <label class="block text-sm font-medium mb-1" for="zip_code">
+        {{ "postalCode" | i18n }}
+      </label>
       <input
         id="zip_code"
         type="text"
@@ -132,12 +100,28 @@
       />
       @if (!validFields().zip_code && zip_code()) {
       <span class="text-xs text-red-500">
-        {{ formError() ? formError() : "Código postal inválido." }}
+        {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
       </span>
       }
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="number">Número</label>
+      <label class="block text-sm font-medium mb-1" for="street">
+        {{ "logradouro" | i18n }}
+      </label>
+      <input
+        id="street"
+        type="text"
+        class="w-full border rounded px-3 py-2 bg-gray-100"
+        [value]="street()"
+        readonly
+        required
+        minlength="5"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="number">
+        {{ "number" | i18n }}
+      </label>
       <input
         id="number"
         type="text"
@@ -148,9 +132,9 @@
       />
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="complement"
-        >Complemento</label
-      >
+      <label class="block text-sm font-medium mb-1" for="complement">
+        {{ "complement" | i18n }}
+      </label>
       <input
         id="complement"
         type="text"
@@ -160,9 +144,9 @@
       />
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="locality"
-        >Localidade</label
-      >
+      <label class="block text-sm font-medium mb-1" for="locality">
+        {{ "locality" | i18n }}
+      </label>
       <input
         id="locality"
         type="text"
@@ -172,26 +156,31 @@
       />
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1" for="district"
-        >Distrito</label
-      >
+      <label class="block text-sm font-medium mb-1" for="city">
+        {{ "concelho" | i18n }}
+      </label>
+      <input
+        id="city"
+        type="text"
+        class="ww-full border rounded px-3 py-2 bg-gray-100"
+        [value]="county()"
+        readonly
+      />
+      @if (!validFields().city && city()) {
+      <span class="text-xs text-red-500">
+        {{ "cityMinLength" | i18n }}
+      </span>
+      }
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1" for="district">
+        {{ "district" | i18n }}
+      </label>
       <input
         id="district"
         type="text"
         class="w-full border rounded px-3 py-2 bg-gray-100"
         [value]="district()"
-        readonly
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="county"
-        >Concelho</label
-      >
-      <input
-        id="county"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="county()"
         readonly
       />
     </div>
@@ -211,14 +200,14 @@
       class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
       (click)="close.emit()"
     >
-      Cancelar
+      {{ "cancel" | i18n }}
     </button>
     <button
       type="submit"
       class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
       [disabled]="!isFormValid()"
     >
-      Enviar
+      {{ "submit" | i18n }}
     </button>
   </div>
 </form>
