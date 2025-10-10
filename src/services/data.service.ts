@@ -26,6 +26,7 @@ export class DataService {
     localidade: string;
     distrito: string;
     concelho: string;
+    arteria_completa?: string;
   } | null> {
     // Normaliza para formato 'XXXX-XXX'
     let normalized = postalCode.replace(/\D/g, "");
@@ -58,6 +59,7 @@ export class DataService {
       localidade: data.localidade || "",
       distrito: data.distrito || "",
       concelho: data.concelho || "",
+      arteria_completa: data.arteria_completa || "",
     };
   }
   // Serviços injetados
