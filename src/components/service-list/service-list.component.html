@@ -4,25 +4,25 @@
     <table class="w-full min-w-full">
       <thead class="bg-gray-50">
         <tr>
-          <th class="service-list-header">
+          <th class="service-list-header text-left">
             {{ "service" | i18n }}
           </th>
-          <th class="service-list-header">
+          <th class="service-list-header text-left">
             {{ "address" | i18n }}
           </th>
-          <th class="service-list-header">
+          <th class="service-list-header text-center">
             {{ "date" | i18n }}
           </th>
-          <th class="service-list-header">
+          <th class="service-list-header text-left">
             {{ "status" | i18n }}
           </th>
-          <th class="service-list-header">
+          <th class="service-list-header text-left">
             {{ "professional" | i18n }}
           </th>
           <th class="service-list-header">
             {{ "value" | i18n }}
           </th>
-          <th class="service-list-header">
+          <th class="service-list-header text-center">
             {{ "actions" | i18n }}
           </th>
         </tr>
@@ -51,7 +51,7 @@
               {{ formatAddress(request) }}
             </div>
           </td>
-          <td class="service-list-empty-row">
+          <td class="service-list-empty-row text-center">
             @if (request.scheduled_start_datetime) {
             <span class="font-semibold text-indigo-700">
               {{ request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
@@ -60,15 +60,20 @@
             <span class="text-gray-400">{{ "noScheduledDate" | i18n }}</span>
             }
           </td>
-          <td class="px-4 lg:px-6 py-4 whitespace-nowrap">
+          <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-left">
             <span
               [class]="statusClass(request.status)"
               class="px-2 py-1 text-xs font-medium rounded-full"
+              style="border: 2px solid red; background: #ffeaea; color: #222"
+              [attr.aria-label]="
+                getStatusLabel(request.status) || request.status
+              "
             >
-              {{ request.status }}
+              {{ getStatusLabel(request.status) || request.status || "—" }}
             </span>
           </td>
-          <td class="px-4 lg:px-6 py-4 text-sm text-gray-500">
+
+          <td class="service-list-empty-row">
             <div class="max-w-xs truncate">
               {{
                 request.professional_id
@@ -217,7 +222,7 @@
               [class]="statusClass(request.status)"
               class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap"
             >
-              {{ request.status }}
+              {{ getStatusLabel(request.status) }}
               @if(request.payment_status === 'Paid') {
               <span class="ml-1 font-bold text-green-700"
                 >({{ "paid" | i18n }})</span

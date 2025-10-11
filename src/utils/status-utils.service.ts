@@ -3,6 +3,7 @@ import { I18nService } from "@/src/i18n.service";
 
 export class StatusUtilsService {
   static colorMap: Record<ServiceStatus, string> = {
+    // Português
     Solicitado: "#eab308",
     "Em análise": "#06b6d4",
     "Aguardando esclarecimentos": "#f59e0b",
@@ -26,9 +27,34 @@ export class StatusUtilsService {
     Pago: "#10b981",
     Finalizado: "#059669",
     Cancelado: "#6b7280",
+    // Inglês
+    Requested: "#eab308",
+    InAnalysis: "#06b6d4",
+    AwaitingClarifications: "#f59e0b",
+    QuoteSent: "#0ea5e9",
+    AwaitingQuoteApproval: "#6366f1",
+    QuoteApproved: "#22c55e",
+    QuoteRejected: "#ef4444",
+    AwaitingExecutionDate: "#fbbf24",
+    DateProposedByAdmin: "#3b82f6",
+    AwaitingDateApproval: "#6366f1",
+    DateApprovedByClient: "#22c55e",
+    DateRejectedByClient: "#ef4444",
+    SearchingProfessional: "#a855f7",
+    ProfessionalSelected: "#14b8a6",
+    AwaitingProfessionalConfirmation: "#f97316",
+    Assigned: "#3b82f6",
+    Pending: "#eab308",
+    Scheduled: "#3b82f6",
+    InProgress: "#8b5cf6",
+    CompletedAwaitingApproval: "#84cc16",
+    Completed: "#059669",
+    Cancelled: "#6b7280",
+    Paid: "#10b981",
   };
 
   static statusMap: Record<ServiceStatus, string> = {
+    // Português
     Solicitado: "statusPending",
     "Em análise": "statusAnalyzing",
     "Aguardando esclarecimentos": "statusAwaitingClarification",
@@ -53,6 +79,30 @@ export class StatusUtilsService {
     Pago: "statusPaid",
     Finalizado: "statusCompleted",
     Cancelado: "statusCancelled",
+    // Inglês
+    Requested: "statusPending",
+    InAnalysis: "statusAnalyzing",
+    AwaitingClarifications: "statusAwaitingClarification",
+    QuoteSent: "statusQuoted",
+    AwaitingQuoteApproval: "statusAwaitingQuoteApproval",
+    QuoteApproved: "statusApproved",
+    QuoteRejected: "statusQuoteRejected",
+    AwaitingExecutionDate: "statusAwaitingExecutionDate",
+    DateProposedByAdmin: "statusDateProposedByAdmin",
+    AwaitingDateApproval: "statusAwaitingDateApproval",
+    DateApprovedByClient: "statusDateApprovedByClient",
+    DateRejectedByClient: "statusDateRejectedByClient",
+    SearchingProfessional: "statusSearchingProfessional",
+    ProfessionalSelected: "statusProfessionalSelected",
+    AwaitingProfessionalConfirmation: "statusAwaitingProfessionalConfirmation",
+    Assigned: "statusScheduled",
+    Pending: "statusPending",
+    Scheduled: "statusScheduled",
+    InProgress: "statusInProgress",
+    CompletedAwaitingApproval: "statusCompletedAwaitingApproval",
+    Completed: "statusCompleted",
+    Cancelled: "statusCancelled",
+    Paid: "statusPaid",
   };
 
   static getColor(status: ServiceStatus): string {
