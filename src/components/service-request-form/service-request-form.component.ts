@@ -222,11 +222,17 @@ export class ServiceRequestFormComponent implements OnInit {
       return;
     }
     try {
+      // Normaliza zip_code para formato XXXX-XXX
+      let zip = this.zip_code();
+      const digitsOnly = zip.replace(/\D/g, "");
+      if (digitsOnly.length === 7) {
+        zip = digitsOnly.slice(0, 4) + "-" + digitsOnly.slice(4);
+      }
       const address = {
         street: this.street(),
         city: this.locality(),
         state: this.district(),
-        zip_code: this.zip_code(),
+        zip_code: zip,
         concelho: this.county(),
         freguesia: undefined,
       };
@@ -242,7 +248,11 @@ export class ServiceRequestFormComponent implements OnInit {
       // Opcional: resetar campos ou fechar modal
       this.close.emit();
     } catch (error) {
-      this.formError.set(this.i18n.translate("formErrorGeneric"));
+      console.error("Erro ao enviar solicitação de serviço:", error);
+      this.formError.set(
+        this.i18n.translate("formErrorGeneric") +
+          (error?.message ? ` (${error.message})` : "")
+      );
     }
   }
 }
