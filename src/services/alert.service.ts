@@ -218,13 +218,13 @@ export class AlertService {
     // Determinar status mais crítico
     let mostCriticalStatus: ServiceStatus | null = null;
     const statusPriority: Record<ServiceStatus, number> = {
+      // Status em português
       "Aguardando aprovação do orçamento": 3,
       "Profissional selecionado": 2,
       Agendado: 4,
       "Aprovado pelo cliente": 5,
       "Em execução": 1,
       Pago: 1,
-      // Outros status com prioridade baixa
       Solicitado: 1,
       "Em análise": 1,
       "Aguardando esclarecimentos": 1,
@@ -242,6 +242,30 @@ export class AlertService {
       "Rejeitado pelo cliente": 1,
       Finalizado: 0,
       Cancelado: 0,
+      // Status em inglês (prioridade 0)
+      Requested: 0,
+      InAnalysis: 0,
+      AwaitingClarifications: 0,
+      QuoteSent: 0,
+      AwaitingQuoteApproval: 0,
+      QuoteApproved: 0,
+      QuoteRejected: 0,
+      AwaitingExecutionDate: 0,
+      DateProposedByAdmin: 0,
+      AwaitingDateApproval: 0,
+      DateApprovedByClient: 0,
+      DateRejectedByClient: 0,
+      SearchingProfessional: 0,
+      ProfessionalSelected: 0,
+      AwaitingProfessionalConfirmation: 0,
+      Assigned: 0,
+      Pending: 0,
+      Scheduled: 0,
+      InProgress: 0,
+      CompletedAwaitingApproval: 0,
+      Completed: 0,
+      Cancelled: 0,
+      Paid: 0,
     };
 
     let highestPriority = 0;
