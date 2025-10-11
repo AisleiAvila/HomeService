@@ -1,7 +1,7 @@
 <form
   autocomplete="off"
   (ngSubmit)="onSubmit()"
-  class="w-full px-0 mobile-safe space-y-7 relative"
+  class="w-full px-0 mobile-safe space-y-4 md:space-y-7 relative"
 >
   <!-- Overlay spinner central -->
   <div
@@ -71,6 +71,7 @@
       (input)="updateField('title', $event.target.value)"
       required
       minlength="3"
+      [placeholder]="'titlePlaceholder' | i18n"
     />
     <span *ngIf="!validFields().title && title()" class="text-xs text-red-500">
       {{ "titleMinLength" | i18n }}
@@ -89,6 +90,7 @@
       (input)="updateField('description', $event.target.value)"
       required
       minlength="10"
+      [placeholder]="'descriptionPlaceholder' | i18n"
     ></textarea>
     <span
       *ngIf="!validFields().description && description()"
@@ -110,6 +112,7 @@
       [value]="requestedDateTime()"
       (input)="updateField('requestedDateTime', $event.target.value)"
       required
+      [placeholder]="'dateTimePlaceholder' | i18n"
     />
     <span
       *ngIf="!validFields().requestedDateTime && requestedDateTime()"
@@ -141,7 +144,7 @@
         pattern="\d{4}-\d{3}"
         maxlength="8"
         inputmode="numeric"
-        placeholder="9999-999"
+        [placeholder]="'postalCodePlaceholder' | i18n"
         autocomplete="postal-code"
       />
       <span
@@ -163,6 +166,7 @@
         readonly
         required
         minlength="5"
+        [placeholder]="'streetPlaceholder' | i18n"
       />
     </div>
     <div>
@@ -176,6 +180,7 @@
         [value]="number()"
         (input)="updateField('number', $event.target.value)"
         required
+        [placeholder]="'numberPlaceholder' | i18n"
       />
     </div>
     <div>
@@ -188,6 +193,7 @@
         class="w-full border rounded px-3 py-2"
         [value]="complement()"
         (input)="updateField('complement', $event.target.value)"
+        [placeholder]="'complementPlaceholder' | i18n"
       />
     </div>
     <div>
@@ -200,6 +206,7 @@
         class="w-full border rounded px-3 py-2 bg-gray-100"
         [value]="locality()"
         readonly
+        [placeholder]="'localityPlaceholder' | i18n"
       />
     </div>
     <div>
@@ -212,6 +219,7 @@
         class="w-full border rounded px-3 py-2 bg-gray-100"
         [value]="county()"
         readonly
+        [placeholder]="'cityPlaceholder' | i18n"
       />
       <span *ngIf="!validFields().city && city()" class="text-xs text-red-500">
         {{ "cityMinLength" | i18n }}
@@ -227,6 +235,7 @@
         class="w-full border rounded px-3 py-2 bg-gray-100"
         [value]="district()"
         readonly
+        [placeholder]="'districtPlaceholder' | i18n"
       />
     </div>
   </fieldset>
