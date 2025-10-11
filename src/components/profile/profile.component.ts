@@ -9,6 +9,8 @@ import {
   ElementRef,
   OnDestroy,
 } from "@angular/core";
+// import { Router, RouterModule } from "@angular/router";
+import { AppComponent } from "../../app.component";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
@@ -40,8 +42,9 @@ export class ProfileComponent implements OnDestroy {
   private dataService = inject(DataService);
   private smsVerificationService = inject(SmsVerificationService);
   i18n = inject(I18nService);
+  private appComponent = inject(AppComponent);
   goToDashboard() {
-    window.location.href = "/dashboard";
+    this.appComponent.currentNav.set("dashboard");
   }
 
   fileInput = viewChild<ElementRef<HTMLInputElement>>("fileInput");
