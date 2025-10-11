@@ -19,6 +19,20 @@ import { I18nPipe } from "@/src/pipes/i18n.pipe";
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+  // Propriedade para controlar se o campo foi tocado/interagido
+  touched: {
+    title: boolean;
+    description: boolean;
+    requestedDateTime: boolean;
+    zip_code: boolean;
+    number: boolean;
+  } = {
+    title: false,
+    description: false,
+    requestedDateTime: false,
+    zip_code: false,
+    number: false,
+  };
   // Sinal para estado de submissão
   isSubmitting = signal<boolean>(false);
   // Corrige erro: método para formatar zip_code ao colar

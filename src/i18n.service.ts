@@ -649,6 +649,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     streetPlaceholder: "Street/Avenue",
     districtPlaceholder: "District",
     cityPlaceholder: "City",
+    descriptionMinLength: "Description must be at least 20 characters",
+    descriptionMaxLength: "Description cannot exceed 2000 characters",
+    titleMinLength: "Title must be at least 5 characters",
+    titleMaxLength: "Title cannot exceed 100 characters",
   },
   pt: {
     // General
@@ -1314,6 +1318,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     streetPlaceholder: "Rua/Avenida",
     districtPlaceholder: "Distrito",
     cityPlaceholder: "Concelho",
+    descriptionMinLength: "A descrição deve ter pelo menos 20 caracteres",
+    descriptionMaxLength: "A descrição não pode exceder 2000 caracteres",
+    titleMinLength: "O título deve ter pelo menos 5 caracteres",
+    titleMaxLength: "O título não pode exceder 100 caracteres",
   },
 };
 
