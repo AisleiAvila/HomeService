@@ -1,1 +1,334 @@
-full contents of src/app.component.html
+<ng-container [ngSwitch]="view()">
+  <!-- Landing -->
+  <ng-container *ngSwitchCase="'landing'">
+    <div class="relative w-full h-full mobile-safe">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-landing (signIn)="showLogin()" (createAccount)="showRegister()" />
+    </div>
+  </ng-container>
+
+  <!-- Login -->
+  <ng-container *ngSwitchCase="'login'">
+    <div class="relative w-full h-full">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-login
+        #loginComponent
+        (loggedIn)="handleLogin($event)"
+        (switchToRegister)="showRegister()"
+        (switchToLanding)="showLanding()"
+        (forgotPassword)="handleForgotPassword($event)"
+      />
+    </div>
+  </ng-container>
+
+  <!-- Register -->
+  <ng-container *ngSwitchCase="'register'">
+    <div class="relative w-full h-full">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-register
+        (registered)="handleRegister($event)"
+        (switchToLogin)="showLogin()"
+        (switchToLanding)="showLanding()"
+      />
+    </div>
+  </ng-container>
+
+  <!-- Verification -->
+  <ng-container *ngSwitchCase="'verification'">
+    <app-verification
+      [email]="emailForVerification()"
+      (verified)="handleVerification($event)"
+      (resendCode)="handleResendVerification()"
+      (backToLanding)="handleBackToLanding()"
+    />
+  </ng-container>
+
+  <!-- Forgot password -->
+  <ng-container *ngSwitchCase="'forgot-password'">
+    <div class="relative w-full h-full">
+      <div class="absolute top-4 right-4 z-10">
+        <app-language-switcher [theme]="authTheme()" />
+      </div>
+      <app-forgot-password
+        [initialEmail]="emailForPasswordReset()"
+        (codeRequested)="handleForgotPasswordCodeRequested($event)"
+        (backToLogin)="showLogin()"
+      />
+    </div>
+  </ng-container>
+
+  <!-- Reset password -->
+  <ng-container *ngSwitchCase="'reset-password'">
+    <app-reset-password
+      [initialEmail]="emailForPasswordReset()"
+      (passwordResetComplete)="handlePasswordResetComplete()"
+    />
+  </ng-container>
+
+  <!-- App -->
+  <ng-container *ngSwitchCase="'app'">
+    <div
+      class="flex h-screen bg-gray-100 text-gray-800 overflow-hidden mobile-safe"
+    >
+      <!-- Sidebar (desktop) -->
+      <aside
+        class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
+        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-64'"
+      >
+        <div class="h-16 flex items-center px-4 border-b border-gray-200">
+          <img
+            src="src/assets/logo_dasad.png"
+            alt="HomeService"
+            class="h-8 w-auto"
+          />
+        </div>
+        <nav class="flex-1 overflow-y-auto p-2 space-y-1">
+          <button
+            *ngFor="let item of navItems()"
+            (click)="navigate(item.id)"
+            [class]="
+              currentNav() === item.id
+                ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
+                : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
+            "
+            [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
+          >
+            <i [class]="item.icon"></i>
+            <span
+              class="transition-all"
+              [class.hidden]="isSidebarCollapsed()"
+              >{{ item.labelKey | i18n }}</span
+            >
+          </button>
+        </nav>
+        <div class="p-4 border-t border-gray-200">
+          <button
+            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            (click)="openNewRequestForm()"
+            [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
+          >
+            <i class="fa-solid fa-plus"></i>
+            <span [class.hidden]="isSidebarCollapsed()">{{
+              "newServiceRequest" | i18n
+            }}</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+        <header
+          class="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10 flex-shrink-0 min-h-[60px]"
+        >
+          <div class="flex items-center gap-2">
+            <button
+              class="p-2 rounded-md border border-gray-200"
+              (click)="toggleSidebar()"
+              [attr.title]="
+                isMobile()
+                  ? ('menu' | i18n)
+                  : isSidebarCollapsed()
+                  ? ('expand' | i18n)
+                  : ('collapse' | i18n)
+              "
+              [attr.aria-expanded]="
+                isMobile() ? isSidebarOpen() : !isSidebarCollapsed()
+              "
+            >
+              <i class="fa-solid fa-bars"></i>
+            </button>
+            <span class="hidden md:inline font-semibold">HomeService</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              class="relative p-2 rounded-md hover:bg-gray-50"
+              (click)="openNotificationCenter()"
+              title="{{ 'notifications' | i18n }}"
+            >
+              <i class="fa-solid fa-bell"></i>
+              <span
+                *ngIf="hasUnreadNotifications()"
+                class="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500"
+              ></span>
+            </button>
+            <app-language-switcher [theme]="'dark'" />
+            <button
+              class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              (click)="openNewRequestForm()"
+            >
+              <i class="fa-solid fa-plus"></i>
+              <span>{{ "newServiceRequest" | i18n }}</span>
+            </button>
+            <button
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
+              (click)="handleLogout()"
+            >
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span class="hidden sm:inline">{{ "logout" | i18n }}</span>
+            </button>
+          </div>
+        </header>
+        <main
+          [class]="
+            currentUser()?.role === 'admin'
+              ? 'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
+              : 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0'
+          "
+        >
+          <ng-container [ngSwitch]="currentNav()">
+            <ng-container *ngSwitchCase="'dashboard'">
+              <ng-container *ngIf="isNewRequestFormOpen()">
+                <div
+                  class="w-full h-full flex flex-col items-center justify-center bg-white p-6"
+                >
+                  <app-service-request-form
+                    [user]="currentUser()!"
+                    (close)="closeModal()"
+                    (formSubmitted)="handleFormSubmitted($event)"
+                  />
+                </div>
+              </ng-container>
+              <ng-container *ngIf="!isNewRequestFormOpen()">
+                <ng-container *ngIf="currentUser()?.role === 'admin'">
+                  <app-admin-dashboard />
+                </ng-container>
+                <ng-container *ngIf="currentUser()?.role !== 'admin'">
+                  <app-dashboard
+                    [user]="currentUser()!"
+                    (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)"
+                    (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)"
+                    (provideClarification)="openClarificationModal($event)"
+                  />
+                </ng-container>
+              </ng-container>
+            </ng-container>
+            <ng-container *ngSwitchCase="'schedule'">
+              <app-schedule
+                [user]="currentUser()!"
+                (viewDetails)="openDetails($event)"
+              />
+            </ng-container>
+            <ng-container *ngSwitchCase="'search'">
+              <app-search [user]="currentUser()!" />
+            </ng-container>
+            <ng-container *ngSwitchCase="'profile'">
+              <app-profile [user]="currentUser()!" />
+            </ng-container>
+            <ng-container *ngSwitchCase="'details'">
+              <ng-container *ngIf="selectedRequest()">
+                <app-service-request-details
+                  [request]="selectedRequest()!"
+                  [currentUser]="currentUser()!"
+                  (close)="goBackFromDetails()"
+                  (openChat)="openChat($event)"
+                  (approveQuote)="handleApproveQuote($event)"
+                  (rejectQuote)="handleRejectQuote($event)"
+                  (scheduleRequest)="openScheduler($event)"
+                  (payNow)="handlePayment($event)"
+                  (refreshRequest)="handleRefreshRequest()"
+                />
+              </ng-container>
+            </ng-container>
+          </ng-container>
+        </main>
+      </div>
+
+      <!-- Sidebar (mobile off-canvas) -->
+      <div class="md:hidden" *ngIf="isSidebarOpen()">
+        <div
+          class="fixed inset-0 bg-black/40 z-40"
+          (click)="toggleSidebar()"
+        ></div>
+        <aside
+          class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
+        >
+          <div
+            class="h-16 flex items-center px-4 border-b border-gray-200 justify-between"
+          >
+            <img src="assets/logo.jpg" alt="HomeService" class="h-8 w-auto" />
+            <button class="p-2" (click)="toggleSidebar()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <nav class="flex-1 overflow-y-auto p-2 space-y-1">
+            <button
+              *ngFor="let item of navItems()"
+              (click)="navigate(item.id)"
+              [class]="
+                currentNav() === item.id
+                  ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
+                  : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
+              "
+            >
+              <i [class]="item.icon"></i>
+              <span>{{ item.labelKey | i18n }}</span>
+            </button>
+          </nav>
+          <div class="p-4 border-t border-gray-200">
+            <button
+              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              (click)="openNewRequestForm(); toggleSidebar()"
+            >
+              <i class="fa-solid fa-plus"></i>
+              <span>{{ "newServiceRequest" | i18n }}</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Modals Layer (somente no modo app) -->
+    <ng-container *ngIf="isNewRequestFormOpen()">
+      <div
+        class="w-full h-full flex flex-col items-center justify-center bg-white p-6"
+      >
+        <app-service-request-form
+          [user]="currentUser()!"
+          (close)="closeModal()"
+          (formSubmitted)="handleFormSubmitted($event)"
+        />
+      </div>
+    </ng-container>
+    <ng-container *ngIf="isNotificationCenterOpen()">
+      <div class="modal-backdrop-right" (click)="closeModal()">
+        <app-notification-center
+          (close)="closeModal()"
+          (click)="$event.stopPropagation()"
+        />
+      </div>
+    </ng-container>
+    <ng-container *ngIf="isChatOpen() && selectedRequest()">
+      <div class="modal-backdrop" (click)="closeModal()">
+        <div
+          class="modal-content max-w-2xl h-3/4"
+          (click)="$event.stopPropagation()"
+        >
+          <app-chat
+            [currentUser]="currentUser()!"
+            [serviceRequest]="selectedRequest()!"
+            (close)="closeModal()"
+          />
+        </div>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
+      <div class="modal-backdrop" (click)="closeModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <app-scheduler
+            [serviceRequest]="selectedRequest()!"
+            (close)="closeModal()"
+            (appointmentConfirmed)="handleScheduleConfirmed($event)"
+          />
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</ng-container>
