@@ -122,15 +122,23 @@ export class ServiceRequestFormComponent implements OnInit {
         }));
         break;
       case "zip_code":
-        this.zip_code.set(value);
-        const isValidZip = this.isValidPostalCode(value);
+        // Auto-format zip code: insert hyphen after 4 digits if not present
+        let formatted = value.replace(/\D/g, "");
+        if (formatted.length > 4) {
+          formatted = formatted.slice(0, 4) + "-" + formatted.slice(4, 7);
+        }
+        if (formatted.length > 8) {
+          formatted = formatted.slice(0, 8);
+        }
+        this.zip_code.set(formatted);
+        const isValidZip = this.isValidPostalCode(formatted);
         this.validFields.update((fields) => ({
           ...fields,
           zip_code: isValidZip,
         }));
         if (isValidZip) {
           // Consultar tabela codigos_postais
-          const result = await this.dataService.getPostalCodeInfo(value);
+          const result = await this.dataService.getPostalCodeInfo(formatted);
           if (result) {
             this.locality.set(result.localidade || "");
             this.district.set(result.distrito || "");

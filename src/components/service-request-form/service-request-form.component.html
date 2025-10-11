@@ -101,6 +101,11 @@
         [value]="zip_code()"
         (input)="updateField('zip_code', $event.target.value)"
         required
+        pattern="\\d{4}-\\d{3}"
+        maxlength="8"
+        inputmode="numeric"
+        placeholder="9999-999"
+        autocomplete="postal-code"
       />
       <span
         *ngIf="!validFields().zip_code && zip_code()"
