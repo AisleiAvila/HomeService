@@ -68,17 +68,30 @@
         id="title"
         type="text"
         class="w-full border rounded px-3 py-2"
-        [ngClass]="!validFields().title && title() ? 'border-red-500' : ''"
+        [ngClass]="
+          touched.title
+            ? !validFields().title && title()
+              ? 'border-red-500'
+              : validFields().title && title()
+              ? 'border-green-500'
+              : ''
+            : ''
+        "
         [value]="title()"
-        (input)="updateField('title', $event.target.value)"
+        (input)="
+          updateField('title', $event.target.value); touched.title = true
+        "
         required
         minlength="3"
         [placeholder]="'titlePlaceholder' | i18n"
         aria-label="{{ 'title' | i18n }}"
         aria-describedby="title-error"
+        [attr.aria-invalid]="
+          touched.title && !validFields().title ? 'true' : null
+        "
       />
       <span
-        *ngIf="!validFields().title && title()"
+        *ngIf="touched.title && !validFields().title && title()"
         class="absolute right-2 top-2 text-red-500"
       >
         <svg
@@ -98,7 +111,7 @@
       </span>
     </div>
     <span
-      *ngIf="!validFields().title && title()"
+      *ngIf="touched.title && !validFields().title && title()"
       id="title-error"
       class="text-xs text-red-500"
       role="alert"
@@ -117,18 +130,32 @@
         id="description"
         class="w-full border rounded px-3 py-2"
         [ngClass]="
-          !validFields().description && description() ? 'border-red-500' : ''
+          touched.description
+            ? !validFields().description && description()
+              ? 'border-red-500'
+              : validFields().description && description()
+              ? 'border-green-500'
+              : ''
+            : ''
         "
         [value]="description()"
-        (input)="updateField('description', $event.target.value)"
+        (input)="
+          updateField('description', $event.target.value);
+          touched.description = true
+        "
         required
         minlength="10"
         [placeholder]="'descriptionPlaceholder' | i18n"
         aria-label="{{ 'description' | i18n }}"
         aria-describedby="description-error"
+        [attr.aria-invalid]="
+          touched.description && !validFields().description ? 'true' : null
+        "
       ></textarea>
       <span
-        *ngIf="!validFields().description && description()"
+        *ngIf="
+          touched.description && !validFields().description && description()
+        "
         class="absolute right-2 top-2 text-red-500"
       >
         <svg
@@ -148,7 +175,7 @@
       </span>
     </div>
     <span
-      *ngIf="!validFields().description && description()"
+      *ngIf="touched.description && !validFields().description && description()"
       id="description-error"
       class="text-xs text-red-500"
       role="alert"
@@ -168,19 +195,35 @@
         type="datetime-local"
         class="w-full border rounded px-3 py-2"
         [ngClass]="
-          !validFields().requestedDateTime && requestedDateTime()
-            ? 'border-red-500'
+          touched.requestedDateTime
+            ? !validFields().requestedDateTime && requestedDateTime()
+              ? 'border-red-500'
+              : validFields().requestedDateTime && requestedDateTime()
+              ? 'border-green-500'
+              : ''
             : ''
         "
         [value]="requestedDateTime()"
-        (input)="updateField('requestedDateTime', $event.target.value)"
+        (input)="
+          updateField('requestedDateTime', $event.target.value);
+          touched.requestedDateTime = true
+        "
         required
         [placeholder]="'dateTimePlaceholder' | i18n"
         aria-label="{{ 'dateTime' | i18n }}"
         aria-describedby="requestedDateTime-error"
+        [attr.aria-invalid]="
+          touched.requestedDateTime && !validFields().requestedDateTime
+            ? 'true'
+            : null
+        "
       />
       <span
-        *ngIf="!validFields().requestedDateTime && requestedDateTime()"
+        *ngIf="
+          touched.requestedDateTime &&
+          !validFields().requestedDateTime &&
+          requestedDateTime()
+        "
         class="absolute right-2 top-2 text-red-500"
       >
         <svg
@@ -200,7 +243,11 @@
       </span>
     </div>
     <span
-      *ngIf="!validFields().requestedDateTime && requestedDateTime()"
+      *ngIf="
+        touched.requestedDateTime &&
+        !validFields().requestedDateTime &&
+        requestedDateTime()
+      "
       id="requestedDateTime-error"
       class="text-xs text-red-500"
       role="alert"
@@ -226,10 +273,19 @@
           type="text"
           class="w-full border rounded px-3 py-2"
           [ngClass]="
-            !validFields().zip_code && zip_code() ? 'border-red-500' : ''
+            touched.zip_code
+              ? !validFields().zip_code && zip_code()
+                ? 'border-red-500'
+                : validFields().zip_code && zip_code()
+                ? 'border-green-500'
+                : ''
+              : ''
           "
           [value]="zip_code()"
-          (input)="updateField('zip_code', $event.target.value)"
+          (input)="
+            updateField('zip_code', $event.target.value);
+            touched.zip_code = true
+          "
           (paste)="onZipCodePaste($event)"
           required
           pattern="\d{4}-\d{3}"
@@ -239,9 +295,12 @@
           autocomplete="postal-code"
           aria-label="{{ 'postalCode' | i18n }}"
           aria-describedby="zip_code-error"
+          [attr.aria-invalid]="
+            touched.zip_code && !validFields().zip_code ? 'true' : null
+          "
         />
         <span
-          *ngIf="!validFields().zip_code && zip_code()"
+          *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
           class="absolute right-2 top-2 text-red-500"
         >
           <svg
@@ -261,7 +320,7 @@
         </span>
       </div>
       <span
-        *ngIf="!validFields().zip_code && zip_code()"
+        *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
         id="zip_code-error"
         class="text-xs text-red-500"
         role="alert"
@@ -297,19 +356,33 @@
           type="text"
           class="w-full border rounded px-3 py-2"
           [ngClass]="
-            number() && number().length > 0 && !validFields().number
-              ? 'border-red-500'
+            touched.number
+              ? number() && number().length > 0 && !validFields().number
+                ? 'border-red-500'
+                : validFields().number && number()
+                ? 'border-green-500'
+                : ''
               : ''
           "
           [value]="number()"
-          (input)="updateField('number', $event.target.value)"
+          (input)="
+            updateField('number', $event.target.value); touched.number = true
+          "
           required
           [placeholder]="'numberPlaceholder' | i18n"
           aria-label="{{ 'number' | i18n }}"
           aria-describedby="number-error"
+          [attr.aria-invalid]="
+            touched.number && number() && !validFields().number ? 'true' : null
+          "
         />
         <span
-          *ngIf="number() && number().length > 0 && !validFields().number"
+          *ngIf="
+            touched.number &&
+            number() &&
+            number().length > 0 &&
+            !validFields().number
+          "
           id="number-error"
           class="absolute right-2 top-2 text-red-500"
           role="alert"
