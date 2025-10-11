@@ -1,241 +1,252 @@
-<form class="space-y-6 p-4" autocomplete="off" (ngSubmit)="onSubmit()">
-  <h2 class="text-xl font-bold mb-2">{{ "newServiceRequest" | i18n }}</h2>
-
-  <!-- Categoria -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="category">
-      {{ "category" | i18n }}
-    </label>
-    <select
-      id="category"
-      class="w-full border rounded px-3 py-2"
-      [value]="category()"
-      (change)="updateField('category', $event.target.value)"
-      required
-    >
-      <option value="" disabled selected>{{ "select" | i18n }}</option>
-      @for (cat of categories(); track cat) {
-      <option [value]="cat">{{ cat }}</option>
-      }
-    </select>
-    @if (!validFields().category && category()) {
-    <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
-    }
-  </div>
-
-  <!-- Título -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="title">{{
-      "title" | i18n
-    }}</label>
-    <input
-      id="title"
-      type="text"
-      class="w-full border rounded px-3 py-2"
-      [value]="title()"
-      (input)="updateField('title', $event.target.value)"
-      required
-      minlength="3"
-    />
-    @if (!validFields().title && title()) {
-    <span class="text-xs text-red-500">
-      {{ "titleMinLength" | i18n }}
-    </span>
-    }
-  </div>
-
-  <!-- Descrição -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="description">
-      {{ "description" | i18n }}
-    </label>
-    <textarea
-      id="description"
-      class="w-full border rounded px-3 py-2"
-      [value]="description()"
-      (input)="updateField('description', $event.target.value)"
-      required
-      minlength="10"
-    ></textarea>
-    @if (!validFields().description && description()) {
-    <span class="text-xs text-red-500">
-      {{ "descriptionMinLength" | i18n }}
-    </span>
-    }
-  </div>
-
-  <!-- Categoria -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="category">
-      {{ "category" | i18n }}
-    </label>
-    <select
-      id="category"
-      class="w-full border rounded px-3 py-2"
-      [value]="category()"
-      (change)="updateField('category', $event.target.value)"
-      required
-    >
-      <option value="" disabled selected>{{ "select" | i18n }}</option>
-      @for (cat of categories(); track cat) {
-      <option [value]="cat">{{ cat }}</option>
-      }
-    </select>
-    @if (!validFields().category && category()) {
-    <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
-    }
-  </div>
-
-  <!-- Data/Hora solicitada -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="requestedDateTime">
-      {{ "dateTime" | i18n }}
-    </label>
-    <input
-      id="requestedDateTime"
-      type="datetime-local"
-      class="w-full border rounded px-3 py-2"
-      [value]="requestedDateTime()"
-      (input)="updateField('requestedDateTime', $event.target.value)"
-      required
-    />
-    @if (!validFields().requestedDateTime && requestedDateTime()) {
-    <span class="text-xs text-red-500">
-      {{ "validFutureDateTime" | i18n }}
-    </span>
-    }
-  </div>
-
-  <!-- Endereço -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div
+  class="flex flex-col items-center justify-center w-full py-8 px-2 md:px-0 mobile-safe"
+>
+  <h2
+    class="text-2xl md:text-3xl font-extrabold text-indigo-700 drop-shadow-sm mb-4 text-center"
+  >
+    {{ "newServiceRequest" | i18n }}
+  </h2>
+  <form
+    autocomplete="off"
+    (ngSubmit)="onSubmit()"
+    class="space-y-7 bg-white/95 shadow-xl rounded-2xl px-0 md:px-12 py-8 w-full max-w-2xl border border-indigo-100"
+  >
+    <!-- Categoria -->
     <div>
-      <label class="block text-sm font-medium mb-1" for="zip_code">
-        {{ "postalCode" | i18n }}
+      <label class="block text-sm font-medium mb-1" for="category">
+        {{ "category" | i18n }}
       </label>
+      <select
+        id="category"
+        class="w-full border rounded px-3 py-2"
+        [value]="category()"
+        (change)="updateField('category', $event.target.value)"
+        required
+      >
+        <option value="" disabled selected>{{ "select" | i18n }}</option>
+        @for (cat of categories(); track cat) {
+        <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+      @if (!validFields().category && category()) {
+      <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
+      }
+    </div>
+
+    <!-- Título -->
+    <div>
+      <label class="block text-sm font-medium mb-1" for="title">{{
+        "title" | i18n
+      }}</label>
       <input
-        id="zip_code"
+        id="title"
         type="text"
         class="w-full border rounded px-3 py-2"
-        [value]="zip_code()"
-        (input)="updateField('zip_code', $event.target.value)"
+        [value]="title()"
+        (input)="updateField('title', $event.target.value)"
         required
+        minlength="3"
       />
-      @if (!validFields().zip_code && zip_code()) {
+      @if (!validFields().title && title()) {
       <span class="text-xs text-red-500">
-        {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
+        {{ "titleMinLength" | i18n }}
       </span>
       }
     </div>
+
+    <!-- Descrição -->
     <div>
-      <label class="block text-sm font-medium mb-1" for="street">
-        {{ "logradouro" | i18n }}
+      <label class="block text-sm font-medium mb-1" for="description">
+        {{ "description" | i18n }}
       </label>
-      <input
-        id="street"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="street()"
-        readonly
-        required
-        minlength="5"
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="number">
-        {{ "number" | i18n }}
-      </label>
-      <input
-        id="number"
-        type="text"
+      <textarea
+        id="description"
         class="w-full border rounded px-3 py-2"
-        [value]="number()"
-        (input)="updateField('number', $event.target.value)"
+        [value]="description()"
+        (input)="updateField('description', $event.target.value)"
         required
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="complement">
-        {{ "complement" | i18n }}
-      </label>
-      <input
-        id="complement"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="complement()"
-        (input)="updateField('complement', $event.target.value)"
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="locality">
-        {{ "locality" | i18n }}
-      </label>
-      <input
-        id="locality"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="locality()"
-        readonly
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="city">
-        {{ "concelho" | i18n }}
-      </label>
-      <input
-        id="city"
-        type="text"
-        class="ww-full border rounded px-3 py-2 bg-gray-100"
-        [value]="county()"
-        readonly
-      />
-      @if (!validFields().city && city()) {
+        minlength="10"
+      ></textarea>
+      @if (!validFields().description && description()) {
       <span class="text-xs text-red-500">
-        {{ "cityMinLength" | i18n }}
+        {{ "descriptionMinLength" | i18n }}
       </span>
       }
     </div>
+
+    <!-- Categoria -->
     <div>
-      <label class="block text-sm font-medium mb-1" for="district">
-        {{ "district" | i18n }}
+      <label class="block text-sm font-medium mb-1" for="category">
+        {{ "category" | i18n }}
+      </label>
+      <select
+        id="category"
+        class="w-full border rounded px-3 py-2"
+        [value]="category()"
+        (change)="updateField('category', $event.target.value)"
+        required
+      >
+        <option value="" disabled selected>{{ "select" | i18n }}</option>
+        @for (cat of categories(); track cat) {
+        <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+      @if (!validFields().category && category()) {
+      <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
+      }
+    </div>
+
+    <!-- Data/Hora solicitada -->
+    <div>
+      <label class="block text-sm font-medium mb-1" for="requestedDateTime">
+        {{ "dateTime" | i18n }}
       </label>
       <input
-        id="district"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="district()"
-        readonly
+        id="requestedDateTime"
+        type="datetime-local"
+        class="w-full border rounded px-3 py-2"
+        [value]="requestedDateTime()"
+        (input)="updateField('requestedDateTime', $event.target.value)"
+        required
       />
+      @if (!validFields().requestedDateTime && requestedDateTime()) {
+      <span class="text-xs text-red-500">
+        {{ "validFutureDateTime" | i18n }}
+      </span>
+      }
     </div>
-  </div>
 
-  <!-- Mensagens de erro/sucesso -->
-  @if (formError()) {
-  <div class="text-red-600 text-sm mt-2">{{ formError() }}</div>
-  } @if (formSuccess()) {
-  <div class="text-green-600 text-sm mt-2">{{ formSuccess() }}</div>
-  }
+    <!-- Endereço -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="zip_code">
+          {{ "postalCode" | i18n }}
+        </label>
+        <input
+          id="zip_code"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          [value]="zip_code()"
+          (input)="updateField('zip_code', $event.target.value)"
+          required
+        />
+        @if (!validFields().zip_code && zip_code()) {
+        <span class="text-xs text-red-500">
+          {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
+        </span>
+        }
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="street">
+          {{ "logradouro" | i18n }}
+        </label>
+        <input
+          id="street"
+          type="text"
+          class="w-full border rounded px-3 py-2 bg-gray-100"
+          [value]="street()"
+          readonly
+          required
+          minlength="5"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="number">
+          {{ "number" | i18n }}
+        </label>
+        <input
+          id="number"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          [value]="number()"
+          (input)="updateField('number', $event.target.value)"
+          required
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="complement">
+          {{ "complement" | i18n }}
+        </label>
+        <input
+          id="complement"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          [value]="complement()"
+          (input)="updateField('complement', $event.target.value)"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="locality">
+          {{ "locality" | i18n }}
+        </label>
+        <input
+          id="locality"
+          type="text"
+          class="w-full border rounded px-3 py-2 bg-gray-100"
+          [value]="locality()"
+          readonly
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="city">
+          {{ "concelho" | i18n }}
+        </label>
+        <input
+          id="city"
+          type="text"
+          class="ww-full border rounded px-3 py-2 bg-gray-100"
+          [value]="county()"
+          readonly
+        />
+        @if (!validFields().city && city()) {
+        <span class="text-xs text-red-500">
+          {{ "cityMinLength" | i18n }}
+        </span>
+        }
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="district">
+          {{ "district" | i18n }}
+        </label>
+        <input
+          id="district"
+          type="text"
+          class="w-full border rounded px-3 py-2 bg-gray-100"
+          [value]="district()"
+          readonly
+        />
+      </div>
+    </div>
 
-  <!-- Botões -->
-  <div class="flex justify-end gap-2 mt-6">
-    <button
-      type="button"
-      class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-      (click)="close.emit()"
-    >
-      {{ "cancel" | i18n }}
-    </button>
-    <button
-      type="submit"
-      class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
-      [disabled]="!isFormValid()"
-    >
-      {{ "submit" | i18n }}
-    </button>
-    <span
-      class="ml-4 text-xs"
-      [ngClass]="isFormValid() ? 'text-green-600' : 'text-red-600'"
-    >
-      {{ isFormValid() ? "Formulário válido" : "Formulário inválido" }}
-    </span>
-  </div>
-</form>
+    <!-- Mensagens de erro/sucesso -->
+    @if (formError()) {
+    <div class="text-red-600 text-sm mt-2">{{ formError() }}</div>
+    } @if (formSuccess()) {
+    <div class="text-green-600 text-sm mt-2">{{ formSuccess() }}</div>
+    }
+
+    <!-- Botões -->
+    <div class="flex justify-end gap-2 mt-6">
+      <button
+        type="button"
+        class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+        (click)="close.emit()"
+      >
+        {{ "cancel" | i18n }}
+      </button>
+      <button
+        type="submit"
+        class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+        [disabled]="!isFormValid()"
+      >
+        {{ "submit" | i18n }}
+      </button>
+      <span
+        class="ml-4 text-xs"
+        [ngClass]="isFormValid() ? 'text-green-600' : 'text-red-600'"
+      >
+        {{ isFormValid() ? "Formulário válido" : "Formulário inválido" }}
+      </span>
+    </div>
+  </form>
+</div>

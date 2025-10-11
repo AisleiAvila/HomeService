@@ -1,14 +1,14 @@
+import { CommonModule } from "@angular/common";
 import {
-  Component,
   ChangeDetectionStrategy,
-  inject,
-  signal,
+  Component,
   computed,
   effect,
-  ViewChild,
+  inject,
   OnInit,
+  signal,
+  ViewChild,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 
 // Services
 import { AuthService } from "./services/auth.service";
@@ -19,31 +19,30 @@ import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
 // Models
-import { User, ServiceRequest } from "./models/maintenance.models";
-import { ServiceRequestPayload } from "./models/maintenance.models";
 import { LoginPayload } from "./components/login/login.component";
 import { RegisterPayload } from "./components/register/register.component";
+import {
+  ServiceRequest,
+  ServiceRequestPayload,
+} from "./models/maintenance.models";
 
 // Components
+import { AdminDashboardComponent } from "./components/admin-dashboard/admin-dashboard.component";
+import { ChatComponent } from "./components/chat/chat.component";
+import { DashboardComponent } from "./components/dashboard/dashboard.component";
+import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { LandingComponent } from "./components/landing/landing.component";
 import { LoginComponent } from "./components/login/login.component";
-import { RegisterComponent } from "./components/register/register.component";
-import { VerificationComponent } from "./components/verification/verification.component";
-import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
-import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
-import { DashboardComponent } from "./components/dashboard/dashboard.component";
-import { ScheduleComponent } from "./components/schedule/schedule.component";
-import { SearchComponent } from "./components/search/search.component";
-import { ProfileComponent } from "./components/profile/profile.component";
-import { AdminDashboardComponent } from "./components/admin-dashboard/admin-dashboard.component";
-import { ServiceRequestFormComponent } from "./components/service-request-form/service-request-form.component";
-import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
-import { SchedulerComponent } from "./components/scheduler/scheduler.component";
-import { ChatComponent } from "./components/chat/chat.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
-import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
-import { ModalComponent } from "./components/modal/modal.component";
-import { ClarificationModalComponent } from "./components/clarification-modal/clarification-modal.component";
+import { ProfileComponent } from "./components/profile/profile.component";
+import { RegisterComponent } from "./components/register/register.component";
+import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
+import { ScheduleComponent } from "./components/schedule/schedule.component";
+import { SchedulerComponent } from "./components/scheduler/scheduler.component";
+import { SearchComponent } from "./components/search/search.component";
+import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
+import { ServiceRequestFormComponent } from "./components/service-request-form/service-request-form.component";
+import { VerificationComponent } from "./components/verification/verification.component";
 
 // Pipes
 import { I18nPipe } from "./pipes/i18n.pipe";
@@ -69,7 +68,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     RegisterComponent,
     VerificationComponent,
     ForgotPasswordComponent,
-    ResetPasswordComponent,
     DashboardComponent,
     ScheduleComponent,
     SearchComponent,
@@ -80,9 +78,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     SchedulerComponent,
     ChatComponent,
     NotificationCenterComponent,
-    LanguageSwitcherComponent,
-    ModalComponent,
-    ClarificationModalComponent,
   ],
   template: `
     <!-- CSS adicional para garantir responsividade -->
@@ -140,17 +135,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
       <app-forgot-password
         [initialEmail]="emailForPasswordReset()"
         (codeRequested)="handleForgotPasswordCodeRequested($event)"
-        (backToLogin)="showLogin()"
-      />
-    </div>
-    } @case ('reset-password') {
-    <div class="relative w-full h-full">
-      <div class="absolute top-4 right-4 z-10">
-        <app-language-switcher [theme]="authTheme()" />
-      </div>
-      <app-reset-password
-        [initialEmail]="emailForPasswordReset()"
-        (passwordResetComplete)="handlePasswordResetComplete()"
         (backToLogin)="showLogin()"
       />
     </div>
@@ -373,8 +357,18 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
               : 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0'
           "
         >
-          @switch(currentNav()) { @case('dashboard') { @if(user.role ===
-          'admin') {
+          @if (isNewRequestFormOpen()) {
+          <div
+            class="w-full h-full flex flex-col items-center justify-center bg-white p-6"
+          >
+            <app-service-request-form
+              [user]="user"
+              (close)="closeModal()"
+              (formSubmitted)="handleFormSubmitted($event)"
+            />
+          </div>
+          } @else { @switch(currentNav()) { @case('dashboard') { @if(user.role
+          === 'admin') {
           <app-admin-dashboard />
           } @else {
           <app-dashboard
@@ -403,21 +397,21 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
             (payNow)="handlePayment($event)"
             (refreshRequest)="handleRefreshRequest()"
           />
-          } } }
+          } } } }
         </main>
       </div>
     </div>
 
     <!-- Modals Layer -->
     @if (isNewRequestFormOpen()) {
-    <div class="modal-backdrop" (click)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <app-service-request-form
-          [user]="user"
-          (close)="closeModal()"
-          (formSubmitted)="handleFormSubmitted($event)"
-        />
-      </div>
+    <div
+      class="w-full h-full flex flex-col items-center justify-center bg-white p-6"
+    >
+      <app-service-request-form
+        [user]="user"
+        (close)="closeModal()"
+        (formSubmitted)="handleFormSubmitted($event)"
+      />
     </div>
     } @if (isNotificationCenterOpen()) {
     <div class="modal-backdrop-right" (click)="closeModal()">
@@ -455,20 +449,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     </div>
     } } }
 
-    <!-- Modal de Sucesso do Registro -->
-    <app-modal
-      [title]="'registrationSuccessful' | i18n"
-      [message]="'emailVerificationRequired' | i18n"
-      [isVisible]="showRegistrationModal()"
-      (closed)="handleModalClose()"
-    />
-
-    <!-- Modal de Esclarecimentos -->
-    <app-clarification-modal
-      [isVisible]="isClarificationModalOpen()"
-      [serviceRequest]="selectedRequest() || {}"
-      (close)="closeModal()"
-    />
+    <!-- Modais removidos conforme solicitado -->
   `,
   styles: [
     `
