@@ -24,13 +24,15 @@
         required
       >
         <option value="" disabled selected>{{ "select" | i18n }}</option>
-        @for (cat of categories(); track cat) {
-        <option [value]="cat">{{ cat }}</option>
-        }
+        <ng-container *ngFor="let cat of categories()">
+          <option [value]="cat">{{ cat }}</option>
+        </ng-container>
       </select>
-      @if (!validFields().category && category()) {
-      <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
-      }
+      <span
+        *ngIf="!validFields().category && category()"
+        class="text-xs text-red-500"
+        >{{ "selectCategory" | i18n }}</span
+      >
     </div>
 
     <!-- Título -->
@@ -47,11 +49,12 @@
         required
         minlength="3"
       />
-      @if (!validFields().title && title()) {
-      <span class="text-xs text-red-500">
+      <span
+        *ngIf="!validFields().title && title()"
+        class="text-xs text-red-500"
+      >
         {{ "titleMinLength" | i18n }}
       </span>
-      }
     </div>
 
     <!-- Descrição -->
@@ -67,11 +70,12 @@
         required
         minlength="10"
       ></textarea>
-      @if (!validFields().description && description()) {
-      <span class="text-xs text-red-500">
+      <span
+        *ngIf="!validFields().description && description()"
+        class="text-xs text-red-500"
+      >
         {{ "descriptionMinLength" | i18n }}
       </span>
-      }
     </div>
 
     <!-- Categoria -->
@@ -87,13 +91,15 @@
         required
       >
         <option value="" disabled selected>{{ "select" | i18n }}</option>
-        @for (cat of categories(); track cat) {
-        <option [value]="cat">{{ cat }}</option>
-        }
+        <ng-container *ngFor="let cat of categories()">
+          <option [value]="cat">{{ cat }}</option>
+        </ng-container>
       </select>
-      @if (!validFields().category && category()) {
-      <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
-      }
+      <span
+        *ngIf="!validFields().category && category()"
+        class="text-xs text-red-500"
+        >{{ "selectCategory" | i18n }}</span
+      >
     </div>
 
     <!-- Data/Hora solicitada -->
@@ -109,11 +115,12 @@
         (input)="updateField('requestedDateTime', $event.target.value)"
         required
       />
-      @if (!validFields().requestedDateTime && requestedDateTime()) {
-      <span class="text-xs text-red-500">
+      <span
+        *ngIf="!validFields().requestedDateTime && requestedDateTime()"
+        class="text-xs text-red-500"
+      >
         {{ "validFutureDateTime" | i18n }}
       </span>
-      }
     </div>
 
     <!-- Endereço -->
@@ -130,11 +137,12 @@
           (input)="updateField('zip_code', $event.target.value)"
           required
         />
-        @if (!validFields().zip_code && zip_code()) {
-        <span class="text-xs text-red-500">
+        <span
+          *ngIf="!validFields().zip_code && zip_code()"
+          class="text-xs text-red-500"
+        >
           {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
         </span>
-        }
       </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="street">
@@ -198,11 +206,12 @@
           [value]="county()"
           readonly
         />
-        @if (!validFields().city && city()) {
-        <span class="text-xs text-red-500">
+        <span
+          *ngIf="!validFields().city && city()"
+          class="text-xs text-red-500"
+        >
           {{ "cityMinLength" | i18n }}
         </span>
-        }
       </div>
       <div>
         <label class="block text-sm font-medium mb-1" for="district">
@@ -219,11 +228,12 @@
     </div>
 
     <!-- Mensagens de erro/sucesso -->
-    @if (formError()) {
-    <div class="text-red-600 text-sm mt-2">{{ formError() }}</div>
-    } @if (formSuccess()) {
-    <div class="text-green-600 text-sm mt-2">{{ formSuccess() }}</div>
-    }
+    <div *ngIf="formError()" class="text-red-600 text-sm mt-2">
+      {{ formError() }}
+    </div>
+    <div *ngIf="formSuccess()" class="text-green-600 text-sm mt-2">
+      {{ formSuccess() }}
+    </div>
 
     <!-- Botões -->
     <div class="flex justify-end gap-2 mt-6">
