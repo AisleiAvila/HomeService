@@ -19,6 +19,8 @@ import { I18nPipe } from "@/src/pipes/i18n.pipe";
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+  // Sinal para estado de submissão
+  isSubmitting = signal<boolean>(false);
   // Corrige erro: método para formatar zip_code ao colar
   onZipCodePaste(event: ClipboardEvent) {
     event.preventDefault();
@@ -226,6 +228,7 @@ export class ServiceRequestFormComponent implements OnInit {
   }
   // Chamada ao serviço para criar solicitação de serviço
   async onSubmit() {
+    this.isSubmitting.set(true);
     console.log("onSubmit chamado", {
       title: this.title(),
       description: this.description(),
@@ -241,6 +244,7 @@ export class ServiceRequestFormComponent implements OnInit {
     });
     if (!this.isFormValid()) {
       this.formError.set(this.i18n.translate("formErrorGeneric"));
+      this.isSubmitting.set(false);
       return;
     }
     try {
@@ -269,12 +273,14 @@ export class ServiceRequestFormComponent implements OnInit {
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));
       // Opcional: resetar campos ou fechar modal
       this.close.emit();
+      this.isSubmitting.set(false);
     } catch (error) {
       console.error("Erro ao enviar solicitação de serviço:", error);
       this.formError.set(
         this.i18n.translate("formErrorGeneric") +
           (error?.message ? ` (${error.message})` : "")
       );
+      this.isSubmitting.set(false);
     }
   }
 }
