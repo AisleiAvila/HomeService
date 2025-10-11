@@ -171,7 +171,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Password reset successful! You can now log in with your new password.",
 
     // New Service Request Form
-    newServiceRequest: "New Service Request",
+    newServiceRequest: "Service Request",
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
@@ -806,7 +806,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Senha redefinida com sucesso! Agora pode fazer login com a sua nova senha.",
 
     // New Service Request Form
-    newServiceRequest: "Nova Solicitação de Serviço",
+    newServiceRequest: "Solicitar Serviço",
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
     selectCategory: "Selecione uma categoria...",
@@ -1321,11 +1321,6 @@ export class I18nService {
 
     // Log inicial do estado
     console.log(`🌍 [I18N] Idioma inicial: ${this.language()}`);
-    console.log(
-      `🌍 [I18N] Testando tradução 'newServiceRequest': ${this.translate(
-        "newServiceRequest"
-      )}`
-    );
   }
 
   getCurrentLanguage(): string {
