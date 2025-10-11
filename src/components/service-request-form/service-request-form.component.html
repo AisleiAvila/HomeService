@@ -100,6 +100,7 @@
         class="w-full border rounded px-3 py-2"
         [value]="zip_code()"
         (input)="updateField('zip_code', $event.target.value)"
+        (paste)="onZipCodePaste($event)"
         required
         pattern="\\d{4}-\\d{3}"
         maxlength="8"
