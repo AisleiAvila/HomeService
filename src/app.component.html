@@ -119,6 +119,26 @@
             }}</span>
           </button>
         </div>
+        <!-- Bloco de perfil do usuário -->
+        <div
+          class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
+        >
+          <img
+            [src]="currentUser()?.avatar_url || 'src/assets/logo_dasad.png'"
+            alt="Avatar do usuário"
+            class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
+          />
+          <span
+            *ngIf="!isSidebarCollapsed()"
+            class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]"
+            >{{ currentUser()?.name }}</span
+          >
+          <span
+            *ngIf="!isSidebarCollapsed()"
+            class="text-xs text-gray-500 text-center"
+            >{{ currentUser()?.role | i18n }}</span
+          >
+        </div>
       </aside>
 
       <!-- Main column -->
@@ -280,6 +300,23 @@
               <i class="fa-solid fa-plus"></i>
               <span>{{ "newServiceRequest" | i18n }}</span>
             </button>
+          </div>
+          <!-- Bloco de perfil do usuário (mobile) -->
+          <div
+            class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
+          >
+            <img
+              [src]="currentUser()?.avatar_url || 'src/assets/logo_dasad.png'"
+              alt="Avatar do usuário"
+              class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
+            />
+            <span
+              class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]"
+              >{{ currentUser()?.name }}</span
+            >
+            <span class="text-xs text-gray-500 text-center">{{
+              currentUser()?.role | i18n
+            }}</span>
           </div>
         </aside>
       </div>
