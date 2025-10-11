@@ -19,6 +19,20 @@ import { I18nPipe } from "@/src/pipes/i18n.pipe";
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+  // Corrige erro: método para formatar zip_code ao colar
+  onZipCodePaste(event: ClipboardEvent) {
+    event.preventDefault();
+    const pasted = event.clipboardData?.getData("text") || "";
+    let digits = pasted.replace(/\D/g, "");
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = digits.slice(0, 4) + "-" + digits.slice(4, 7);
+    }
+    if (formatted.length > 8) {
+      formatted = formatted.slice(0, 8);
+    }
+    this.updateField("zip_code", formatted);
+  }
   @Output() close = new EventEmitter<void>();
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
