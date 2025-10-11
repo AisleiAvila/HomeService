@@ -74,6 +74,8 @@
         required
         minlength="3"
         [placeholder]="'titlePlaceholder' | i18n"
+        aria-label="{{ 'title' | i18n }}"
+        aria-describedby="title-error"
       />
       <span
         *ngIf="!validFields().title && title()"
@@ -95,7 +97,12 @@
         </svg>
       </span>
     </div>
-    <span *ngIf="!validFields().title && title()" class="text-xs text-red-500">
+    <span
+      *ngIf="!validFields().title && title()"
+      id="title-error"
+      class="text-xs text-red-500"
+      role="alert"
+    >
       {{ "titleMinLength" | i18n }}
     </span>
   </div>
@@ -117,6 +124,8 @@
         required
         minlength="10"
         [placeholder]="'descriptionPlaceholder' | i18n"
+        aria-label="{{ 'description' | i18n }}"
+        aria-describedby="description-error"
       ></textarea>
       <span
         *ngIf="!validFields().description && description()"
@@ -140,7 +149,9 @@
     </div>
     <span
       *ngIf="!validFields().description && description()"
+      id="description-error"
       class="text-xs text-red-500"
+      role="alert"
     >
       {{ "descriptionMinLength" | i18n }}
     </span>
@@ -165,6 +176,8 @@
         (input)="updateField('requestedDateTime', $event.target.value)"
         required
         [placeholder]="'dateTimePlaceholder' | i18n"
+        aria-label="{{ 'dateTime' | i18n }}"
+        aria-describedby="requestedDateTime-error"
       />
       <span
         *ngIf="!validFields().requestedDateTime && requestedDateTime()"
@@ -188,7 +201,9 @@
     </div>
     <span
       *ngIf="!validFields().requestedDateTime && requestedDateTime()"
+      id="requestedDateTime-error"
       class="text-xs text-red-500"
+      role="alert"
     >
       {{ "validFutureDateTime" | i18n }}
     </span>
@@ -222,6 +237,8 @@
           inputmode="numeric"
           [placeholder]="'postalCodePlaceholder' | i18n"
           autocomplete="postal-code"
+          aria-label="{{ 'postalCode' | i18n }}"
+          aria-describedby="zip_code-error"
         />
         <span
           *ngIf="!validFields().zip_code && zip_code()"
@@ -245,7 +262,9 @@
       </div>
       <span
         *ngIf="!validFields().zip_code && zip_code()"
+        id="zip_code-error"
         class="text-xs text-red-500"
+        role="alert"
       >
         {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
       </span>
@@ -263,6 +282,9 @@
         required
         minlength="5"
         [placeholder]="'streetPlaceholder' | i18n"
+        aria-label="{{ 'logradouro' | i18n }}"
+        tabindex="0"
+        aria-readonly="true"
       />
     </div>
     <div>
@@ -283,10 +305,14 @@
           (input)="updateField('number', $event.target.value)"
           required
           [placeholder]="'numberPlaceholder' | i18n"
+          aria-label="{{ 'number' | i18n }}"
+          aria-describedby="number-error"
         />
         <span
           *ngIf="number() && number().length > 0 && !validFields().number"
+          id="number-error"
           class="absolute right-2 top-2 text-red-500"
+          role="alert"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -329,6 +355,9 @@
         [value]="locality()"
         readonly
         [placeholder]="'localityPlaceholder' | i18n"
+        aria-label="{{ 'locality' | i18n }}"
+        tabindex="0"
+        aria-readonly="true"
       />
     </div>
     <div>
@@ -342,6 +371,9 @@
         [value]="county()"
         readonly
         [placeholder]="'cityPlaceholder' | i18n"
+        aria-label="{{ 'concelho' | i18n }}"
+        tabindex="0"
+        aria-readonly="true"
       />
       <span *ngIf="!validFields().city && city()" class="text-xs text-red-500">
         {{ "cityMinLength" | i18n }}
@@ -358,6 +390,9 @@
         [value]="district()"
         readonly
         [placeholder]="'districtPlaceholder' | i18n"
+        aria-label="{{ 'district' | i18n }}"
+        tabindex="0"
+        aria-readonly="true"
       />
     </div>
   </fieldset>
