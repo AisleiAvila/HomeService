@@ -159,13 +159,6 @@
             </button>
             <app-language-switcher [theme]="'dark'" />
             <button
-              class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-              (click)="openNewRequestForm()"
-            >
-              <i class="fa-solid fa-plus"></i>
-              <span>{{ "newServiceRequest" | i18n }}</span>
-            </button>
-            <button
               class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
               (click)="handleLogout()"
             >
