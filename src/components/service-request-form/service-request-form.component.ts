@@ -77,6 +77,7 @@ export class ServiceRequestFormComponent implements OnInit {
     city: boolean;
     state: boolean;
     zip_code: boolean;
+    number: boolean;
   }>({
     title: false,
     description: false,
@@ -86,6 +87,7 @@ export class ServiceRequestFormComponent implements OnInit {
     city: false,
     state: false,
     zip_code: false,
+    number: false,
   });
 
   // Método para verificar se o formulário está válido
@@ -195,6 +197,10 @@ export class ServiceRequestFormComponent implements OnInit {
         break;
       case "number":
         this.number.set(value);
+        this.validFields.update((fields) => ({
+          ...fields,
+          number: !!value && value.length > 0,
+        }));
         break;
       case "complement":
         this.complement.set(value);
