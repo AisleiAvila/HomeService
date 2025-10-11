@@ -75,6 +75,7 @@ export class ServiceRequestFormComponent implements OnInit {
   // Método para verificar se o formulário está válido
   isFormValid(): boolean {
     const fields = this.validFields();
+    console.log("isFormValid chamado", JSON.stringify(fields));
     return (
       fields.title &&
       fields.description &&
@@ -135,11 +136,24 @@ export class ServiceRequestFormComponent implements OnInit {
             this.district.set(result.distrito || "");
             this.county.set(result.concelho || "");
             this.street.set(result.arteria_completa || "");
+            // Validar campos automáticos
+            this.validFields.update((fields) => ({
+              ...fields,
+              street: !!result.arteria_completa,
+              city: !!result.concelho,
+              state: !!result.distrito,
+            }));
           } else {
             this.locality.set("");
             this.district.set("");
             this.county.set("");
             this.street.set("");
+            this.validFields.update((fields) => ({
+              ...fields,
+              street: false,
+              city: false,
+              state: false,
+            }));
             this.formError.set("Código postal não encontrado.");
           }
         } else {
@@ -147,6 +161,12 @@ export class ServiceRequestFormComponent implements OnInit {
           this.district.set("");
           this.county.set("");
           this.street.set("");
+          this.validFields.update((fields) => ({
+            ...fields,
+            street: false,
+            city: false,
+            state: false,
+          }));
         }
         break;
       case "number":
@@ -181,5 +201,48 @@ export class ServiceRequestFormComponent implements OnInit {
     setTimeout(() => {
       this.formSuccess.set(null);
     }, duration);
+  }
+  // Chamada ao serviço para criar solicitação de serviço
+  async onSubmit() {
+    console.log("onSubmit chamado", {
+      title: this.title(),
+      description: this.description(),
+      category: this.category(),
+      requestedDateTime: this.requestedDateTime(),
+      street: this.street(),
+      number: this.number(),
+      complement: this.complement(),
+      zip_code: this.zip_code(),
+      locality: this.locality(),
+      district: this.district(),
+      county: this.county(),
+    });
+    if (!this.isFormValid()) {
+      this.formError.set(this.i18n.translate("formErrorGeneric"));
+      return;
+    }
+    try {
+      const address = {
+        street: this.street(),
+        city: this.locality(),
+        state: this.district(),
+        zip_code: this.zip_code(),
+        concelho: this.county(),
+        freguesia: undefined,
+      };
+      const payload = {
+        title: this.title(),
+        description: this.description(),
+        category: this.category(),
+        address,
+        requested_datetime: this.requestedDateTime(),
+      };
+      await this.dataService.addServiceRequest(payload);
+      this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));
+      // Opcional: resetar campos ou fechar modal
+      this.close.emit();
+    } catch (error) {
+      this.formError.set(this.i18n.translate("formErrorGeneric"));
+    }
   }
 }
