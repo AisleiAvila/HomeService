@@ -1,5 +1,27 @@
-<form class="space-y-6 p-4" autocomplete="off">
+<form class="space-y-6 p-4" autocomplete="off" (ngSubmit)="onSubmit()">
   <h2 class="text-xl font-bold mb-2">{{ "newServiceRequest" | i18n }}</h2>
+
+  <!-- Categoria -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="category">
+      {{ "category" | i18n }}
+    </label>
+    <select
+      id="category"
+      class="w-full border rounded px-3 py-2"
+      [value]="category()"
+      (change)="updateField('category', $event.target.value)"
+      required
+    >
+      <option value="" disabled selected>{{ "select" | i18n }}</option>
+      @for (cat of categories(); track cat) {
+      <option [value]="cat">{{ cat }}</option>
+      }
+    </select>
+    @if (!validFields().category && category()) {
+    <span class="text-xs text-red-500">{{ "selectCategory" | i18n }}</span>
+    }
+  </div>
 
   <!-- Título -->
   <div>
@@ -209,5 +231,11 @@
     >
       {{ "submit" | i18n }}
     </button>
+    <span
+      class="ml-4 text-xs"
+      [ngClass]="isFormValid() ? 'text-green-600' : 'text-red-600'"
+    >
+      {{ isFormValid() ? "Formulário válido" : "Formulário inválido" }}
+    </span>
   </div>
 </form>
