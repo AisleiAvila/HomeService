@@ -643,6 +643,7 @@ export class WorkflowService {
       ServiceStatus,
       { statuses: ServiceStatus[]; roles: string[] }
     > = {
+      // Portuguese statuses
       Solicitado: {
         statuses: ["Em análise", "Aguardando esclarecimentos", "Cancelado"],
         roles: ["admin"],
@@ -735,14 +736,32 @@ export class WorkflowService {
         statuses: ["Finalizado"],
         roles: ["admin", "client", "professional"],
       },
-      Finalizado: {
-        statuses: [],
-        roles: [],
-      },
-      Cancelado: {
-        statuses: [],
-        roles: [],
-      },
+      Finalizado: { statuses: [], roles: [] },
+      Cancelado: { statuses: [], roles: [] },
+      // English statuses (empty transitions, for type safety)
+      Requested: { statuses: [], roles: [] },
+      InAnalysis: { statuses: [], roles: [] },
+      AwaitingClarifications: { statuses: [], roles: [] },
+      QuoteSent: { statuses: [], roles: [] },
+      AwaitingQuoteApproval: { statuses: [], roles: [] },
+      QuoteApproved: { statuses: [], roles: [] },
+      QuoteRejected: { statuses: [], roles: [] },
+      AwaitingExecutionDate: { statuses: [], roles: [] },
+      DateProposedByAdmin: { statuses: [], roles: [] },
+      AwaitingDateApproval: { statuses: [], roles: [] },
+      DateApprovedByClient: { statuses: [], roles: [] },
+      DateRejectedByClient: { statuses: [], roles: [] },
+      SearchingProfessional: { statuses: [], roles: [] },
+      ProfessionalSelected: { statuses: [], roles: [] },
+      AwaitingProfessionalConfirmation: { statuses: [], roles: [] },
+      Assigned: { statuses: [], roles: [] },
+      Pending: { statuses: [], roles: [] },
+      Scheduled: { statuses: [], roles: [] },
+      InProgress: { statuses: [], roles: [] },
+      CompletedAwaitingApproval: { statuses: [], roles: [] },
+      Completed: { statuses: [], roles: [] },
+      Cancelled: { statuses: [], roles: [] },
+      Paid: { statuses: [], roles: [] },
     };
 
     const transition = validTransitions[currentStatus];

@@ -36,11 +36,6 @@ import { I18nService } from "@/src/i18n.service";
 })
 export class ServiceListComponent {
   constructor() {
-    // Log para depuração: array recebido via input
-    console.log(
-      "[ServiceListComponent] CONSTRUCTOR - serviceRequests input:",
-      this.serviceRequests()
-    );
     this.itemsPerPage.set(this.itemsPerPageDefault());
   }
   serviceRequests = input<ServiceRequest[]>();
@@ -88,13 +83,43 @@ export class ServiceListComponent {
 
   displayedRequests = computed(() => {
     if (!this.enablePagination()) {
-      return this.serviceRequests();
+      const reqs = this.serviceRequests();
+      console.log(
+        "[ServiceListComponent] displayedRequests (no pagination):",
+        reqs
+      );
+      if (Array.isArray(reqs)) {
+        reqs.forEach((r, i) => {
+          console.log(
+            `[ServiceListComponent] Request[${i}].id:`,
+            r.id,
+            "status:",
+            r.status
+          );
+        });
+      }
+      return reqs;
     }
 
     const requests = this.serviceRequests();
     const start = (this.currentPage() - 1) * this.itemsPerPage();
     const end = start + this.itemsPerPage();
-    return requests.slice(start, end);
+    const paginated = requests.slice(start, end);
+    console.log(
+      `[ServiceListComponent] displayedRequests (paginated):`,
+      paginated
+    );
+    if (Array.isArray(paginated)) {
+      paginated.forEach((r, i) => {
+        console.log(
+          `[ServiceListComponent] Paginated[${i}].id:`,
+          r.id,
+          "status:",
+          r.status
+        );
+      });
+    }
+    return paginated;
   });
 
   // Pagination helper methods
@@ -199,7 +224,11 @@ export class ServiceListComponent {
   }
 
   getStatusLabel(status: ServiceStatus): string {
-    return StatusUtilsService.getLabel(status, this.i18n);
+    const label = StatusUtilsService.getLabel(status, this.i18n);
+    console.log(
+      `[ServiceListComponent] getStatusLabel: status='${status}' => label='${label}'`
+    );
+    return label;
   }
 
   showBudgetApprovalModal = signal(false);

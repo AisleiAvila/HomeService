@@ -653,6 +653,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     descriptionMaxLength: "Description cannot exceed 2000 characters",
     titleMinLength: "Title must be at least 5 characters",
     titleMaxLength: "Title cannot exceed 100 characters",
+    noScheduledDate: "No scheduled date",
+    scheduledFor: "Scheduled for",
+    confirmStartService: "Are you sure you want to start this service?",
   },
   pt: {
     // General
@@ -1322,6 +1325,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     descriptionMaxLength: "A descrição não pode exceder 2000 caracteres",
     titleMinLength: "O título deve ter pelo menos 5 caracteres",
     titleMaxLength: "O título não pode exceder 100 caracteres",
+    noScheduledDate: "Sem data agendada",
+    scheduledFor: "Agendado para",
+    confirmStartService: "Tem certeza de que deseja iniciar este serviço?",
   },
 };
 
