@@ -63,16 +63,38 @@
     <label class="block text-sm font-medium mb-1" for="title">{{
       "title" | i18n
     }}</label>
-    <input
-      id="title"
-      type="text"
-      class="w-full border rounded px-3 py-2"
-      [value]="title()"
-      (input)="updateField('title', $event.target.value)"
-      required
-      minlength="3"
-      [placeholder]="'titlePlaceholder' | i18n"
-    />
+    <div class="relative">
+      <input
+        id="title"
+        type="text"
+        class="w-full border rounded px-3 py-2"
+        [ngClass]="!validFields().title && title() ? 'border-red-500' : ''"
+        [value]="title()"
+        (input)="updateField('title', $event.target.value)"
+        required
+        minlength="3"
+        [placeholder]="'titlePlaceholder' | i18n"
+      />
+      <span
+        *ngIf="!validFields().title && title()"
+        class="absolute right-2 top-2 text-red-500"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+          />
+        </svg>
+      </span>
+    </div>
     <span *ngIf="!validFields().title && title()" class="text-xs text-red-500">
       {{ "titleMinLength" | i18n }}
     </span>
@@ -83,15 +105,39 @@
     <label class="block text-sm font-medium mb-1" for="description">
       {{ "description" | i18n }}
     </label>
-    <textarea
-      id="description"
-      class="w-full border rounded px-3 py-2"
-      [value]="description()"
-      (input)="updateField('description', $event.target.value)"
-      required
-      minlength="10"
-      [placeholder]="'descriptionPlaceholder' | i18n"
-    ></textarea>
+    <div class="relative">
+      <textarea
+        id="description"
+        class="w-full border rounded px-3 py-2"
+        [ngClass]="
+          !validFields().description && description() ? 'border-red-500' : ''
+        "
+        [value]="description()"
+        (input)="updateField('description', $event.target.value)"
+        required
+        minlength="10"
+        [placeholder]="'descriptionPlaceholder' | i18n"
+      ></textarea>
+      <span
+        *ngIf="!validFields().description && description()"
+        class="absolute right-2 top-2 text-red-500"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+          />
+        </svg>
+      </span>
+    </div>
     <span
       *ngIf="!validFields().description && description()"
       class="text-xs text-red-500"
@@ -105,15 +151,41 @@
     <label class="block text-sm font-medium mb-1" for="requestedDateTime">
       {{ "dateTime" | i18n }}
     </label>
-    <input
-      id="requestedDateTime"
-      type="datetime-local"
-      class="w-full border rounded px-3 py-2"
-      [value]="requestedDateTime()"
-      (input)="updateField('requestedDateTime', $event.target.value)"
-      required
-      [placeholder]="'dateTimePlaceholder' | i18n"
-    />
+    <div class="relative">
+      <input
+        id="requestedDateTime"
+        type="datetime-local"
+        class="w-full border rounded px-3 py-2"
+        [ngClass]="
+          !validFields().requestedDateTime && requestedDateTime()
+            ? 'border-red-500'
+            : ''
+        "
+        [value]="requestedDateTime()"
+        (input)="updateField('requestedDateTime', $event.target.value)"
+        required
+        [placeholder]="'dateTimePlaceholder' | i18n"
+      />
+      <span
+        *ngIf="!validFields().requestedDateTime && requestedDateTime()"
+        class="absolute right-2 top-2 text-red-500"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+          />
+        </svg>
+      </span>
+    </div>
     <span
       *ngIf="!validFields().requestedDateTime && requestedDateTime()"
       class="text-xs text-red-500"
@@ -133,20 +205,44 @@
       <label class="block text-sm font-medium mb-1" for="zip_code">
         {{ "postalCode" | i18n }}
       </label>
-      <input
-        id="zip_code"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="zip_code()"
-        (input)="updateField('zip_code', $event.target.value)"
-        (paste)="onZipCodePaste($event)"
-        required
-        pattern="\d{4}-\d{3}"
-        maxlength="8"
-        inputmode="numeric"
-        [placeholder]="'postalCodePlaceholder' | i18n"
-        autocomplete="postal-code"
-      />
+      <div class="relative">
+        <input
+          id="zip_code"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          [ngClass]="
+            !validFields().zip_code && zip_code() ? 'border-red-500' : ''
+          "
+          [value]="zip_code()"
+          (input)="updateField('zip_code', $event.target.value)"
+          (paste)="onZipCodePaste($event)"
+          required
+          pattern="\d{4}-\d{3}"
+          maxlength="8"
+          inputmode="numeric"
+          [placeholder]="'postalCodePlaceholder' | i18n"
+          autocomplete="postal-code"
+        />
+        <span
+          *ngIf="!validFields().zip_code && zip_code()"
+          class="absolute right-2 top-2 text-red-500"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+            />
+          </svg>
+        </span>
+      </div>
       <span
         *ngIf="!validFields().zip_code && zip_code()"
         class="text-xs text-red-500"
@@ -173,15 +269,41 @@
       <label class="block text-sm font-medium mb-1" for="number">
         {{ "number" | i18n }}
       </label>
-      <input
-        id="number"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="number()"
-        (input)="updateField('number', $event.target.value)"
-        required
-        [placeholder]="'numberPlaceholder' | i18n"
-      />
+      <div class="relative">
+        <input
+          id="number"
+          type="text"
+          class="w-full border rounded px-3 py-2"
+          [ngClass]="
+            number() && number().length > 0 && !validFields().number
+              ? 'border-red-500'
+              : ''
+          "
+          [value]="number()"
+          (input)="updateField('number', $event.target.value)"
+          required
+          [placeholder]="'numberPlaceholder' | i18n"
+        />
+        <span
+          *ngIf="number() && number().length > 0 && !validFields().number"
+          class="absolute right-2 top-2 text-red-500"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
+            />
+          </svg>
+        </span>
+      </div>
     </div>
     <div>
       <label class="block text-sm font-medium mb-1" for="complement">

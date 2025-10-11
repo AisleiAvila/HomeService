@@ -643,6 +643,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     value: "Value",
     errorFinishingService: "Error finishing service. Please try again.",
     searchPlaceholder: "Search by ID, title, client, professional...",
+    complementPlaceholder: "Apartment, floor, block...",
+    numberPlaceholder: "Enter the number",
+    logradouroPlaceholder: "Street name",
+    streetPlaceholder: "Street/Avenue",
+    districtPlaceholder: "District",
+    cityPlaceholder: "City",
   },
   pt: {
     // General
@@ -1302,6 +1308,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     value: "Valor",
     errorFinishingService: "Erro ao finalizar serviço. Tente novamente.",
     searchPlaceholder: "Buscar por ID, título, cliente, profissional...",
+    complementPlaceholder: "Apartamento, andar, bloco...",
+    numberPlaceholder: "Digite o número",
+    logradouroPlaceholder: "Nome da rua",
+    streetPlaceholder: "Rua/Avenida",
+    districtPlaceholder: "Distrito",
+    cityPlaceholder: "Concelho",
   },
 };
 
