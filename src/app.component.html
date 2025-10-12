@@ -216,7 +216,16 @@
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
                 <ng-container *ngIf="currentUser()?.role === 'admin'">
-                  <app-admin-dashboard />
+                  <ng-container [ngSwitch]="adminView">
+                    <ng-container *ngSwitchCase="'categories'">
+                      <app-category-management #categoryManagement />
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                      <app-admin-dashboard
+                        (navigateToCategories)="adminView = 'categories'"
+                      />
+                    </ng-container>
+                  </ng-container>
                 </ng-container>
                 <ng-container *ngIf="currentUser()?.role !== 'admin'">
                   <app-dashboard
@@ -256,6 +265,34 @@
                   />
                 </ng-container>
               </ng-container>
+            </ng-container>
+            <!-- Modal de confirmação de deleção de categoria -->
+            <ng-container *ngIf="categoryManagement?.showDeleteModal()">
+              <app-modal
+                [isVisible]="true"
+                [title]="'delete' | i18n"
+                [message]="
+                  i18n.translate('confirmDeleteCategory', {
+                    category: categoryManagement?.categoryToDelete()?.name || ''
+                  })
+                "
+                (closed)="categoryManagement?.cancelDeleteCategory()"
+              >
+                <button
+                  type="button"
+                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2"
+                  (click)="categoryManagement?.confirmDeleteCategory()"
+                >
+                  {{ "delete" | i18n }}
+                </button>
+                <button
+                  type="button"
+                  class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  (click)="categoryManagement?.cancelDeleteCategory()"
+                >
+                  {{ "cancel" | i18n }}
+                </button>
+              </app-modal>
             </ng-container>
           </ng-template>
         </main>

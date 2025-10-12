@@ -26,6 +26,7 @@ import { WorkflowService } from "../../services/workflow.service";
 import { StatusPieChartComponent } from "../status-pie-chart.component";
 import { CategoryBarChartComponent } from "../category-bar-chart.component";
 import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.component";
+import { CategoryManagementComponent } from "../category-management/category-management.component";
 import { StatusService } from "@/src/services/status.service";
 
 @Component({
@@ -38,6 +39,7 @@ import { StatusService } from "@/src/services/status.service";
     StatusPieChartComponent,
     CategoryBarChartComponent,
     TemporalEvolutionChartComponent,
+    CategoryManagementComponent,
   ],
   templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -317,7 +319,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     | "clients"
   >("overview");
   showAddProfessionalForm = signal(false);
-  editingCategory = signal<string | null>(null);
+  editingCategory = signal<ServiceCategory | null>(null);
   editingCategoryName = signal("");
 
   // Auto-refresh state
@@ -328,13 +330,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   newCategory = signal("");
   newProfessionalName = signal("");
   newProfessionalEmail = signal("");
-  newProfessionalSpecialties = signal<string[]>([]);
+  newProfessionalSpecialties = signal<ServiceCategory[]>([]);
 
   // Edit professional data
   editingProfessional = signal<User | null>(null);
   editingProfessionalName = signal("");
   editingProfessionalEmail = signal("");
-  editingProfessionalSpecialties = signal<string[]>([]);
+  editingProfessionalSpecialties = signal<ServiceCategory[]>([]);
 
   // Quote and assignment data
   quoteRequest = signal<ServiceRequest | null>(null);
@@ -363,11 +365,23 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // Computed: distribuição de pedidos por categoria
   ordersByCategory = computed(() => {
     const requests = this.dataService.serviceRequests();
+    const categories = this.dataService.categories();
     const categoryMap: Record<string, number> = {};
 
     for (const req of requests) {
-      const category = req.category || "Sem categoria";
-      categoryMap[category] = (categoryMap[category] || 0) + 1;
+      // Se existir category_id, conta pelo id, senão agrupa como "Sem categoria"
+      const catId = req.category_id || "none";
+      categoryMap[catId] = (categoryMap[catId] || 0) + 1;
+    }
+
+    // Garante que todas categorias aparecem, mesmo sem pedidos
+    categories.forEach((cat) => {
+      if (!(cat.id in categoryMap)) categoryMap[cat.id] = 0;
+    });
+
+    // Adiciona "Sem categoria" se houver algum
+    if (categoryMap["none"] !== undefined) {
+      categoryMap["none"] = categoryMap["none"];
     }
 
     return categoryMap;
@@ -378,13 +392,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const categories = this.dataService.categories();
     const labels: Record<string, string> = {};
 
-    // Mapeia as categorias existentes
+    // Mapeia as categorias existentes pelo id
     categories.forEach((category) => {
-      labels[category] = category;
+      labels[category.id] = category.name;
     });
 
     // Adiciona label para "Sem categoria"
-    labels["Sem categoria"] = this.i18n.translate("noCategory");
+    labels["none"] = this.i18n.translate("noCategory");
 
     return labels;
   });
@@ -977,11 +991,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.resetSchedulingFields();
   }
 
-  getProfessionalsForRequest(category: string): User[] {
+  getProfessionalsForRequest(category_id: number): User[] {
+    // category_id agora é number
     const filtered = this.professionals().filter(
-      (p) => p.specialties?.includes(category) || !p.specialties?.length
+      (p) =>
+        p.specialties?.some((cat) => cat.id === category_id) ||
+        !p.specialties?.length
     );
-    // Se não houver profissionais filtrados, retorna todos ativos como fallback
     return filtered.length > 0 ? filtered : this.professionals();
   }
 
@@ -1148,15 +1164,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Professional management
-  toggleNewProfessionalSpecialty(category: string, event: Event) {
+  toggleNewProfessionalSpecialty(category: ServiceCategory, event: Event) {
+    // category agora é ServiceCategory
     const checked = (event.target as HTMLInputElement).checked;
     const current = this.newProfessionalSpecialties();
-
     if (checked) {
-      this.newProfessionalSpecialties.set([...current, category]);
+      if (!current.some((c) => c.id === category.id)) {
+        this.newProfessionalSpecialties.set([...current, category]);
+      }
     } else {
       this.newProfessionalSpecialties.set(
-        current.filter((s) => s !== category)
+        current.filter((s) => s.id !== category.id)
       );
     }
   }
@@ -1192,18 +1210,22 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.editingProfessional.set(professional);
     this.editingProfessionalName.set(professional.name);
     this.editingProfessionalEmail.set(professional.email);
-    this.editingProfessionalSpecialties.set(professional.specialties || []);
+    this.editingProfessionalSpecialties.set(
+      professional.specialties ? [...professional.specialties] : []
+    );
   }
 
-  toggleEditProfessionalSpecialty(category: string, event: Event) {
+  toggleEditProfessionalSpecialty(category: ServiceCategory, event: Event) {
+    // category agora é ServiceCategory
     const checked = (event.target as HTMLInputElement).checked;
     const current = this.editingProfessionalSpecialties();
-
     if (checked) {
-      this.editingProfessionalSpecialties.set([...current, category]);
+      if (!current.some((c) => c.id === category.id)) {
+        this.editingProfessionalSpecialties.set([...current, category]);
+      }
     } else {
       this.editingProfessionalSpecialties.set(
-        current.filter((s) => s !== category)
+        current.filter((s) => s.id !== category.id)
       );
     }
   }
@@ -1235,49 +1257,51 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Category management
-  startEditCategory(category: string) {
+  startEditCategory(category: ServiceCategory) {
+    // category agora é ServiceCategory
     this.editingCategory.set(category);
-    this.editingCategoryName.set(category);
+    this.editingCategoryName.set(category.name);
   }
 
   saveCategoryEdit() {
     const oldCategory = this.editingCategory();
     const newName = this.editingCategoryName().trim();
-
-    if (!oldCategory || !newName || newName === oldCategory) {
+    if (!oldCategory || !newName || newName === oldCategory.name) {
       this.editingCategory.set(null);
       return;
     }
-
-    if (this.allCategories().includes(newName)) {
+    if (this.allCategories().some((cat) => cat.name === newName)) {
       this.notificationService.addNotification(
         this.i18n.translate("categoryAlreadyExists")
       );
       return;
     }
-
-    // Update category in the list
     this.allCategories.update((cats) =>
-      cats.map((cat) => (cat === oldCategory ? newName : cat))
+      cats.map((cat) =>
+        cat.id === oldCategory.id ? { ...cat, name: newName } : cat
+      )
     );
-
     this.notificationService.addNotification(
-      this.i18n.translate("categoryUpdated", { old: oldCategory, new: newName })
+      this.i18n.translate("categoryUpdated", {
+        old: oldCategory.name,
+        new: newName,
+      })
     );
-
     this.editingCategory.set(null);
     this.editingCategoryName.set("");
   }
 
   addCategory() {
-    const cat = this.newCategory().trim();
-    if (cat && !this.allCategories().includes(cat)) {
-      this.allCategories.update((cats) => [...cats, cat]);
+    const catName = this.newCategory().trim();
+    if (catName && !this.allCategories().some((cat) => cat.name === catName)) {
+      // Cria novo objeto ServiceCategory
+      const newCat: ServiceCategory = { id: Date.now(), name: catName };
+      this.allCategories.update((cats) => [...cats, newCat]);
       this.newCategory.set("");
       this.notificationService.addNotification(
-        this.i18n.translate("categoryAdded", { category: cat })
+        this.i18n.translate("categoryAdded", { category: catName })
       );
-    } else if (this.allCategories().includes(cat)) {
+    } else if (this.allCategories().some((cat) => cat.name === catName)) {
       this.notificationService.addNotification(
         this.i18n.translate("categoryAlreadyExists")
       );
@@ -1288,15 +1312,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (
       confirm(
         this.i18n.translate("confirmDeleteCategory", {
-          category: categoryToDelete,
+          category: categoryToDelete.name,
         })
       )
     ) {
       this.allCategories.update((cats) =>
-        cats.filter((c) => c !== categoryToDelete)
+        cats.filter((c) => c.id !== categoryToDelete.id)
       );
       this.notificationService.addNotification(
-        this.i18n.translate("categoryDeleted", { category: categoryToDelete })
+        this.i18n.translate("categoryDeleted", {
+          category: categoryToDelete.name,
+        })
       );
     }
   }

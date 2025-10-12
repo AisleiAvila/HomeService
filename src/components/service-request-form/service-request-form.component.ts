@@ -12,6 +12,7 @@ import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
+import type { ServiceCategory } from "../../models/maintenance.models";
 @Component({
   selector: "app-service-request-form",
   standalone: true,
@@ -53,20 +54,15 @@ export class ServiceRequestFormComponent implements OnInit {
   private dataService = inject(DataService);
   private i18n = inject(I18nService);
 
-  categories = signal<string[]>([]);
-  // Sinais para os campos do formulário
+  categories = signal<ServiceCategory[]>([]);
   title = signal<string>("");
   description = signal<string>("");
-  category = signal<string>("");
+  requestedDateTime = signal<string>("");
   ngOnInit() {
     // Busca categorias do DataService (signal)
-    const cats = this.dataService.categories();
-    // Se ServiceCategory for objeto, mapeie para string
-    this.categories.set(
-      cats.map((c: any) => (typeof c === "string" ? c : c.name || String(c)))
-    );
+    this.categories.set(this.dataService.categories());
   }
-  requestedDateTime = signal<string>("");
+  category_id = signal<number | null>(null);
   street = signal<string>("");
   city = signal<string>("");
   state = signal<string>("");
@@ -85,7 +81,7 @@ export class ServiceRequestFormComponent implements OnInit {
   validFields = signal<{
     title: boolean;
     description: boolean;
-    category: boolean;
+    category_id: boolean;
     requestedDateTime: boolean;
     street: boolean;
     city: boolean;
@@ -95,7 +91,7 @@ export class ServiceRequestFormComponent implements OnInit {
   }>({
     title: false,
     description: false,
-    category: false,
+    category_id: false,
     requestedDateTime: false,
     street: false,
     city: false,
@@ -107,11 +103,10 @@ export class ServiceRequestFormComponent implements OnInit {
   // Método para verificar se o formulário está válido
   isFormValid(): boolean {
     const fields = this.validFields();
-    console.log("isFormValid chamado", JSON.stringify(fields));
     return (
       fields.title &&
       fields.description &&
-      fields.category &&
+      fields.category_id &&
       fields.requestedDateTime &&
       fields.street &&
       fields.city &&
@@ -141,9 +136,12 @@ export class ServiceRequestFormComponent implements OnInit {
           description: value.length >= 10,
         }));
         break;
-      case "category":
-        this.category.set(value);
-        this.validFields.update((fields) => ({ ...fields, category: !!value }));
+      case "category_id":
+        this.category_id.set(Number(value));
+        this.validFields.update((fields) => ({
+          ...fields,
+          category_id: !!value,
+        }));
         break;
       case "requestedDateTime":
         this.requestedDateTime.set(value);
@@ -252,8 +250,8 @@ export class ServiceRequestFormComponent implements OnInit {
     console.log("onSubmit chamado", {
       title: this.title(),
       description: this.description(),
-      category: this.category(),
-      requestedDateTime: this.requestedDateTime(),
+      // category removido, agora usamos category_id
+      // requestedDateTime removido, agora usamos requested_datetime
       street: this.street(),
       number: this.number(),
       complement: this.complement(),
@@ -285,7 +283,7 @@ export class ServiceRequestFormComponent implements OnInit {
       const payload = {
         title: this.title(),
         description: this.description(),
-        category: this.category(),
+        category_id: this.category_id(),
         address,
         requested_datetime: this.requestedDateTime(),
       };

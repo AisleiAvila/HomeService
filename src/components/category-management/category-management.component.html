@@ -1,0 +1,152 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="md:col-span-1 bg-white p-6 rounded-lg shadow-md">
+    <h3 class="text-xl font-semibold mb-4">
+      {{ "addNewCategory" | i18n }}
+    </h3>
+    <div class="space-y-4">
+      <div class="flex space-x-2">
+        <input
+          type="text"
+          [value]="newCategory()"
+          (input)="newCategory.set($event.target.value)"
+          [placeholder]="'categoryName' | i18n"
+          class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          (keydown.enter)="addCategory()"
+        />
+        <button
+          (click)="addCategory()"
+          [disabled]="!newCategory().trim()"
+          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          {{ "add" | i18n }}
+        </button>
+      </div>
+      <!-- Error message for duplicate category -->
+      <p *ngIf="categoryExists(newCategory())" class="text-sm text-red-600">
+        {{ "categoryAlreadyExists" | i18n }}
+      </p>
+    </div>
+  </div>
+  <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
+    <h3 class="text-xl font-semibold mb-4">
+      {{ "serviceCategories" | i18n }}
+    </h3>
+    <ng-container *ngIf="allCategories().length === 0; else categoryList">
+      <p class="text-gray-500 text-center py-8">
+        {{ "noCategoriesAvailable" | i18n }}
+      </p>
+    </ng-container>
+    <ng-template #categoryList>
+      <ul class="divide-y divide-gray-200">
+        <li
+          *ngFor="let cat of allCategories(); trackBy: trackById"
+          class="py-3 flex justify-between items-center"
+        >
+          <ng-container *ngIf="editingCategory() === cat; else viewMode">
+            <input
+              type="text"
+              [(ngModel)]="editingCategoryName"
+              class="p-2 border rounded-md flex-grow mr-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              (keydown.enter)="saveCategoryEdit()"
+              (keydown.escape)="editingCategory.set(null)"
+            />
+            <div class="space-x-2 ml-2">
+              <button
+                (click)="saveCategoryEdit()"
+                class="text-green-600 hover:text-green-800 p-1"
+                title="Save"
+              >
+                <i class="fas fa-check"></i>
+              </button>
+              <button
+                (click)="editingCategory.set(null)"
+                class="text-gray-500 hover:text-gray-700 p-1"
+                title="Cancel"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </ng-container>
+          <ng-template #viewMode>
+            <span class="font-medium">{{ cat.name }}</span>
+            <div class="space-x-4">
+              <button
+                (click)="startEditCategory(cat)"
+                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+              >
+                {{ "edit" | i18n }}
+              </button>
+              <button
+                (click)="requestDeleteCategory(cat)"
+                class="text-red-600 hover:text-red-900 text-sm font-medium"
+              >
+                {{ "delete" | i18n }}
+              </button>
+            </div>
+          </ng-template>
+        </li>
+      </ul>
+    </ng-template>
+
+    <!-- Modal de confirmação de deleção -->
+    <div
+      *ngIf="showDeleteModal() && categoryToDelete()"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-900">
+            {{ "delete" | i18n }}
+          </h2>
+          <button
+            type="button"
+            (click)="cancelDeleteCategory()"
+            class="text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div class="mb-6">
+          <p class="text-gray-700">
+            {{
+              i18n.translate("confirmDeleteCategory", {
+                category: categoryToDelete()?.name || ""
+              })
+            }}
+          </p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button
+            type="button"
+            (click)="confirmDeleteCategory()"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            {{ "delete" | i18n }}
+          </button>
+          <button
+            type="button"
+            (click)="cancelDeleteCategory()"
+            class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+          >
+            {{ "cancel" | i18n }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
