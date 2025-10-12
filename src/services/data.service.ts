@@ -4,6 +4,7 @@ import {
   PaymentStatus,
   SchedulingStatus,
   ServiceCategory,
+  ServiceSubcategory,
   ServiceClarification,
   ServiceRequest,
   ServiceRequestPayload,
@@ -73,6 +74,82 @@ export class DataService {
   readonly serviceRequests = signal<ServiceRequest[]>([]);
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly categories = signal<ServiceCategory[]>([]);
+  readonly subcategories = signal<ServiceSubcategory[]>([]);
+
+  /** Remove uma categoria de serviço */
+  async deleteCategory(id: number): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from("service_categories")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao remover categoria: " + error.message
+      );
+      return false;
+    }
+    // Atualiza signal local
+    const updated = this.categories().filter((cat) => cat.id !== id);
+    this.categories.set(updated);
+    this.notificationService.addNotification("Categoria removida com sucesso!");
+    return true;
+  }
+
+  /** Adiciona uma nova categoria de serviço */
+  async addCategory(name: string): Promise<ServiceCategory | null> {
+    const { data, error } = await this.supabase.client
+      .from("service_categories")
+      .insert({ name })
+      .select("id, name")
+      .single();
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao criar categoria: " + error.message
+      );
+      return null;
+    }
+    if (data) {
+      // Atualiza signal local
+      const updated = [...this.categories(), data as ServiceCategory];
+      this.categories.set(updated);
+      this.notificationService.addNotification("Categoria criada com sucesso!");
+      return data as ServiceCategory;
+    }
+    return null;
+  }
+  /** Atualiza o nome de uma categoria de serviço */
+  async updateCategory(
+    id: number,
+    name: string
+  ): Promise<ServiceCategory | null> {
+    const { data, error } = await this.supabase.client
+      .from("service_categories")
+      .update({ name })
+      .eq("id", id)
+      .select("id, name")
+      .single();
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao atualizar categoria: " + error.message
+      );
+      return null;
+    }
+    if (data) {
+      // Atualiza signal local
+      const updated = this.categories().map((cat) =>
+        cat.id === id ? { ...cat, name: data.name } : cat
+      );
+      this.categories.set(updated);
+      this.notificationService.addNotification(
+        "Categoria atualizada com sucesso!"
+      );
+      return data as ServiceCategory;
+    }
+    return null;
+  }
 
   /** Auxiliar para atualizar status usando StatusService enum */
   private setServiceStatus(requestId: number, status: StatusService) {
@@ -90,6 +167,7 @@ export class DataService {
     await this.fetchUsers();
     await this.fetchServiceRequests(currentUser);
     await this.fetchCategories();
+    await this.fetchSubcategories();
   }
 
   clearData() {
@@ -182,7 +260,7 @@ export class DataService {
   private async fetchCategories() {
     const { data, error } = await this.supabase.client
       .from("service_categories")
-      .select("*")
+      .select("id, name")
       .order("name");
 
     if (error) {
@@ -195,9 +273,27 @@ export class DataService {
       );
       // Keep default categories if fetch fails
     } else if (data && data.length > 0) {
-      this.categories.set(data.map((cat: any) => cat.name));
+      this.categories.set(data as ServiceCategory[]);
     } else {
       console.log("No categories found in Supabase, keeping sample data");
+    }
+  }
+
+  private async fetchSubcategories() {
+    const { data, error } = await this.supabase.client
+      .from("service_subcategories")
+      .select("id, name, category_id")
+      .order("name");
+
+    if (error) {
+      console.log("Error fetching subcategories from Supabase:", error.message);
+      this.notificationService.addNotification(
+        "Erro ao buscar subcategorias: " + error.message
+      );
+    } else if (data && data.length > 0) {
+      this.subcategories.set(data as ServiceSubcategory[]);
+    } else {
+      console.log("No subcategories found in Supabase.");
     }
   }
 
@@ -211,12 +307,12 @@ export class DataService {
     const requestedDateTime = payload.requested_datetime;
 
     const { StatusService } = await import("../services/status.service");
-    const newRequestData = {
+    const newRequestData: any = {
       client_id: currentUser.id,
       client_auth_id: currentUser.auth_id,
       title: payload.title,
       description: payload.description,
-      category: payload.category,
+      category_id: payload.category_id,
       street: payload.address.street,
       city: payload.address.city,
       state: payload.address.state,
@@ -225,6 +321,9 @@ export class DataService {
       status: StatusService.Requested,
       payment_status: "Unpaid",
     };
+    if (payload.subcategory_id) {
+      newRequestData.subcategory_id = payload.subcategory_id;
+    }
     const { error } = await this.supabase.client
       .from("service_requests")
       .insert(newRequestData);

@@ -33,7 +33,7 @@ export class TimeReportsComponent {
   selectedDateRange = signal<"today" | "week" | "month" | "custom">("week");
   customStartDate = signal<string>("");
   customEndDate = signal<string>("");
-  selectedCategory = signal<string>("all");
+  selectedCategory = signal<number | "all">("all");
 
   // Computed properties
   currentUser = this.authService.appUser;
@@ -48,10 +48,11 @@ export class TimeReportsComponent {
 
   filteredRequests = computed(() => {
     let requests = this.allRequests();
-
     // Filtrar por categoria
     if (this.selectedCategory() !== "all") {
-      requests = requests.filter((r) => r.category === this.selectedCategory());
+      requests = requests.filter(
+        (r) => r.category_id === this.selectedCategory()
+      );
     }
 
     // Filtrar por período
