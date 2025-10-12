@@ -55,7 +55,18 @@ export type PaymentStatus =
   | "Processing"
   | "Released"
   | "Disputed";
-export type ServiceCategory = string; // E.g., 'Plumbing', 'Electrical', 'Cleaning'
+export interface ServiceCategory {
+  id: number;
+  name: string;
+  subcategories?: ServiceSubcategory[];
+}
+
+// Subcategoria de serviço
+export interface ServiceSubcategory {
+  id: number;
+  name: string;
+  category_id: number; // FK para ServiceCategory
+}
 
 // Novos tipos para o fluxo de trabalho expandido
 export type NotificationType =
@@ -158,7 +169,10 @@ export interface ServiceRequest {
   professional_auth_id?: string | null; // UUID from Supabase Auth
   title: string;
   description: string;
-  category: ServiceCategory;
+  category_id: number; // FK para service_categories
+  category?: ServiceCategory; // Objeto populado via JOIN
+  subcategory_id?: number; // FK para service_subcategories
+  subcategory?: ServiceSubcategory; // Objeto populado via JOIN
   street: string;
   city: string;
   state: string;
@@ -359,7 +373,8 @@ export interface WorkflowStats {
 export interface ServiceRequestPayload {
   title: string;
   description: string;
-  category: ServiceCategory;
+  category_id: number;
+  subcategory_id?: number;
   address: Address;
   requested_datetime: string; // Data e hora solicitada pelo cliente (ISO string) - OBRIGATÓRIO
 }

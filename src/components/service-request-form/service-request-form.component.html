@@ -36,23 +36,23 @@
   </div>
   <!-- Categoria -->
   <div>
-    <label class="block text-sm font-medium mb-1" for="category">
+    <label class="block text-sm font-medium mb-1" for="category_id">
       {{ "category" | i18n }}
     </label>
     <select
-      id="category"
+      id="category_id"
       class="w-full border rounded px-3 py-2"
-      [value]="category()"
-      (change)="updateField('category', $event.target.value)"
+      [value]="category_id() || ''"
+      (change)="updateField('category_id', $event.target.value)"
       required
     >
       <option value="" disabled selected>{{ "select" | i18n }}</option>
       <ng-container *ngFor="let cat of categories()">
-        <option [value]="cat">{{ cat }}</option>
+        <option [value]="cat.id">{{ cat.name }}</option>
       </ng-container>
     </select>
     <span
-      *ngIf="!validFields().category && category()"
+      *ngIf="!validFields().category_id && category_id()"
       class="text-xs text-red-500"
       >{{ "selectCategory" | i18n }}</span
     >
