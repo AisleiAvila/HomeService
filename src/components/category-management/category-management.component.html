@@ -1,152 +1,455 @@
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-  <div class="md:col-span-1 bg-white p-6 rounded-lg shadow-md">
-    <h3 class="text-xl font-semibold mb-4">
-      {{ "addNewCategory" | i18n }}
-    </h3>
-    <div class="space-y-4">
-      <div class="flex space-x-2">
+<!-- Modal de edição de categoria -->
+<div
+  *ngIf="editingCategory()"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+>
+  <div
+    class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-bold text-gray-900">Editar Categoria</h2>
+      <button
+        type="button"
+        (click)="editingCategory.set(null)"
+        class="text-gray-400 hover:text-gray-600 focus:outline-none"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <div class="mb-4">
+      <input
+        type="text"
+        [value]="editingCategoryName()"
+        (input)="editingCategoryName.set($event.target.value)"
+        placeholder="Novo nome da categoria"
+        class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        (keydown.enter)="saveCategoryEdit()"
+      />
+    </div>
+    <div class="flex justify-end gap-2">
+      <button
+        type="button"
+        (click)="saveCategoryEdit()"
+        [disabled]="
+          !editingCategoryName().trim() ||
+          editingCategoryName().trim() === editingCategory()?.name
+        "
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      >
+        Salvar
+      </button>
+      <button
+        type="button"
+        (click)="editingCategory.set(null)"
+        class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+<div class="container mx-auto p-6">
+  <!-- Modal de inclusão de nova categoria -->
+  <div
+    *ngIf="showAddCategoryModal()"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  >
+    <div
+      class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Add New Category</h2>
+        <button
+          type="button"
+          (click)="closeAddCategoryModal()"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      <div class="mb-4">
         <input
           type="text"
           [value]="newCategory()"
           (input)="newCategory.set($event.target.value)"
-          [placeholder]="'categoryName' | i18n"
-          class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="Category Name"
+          class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           (keydown.enter)="addCategory()"
         />
-        <button
-          (click)="addCategory()"
-          [disabled]="!newCategory().trim()"
-          class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+        <p
+          *ngIf="categoryExists(newCategory())"
+          class="text-sm text-red-600 mt-2"
         >
-          {{ "add" | i18n }}
+          Category already exists
+        </p>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="addCategory()"
+          [disabled]="!newCategory().trim() || categoryExists(newCategory())"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Add
+        </button>
+        <button
+          type="button"
+          (click)="closeAddCategoryModal()"
+          class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+        >
+          Cancel
         </button>
       </div>
-      <!-- Error message for duplicate category -->
-      <p *ngIf="categoryExists(newCategory())" class="text-sm text-red-600">
-        {{ "categoryAlreadyExists" | i18n }}
-      </p>
     </div>
   </div>
-  <div class="md:col-span-2 bg-white p-6 rounded-lg shadow-md">
-    <h3 class="text-xl font-semibold mb-4">
-      {{ "serviceCategories" | i18n }}
-    </h3>
-    <ng-container *ngIf="allCategories().length === 0; else categoryList">
-      <p class="text-gray-500 text-center py-8">
-        {{ "noCategoriesAvailable" | i18n }}
-      </p>
-    </ng-container>
-    <ng-template #categoryList>
-      <ul class="divide-y divide-gray-200">
-        <li
-          *ngFor="let cat of allCategories(); trackBy: trackById"
-          class="py-3 flex justify-between items-center"
-        >
-          <ng-container *ngIf="editingCategory() === cat; else viewMode">
-            <input
-              type="text"
-              [(ngModel)]="editingCategoryName"
-              class="p-2 border rounded-md flex-grow mr-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              (keydown.enter)="saveCategoryEdit()"
-              (keydown.escape)="editingCategory.set(null)"
-            />
-            <div class="space-x-2 ml-2">
-              <button
-                (click)="saveCategoryEdit()"
-                class="text-green-600 hover:text-green-800 p-1"
-                title="Save"
-              >
-                <i class="fas fa-check"></i>
-              </button>
-              <button
-                (click)="editingCategory.set(null)"
-                class="text-gray-500 hover:text-gray-700 p-1"
-                title="Cancel"
-              >
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </ng-container>
-          <ng-template #viewMode>
-            <span class="font-medium">{{ cat.name }}</span>
-            <div class="space-x-4">
-              <button
-                (click)="startEditCategory(cat)"
-                class="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-              >
-                {{ "edit" | i18n }}
-              </button>
-              <button
-                (click)="requestDeleteCategory(cat)"
-                class="text-red-600 hover:text-red-900 text-sm font-medium"
-              >
-                {{ "delete" | i18n }}
-              </button>
-            </div>
-          </ng-template>
-        </li>
-      </ul>
-    </ng-template>
-
-    <!-- Modal de confirmação de deleção -->
-    <div
-      *ngIf="showDeleteModal() && categoryToDelete()"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  <div class="flex justify-between items-center mb-6">
+    <h3 class="text-xl font-semibold">Service Categories</h3>
+    <button
+      (click)="showAddCategoryModal.set(true)"
+      class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-200"
     >
-      <div
-        class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
-        (click)="$event.stopPropagation()"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-900">
-            {{ "delete" | i18n }}
-          </h2>
-          <button
-            type="button"
-            (click)="cancelDeleteCategory()"
-            class="text-gray-400 hover:text-gray-600 focus:outline-none"
+      Add New Category
+    </button>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+      <thead>
+        <tr>
+          <th
+            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            Categoria
+          </th>
+          <th
+            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
+          >
+            Ações
+          </th>
+          <th
+            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
+          >
+            Subcategorias
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let cat of allCategories(); trackBy: trackById"
+          class="border-b"
+        >
+          <td class="px-4 py-2 text-lg text-gray-800">{{ cat.name }}</td>
+          <td class="px-4 py-2 flex gap-2">
+            <button
+              type="button"
+              (click)="startEditCategory(cat)"
+              class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-          </button>
-        </div>
-        <div class="mb-6">
-          <p class="text-gray-700">
-            {{
-              i18n.translate("confirmDeleteCategory", {
-                category: categoryToDelete()?.name || ""
-              })
-            }}
-          </p>
-        </div>
-        <div class="flex justify-end gap-2">
-          <button
-            type="button"
-            (click)="confirmDeleteCategory()"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              Editar
+            </button>
+            <button
+              type="button"
+              (click)="requestDeleteCategory(cat)"
+              class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+            >
+              Excluir
+            </button>
+          </td>
+          <td class="px-4 py-2">
+            <button
+              type="button"
+              (click)="manageSubcategories(cat)"
+              class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+            >
+              Subcategorias
+            </button>
+          </td>
+        </tr>
+        <!-- Modal de gerenciamento de subcategorias -->
+        <div
+          *ngIf="selectedCategoryForSubcategories()"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <div
+            class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6"
+            (click)="$event.stopPropagation()"
           >
-            {{ "delete" | i18n }}
-          </button>
-          <button
-            type="button"
-            (click)="cancelDeleteCategory()"
-            class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-          >
-            {{ "cancel" | i18n }}
-          </button>
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold text-gray-900">
+                Subcategorias de {{ selectedCategoryForSubcategories()?.name }}
+              </h2>
+              <button
+                type="button"
+                (click)="selectedCategoryForSubcategories.set(null)"
+                class="text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div class="mb-4">
+              <input
+                type="text"
+                [value]="newSubcategoryName()"
+                (input)="newSubcategoryName.set($event.target.value)"
+                placeholder="Nova subcategoria"
+                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                (keydown.enter)="addSubcategoryToCategory()"
+              />
+              <button
+                type="button"
+                (click)="addSubcategoryToCategory()"
+                [disabled]="!newSubcategoryName().trim()"
+                class="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Adicionar
+              </button>
+            </div>
+            <ul class="list-disc pl-6">
+              <li
+                *ngFor="
+                  let sub of subcategoriesForSelectedCategory();
+                  trackBy: trackById
+                "
+                class="flex items-center justify-between mb-2"
+              >
+                <span class="text-gray-800">{{ sub.name }}</span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    (click)="startEditSubcategory(sub)"
+                    class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="requestDeleteSubcategory(sub)"
+                    class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </li>
+            </ul>
+            <!-- Modal de edição de subcategoria -->
+            <div
+              *ngIf="editingSubcategory()"
+              class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+            >
+              <div
+                class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+                (click)="$event.stopPropagation()"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-xl font-bold text-gray-900">
+                    Editar Subcategoria
+                  </h2>
+                  <button
+                    type="button"
+                    (click)="editingSubcategory.set(null)"
+                    class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="mb-4">
+                  <input
+                    type="text"
+                    [value]="editingSubcategoryName()"
+                    (input)="editingSubcategoryName.set($event.target.value)"
+                    placeholder="Novo nome da subcategoria"
+                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    (keydown.enter)="saveSubcategoryEdit()"
+                  />
+                </div>
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="saveSubcategoryEdit()"
+                    [disabled]="
+                      !editingSubcategoryName().trim() ||
+                      editingSubcategoryName().trim() ===
+                        editingSubcategory()?.name
+                    "
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Salvar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="editingSubcategory.set(null)"
+                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Modal de confirmação de deleção de subcategoria -->
+            <div
+              *ngIf="showDeleteSubcategoryModal() && subcategoryToDelete()"
+              class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+            >
+              <div
+                class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+                (click)="$event.stopPropagation()"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-xl font-bold text-gray-900">
+                    Excluir Subcategoria
+                  </h2>
+                  <button
+                    type="button"
+                    (click)="cancelDeleteSubcategory()"
+                    class="text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    <svg
+                      class="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      ></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="mb-6">
+                  <p class="text-gray-700">
+                    Confirma a exclusão da subcategoria:
+                    {{ subcategoryToDelete()?.name || "" }}?
+                  </p>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="confirmDeleteSubcategory()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Excluir
+                  </button>
+                  <button
+                    type="button"
+                    (click)="cancelDeleteSubcategory()"
+                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de confirmação de deleção -->
+  <div
+    *ngIf="showDeleteModal() && categoryToDelete()"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  >
+    <div
+      class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-900">Delete</h2>
+        <button
+          type="button"
+          (click)="cancelDeleteCategory()"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      <div class="mb-6">
+        <p class="text-gray-700">
+          Confirm deletion of category: {{ categoryToDelete()?.name || "" }}
+        </p>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="confirmDeleteCategory()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Delete
+        </button>
+        <button
+          type="button"
+          (click)="cancelDeleteCategory()"
+          class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   </div>
+  <!-- Subcategoria removida: funcionalidade e modal não fazem parte do escopo atual -->
 </div>

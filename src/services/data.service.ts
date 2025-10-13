@@ -76,6 +76,89 @@ export class DataService {
   readonly categories = signal<ServiceCategory[]>([]);
   readonly subcategories = signal<ServiceSubcategory[]>([]);
 
+  /** Adiciona uma nova subcategoria de serviço */
+  async addSubcategory(
+    name: string,
+    category_id: number
+  ): Promise<ServiceSubcategory | null> {
+    const { data, error } = await this.supabase.client
+      .from("service_subcategories")
+      .insert({ name, category_id })
+      .select("id, name, category_id")
+      .single();
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao criar subcategoria: " + error.message
+      );
+      return null;
+    }
+    if (data) {
+      // Atualiza signal local
+      const updated = [...this.subcategories(), data as ServiceSubcategory];
+      this.subcategories.set(updated);
+      this.notificationService.addNotification(
+        "Subcategoria criada com sucesso!"
+      );
+      return data as ServiceSubcategory;
+    }
+    return null;
+  }
+
+  /** Atualiza o nome de uma subcategoria de serviço */
+  async updateSubcategory(
+    id: number,
+    name: string
+  ): Promise<ServiceSubcategory | null> {
+    const { data, error } = await this.supabase.client
+      .from("service_subcategories")
+      .update({ name })
+      .eq("id", id)
+      .select("id, name, category_id")
+      .single();
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao atualizar subcategoria: " + error.message
+      );
+      return null;
+    }
+    if (data) {
+      // Atualiza signal local
+      const updated = this.subcategories().map((sub) =>
+        sub.id === id ? { ...sub, name: data.name } : sub
+      );
+      this.subcategories.set(updated);
+      this.notificationService.addNotification(
+        "Subcategoria atualizada com sucesso!"
+      );
+      return data as ServiceSubcategory;
+    }
+    return null;
+  }
+
+  /** Remove uma subcategoria de serviço */
+  async deleteSubcategory(id: number): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from("service_subcategories")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao remover subcategoria: " + error.message
+      );
+      return false;
+    }
+    // Atualiza signal local
+    const updated = this.subcategories().filter((sub) => sub.id !== id);
+    this.subcategories.set(updated);
+    this.notificationService.addNotification(
+      "Subcategoria removida com sucesso!"
+    );
+    return true;
+  }
+
   /** Remove uma categoria de serviço */
   async deleteCategory(id: number): Promise<boolean> {
     const { error } = await this.supabase.client
