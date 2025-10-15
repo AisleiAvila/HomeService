@@ -12,7 +12,7 @@ import { ServiceSubcategory } from "../../models/maintenance.models";
 @Component({
   selector: "app-category-management",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: "./category-management.component.html",
   styleUrls: ["./category-management.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

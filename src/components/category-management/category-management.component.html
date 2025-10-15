@@ -8,7 +8,9 @@
     (click)="$event.stopPropagation()"
   >
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-900">Editar Categoria</h2>
+      <h2 class="text-xl font-bold text-gray-900">
+        {{ "editCategory" | i18n }}
+      </h2>
       <button
         type="button"
         (click)="editingCategory.set(null)"
@@ -34,7 +36,7 @@
         type="text"
         [value]="editingCategoryName()"
         (input)="editingCategoryName.set($event.target.value)"
-        placeholder="Novo nome da categoria"
+        [placeholder]="'categoryName' | i18n"
         class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         (keydown.enter)="saveCategoryEdit()"
       />
@@ -49,14 +51,14 @@
         "
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
       >
-        Salvar
+        {{ "save" | i18n }}
       </button>
       <button
         type="button"
         (click)="editingCategory.set(null)"
         class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
       >
-        Cancelar
+        {{ "cancel" | i18n }}
       </button>
     </div>
   </div>
@@ -72,7 +74,9 @@
       (click)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-bold text-gray-900">Add New Category</h2>
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ "addNewCategory" | i18n }}
+        </h2>
         <button
           type="button"
           (click)="closeAddCategoryModal()"
@@ -98,7 +102,7 @@
           type="text"
           [value]="newCategory()"
           (input)="newCategory.set($event.target.value)"
-          placeholder="Category Name"
+          [placeholder]="'categoryName' | i18n"
           class="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           (keydown.enter)="addCategory()"
         />
@@ -106,7 +110,7 @@
           *ngIf="categoryExists(newCategory())"
           class="text-sm text-red-600 mt-2"
         >
-          Category already exists
+          {{ "categoryAlreadyExists" | i18n }}
         </p>
       </div>
       <div class="flex justify-end gap-2">
@@ -116,83 +120,128 @@
           [disabled]="!newCategory().trim() || categoryExists(newCategory())"
           class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          Add
+          {{ "add" | i18n }}
         </button>
         <button
           type="button"
           (click)="closeAddCategoryModal()"
           class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
         >
-          Cancel
+          {{ "cancel" | i18n }}
         </button>
       </div>
     </div>
   </div>
   <div class="flex justify-between items-center mb-6">
-    <h3 class="text-xl font-semibold">Service Categories</h3>
+    <h3 class="text-xl font-semibold">{{ "serviceCategories" | i18n }}</h3>
     <button
       (click)="showAddCategoryModal.set(true)"
       class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 transition-colors duration-200"
     >
-      Add New Category
+      {{ "addNewCategory" | i18n }}
     </button>
   </div>
   <div class="overflow-x-auto">
-    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
-      <thead>
+    <table class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-indigo-600 to-indigo-800">
         <tr>
           <th
-            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
+            class="px-6 py-3 text-left text-sm font-bold text-white tracking-wider"
           >
-            Categoria
+            {{ "category" | i18n }}
           </th>
           <th
-            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
+            class="px-6 py-3 text-left text-sm font-bold text-white tracking-wider"
           >
-            Ações
+            {{ "totalSubcategories" | i18n }}
           </th>
           <th
-            class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b"
+            class="px-6 py-3 text-left text-sm font-bold text-white tracking-wider"
           >
-            Subcategorias
+            {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-gray-200">
         <tr
           *ngFor="let cat of allCategories(); trackBy: trackById"
-          class="border-b"
+          class="hover:bg-gray-50 transition-colors duration-150 ease-in-out"
         >
-          <td class="px-4 py-2 text-lg text-gray-800">
-            {{ cat.name }} 
-            <span class="ml-2 px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">
-              {{ countSubcategoriesByCategory(cat.id) }}
-            </span>
+          <td class="px-6 py-4 text-lg text-gray-800 font-medium">
+            {{ cat.name }}
           </td>
-          <td class="px-4 py-2 flex gap-2">
-            <button
-              type="button"
-              (click)="startEditCategory(cat)"
-              class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-            >
-              Editar
-            </button>
-            <button
-              type="button"
-              (click)="requestDeleteCategory(cat)"
-              class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-            >
-              Excluir
-            </button>
+          <td class="px-6 py-4 text-gray-800">
+            {{ countSubcategoriesByCategory(cat.id) }}
           </td>
-          <td class="px-4 py-2">
-            <button
-              type="button"
-              (click)="manageSubcategories(cat)"
-              class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-            >
-              Subcategorias
-            </button>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="startEditCategory(cat)"
+                class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm flex items-center"
+                [attr.title]="'edit' | i18n"
+                [attr.aria-label]="'edit' | i18n"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                (click)="requestDeleteCategory(cat)"
+                class="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 text-sm flex items-center"
+                [attr.title]="'delete' | i18n"
+                [attr.aria-label]="'delete' | i18n"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                (click)="manageSubcategories(cat)"
+                class="px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-200 text-sm flex items-center"
+                [attr.title]="'subcategories' | i18n"
+                [attr.aria-label]="'subcategories' | i18n"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16m-7 6h7"
+                  />
+                </svg>
+              </button>
+            </div>
           </td>
         </tr>
         <!-- Modal de gerenciamento de subcategorias -->
@@ -206,7 +255,14 @@
           >
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-bold text-gray-900">
-                Subcategorias de {{ selectedCategoryForSubcategories()?.name }}
+                {{
+                  "subcategoriesOf"
+                    | i18n
+                      : {
+                          category:
+                            selectedCategoryForSubcategories()?.name || ""
+                        }
+                }}
               </h2>
               <button
                 type="button"
@@ -233,7 +289,7 @@
                 type="text"
                 [value]="newSubcategoryName()"
                 (input)="newSubcategoryName.set($event.target.value)"
-                placeholder="Nova subcategoria"
+                [placeholder]="'subcategoryName' | i18n"
                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 (keydown.enter)="addSubcategoryToCategory()"
               />
@@ -243,7 +299,7 @@
                 [disabled]="!newSubcategoryName().trim()"
                 class="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Adicionar
+                {{ "addSubcategory" | i18n }}
               </button>
             </div>
             <ul class="list-disc pl-6">
@@ -327,14 +383,14 @@
                     "
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    Salvar
+                    {{ "save" | i18n }}
                   </button>
                   <button
                     type="button"
                     (click)="editingSubcategory.set(null)"
                     class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
                   >
-                    Cancelar
+                    {{ "cancel" | i18n }}
                   </button>
                 </div>
               </div>
@@ -350,7 +406,7 @@
               >
                 <div class="flex items-center justify-between mb-4">
                   <h2 class="text-xl font-bold text-gray-900">
-                    Excluir Subcategoria
+                    {{ "deleteSubcategory" | i18n }}
                   </h2>
                   <button
                     type="button"
@@ -374,8 +430,11 @@
                 </div>
                 <div class="mb-6">
                   <p class="text-gray-700">
-                    Confirma a exclusão da subcategoria:
-                    {{ subcategoryToDelete()?.name || "" }}?
+                    {{
+                      "confirmDeleteSubcategory"
+                        | i18n
+                          : { subcategory: subcategoryToDelete()?.name || "" }
+                    }}
                   </p>
                 </div>
                 <div class="flex justify-end gap-2">
@@ -384,14 +443,14 @@
                     (click)="confirmDeleteSubcategory()"
                     class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                   >
-                    Excluir
+                    {{ "delete" | i18n }}
                   </button>
                   <button
                     type="button"
                     (click)="cancelDeleteSubcategory()"
                     class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
                   >
-                    Cancelar
+                    {{ "cancel" | i18n }}
                   </button>
                 </div>
               </div>
