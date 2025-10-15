@@ -147,6 +147,13 @@ export class CategoryManagementComponent {
       (sub) => sub.category_id === categoryId
     );
   };
+  
+  // Método para contar o total de subcategorias por categoria
+  countSubcategoriesByCategory = (categoryId: number): number => {
+    return this.allSubcategories().filter(
+      (sub) => sub.category_id === categoryId
+    ).length;
+  };
 
   subcategoryExists(name: string, categoryId: string | number): boolean {
     const trimmed = name.trim();

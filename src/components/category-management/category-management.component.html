@@ -163,7 +163,12 @@
           *ngFor="let cat of allCategories(); trackBy: trackById"
           class="border-b"
         >
-          <td class="px-4 py-2 text-lg text-gray-800">{{ cat.name }}</td>
+          <td class="px-4 py-2 text-lg text-gray-800">
+            {{ cat.name }} 
+            <span class="ml-2 px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">
+              {{ countSubcategoriesByCategory(cat.id) }}
+            </span>
+          </td>
           <td class="px-4 py-2 flex gap-2">
             <button
               type="button"

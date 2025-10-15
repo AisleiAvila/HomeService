@@ -1,7 +1,5 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
-import { scheduled } from "rxjs";
-import { StatusService } from "./services/status.service";
 
 export type Language = "en" | "pt";
 
@@ -49,10 +47,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Address fields (Portugal context)
     streetAddress: "Complete Address",
-    logradouro: "Street",
-    dateTime: "Date/Time",
-    number: "Number",
-    complement: "Complement",
     streetAddressPlaceholder:
       "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
     postalCode: "Postal Code",
@@ -61,7 +55,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     localityPlaceholder: "Lisbon, Porto, Coimbra...",
     district: "District",
     selectDistrict: "Select district",
-    concelho: "Municipality",
+    concelho: "Municipality (Optional)",
     concelhoPlaceholder: "Lisbon, Porto, Sintra...",
     freguesia: "Parish (Optional)",
     postalCodeInvalidFormat: "Format: 0000-000",
@@ -85,7 +79,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalRevenue: "Total Revenue",
     pendingApprovals: "Pending Approvals",
     activeServices: "Active Services",
-    // phoneFormatError já definido acima
     totalProfessionals: "Total Professionals",
     csvId: "ID",
     csvClient: "Client",
@@ -143,7 +136,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectAProfessional: "Select a Professional",
     selectDate: "Select Date",
     cancel: "Cancel",
-    // phoneFormatError já definido acima
     confirmSchedule: "Confirm Schedule",
     pendingActions: "Pending Actions",
     request: "Request",
@@ -171,7 +163,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Password reset successful! You can now log in with your new password.",
 
     // New Service Request Form
-    newServiceRequest: "Service Request",
+    newServiceRequest: "New Service Request",
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
@@ -179,17 +171,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestedDateTimeHelp: "When would you like this service to be performed?",
     submitting: "Submitting",
     submitRequest: "Submit Request",
-    formErrorGeneric:
-      "There was an error processing your request. Please try again.",
-    formSuccessGeneric: "Your request was submitted successfully!",
-    addressNotFound: "Address information not found. Please check your input.",
-    searchingAddress: "Searching for address...",
-    validatingPostalCode: "Validating postal code...",
-    addressSelected: "Address selected successfully!",
-    formProgress: "Form progress: {percent}% complete",
-    fieldRequired: "This field is required",
-    invalidPostalCode: "Invalid postal code format",
-    dateInPast: "The date must be in the future",
 
     // Clarification Modal
     requestedClarification: "Requested Clarification",
@@ -615,47 +596,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "hours ago",
     daysAgo: "days ago",
     clearFilters: "Clear Filters",
-    quickFilters: "Quick Filters",
-    statusRequested: "Requested",
-    statusInAnalysis: "In Analysis",
-    scheduleTitle: "Schedule",
-    selectStatus: "Select Status",
-    filterByStatus: "Filter by Status",
-    phoneNumber: "Phone Number",
-    phoneFormatError:
-      "Please enter the country code and phone number (e.g. +351 912 345 678)",
-    sendVerificationCode: "Send Verification Code",
-    enterSmsCode: "Enter the 6-digit code sent via SMS",
-    smsSentInfo: "A verification code has been sent to",
-    smsCodeValid: "Verification code is valid!",
-    smsCodeInvalid: "Invalid code. Please try again.",
-    validateCode: "Validate Code",
-    smsVerification: "SMS Verification",
-    smsSentSimulation: "(For simulation, the code is 123456)",
-    smsCodeSentTo: "SMS code sent to",
-    smsCodeExpired:
-      "The verification code has expired. Please request a new one.",
-    receiveSmsNotifications: "Receive SMS Notifications",
-    personalData: "Personal Data",
-    contactPreferences: "Contact Preferences",
-    smsCodeLabel: "Code described in the SMS",
-    smsCodePlaceholder: "Enter the code",
-    value: "Value",
-    errorFinishingService: "Error finishing service. Please try again.",
-    searchPlaceholder: "Search by ID, title, client, professional...",
-    complementPlaceholder: "Apartment, floor, block...",
-    numberPlaceholder: "Enter the number",
-    logradouroPlaceholder: "Street name",
-    streetPlaceholder: "Street/Avenue",
-    districtPlaceholder: "District",
-    cityPlaceholder: "City",
-    descriptionMinLength: "Description must be at least 20 characters",
-    descriptionMaxLength: "Description cannot exceed 2000 characters",
-    titleMinLength: "Title must be at least 5 characters",
-    titleMaxLength: "Title cannot exceed 100 characters",
-    noScheduledDate: "No scheduled date",
-    scheduledFor: "Scheduled for",
-    confirmStartService: "Are you sure you want to start this service?",
   },
   pt: {
     // General
@@ -710,7 +650,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     localityPlaceholder: "Lisboa, Porto, Coimbra...",
     district: "Distrito",
     selectDistrict: "Selecione o distrito",
-    concelho: "Concelho",
+    concelho: "Concelho (Opcional)",
     concelhoPlaceholder: "Lisboa, Porto, Sintra...",
     freguesia: "Freguesia (Opcional)",
     postalCodeInvalidFormat: "Formato: 0000-000",
@@ -819,7 +759,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Senha redefinida com sucesso! Agora pode fazer login com a sua nova senha.",
 
     // New Service Request Form
-    newServiceRequest: "Solicitar Serviço",
+    newServiceRequest: "Nova Solicitação de Serviço",
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
     selectCategory: "Selecione uma categoria...",
@@ -828,18 +768,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Quando você gostaria que este serviço fosse realizado?",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
-    formErrorGeneric:
-      "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.",
-    formSuccessGeneric: "Sua solicitação foi enviada com sucesso!",
-    addressNotFound:
-      "Informações de endereço não encontradas. Por favor, verifique sua entrada.",
-    searchingAddress: "Procurando endereço...",
-    validatingPostalCode: "Validando código postal...",
-    addressSelected: "Endereço selecionado com sucesso!",
-    formProgress: "Progresso do formulário: {percent}% completo",
-    fieldRequired: "Este campo é obrigatório",
-    invalidPostalCode: "Formato de código postal inválido",
-    dateInPast: "A data deve ser no futuro",
 
     // Clarification Modal
     requestedClarification: "Esclarecimentos Solicitados",
@@ -877,9 +805,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Time Control and Scheduling
     timeControl: "Controle de Tempo",
     requestedDateTime: "Data e Hora Solicitada",
-    dateTime: "Data/Hora",
-    number: "Número",
-    complement: "Complemento",
     scheduledStartDateTime: "Data e Hora Agendada para Início",
     estimatedDuration: "Duração Estimada",
     actualDuration: "Duração Real",
@@ -1288,46 +1213,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "horas atrás",
     daysAgo: "dias atrás",
     clearFilters: "Limpar Filtros",
-    quickFilters: "Filtros Rápidos",
-    statusRequested: "Solicitado",
-    statusInAnalysis: "Em Análise",
-    scheduleTitle: "Agenda",
-    selectStatus: "Selecione o Status",
-    filterByStatus: "Filtrar por Status",
-    phoneNumber: "Número de Telefone",
-    phoneFormatError:
-      "Informe o código do país e o número do telefone (ex: +351 912 345 678)",
-    sendVerificationCode: "Enviar Código de Verificação",
-    enterSmsCode: "Digite o código de 6 dígitos enviado via SMS",
-    smsSentInfo: "Um código de verificação foi enviado para",
-    smsCodeValid: "Código válido",
-    smsCodeInvalid: "Código inválido. Por favor, tente novamente.",
-    validateCode: "Validar Código",
-    smsVerification: "Verificação por SMS",
-    smsSentSimulation: "(Para simulação, o código é 123456)",
-    smsCodeSentTo: "Código SMS enviado para",
-    smsCodeExpired: "O código de verificação expirou. Solicite um novo.",
-    receiveSmsNotifications: "Receber Notificações por SMS",
-    personalData: "Dados Pessoais",
-    contactPreferences: "Preferências de Contato",
-    smsCodeLabel: "Código descrito no SMS",
-    smsCodePlaceholder: "Digite o código",
-    value: "Valor",
-    errorFinishingService: "Erro ao finalizar serviço. Tente novamente.",
-    searchPlaceholder: "Buscar por ID, título, cliente, profissional...",
-    complementPlaceholder: "Apartamento, andar, bloco...",
-    numberPlaceholder: "Digite o número",
-    logradouroPlaceholder: "Nome da rua",
-    streetPlaceholder: "Rua/Avenida",
-    districtPlaceholder: "Distrito",
-    cityPlaceholder: "Concelho",
-    descriptionMinLength: "A descrição deve ter pelo menos 20 caracteres",
-    descriptionMaxLength: "A descrição não pode exceder 2000 caracteres",
-    titleMinLength: "O título deve ter pelo menos 5 caracteres",
-    titleMaxLength: "O título não pode exceder 100 caracteres",
-    noScheduledDate: "Sem data agendada",
-    scheduledFor: "Agendado para",
-    confirmStartService: "Tem certeza de que deseja iniciar este serviço?",
   },
 };
 
@@ -1347,6 +1232,11 @@ export class I18nService {
 
     // Log inicial do estado
     console.log(`🌍 [I18N] Idioma inicial: ${this.language()}`);
+    console.log(
+      `🌍 [I18N] Testando tradução 'newServiceRequest': ${this.translate(
+        "newServiceRequest"
+      )}`
+    );
   }
 
   getCurrentLanguage(): string {
@@ -1375,74 +1265,5 @@ export class I18nService {
       });
     }
     return result;
-  }
-
-  statusTranslations: Record<StatusService, { pt: string; en: string }> = {
-    [StatusService.Requested]: { pt: "Solicitado", en: "Requested" },
-    [StatusService.InAnalysis]: { pt: "Em análise", en: "In Analysis" },
-    [StatusService.AwaitingClarifications]: {
-      pt: "Aguardando esclarecimentos",
-      en: "Awaiting Clarifications",
-    },
-    [StatusService.QuoteSent]: { pt: "Orçamento enviado", en: "Quote Sent" },
-    [StatusService.AwaitingQuoteApproval]: {
-      pt: "Aguardando aprovação do orçamento",
-      en: "Awaiting Quote Approval",
-    },
-    [StatusService.QuoteApproved]: {
-      pt: "Orçamento aprovado",
-      en: "Quote Approved",
-    },
-    [StatusService.QuoteRejected]: {
-      pt: "Orçamento rejeitado",
-      en: "Quote Rejected",
-    },
-    [StatusService.AwaitingExecutionDate]: {
-      pt: "Aguardando data de execução",
-      en: "Awaiting Execution Date",
-    },
-    [StatusService.DateProposedByAdmin]: {
-      pt: "Data proposta pelo administrador",
-      en: "Date Proposed By Admin",
-    },
-    [StatusService.AwaitingDateApproval]: {
-      pt: "Aguardando aprovação da data",
-      en: "Awaiting Date Approval",
-    },
-    [StatusService.DateApprovedByClient]: {
-      pt: "Data aprovada pelo cliente",
-      en: "Date Approved By Client",
-    },
-    [StatusService.DateRejectedByClient]: {
-      pt: "Data rejeitada pelo cliente",
-      en: "Date Rejected By Client",
-    },
-    [StatusService.SearchingProfessional]: {
-      pt: "Buscando profissional",
-      en: "Searching Professional",
-    },
-    [StatusService.ProfessionalSelected]: {
-      pt: "Profissional selecionado",
-      en: "Professional Selected",
-    },
-    [StatusService.AwaitingProfessionalConfirmation]: {
-      pt: "Aguardando confirmação do profissional",
-      en: "Awaiting Professional Confirmation",
-    },
-    [StatusService.Assigned]: { pt: "Atribuído", en: "Assigned" },
-    [StatusService.Pending]: { pt: "Pendente", en: "Pending" },
-    [StatusService.Scheduled]: { pt: "Agendado", en: "Scheduled" },
-    [StatusService.InProgress]: { pt: "Em execução", en: "In Progress" },
-    [StatusService.CompletedAwaitingApproval]: {
-      pt: "Concluído - Aguardando aprovação",
-      en: "Completed - Awaiting Approval",
-    },
-    [StatusService.Completed]: { pt: "Finalizado", en: "Completed" },
-    [StatusService.Cancelled]: { pt: "Cancelado", en: "Cancelled" },
-  };
-
-  translateStatus(status: StatusService): string {
-    const lang = this.language(); // 'pt' ou 'en'
-    return this.statusTranslations[status]?.[lang] || status;
   }
 }
