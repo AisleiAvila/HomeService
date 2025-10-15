@@ -78,7 +78,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.statusOptions.set(
       Object.values(StatusService).map((status) => ({
         value: status,
-        label: this.i18n.translateStatus(status),
+        label: this.i18n.translate(status),
       }))
     );
   }
