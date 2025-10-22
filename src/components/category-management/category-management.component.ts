@@ -136,24 +136,52 @@ export class CategoryManagementComponent {
     return item.id;
   }
 
+  // Controls for expanded rows in the category list
+  private expandedCategories = signal<Set<number>>(new Set());
+
+  toggleExpand(categoryId: number) {
+    const current = new Set(this.expandedCategories());
+    if (current.has(categoryId)) {
+      current.delete(categoryId);
+    } else {
+      current.add(categoryId);
+    }
+    this.expandedCategories.set(current);
+  }
+
+  isExpanded(categoryId: number): boolean {
+    return this.expandedCategories().has(categoryId);
+  }
+
+  // Small helper to get subcategories for a given category (used by the expanded row)
+  subcategoriesOf(categoryId: number): ServiceSubcategory[] {
+    return this.allSubcategories().filter((s) => s.category_id === categoryId);
+  }
+
+  // Detail modal
+  selectedCategoryForDetails = signal<ServiceCategory | null>(null);
+
+  showDetails(category: ServiceCategory) {
+    this.selectedCategoryForDetails.set(category);
+  }
+
   // Subcategory signals and logic
   selectedCategoryForSubcategory = signal<string>("");
   newSubcategoryName = signal("");
 
   allSubcategories = computed(() => this.dataService.subcategories());
 
-  subcategoriesByCategory = (categoryId: number): ServiceSubcategory[] => {
-    return this.allSubcategories().filter(
-      (sub) => sub.category_id === categoryId
-    );
-  };
-  
-  // Método para contar o total de subcategorias por categoria
-  countSubcategoriesByCategory = (categoryId: number): number => {
-    return this.allSubcategories().filter(
-      (sub) => sub.category_id === categoryId
-    ).length;
-  };
+  // Nota: removidos helpers redundantes que filtravam subcategorias por categoria.
+  // Use `subcategoryCounts` (computed Map) ou `subcategoriesForSelectedCategory` quando necessário.
+
+  // Computed Map for quick lookup: categoryId -> count
+  subcategoryCounts = computed(() => {
+    const map = new Map<number, number>();
+    for (const sub of this.allSubcategories()) {
+      map.set(sub.category_id, (map.get(sub.category_id) || 0) + 1);
+    }
+    return map;
+  });
 
   subcategoryExists(name: string, categoryId: string | number): boolean {
     const trimmed = name.trim();
