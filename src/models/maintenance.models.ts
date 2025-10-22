@@ -68,6 +68,15 @@ export interface ServiceSubcategory {
   category_id: number; // FK para ServiceCategory
 }
 
+// Extended subcategory fields for pricing/quoting and description
+export interface ServiceSubcategoryExtended extends ServiceSubcategory {
+  // 'precificado' = priced (has fixed price & avg time), 'orçado' = quoted
+  type?: "precificado" | "orçado";
+  average_time_minutes?: number | null;
+  price?: number | null;
+  description?: string | null;
+}
+
 // Novos tipos para o fluxo de trabalho expandido
 export type NotificationType =
   | "quote_request"

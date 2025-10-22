@@ -5,6 +5,7 @@ import {
   SchedulingStatus,
   ServiceCategory,
   ServiceSubcategory,
+  ServiceSubcategoryExtended,
   ServiceClarification,
   ServiceRequest,
   ServiceRequestPayload,
@@ -74,17 +75,33 @@ export class DataService {
   readonly serviceRequests = signal<ServiceRequest[]>([]);
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly categories = signal<ServiceCategory[]>([]);
-  readonly subcategories = signal<ServiceSubcategory[]>([]);
+  readonly subcategories = signal<ServiceSubcategoryExtended[]>([]);
 
   /** Adiciona uma nova subcategoria de serviço */
   async addSubcategory(
     name: string,
-    category_id: number
-  ): Promise<ServiceSubcategory | null> {
+    category_id: number,
+    options?: {
+      type?: "precificado" | "orçado";
+      average_time_minutes?: number | null;
+      price?: number | null;
+      description?: string | null;
+    }
+  ): Promise<ServiceSubcategoryExtended | null> {
+    const payload: any = { name, category_id };
+    if (options) {
+      payload.type = options.type;
+      payload.average_time_minutes = options.average_time_minutes ?? null;
+      payload.price = options.price ?? null;
+      payload.description = options.description ?? null;
+    }
+
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
-      .insert({ name, category_id })
-      .select("id, name, category_id")
+      .insert(payload)
+      .select(
+        "id, name, category_id, type, average_time_minutes, price, description"
+      )
       .single();
 
     if (error) {
@@ -95,12 +112,15 @@ export class DataService {
     }
     if (data) {
       // Atualiza signal local
-      const updated = [...this.subcategories(), data as ServiceSubcategory];
+      const updated = [
+        ...this.subcategories(),
+        data as ServiceSubcategoryExtended,
+      ];
       this.subcategories.set(updated);
       this.notificationService.addNotification(
         "Subcategoria criada com sucesso!"
       );
-      return data as ServiceSubcategory;
+      return data as ServiceSubcategoryExtended;
     }
     return null;
   }
@@ -108,13 +128,30 @@ export class DataService {
   /** Atualiza o nome de uma subcategoria de serviço */
   async updateSubcategory(
     id: number,
-    name: string
-  ): Promise<ServiceSubcategory | null> {
+    updates: {
+      name?: string;
+      type?: "precificado" | "orçado" | null;
+      average_time_minutes?: number | null;
+      price?: number | null;
+      description?: string | null;
+    }
+  ): Promise<ServiceSubcategoryExtended | null> {
+    const payload: any = {};
+    if (updates.name !== undefined) payload.name = updates.name;
+    if (updates.type !== undefined) payload.type = updates.type;
+    if (updates.average_time_minutes !== undefined)
+      payload.average_time_minutes = updates.average_time_minutes;
+    if (updates.price !== undefined) payload.price = updates.price;
+    if (updates.description !== undefined)
+      payload.description = updates.description;
+
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
-      .update({ name })
+      .update(payload)
       .eq("id", id)
-      .select("id, name, category_id")
+      .select(
+        "id, name, category_id, type, average_time_minutes, price, description"
+      )
       .single();
 
     if (error) {
@@ -126,13 +163,15 @@ export class DataService {
     if (data) {
       // Atualiza signal local
       const updated = this.subcategories().map((sub) =>
-        sub.id === id ? { ...sub, name: data.name } : sub
+        sub.id === id
+          ? { ...sub, ...(data as ServiceSubcategoryExtended) }
+          : sub
       );
       this.subcategories.set(updated);
       this.notificationService.addNotification(
         "Subcategoria atualizada com sucesso!"
       );
-      return data as ServiceSubcategory;
+      return data as ServiceSubcategoryExtended;
     }
     return null;
   }
@@ -365,7 +404,9 @@ export class DataService {
   private async fetchSubcategories() {
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
-      .select("id, name, category_id")
+      .select(
+        "id, name, category_id, type, average_time_minutes, price, description"
+      )
       .order("name");
 
     if (error) {
@@ -374,7 +415,7 @@ export class DataService {
         "Erro ao buscar subcategorias: " + error.message
       );
     } else if (data && data.length > 0) {
-      this.subcategories.set(data as ServiceSubcategory[]);
+      this.subcategories.set(data as ServiceSubcategoryExtended[]);
     } else {
       console.log("No subcategories found in Supabase.");
     }
