@@ -209,11 +209,18 @@ export class CategoryManagementComponent {
     return map;
   });
 
-  subcategoryExists(name: string, categoryId: string | number): boolean {
+  subcategoryExists(
+    name: string,
+    categoryId: string | number,
+    excludeId?: number
+  ): boolean {
     const trimmed = name.trim();
     if (!trimmed || !categoryId) return false;
     return this.allSubcategories().some(
-      (sub) => sub.name === trimmed && sub.category_id === Number(categoryId)
+      (sub) =>
+        sub.id !== excludeId &&
+        sub.name === trimmed &&
+        sub.category_id === Number(categoryId)
     );
   }
 
@@ -256,11 +263,15 @@ export class CategoryManagementComponent {
   async saveSubcategoryEdit() {
     const sub = this.editingSubcategory();
     const newName = this.editingSubcategoryName().trim();
-    if (!sub || !newName || newName === sub.name) {
+    if (!sub || !newName) {
       this.editingSubcategory.set(null);
       return;
     }
-    if (this.subcategoryExists(newName, sub.category_id)) {
+    // If the name changed, check for duplicates excluding the current subcategory
+    if (
+      newName !== sub.name &&
+      this.subcategoryExists(newName, sub.category_id, sub.id)
+    ) {
       // Show error (could use notification)
       return;
     }
