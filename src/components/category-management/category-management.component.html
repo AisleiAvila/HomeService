@@ -411,13 +411,60 @@
           class="w-full p-2 border rounded-md"
           (keydown.enter)="addSubcategoryToCategory()"
         />
-        <button
-          type="button"
-          (click)="addSubcategoryToCategory()"
-          class="mt-2 px-4 py-2 bg-green-600 text-white rounded-md"
-        >
-          {{ "addSubcategory" | i18n }}
-        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+          <select
+            [value]="newSubcategoryType()"
+            (change)="newSubcategoryType.set($event.target.value)"
+            class="p-2 border rounded-md"
+          >
+            <option value="">{{ "selectOption" | i18n }}</option>
+            <option value="precificado">{{ "priced" | i18n }}</option>
+            <option value="orçado">{{ "quoted" | i18n }}</option>
+          </select>
+          <input
+            type="number"
+            [value]="newSubcategoryAverageTime()"
+            (input)="
+              newSubcategoryAverageTime.set($event.target.valueAsNumber || null)
+            "
+            placeholder="Tempo médio (min)"
+            class="p-2 border rounded-md"
+            min="0"
+          />
+          <input
+            type="number"
+            [value]="newSubcategoryPrice()"
+            (input)="
+              newSubcategoryPrice.set($event.target.valueAsNumber || null)
+            "
+            placeholder="Preço (€)"
+            class="p-2 border rounded-md"
+            step="0.01"
+            min="0"
+          />
+          <textarea
+            [value]="newSubcategoryDescription()"
+            (input)="newSubcategoryDescription.set($event.target.value)"
+            placeholder="Descrição (opcional)"
+            class="p-2 border rounded-md w-full"
+          ></textarea>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <button
+            type="button"
+            (click)="addSubcategoryToCategory()"
+            class="px-4 py-2 bg-green-600 text-white rounded-md"
+          >
+            {{ "addSubcategory" | i18n }}
+          </button>
+          <button
+            type="button"
+            (click)="selectedCategoryForSubcategories.set(null)"
+            class="px-4 py-2 bg-gray-300 rounded-md"
+          >
+            {{ "cancel" | i18n }}
+          </button>
+        </div>
       </div>
       <ul class="list-disc pl-6">
         <li
@@ -450,6 +497,89 @@
   </div>
 
   <!-- Modal de confirmação de exclusão de subcategoria -->
+  <!-- Modal de edição de subcategoria -->
+  <div
+    *ngIf="editingSubcategory()"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  >
+    <div
+      class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold">{{ "editSubcategory" | i18n }}</h2>
+        <button
+          type="button"
+          (click)="editingSubcategory.set(null)"
+          class="text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="mb-4 grid grid-cols-1 gap-2">
+        <input
+          type="text"
+          [value]="editingSubcategoryName()"
+          (input)="editingSubcategoryName.set($event.target.value)"
+          class="w-full p-2 border rounded-md"
+        />
+        <select
+          [value]="editingSubcategoryType()"
+          (change)="editingSubcategoryType.set($event.target.value)"
+          class="p-2 border rounded-md"
+        >
+          <option value="">{{ "selectOption" | i18n }}</option>
+          <option value="precificado">{{ "priced" | i18n }}</option>
+          <option value="orçado">{{ "quoted" | i18n }}</option>
+        </select>
+        <input
+          type="number"
+          [value]="editingSubcategoryAverageTime()"
+          (input)="
+            editingSubcategoryAverageTime.set(
+              $event.target.valueAsNumber || null
+            )
+          "
+          placeholder="Tempo médio (min)"
+          class="p-2 border rounded-md"
+          min="0"
+        />
+        <input
+          type="number"
+          [value]="editingSubcategoryPrice()"
+          (input)="
+            editingSubcategoryPrice.set($event.target.valueAsNumber || null)
+          "
+          placeholder="Preço (€)"
+          class="p-2 border rounded-md"
+          step="0.01"
+          min="0"
+        />
+        <textarea
+          [value]="editingSubcategoryDescription()"
+          (input)="editingSubcategoryDescription.set($event.target.value)"
+          placeholder="Descrição (opcional)"
+          class="p-2 border rounded-md w-full"
+        ></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="saveSubcategoryEdit()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md"
+        >
+          {{ "save" | i18n }}
+        </button>
+        <button
+          type="button"
+          (click)="editingSubcategory.set(null)"
+          class="px-4 py-2 bg-gray-300 rounded-md"
+        >
+          {{ "cancel" | i18n }}
+        </button>
+      </div>
+    </div>
+  </div>
   <div
     *ngIf="showDeleteSubcategoryModal() && subcategoryToDelete()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"

@@ -7,7 +7,10 @@ import { ServiceCategory } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { signal, computed } from "@angular/core";
 
-import { ServiceSubcategory } from "../../models/maintenance.models";
+import {
+  ServiceSubcategory,
+  ServiceSubcategoryExtended,
+} from "../../models/maintenance.models";
 
 @Component({
   selector: "app-category-management",
@@ -48,8 +51,20 @@ export class CategoryManagementComponent {
       this.subcategoriesForSelectedCategory().some((sub) => sub.name === name)
     )
       return;
-    await this.dataService.addSubcategory(name, cat.id);
+    // Collect optional fields from the modal inputs
+    const options = {
+      type: this.newSubcategoryType() || undefined,
+      average_time_minutes: this.newSubcategoryAverageTime(),
+      price: this.newSubcategoryPrice(),
+      description: this.newSubcategoryDescription(),
+    };
+    await this.dataService.addSubcategory(name, cat.id, options);
     this.newSubcategoryName.set("");
+    // reset optional fields
+    this.newSubcategoryType.set("");
+    this.newSubcategoryAverageTime.set(null);
+    this.newSubcategoryPrice.set(null);
+    this.newSubcategoryDescription.set(null);
   }
 
   // Removida duplicidade: método já declarado acima
@@ -154,8 +169,10 @@ export class CategoryManagementComponent {
   }
 
   // Small helper to get subcategories for a given category (used by the expanded row)
-  subcategoriesOf(categoryId: number): ServiceSubcategory[] {
-    return this.allSubcategories().filter((s) => s.category_id === categoryId);
+  subcategoriesOf(categoryId: number): ServiceSubcategoryExtended[] {
+    return this.allSubcategories().filter(
+      (s) => s.category_id === categoryId
+    ) as ServiceSubcategoryExtended[];
   }
 
   // Detail modal
@@ -168,6 +185,11 @@ export class CategoryManagementComponent {
   // Subcategory signals and logic
   selectedCategoryForSubcategory = signal<string>("");
   newSubcategoryName = signal("");
+  // Novos campos para subcategoria (tipo, tempo, preço, descrição)
+  newSubcategoryType = signal<"precificado" | "orçado" | "">("");
+  newSubcategoryAverageTime = signal<number | null>(null);
+  newSubcategoryPrice = signal<number | null>(null);
+  newSubcategoryDescription = signal<string | null>(null);
 
   allSubcategories = computed(() => this.dataService.subcategories());
 
@@ -196,17 +218,31 @@ export class CategoryManagementComponent {
     const categoryId = Number(this.selectedCategoryForSubcategory());
     if (!name || !categoryId || this.subcategoryExists(name, categoryId))
       return;
-    await this.dataService.addSubcategory(name, categoryId);
+    await this.dataService.addSubcategory(name, categoryId, {
+      type: this.newSubcategoryType() || undefined,
+      average_time_minutes: this.newSubcategoryAverageTime(),
+      price: this.newSubcategoryPrice(),
+      description: this.newSubcategoryDescription(),
+    });
     this.newSubcategoryName.set("");
   }
 
   // Edit subcategory
-  editingSubcategory = signal<ServiceSubcategory | null>(null);
+  editingSubcategory = signal<ServiceSubcategoryExtended | null>(null);
   editingSubcategoryName = signal("");
+  editingSubcategoryType = signal<"precificado" | "orçado" | "">("");
+  editingSubcategoryAverageTime = signal<number | null>(null);
+  editingSubcategoryPrice = signal<number | null>(null);
+  editingSubcategoryDescription = signal<string | null>(null);
 
-  startEditSubcategory(subcategory: ServiceSubcategory) {
+  startEditSubcategory(subcategory: ServiceSubcategoryExtended) {
     this.editingSubcategory.set(subcategory);
     this.editingSubcategoryName.set(subcategory.name);
+    const ext = subcategory as ServiceSubcategoryExtended;
+    this.editingSubcategoryType.set((ext.type as any) || "");
+    this.editingSubcategoryAverageTime.set(ext.average_time_minutes ?? null);
+    this.editingSubcategoryPrice.set(ext.price ?? null);
+    this.editingSubcategoryDescription.set(ext.description ?? null);
   }
 
   async saveSubcategoryEdit() {
@@ -220,16 +256,22 @@ export class CategoryManagementComponent {
       // Show error (could use notification)
       return;
     }
-    await this.dataService.updateSubcategory(sub.id, newName);
+    await this.dataService.updateSubcategory(sub.id, {
+      name: newName,
+      type: this.editingSubcategoryType() || null,
+      average_time_minutes: this.editingSubcategoryAverageTime() ?? null,
+      price: this.editingSubcategoryPrice() ?? null,
+      description: this.editingSubcategoryDescription() ?? null,
+    });
     this.editingSubcategory.set(null);
     this.editingSubcategoryName.set("");
   }
 
   // Delete subcategory modal
   showDeleteSubcategoryModal = signal(false);
-  subcategoryToDelete = signal<ServiceSubcategory | null>(null);
+  subcategoryToDelete = signal<ServiceSubcategoryExtended | null>(null);
 
-  requestDeleteSubcategory(subcategory: ServiceSubcategory) {
+  requestDeleteSubcategory(subcategory: ServiceSubcategoryExtended) {
     this.subcategoryToDelete.set(subcategory);
     this.showDeleteSubcategoryModal.set(true);
   }
@@ -248,7 +290,7 @@ export class CategoryManagementComponent {
     this.subcategoryToDelete.set(null);
   }
 
-  trackBySubId(index: number, item: ServiceSubcategory) {
+  trackBySubId(index: number, item: ServiceSubcategoryExtended) {
     return item.id;
   }
 
