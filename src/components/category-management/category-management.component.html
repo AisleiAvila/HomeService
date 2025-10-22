@@ -43,7 +43,32 @@
         <ng-container *ngFor="let cat of allCategories(); trackBy: trackById">
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 text-lg font-medium text-gray-800">
-              {{ cat.name }}
+              <div class="flex items-center gap-3">
+                <!-- Toggle button before the category name (shows + when collapsed, − when expanded) -->
+                <button
+                  type="button"
+                  (click)="toggleExpand(cat.id)"
+                  class="w-6 h-6 flex items-center justify-center rounded border text-sm bg-white hover:bg-gray-100"
+                  [attr.aria-expanded]="isExpanded(cat.id)"
+                  [attr.aria-label]="
+                    isExpanded(cat.id) ? ('collapse' | i18n) : ('expand' | i18n)
+                  "
+                >
+                  <span class="font-bold">{{
+                    isExpanded(cat.id) ? "−" : "+"
+                  }}</span>
+                </button>
+
+                <!-- Category name becomes bold when it has subcategories -->
+                <span
+                  [class.font-semibold]="
+                    (subcategoryCounts().get(cat.id) || 0) > 0
+                  "
+                  class="text-gray-800"
+                >
+                  {{ cat.name }}
+                </span>
+              </div>
             </td>
             <td class="px-6 py-4 text-gray-800">
               {{ subcategoryCounts().get(cat.id) || 0 }}
@@ -134,29 +159,7 @@
                   </svg>
                   {{ "addSubcategory" | i18n }}
                 </button>
-                <button
-                  type="button"
-                  (click)="toggleExpand(cat.id)"
-                  class="px-3 py-1.5 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                  {{
-                    isExpanded(cat.id) ? ("collapse" | i18n) : ("expand" | i18n)
-                  }}
-                </button>
+                <!-- Expand/collapse control removed from actions (use the leading toggle instead) -->
               </div>
             </td>
           </tr>
