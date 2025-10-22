@@ -52,12 +52,16 @@ export class CategoryManagementComponent {
     )
       return;
     // Collect optional fields from the modal inputs
-    const options = {
-      type: this.newSubcategoryType() || undefined,
-      average_time_minutes: this.newSubcategoryAverageTime(),
-      price: this.newSubcategoryPrice(),
+    // Build options but omit price/average_time when type is 'orçado'
+    const type = this.newSubcategoryType() || undefined;
+    const options: Partial<ServiceSubcategoryExtended> = {
+      type,
       description: this.newSubcategoryDescription(),
     };
+    if (type !== "orçado") {
+      options.average_time_minutes = this.newSubcategoryAverageTime();
+      options.price = this.newSubcategoryPrice();
+    }
     await this.dataService.addSubcategory(name, cat.id, options);
     this.newSubcategoryName.set("");
     // reset optional fields
@@ -218,12 +222,16 @@ export class CategoryManagementComponent {
     const categoryId = Number(this.selectedCategoryForSubcategory());
     if (!name || !categoryId || this.subcategoryExists(name, categoryId))
       return;
-    await this.dataService.addSubcategory(name, categoryId, {
-      type: this.newSubcategoryType() || undefined,
-      average_time_minutes: this.newSubcategoryAverageTime(),
-      price: this.newSubcategoryPrice(),
+    const type = this.newSubcategoryType() || undefined;
+    const options: Partial<ServiceSubcategoryExtended> = {
+      type,
       description: this.newSubcategoryDescription(),
-    });
+    };
+    if (type !== "orçado") {
+      options.average_time_minutes = this.newSubcategoryAverageTime();
+      options.price = this.newSubcategoryPrice();
+    }
+    await this.dataService.addSubcategory(name, categoryId, options);
     this.newSubcategoryName.set("");
   }
 
@@ -256,15 +264,46 @@ export class CategoryManagementComponent {
       // Show error (could use notification)
       return;
     }
-    await this.dataService.updateSubcategory(sub.id, {
+    const type = this.editingSubcategoryType() || null;
+    const updates: Partial<ServiceSubcategoryExtended> = {
       name: newName,
-      type: this.editingSubcategoryType() || null,
-      average_time_minutes: this.editingSubcategoryAverageTime() ?? null,
-      price: this.editingSubcategoryPrice() ?? null,
+      type,
       description: this.editingSubcategoryDescription() ?? null,
-    });
+    };
+    if (type !== "orçado") {
+      updates.average_time_minutes =
+        this.editingSubcategoryAverageTime() ?? null;
+      updates.price = this.editingSubcategoryPrice() ?? null;
+    } else {
+      // ensure these fields are cleared when switching to 'orçado'
+      updates.average_time_minutes = null;
+      updates.price = null;
+    }
+    await this.dataService.updateSubcategory(sub.id, updates);
     this.editingSubcategory.set(null);
     this.editingSubcategoryName.set("");
+  }
+
+  // When user changes the new-subcategory type in the modal
+  onNewSubcategoryTypeChange(value: string) {
+    // Normalize to allowed values or empty
+    const v = (value as any) || "";
+    this.newSubcategoryType.set(v as "precificado" | "orçado" | "");
+    if (v === "orçado") {
+      // clear fields not applicable
+      this.newSubcategoryAverageTime.set(null);
+      this.newSubcategoryPrice.set(null);
+    }
+  }
+
+  // When user changes the editing-subcategory type in the edit modal
+  onEditingSubcategoryTypeChange(value: string) {
+    const v = (value as any) || "";
+    this.editingSubcategoryType.set(v as "precificado" | "orçado" | "");
+    if (v === "orçado") {
+      this.editingSubcategoryAverageTime.set(null);
+      this.editingSubcategoryPrice.set(null);
+    }
   }
 
   // Delete subcategory modal
