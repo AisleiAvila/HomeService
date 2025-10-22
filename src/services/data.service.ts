@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from "@angular/core";
+﻿import { inject, Injectable, signal } from "@angular/core";
 import {
   ChatMessage,
   PaymentStatus,
@@ -23,7 +23,7 @@ import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
   providedIn: "root",
 })
 export class DataService {
-  /** Consulta tabela codigos_postais e retorna dados do endereço */
+  /** Consulta tabela codigos_postais e retorna dados do endere├ºo */
   async getPostalCodeInfo(postalCode: string): Promise<{
     localidade: string;
     distrito: string;
@@ -64,11 +64,11 @@ export class DataService {
       arteria_completa: data.arteria_completa || "",
     };
   }
-  // Serviços injetados
+  private i18n = inject(I18nService);
   private supabase = inject(SupabaseService);
   private notificationService = inject(NotificationService);
+  // Exposed intentionally for some components that access auth via dataService.authService
   public readonly authService = inject(AuthService);
-  private i18n = inject(I18nService);
 
   // Signals para dados principais
   readonly users = signal<User[]>([]);
@@ -90,10 +90,12 @@ export class DataService {
   ): Promise<ServiceSubcategoryExtended | null> {
     const payload: any = { name, category_id };
     if (options) {
-      payload.type = options.type;
-      payload.average_time_minutes = options.average_time_minutes ?? null;
-      payload.price = options.price ?? null;
-      payload.description = options.description ?? null;
+      if (options.type !== undefined) payload.type = options.type;
+      if (options.average_time_minutes !== undefined)
+        payload.average_time_minutes = options.average_time_minutes ?? null;
+      if (options.price !== undefined) payload.price = options.price ?? null;
+      if (options.description !== undefined)
+        payload.description = options.description ?? null;
     }
 
     const { data, error } = await this.supabase.client
@@ -111,16 +113,24 @@ export class DataService {
       return null;
     }
     if (data) {
-      // Atualiza signal local
-      const updated = [
-        ...this.subcategories(),
-        data as ServiceSubcategoryExtended,
-      ];
-      this.subcategories.set(updated);
+      const raw = data as any;
+      const created: ServiceSubcategoryExtended = {
+        ...raw,
+        category_id:
+          typeof raw.category_id === "string"
+            ? parseInt(raw.category_id, 10)
+            : raw.category_id,
+        average_time_minutes:
+          raw.average_time_minutes === undefined
+            ? null
+            : raw.average_time_minutes,
+        price: raw.price === undefined ? null : raw.price,
+      };
+      this.subcategories.update((s) => [...s, created]);
       this.notificationService.addNotification(
         "Subcategoria criada com sucesso!"
       );
-      return data as ServiceSubcategoryExtended;
+      return created;
     }
     return null;
   }
@@ -161,22 +171,31 @@ export class DataService {
       return null;
     }
     if (data) {
-      // Atualiza signal local
-      const updated = this.subcategories().map((sub) =>
-        sub.id === id
-          ? { ...sub, ...(data as ServiceSubcategoryExtended) }
-          : sub
+      const raw = data as any;
+      const updated: ServiceSubcategoryExtended = {
+        ...raw,
+        category_id:
+          typeof raw.category_id === "string"
+            ? parseInt(raw.category_id, 10)
+            : raw.category_id,
+        average_time_minutes:
+          raw.average_time_minutes === undefined
+            ? null
+            : raw.average_time_minutes,
+        price: raw.price === undefined ? null : raw.price,
+      };
+      this.subcategories.update((s) =>
+        s.map((sc) => (sc.id === id ? updated : sc))
       );
-      this.subcategories.set(updated);
       this.notificationService.addNotification(
         "Subcategoria atualizada com sucesso!"
       );
-      return data as ServiceSubcategoryExtended;
+      return updated;
     }
     return null;
   }
 
-  /** Remove uma subcategoria de serviço */
+  /** Remove uma subcategoria de servi├ºo */
   async deleteSubcategory(id: number): Promise<boolean> {
     const { error } = await this.supabase.client
       .from("service_subcategories")
@@ -198,7 +217,7 @@ export class DataService {
     return true;
   }
 
-  /** Remove uma categoria de serviço */
+  /** Remove uma categoria de servi├ºo */
   async deleteCategory(id: number): Promise<boolean> {
     const { error } = await this.supabase.client
       .from("service_categories")
@@ -218,7 +237,7 @@ export class DataService {
     return true;
   }
 
-  /** Adiciona uma nova categoria de serviço */
+  /** Adiciona uma nova categoria de servi├ºo */
   async addCategory(name: string): Promise<ServiceCategory | null> {
     const { data, error } = await this.supabase.client
       .from("service_categories")
@@ -241,7 +260,7 @@ export class DataService {
     }
     return null;
   }
-  /** Atualiza o nome de uma categoria de serviço */
+  /** Atualiza o nome de uma categoria de servi├ºo */
   async updateCategory(
     id: number,
     name: string
@@ -326,7 +345,7 @@ export class DataService {
       query = query.eq("client_auth_id", currentUser.auth_id);
       filtro = { client_auth_id: currentUser.auth_id };
     } else if (currentUser.role === "professional") {
-      // Forçar tipo integer
+      // For├ºar tipo integer
       const profId =
         typeof currentUser.id === "string"
           ? parseInt(currentUser.id, 10)
@@ -414,8 +433,47 @@ export class DataService {
       this.notificationService.addNotification(
         "Erro ao buscar subcategorias: " + error.message
       );
-    } else if (data && data.length > 0) {
-      this.subcategories.set(data as ServiceSubcategoryExtended[]);
+    }
+    // Always log raw response for debugging (helps diagnose RLS / empty result)
+    try {
+      console.debug("[DataService] fetchSubcategories raw response:", {
+        data,
+        error,
+        currentUserId: this.authService?.appUser?.()?.id ?? null,
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    if (data && data.length > 0) {
+      // Normaliza tipos vindos do Supabase: category_id pode vir como string
+      const normalized = (data as any[]).map((d) => ({
+        ...d,
+        category_id:
+          typeof d.category_id === "string"
+            ? parseInt(d.category_id, 10)
+            : d.category_id,
+        average_time_minutes:
+          d.average_time_minutes === undefined ? null : d.average_time_minutes,
+        price: d.price === undefined ? null : d.price,
+      }));
+      // Debugging info: quantidade carregada e amostra de tipos
+      try {
+        console.debug(
+          `[DataService] fetchSubcategories loaded ${normalized.length} items`
+        );
+        if (normalized.length > 0) {
+          const sample = normalized.slice(0, 5).map((s) => ({
+            id: s.id,
+            category_id_type: typeof s.category_id,
+            category_id_value: s.category_id,
+          }));
+          console.debug("[DataService] subcategories sample types:", sample);
+        }
+      } catch (e) {
+        /* ignore logging errors */
+      }
+      this.subcategories.set(normalized as ServiceSubcategoryExtended[]);
     } else {
       console.log("No subcategories found in Supabase.");
     }
@@ -427,7 +485,7 @@ export class DataService {
       throw new Error("User not authenticated");
     }
 
-    // Usar requested_datetime (agora obrigatório)
+    // Usar requested_datetime (agora obrigat├│rio)
     const requestedDateTime = payload.requested_datetime;
 
     const { StatusService } = await import("../services/status.service");
@@ -525,7 +583,7 @@ export class DataService {
       : StatusService.QuoteRejected;
     this.setServiceStatus(requestId, status);
     this.notificationService.addNotification(
-      `Orçamento do pedido #${requestId} foi ${
+      `Or├ºamento do pedido #${requestId} foi ${
         approved ? "aprovado" : "rejeitado"
       }.`
     );
@@ -547,7 +605,7 @@ export class DataService {
     );
   }
 
-  // Novos métodos para controle de data de execução
+  // Novos m├®todos para controle de data de execu├º├úo
   async proposeExecutionDate(
     requestId: number,
     proposedDate: Date,
@@ -555,7 +613,7 @@ export class DataService {
   ) {
     const request = this.serviceRequests().find((r) => r.id === requestId);
     if (!request) {
-      console.error("Request não encontrado:", requestId);
+      console.error("Request n├úo encontrado:", requestId);
       return;
     }
     const updates: Partial<ServiceRequest> = {
@@ -596,7 +654,7 @@ export class DataService {
   ) {
     const request = this.serviceRequests().find((r) => r.id === requestId);
     if (!request) {
-      console.error("Request não encontrado:", requestId);
+      console.error("Request n├úo encontrado:", requestId);
       return;
     }
     const updates: Partial<ServiceRequest> = {
@@ -778,7 +836,7 @@ export class DataService {
   }
 
   // ==========================================
-  // NOVOS MÉTODOS PARA CONTROLE DE AGENDAMENTO E TEMPO
+  // NOVOS M├ëTODOS PARA CONTROLE DE AGENDAMENTO E TEMPO
   // ==========================================
 
   /**
@@ -796,7 +854,7 @@ export class DataService {
   }
 
   /**
-   * Agenda o início do serviço (usado pelo administrador)
+   * Agenda o in├¡cio do servi├ºo (usado pelo administrador)
    */
   async scheduleServiceStart(
     requestId: number,
@@ -812,12 +870,12 @@ export class DataService {
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Serviço #${requestId} foi agendado para ${scheduledStartDateTime.toLocaleDateString()} às ${scheduledStartDateTime.toLocaleTimeString()}.`
+      `Servi├ºo #${requestId} foi agendado para ${scheduledStartDateTime.toLocaleDateString()} ├ás ${scheduledStartDateTime.toLocaleTimeString()}.`
     );
   }
 
   /**
-   * Registra o início real do atendimento (usado pelo profissional)
+   * Registra o in├¡cio real do atendimento (usado pelo profissional)
    */
   async startServiceWork(requestId: number) {
     const updates = {
@@ -826,7 +884,7 @@ export class DataService {
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Atendimento do serviço #${requestId} foi iniciado.`
+      `Atendimento do servi├ºo #${requestId} foi iniciado.`
     );
   }
 
@@ -841,12 +899,12 @@ export class DataService {
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Atendimento do serviço #${requestId} foi finalizado.`
+      `Atendimento do servi├ºo #${requestId} foi finalizado.`
     );
   }
 
   /**
-   * Atualiza a previsão de duração (usado pelo administrador)
+   * Atualiza a previs├úo de dura├º├úo (usado pelo administrador)
    */
   async updateEstimatedDuration(
     requestId: number,
@@ -858,12 +916,12 @@ export class DataService {
 
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Previsão de duração do serviço #${requestId} foi atualizada para ${estimatedDurationMinutes} minutos.`
+      `Previs├úo de dura├º├úo do servi├ºo #${requestId} foi atualizada para ${estimatedDurationMinutes} minutos.`
     );
   }
 
   /**
-   * Calcula a duração real do serviço em minutos
+   * Calcula a dura├º├úo real do servi├ºo em minutos
    */
   calculateActualDuration(request: ServiceRequest): number | null {
     if (!request.actual_start_datetime || !request.actual_end_datetime) {
@@ -876,7 +934,7 @@ export class DataService {
   }
 
   /**
-   * Calcula a variação entre duração estimada e real
+   * Calcula a varia├º├úo entre dura├º├úo estimada e real
    */
   calculateDurationVariance(request: ServiceRequest): number | null {
     const actualDuration = this.calculateActualDuration(request);
@@ -893,17 +951,17 @@ export class DataService {
   getSchedulingStatus(request: ServiceRequest): SchedulingStatus {
     const now = new Date();
 
-    // Se o serviço está concluído
+    // Se o servi├ºo est├í conclu├¡do
     if (request.status === "Finalizado" && request.actual_end_datetime) {
       return "Completed";
     }
 
-    // Se o serviço está em progresso
+    // Se o servi├ºo est├í em progresso
     if (request.actual_start_datetime && !request.actual_end_datetime) {
       return "In Progress";
     }
 
-    // Se o serviço está atrasado
+    // Se o servi├ºo est├í atrasado
     if (
       request.scheduled_start_datetime &&
       !request.actual_start_datetime &&
@@ -913,7 +971,7 @@ export class DataService {
       return "Delayed";
     }
 
-    // Se o serviço está agendado para hoje
+    // Se o servi├ºo est├í agendado para hoje
     if (request.scheduled_start_datetime) {
       const scheduledDate = new Date(request.scheduled_start_datetime);
       const today = new Date();
@@ -922,7 +980,7 @@ export class DataService {
       }
     }
 
-    // Se o serviço está agendado para o futuro
+    // Se o servi├ºo est├í agendado para o futuro
     if (
       request.scheduled_start_datetime &&
       new Date(request.scheduled_start_datetime) > now
@@ -930,7 +988,7 @@ export class DataService {
       return "Scheduled";
     }
 
-    // Se tem data solicitada mas não agendada
+    // Se tem data solicitada mas n├úo agendada
     if (request.requested_datetime && !request.scheduled_start_datetime) {
       return "Awaiting Schedule";
     }
@@ -939,7 +997,7 @@ export class DataService {
   }
 
   /**
-   * Obtém pedidos agendados para hoje
+   * Obt├®m pedidos agendados para hoje
    */
   getTodayScheduledRequests(): ServiceRequest[] {
     const today = new Date();
@@ -955,7 +1013,7 @@ export class DataService {
   }
 
   /**
-   * Obtém pedidos atrasados
+   * Obt├®m pedidos atrasados
    */
   getDelayedRequests(): ServiceRequest[] {
     return this.serviceRequests().filter(
@@ -964,7 +1022,7 @@ export class DataService {
   }
 
   /**
-   * Obtém relatório de produtividade dos profissionais
+   * Obt├®m relat├│rio de produtividade dos profissionais
    */
   getProfessionalProductivityReport(): Array<{
     professional_id: number;
@@ -991,7 +1049,7 @@ export class DataService {
           totalDuration += actualDuration;
         }
 
-        // Considera "no horário" se iniciou dentro de 15 minutos do agendado
+        // Considera "no hor├írio" se iniciou dentro de 15 minutos do agendado
         if (service.scheduled_start_datetime && service.actual_start_datetime) {
           const scheduled = new Date(service.scheduled_start_datetime);
           const actual = new Date(service.actual_start_datetime);
@@ -1020,14 +1078,14 @@ export class DataService {
   }
 
   // ==========================================
-  // MÉTODOS PARA ESCLARECIMENTOS (DÚVIDAS E RESPOSTAS)
+  // M├ëTODOS PARA ESCLARECIMENTOS (D├ÜVIDAS E RESPOSTAS)
   // ==========================================
 
   // Signal para armazenar esclarecimentos
   readonly serviceClarifications = signal<ServiceClarification[]>([]);
 
   /**
-   * Buscar esclarecimentos de uma solicitação específica
+   * Buscar esclarecimentos de uma solicita├º├úo espec├¡fica
    */
   async fetchServiceClarifications(serviceRequestId: number) {
     const { data, error } = await this.supabase.client
@@ -1091,7 +1149,7 @@ export class DataService {
       // Recarregar esclarecimentos
       await this.fetchServiceClarifications(serviceRequestId);
 
-      // Criar notificação para outros participantes
+      // Criar notifica├º├úo para outros participantes
       await this.createClarificationNotification(
         serviceRequestId,
         "clarification_requested",
@@ -1147,7 +1205,7 @@ export class DataService {
       // Recarregar esclarecimentos
       await this.fetchServiceClarifications(serviceRequestId);
 
-      // Criar notificação para outros participantes
+      // Criar notifica├º├úo para outros participantes
       await this.createClarificationNotification(
         serviceRequestId,
         "clarification_provided",
@@ -1160,7 +1218,7 @@ export class DataService {
   }
 
   /**
-   * Marcar esclarecimentos como lidos para o usuário atual
+   * Marcar esclarecimentos como lidos para o usu├írio atual
    */
   async markClarificationsAsRead(serviceRequestId: number) {
     const currentUser = this.authService.appUser();
@@ -1168,7 +1226,7 @@ export class DataService {
       return;
     }
 
-    // Chamar função do banco para marcar como lidas
+    // Chamar fun├º├úo do banco para marcar como lidas
     const { data, error } = await this.supabase.client.rpc(
       "mark_clarifications_as_read",
       {
@@ -1181,13 +1239,13 @@ export class DataService {
       console.error("Error marking clarifications as read:", error);
     } else {
       console.log(`Marked ${data} clarifications as read`);
-      // Recarregar esclarecimentos para refletir mudanças
+      // Recarregar esclarecimentos para refletir mudan├ºas
       await this.fetchServiceClarifications(serviceRequestId);
     }
   }
 
   /**
-   * Contar esclarecimentos não lidos para uma solicitação
+   * Contar esclarecimentos n├úo lidos para uma solicita├º├úo
    */
   async countUnreadClarifications(serviceRequestId: number): Promise<number> {
     const currentUser = this.authService.appUser();
@@ -1212,7 +1270,7 @@ export class DataService {
   }
 
   /**
-   * Deletar um esclarecimento (apenas o próprio usuário)
+   * Deletar um esclarecimento (apenas o pr├│prio usu├írio)
    */
   async deleteClarification(clarificationId: number, serviceRequestId: number) {
     const { error } = await this.supabase.client
@@ -1237,7 +1295,7 @@ export class DataService {
   }
 
   /**
-   * Criar notificação para esclarecimentos
+   * Criar notifica├º├úo para esclarecimentos
    */
   private async createClarificationNotification(
     serviceRequestId: number,
@@ -1246,20 +1304,20 @@ export class DataService {
     message: string
   ) {
     try {
-      // Buscar participantes da solicitação (cliente e profissional)
+      // Buscar participantes da solicita├º├úo (cliente e profissional)
       const serviceRequest = this.getServiceRequestById(serviceRequestId);
       if (!serviceRequest) return;
 
       const currentUser = this.authService.appUser();
       if (!currentUser) return;
 
-      // Criar notificações para outros participantes
+      // Criar notifica├º├Áes para outros participantes
       const participants = [serviceRequest.client_id];
       if (serviceRequest.professional_id) {
         participants.push(serviceRequest.professional_id);
       }
 
-      // Filtrar para não notificar o próprio usuário
+      // Filtrar para n├úo notificar o pr├│prio usu├írio
       const recipientIds = participants.filter((id) => id !== currentUser.id);
 
       for (const userId of recipientIds) {
