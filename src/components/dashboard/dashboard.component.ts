@@ -68,6 +68,13 @@ export class DashboardComponent {
   sortBy = signal<string>("date");
   sortOrder = signal<"asc" | "desc">("desc");
 
+  // Paginação
+  currentPage = signal(1);
+  itemsPerPage = signal(10);
+  totalPages = computed(() =>
+    Math.ceil(this.filteredRequests().length / this.itemsPerPage())
+  );
+
   // Método para ordenar por coluna clicada
   sortByColumn(column: string) {
     if (this.sortBy() === column) {
@@ -193,6 +200,52 @@ export class DashboardComponent {
     // Aplicar ordenação
     return this.sortRequests(reqs);
   });
+
+  // Computed para requests paginados
+  paginatedRequests = computed(() => {
+    const reqs = this.filteredRequests();
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return reqs.slice(start, end);
+  });
+
+  // Pagination helper methods
+  get pageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+
+    // Show first page
+    pages.push(1);
+
+    // Show pages around current page
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+
+    // Add ellipsis if needed
+    if (start > 2) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Add middle pages
+    for (let i = start; i <= end; i++) {
+      if (i !== 1 && i !== total) {
+        pages.push(i);
+      }
+    }
+
+    // Add ellipsis if needed
+    if (end < total - 1) {
+      pages.push(-1); // -1 represents ellipsis
+    }
+
+    // Show last page if more than 1 page
+    if (total > 1) {
+      pages.push(total);
+    }
+
+    return pages;
+  }
 
   // Método para ordenar as solicitações
   private sortRequests(requests: ServiceRequest[]): ServiceRequest[] {
@@ -401,4 +454,33 @@ export class DashboardComponent {
         break;
     }
   }
+
+  // Pagination methods
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  previousPage() {
+    const current = this.currentPage();
+    if (current > 1) {
+      this.currentPage.set(current - 1);
+    }
+  }
+
+  nextPage() {
+    const current = this.currentPage();
+    if (current < this.totalPages()) {
+      this.currentPage.set(current + 1);
+    }
+  }
+
+  setItemsPerPage(items: number) {
+    this.itemsPerPage.set(items);
+    this.currentPage.set(1); // Reset to first page when changing items per page
+  }
+
+  // Expose Math for template
+  Math = Math;
 }
