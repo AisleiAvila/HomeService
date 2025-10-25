@@ -42,6 +42,11 @@ export class ServiceListComponent {
   currentUser = input.required<User>();
   enablePagination = input<boolean>(false); // New input to enable pagination
   itemsPerPageDefault = input<number>(10); // Default items per page
+  
+  // Ordenação
+  sortBy = input<string>("date");
+  sortOrder = input<"asc" | "desc">("desc");
+  sortChange = output<string>(); // Emite a coluna clicada
 
   viewDetails = output<ServiceRequest>();
   openChat = output<ServiceRequest>();
@@ -79,6 +84,16 @@ export class ServiceListComponent {
 
   ngOnInit() {
     console.log("[ServiceListComponent] currentUser:", this.currentUser().name);
+  }
+
+  // Método para lidar com clique na coluna
+  handleSortColumn(column: string) {
+    this.sortChange.emit(column);
+  }
+
+  // Método para verificar se a coluna está sendo ordenada
+  isSortedBy(column: string): boolean {
+    return this.sortBy() === column;
   }
 
   displayedRequests = computed(() => {
