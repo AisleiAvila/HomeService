@@ -307,10 +307,13 @@
   <div
     *ngIf="showAddCategoryModal()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="closeAddCategoryModal()"
+    (keydown.escape)="closeAddCategoryModal()"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">{{ "addNewCategory" | i18n }}</h2>
@@ -355,10 +358,13 @@
   <div
     *ngIf="editingCategory()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="editingCategory.set(null)"
+    (keydown.escape)="editingCategory.set(null)"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">{{ "editCategory" | i18n }}</h2>
@@ -402,10 +408,13 @@
   <div
     *ngIf="selectedCategoryForDetails()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="selectedCategoryForDetails.set(null)"
+    (keydown.escape)="selectedCategoryForDetails.set(null)"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">{{ "categoryDetails" | i18n }}</h2>
@@ -443,10 +452,13 @@
   <div
     *ngIf="selectedCategoryForSubcategories()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="selectedCategoryForSubcategories.set(null)"
+    (keydown.escape)="selectedCategoryForSubcategories.set(null)"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">
@@ -567,10 +579,13 @@
   <div
     *ngIf="editingSubcategory()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="editingSubcategory.set(null)"
+    (keydown.escape)="editingSubcategory.set(null)"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">{{ "editSubcategory" | i18n }}</h2>
@@ -653,10 +668,13 @@
   <div
     *ngIf="showDeleteSubcategoryModal() && subcategoryToDelete()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="cancelDeleteSubcategory()"
+    (keydown.escape)="cancelDeleteSubcategory()"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">Excluir Subcategoria</h2>
@@ -692,10 +710,13 @@
   <div
     *ngIf="showDeleteModal() && categoryToDelete()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="cancelDeleteCategory()"
+    (keydown.escape)="cancelDeleteCategory()"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold">Excluir Categoria</h2>
@@ -730,10 +751,13 @@
   <div
     *ngIf="selectedSubcategoryForDetails()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="closeSubcategoryDetails()"
+    (keydown.escape)="closeSubcategoryDetails()"
   >
     <div
       class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-bold text-gray-900">{{ "subcategoryDetails" | i18n }}</h2>
@@ -749,17 +773,17 @@
       <div class="space-y-4">
         <!-- Nome -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "name" | i18n }}
-          </label>
+          </p>
           <p class="text-base text-gray-900">{{ selectedSubcategoryForDetails()?.name }}</p>
         </div>
 
         <!-- Categoria -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "category" | i18n }}
-          </label>
+          </p>
           <p class="text-base text-gray-900">
             {{ getCategoryName(selectedSubcategoryForDetails()?.category_id || 0) }}
           </p>
@@ -767,9 +791,9 @@
 
         <!-- Tipo -->
         <div *ngIf="selectedSubcategoryForDetails()?.type">
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "type" | i18n }}
-          </label>
+          </p>
           <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
                 [class.bg-blue-100]="selectedSubcategoryForDetails()?.type === 'precificado'"
                 [class.text-blue-800]="selectedSubcategoryForDetails()?.type === 'precificado'"
@@ -779,43 +803,43 @@
           </span>
         </div>
 
-        <!-- Tempo M�dio -->
+        <!-- Tempo Médio -->
         <div *ngIf="selectedSubcategoryForDetails()?.average_time_minutes">
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "averageTime" | i18n }}
-          </label>
+          </p>
           <p class="text-base text-gray-900">
             <i class="fas fa-clock mr-2 text-gray-500"></i>
             {{ selectedSubcategoryForDetails()?.average_time_minutes }} {{ "minutes" | i18n }}
           </p>
         </div>
 
-        <!-- Pre�o -->
+        <!-- Preço -->
         <div *ngIf="selectedSubcategoryForDetails()?.price">
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "price" | i18n }}
-          </label>
+          </p>
           <p class="text-base text-gray-900">
             <i class="fas fa-euro-sign mr-2 text-gray-500"></i>
             {{ selectedSubcategoryForDetails()?.price | number : '1.2-2' }}
           </p>
         </div>
 
-        <!-- Descri��o -->
+        <!-- Descrição -->
         <div *ngIf="selectedSubcategoryForDetails()?.description">
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "description" | i18n }}
-          </label>
+          </p>
           <p class="text-base text-gray-900 bg-gray-50 p-3 rounded-md">
             {{ selectedSubcategoryForDetails()?.description }}
           </p>
         </div>
 
-        <!-- Se n�o houver descri��o -->
+        <!-- Se não houver descrição -->
         <div *ngIf="!selectedSubcategoryForDetails()?.description">
-          <label class="block text-sm font-semibold text-gray-700 mb-1">
+          <p class="block text-sm font-semibold text-gray-700 mb-1">
             {{ "description" | i18n }}
-          </label>
+          </p>
           <p class="text-sm text-gray-500 italic">{{ "noDescription" | i18n }}</p>
         </div>
       </div>
