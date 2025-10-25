@@ -1,236 +1,161 @@
-<div class="container mx-auto p-6">
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
   <!-- Cabeçalho e botão adicionar -->
-  <div class="flex justify-between items-center mb-6">
+  <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <h3 class="text-xl font-semibold">{{ "serviceCategories" | i18n }}</h3>
     <button
       (click)="showAddCategoryModal.set(true)"
-      class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 flex items-center gap-2"
+      class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 flex items-center justify-center gap-2"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 4v16m8-8H4"
-        />
-      </svg>
+      <i class="fas fa-plus"></i>
       {{ "addNewCategory" | i18n }}
     </button>
   </div>
 
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white shadow-lg rounded-lg overflow-hidden">
-      <thead class="bg-gradient-to-r from-indigo-600 to-indigo-800">
+  <!-- Desktop Table View -->
+  <div class="hidden lg:block">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
         <tr>
-          <th class="px-6 py-3 text-left text-sm font-bold text-white">
-            Categoria
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+          >
+            {{ "category" | i18n }}
           </th>
-          <th class="px-6 py-3 text-left text-sm font-bold text-white">
-            Total Subcategorias
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+          >
+            {{ "subcategories" | i18n }}
           </th>
-          <th class="px-6 py-3 text-left text-sm font-bold text-white">
-            Ações
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+          >
+            {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="bg-white divide-y divide-gray-200">
         <ng-container *ngFor="let cat of allCategories(); trackBy: trackById">
           <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-lg font-medium text-gray-800">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               <div class="flex items-center gap-3">
-                <!-- Toggle button before the category name (shows + when collapsed, − when expanded) -->
+                <!-- Toggle button -->
                 <button
                   type="button"
                   (click)="toggleExpand(cat.id)"
-                  class="w-6 h-6 flex items-center justify-center rounded border text-sm bg-white hover:bg-gray-100"
+                  class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                   [attr.aria-expanded]="isExpanded(cat.id)"
-                  [attr.aria-label]="
-                    isExpanded(cat.id) ? ('collapse' | i18n) : ('expand' | i18n)
-                  "
+                  [attr.aria-label]="isExpanded(cat.id) ? ('collapse' | i18n) : ('expand' | i18n)"
                 >
-                  <span class="font-bold">{{
-                    isExpanded(cat.id) ? "−" : "+"
-                  }}</span>
+                  <i [class]="isExpanded(cat.id) ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
                 </button>
-
-                <!-- Category name becomes bold when it has subcategories -->
-                <span
-                  [class.font-semibold]="
-                    (subcategoryCounts().get(cat.id) || 0) > 0
-                  "
-                  class="text-gray-800"
-                >
-                  {{ cat.name }}
-                </span>
+                <span>{{ cat.name }}</span>
               </div>
             </td>
-            <td class="px-6 py-4 text-gray-800">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ subcategoryCounts().get(cat.id) || 0 }}
             </td>
-            <td class="px-6 py-4">
-              <div class="flex gap-2">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex items-center gap-2">
                 <button
                   type="button"
                   (click)="showDetails(cat)"
-                  class="px-3 py-1.5 bg-gray-700 text-white rounded-md hover:bg-gray-800 text-sm"
+                  class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-full transition-colors"
+                  title="{{ 'details' | i18n }}"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 7l4-4 4 4m0 10l-4 4-4-4"
-                    />
-                  </svg>
-                  {{ "details" | i18n }}
+                  <i class="fas fa-eye"></i>
                 </button>
                 <button
                   type="button"
                   (click)="startEditCategory(cat)"
-                  class="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+                  class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                  title="{{ 'edit' | i18n }}"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  {{ "edit" | i18n }}
+                  <i class="fas fa-edit"></i>
                 </button>
                 <button
                   type="button"
                   (click)="requestDeleteCategory(cat)"
-                  class="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+                  class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                  title="{{ 'delete' | i18n }}"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  {{ "delete" | i18n }}
+                  <i class="fas fa-times"></i>
                 </button>
                 <button
                   type="button"
                   (click)="manageSubcategories(cat)"
-                  class="px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm"
+                  class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors"
+                  title="{{ 'addSubcategory' | i18n }}"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  {{ "addSubcategory" | i18n }}
+                  <i class="fas fa-plus"></i>
                 </button>
-                <!-- Expand/collapse control removed from actions (use the leading toggle instead) -->
               </div>
             </td>
           </tr>
 
+          <!-- Subcategories Row (expanded) -->
           <tr *ngIf="isExpanded(cat.id)" class="bg-gray-50">
             <td colspan="3" class="px-6 py-4">
-              <div class="pl-4">
-                <h4 class="text-sm font-semibold mb-2">
+              <div class="pl-12">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">
                   {{ "subcategories" | i18n }}
                 </h4>
-                <ul class="list-disc pl-6">
-                  <li
-                    *ngFor="
-                      let sub of subcategoriesOf(cat.id);
-                      trackBy: trackBySubId
-                    "
-                    class="mb-1 flex items-center justify-between"
-                  >
-                    <span>{{ sub.name }}</span>
-                    <div class="flex gap-2">
-                      <button
-                        type="button"
-                        (click)="startEditSubcategory(sub)"
-                        class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs flex items-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-3 w-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"
-                          />
-                        </svg>
-                        {{ "edit" | i18n }}
-                      </button>
-                      <button
-                        type="button"
-                        (click)="requestDeleteSubcategory(sub)"
-                        class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs flex items-center gap-1"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-3 w-3"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"
-                          />
-                        </svg>
-                        {{ "delete" | i18n }}
-                      </button>
-                    </div>
-                  </li>
-                  <li
-                    *ngIf="(subcategoriesOf(cat.id) || []).length === 0"
-                    class="text-sm text-gray-500"
-                  >
-                    {{ "noSubcategories" | i18n }}
-                  </li>
-                </ul>
+                @if(subcategoriesOf(cat.id).length > 0) {
+                  <div class="space-y-2">
+                    @for(sub of subcategoriesOf(cat.id); track sub.id) {
+                      <div class="flex items-center justify-between p-3 bg-white rounded-md border border-gray-200 hover:border-gray-300">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-tag text-gray-400 text-xs"></i>
+                            <span class="text-sm font-medium text-gray-900">{{ sub.name }}</span>
+                            @if(sub.type) {
+                              <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full"
+                                    [class.bg-blue-100]="sub.type === 'precificado'"
+                                    [class.text-blue-800]="sub.type === 'precificado'"
+                                    [class.bg-orange-100]="sub.type === 'orçado'"
+                                    [class.text-orange-800]="sub.type === 'orçado'">
+                                {{ sub.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
+                              </span>
+                            }
+                          </div>
+                          @if(sub.description) {
+                            <p class="text-xs text-gray-500 mt-1 ml-5">{{ sub.description }}</p>
+                          }
+                          <div class="flex items-center gap-4 mt-1 ml-5 text-xs text-gray-500">
+                            @if(sub.average_time) {
+                              <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time }} min</span>
+                            }
+                            @if(sub.price) {
+                              <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>
+                            }
+                          </div>
+                        </div>
+                        <div class="flex gap-1 ml-4">
+                          <button
+                            type="button"
+                            (click)="startEditSubcategory(sub)"
+                            class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                            title="{{ 'edit' | i18n }}"
+                          >
+                            <i class="fas fa-edit text-xs"></i>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="requestDeleteSubcategory(sub)"
+                            class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                            title="{{ 'delete' | i18n }}"
+                          >
+                            <i class="fas fa-times text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="text-center py-6">
+                    <i class="fas fa-inbox text-3xl text-gray-300 mb-2"></i>
+                    <p class="text-sm text-gray-500">{{ "noSubcategories" | i18n }}</p>
+                  </div>
+                }
               </div>
             </td>
           </tr>
@@ -239,9 +164,136 @@
     </table>
   </div>
 
-  <!-- Modais (fora da tabela) -->
+  <!-- Mobile Card View -->
+  <div class="lg:hidden p-4 space-y-4">
+    @for(cat of allCategories(); track cat.id) {
+      <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <!-- Category Header -->
+        <div class="p-4 bg-white">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-gray-900">{{ cat.name }}</h4>
+              <p class="text-xs text-gray-500 mt-1">
+                {{ subcategoryCounts().get(cat.id) || 0 }} {{ "subcategories" | i18n }}
+              </p>
+            </div>
+            <button
+              type="button"
+              (click)="toggleExpand(cat.id)"
+              class="p-2 text-gray-500 hover:text-gray-700 rounded-full"
+            >
+              <i [class]="isExpanded(cat.id) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+            </button>
+          </div>
 
-  <!-- Modal inclusão categoria -->
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              (click)="showDetails(cat)"
+              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center"
+            >
+              <i class="fas fa-eye mr-2"></i>
+              {{ "details" | i18n }}
+            </button>
+            <button
+              type="button"
+              (click)="startEditCategory(cat)"
+              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center justify-center"
+            >
+              <i class="fas fa-edit mr-2"></i>
+              {{ "edit" | i18n }}
+            </button>
+            <button
+              type="button"
+              (click)="manageSubcategories(cat)"
+              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors flex items-center justify-center"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              {{ "add" | i18n }}
+            </button>
+            <button
+              type="button"
+              (click)="requestDeleteCategory(cat)"
+              class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Subcategories (when expanded) -->
+        @if(isExpanded(cat.id)) {
+          <div class="border-t border-gray-200 bg-gray-50 p-4">
+            <h5 class="text-xs font-semibold text-gray-700 mb-3">{{ "subcategories" | i18n }}</h5>
+            @if(subcategoriesOf(cat.id).length > 0) {
+              <div class="space-y-2">
+                @for(sub of subcategoriesOf(cat.id); track sub.id) {
+                  <div class="p-3 bg-white rounded-md border border-gray-200">
+                    <div class="flex justify-between items-start mb-2">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="text-sm font-medium text-gray-900">{{ sub.name }}</span>
+                          @if(sub.type) {
+                            <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full"
+                                  [class.bg-blue-100]="sub.type === 'precificado'"
+                                  [class.text-blue-800]="sub.type === 'precificado'"
+                                  [class.bg-orange-100]="sub.type === 'orçado'"
+                                  [class.text-orange-800]="sub.type === 'orçado'">
+                              {{ sub.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
+                            </span>
+                          }
+                        </div>
+                        @if(sub.description) {
+                          <p class="text-xs text-gray-500">{{ sub.description }}</p>
+                        }
+                        <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          @if(sub.average_time) {
+                            <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time }} min</span>
+                          }
+                          @if(sub.price) {
+                            <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex gap-2 pt-2 border-t border-gray-100">
+                      <button
+                        type="button"
+                        (click)="startEditSubcategory(sub)"
+                        class="flex-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center justify-center"
+                      >
+                        <i class="fas fa-edit mr-1"></i>
+                        {{ "edit" | i18n }}
+                      </button>
+                      <button
+                        type="button"
+                        (click)="requestDeleteSubcategory(sub)"
+                        class="flex-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors flex items-center justify-center"
+                      >
+                        <i class="fas fa-times mr-1"></i>
+                        {{ "delete" | i18n }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-4">
+                <i class="fas fa-inbox text-2xl text-gray-300 mb-2"></i>
+                <p class="text-xs text-gray-500">{{ "noSubcategories" | i18n }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modais (fora da tabela) -->
+
+<!-- Modal inclusão categoria -->
   <div
     *ngIf="showAddCategoryModal()"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -664,4 +716,3 @@
       </div>
     </div>
   </div>
-</div>
