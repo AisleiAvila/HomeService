@@ -170,6 +170,20 @@ A aplicação possui um sistema completo de notificações que informa sobre tod
 - **Transições suaves** para melhor UX
 - **Acessibilidade** seguindo diretrizes WCAG
 
+## 🔧 Configuração do Banco de Dados
+
+### Políticas RLS (Row Level Security)
+
+A aplicação utiliza políticas RLS do Supabase para segurança dos dados:
+
+#### Categorias de Serviço
+Se encontrar erro **403 (Forbidden)** ao buscar categorias:
+1. Execute o script `sql/service_categories-policies.sql` no SQL Editor do Supabase
+2. Consulte o guia completo em `CORRECAO-ERRO-403-CATEGORIAS.md`
+
+#### Subcategorias de Serviço
+- Políticas configuradas em `sql/service_subcategories-policies.sql`
+
 ---
 
 **Desenvolvido com ❤️ usando Angular e Supabase**
