@@ -416,24 +416,76 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    (click)="sortByColumn('category')"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    title="{{ 'clickToSort' | i18n }}"
                   >
-                    {{ "service" | i18n }}
+                    <div class="flex items-center justify-between">
+                      <span>{{ "service" | i18n }}</span>
+                      @if (sortBy() === 'category') {
+                        @if (sortOrder() === 'asc') {
+                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                        } @else {
+                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                        }
+                      } @else {
+                        <i class="fas fa-sort text-gray-400 ml-1"></i>
+                      }
+                    </div>
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    (click)="sortByColumn('client')"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    title="{{ 'clickToSort' | i18n }}"
                   >
-                    {{ "client" | i18n }}
+                    <div class="flex items-center justify-between">
+                      <span>{{ "client" | i18n }}</span>
+                      @if (sortBy() === 'client') {
+                        @if (sortOrder() === 'asc') {
+                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                        } @else {
+                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                        }
+                      } @else {
+                        <i class="fas fa-sort text-gray-400 ml-1"></i>
+                      }
+                    </div>
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    (click)="sortByColumn('professional')"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    title="{{ 'clickToSort' | i18n }}"
                   >
-                    {{ "professional" | i18n }}
+                    <div class="flex items-center justify-between">
+                      <span>{{ "professional" | i18n }}</span>
+                      @if (sortBy() === 'professional') {
+                        @if (sortOrder() === 'asc') {
+                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                        } @else {
+                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                        }
+                      } @else {
+                        <i class="fas fa-sort text-gray-400 ml-1"></i>
+                      }
+                    </div>
                   </th>
                   <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    (click)="sortByColumn('status')"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                    title="{{ 'clickToSort' | i18n }}"
                   >
-                    {{ "status" | i18n }}
+                    <div class="flex items-center justify-between">
+                      <span>{{ "status" | i18n }}</span>
+                      @if (sortBy() === 'status') {
+                        @if (sortOrder() === 'asc') {
+                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                        } @else {
+                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                        }
+                      } @else {
+                        <i class="fas fa-sort text-gray-400 ml-1"></i>
+                      }
+                    </div>
                   </th>
                   <th
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
