@@ -495,6 +495,7 @@ export class DataService {
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,
+      subcategory_id: payload.subcategory_id, // Agora é obrigatório
       street: payload.address.street,
       city: payload.address.city,
       state: payload.address.state,
@@ -503,9 +504,6 @@ export class DataService {
       status: StatusService.Requested,
       payment_status: "Unpaid",
     };
-    if (payload.subcategory_id) {
-      newRequestData.subcategory_id = payload.subcategory_id;
-    }
     const { error } = await this.supabase.client
       .from("service_requests")
       .insert(newRequestData);
