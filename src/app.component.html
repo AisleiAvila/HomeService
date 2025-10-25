@@ -215,28 +215,14 @@
           <ng-template #mainContent>
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
-                <ng-container *ngIf="currentUser()?.role === 'admin'">
-                  <ng-container [ngSwitch]="adminView">
-                    <ng-container *ngSwitchCase="'categories'">
-                      <app-category-management #categoryManagement />
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      <app-admin-dashboard
-                        (navigateToCategories)="adminView = 'categories'"
-                      />
-                    </ng-container>
-                  </ng-container>
-                </ng-container>
-                <ng-container *ngIf="currentUser()?.role !== 'admin'">
-                  <app-dashboard
-                    [user]="currentUser()!"
-                    (viewDetails)="openDetails($event)"
-                    (openChat)="openChat($event)"
-                    (payNow)="handlePayment($event)"
-                    (scheduleRequest)="openScheduler($event)"
-                    (provideClarification)="openClarificationModal($event)"
-                  />
-                </ng-container>
+                <app-dashboard
+                  [user]="currentUser()!"
+                  (viewDetails)="openDetails($event)"
+                  (openChat)="openChat($event)"
+                  (payNow)="handlePayment($event)"
+                  (scheduleRequest)="openScheduler($event)"
+                  (provideClarification)="openClarificationModal($event)"
+                />
               </ng-container>
               <ng-container *ngSwitchCase="'schedule'">
                 <app-schedule

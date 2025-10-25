@@ -5,21 +5,22 @@ import {
   computed,
   output,
   inject,
+  signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { signal } from "@angular/core";
 import { StatusService } from "../../services/status.service";
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, ServiceListComponent, I18nPipe],
+  imports: [CommonModule, FormsModule, ServiceListComponent, I18nPipe],
   templateUrl: "./dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,6 +58,21 @@ export class DashboardComponent {
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
+  
+  // Filtros avançados e pesquisa
+  filterStatus = signal<string>("");
+  filterStartDate = signal<string>("");
+  filterEndDate = signal<string>("");
+  filterCategory = signal<string>("");
+  searchTerm = signal<string>("");
+
+  quickFilterOptions = [
+    { status: "Solicitado", label: "statusRequested" },
+    { status: "Em análise", label: "statusInAnalysis" },
+    { status: "Agendado", label: "statusScheduled" },
+    { status: "Finalizado", label: "statusCompleted" },
+  ];
+
   // Método utilitário para uso no template
   isArray(val: unknown): boolean {
     return Array.isArray(val);
@@ -95,11 +111,11 @@ export class DashboardComponent {
 
   public selectedRequest = signal<ServiceRequest | null>(null);
 
-  private dataService = inject(DataService);
+  dataService = inject(DataService);
   private workflowService = inject(WorkflowService);
   private i18n = inject(I18nService);
 
-  private userRequests = computed(() => {
+  userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
     const currentUser = this.user();
 
@@ -117,28 +133,78 @@ export class DashboardComponent {
     return filtered;
   });
 
-  // Filtros consistentes usando statusAtivos
-  activeRequests = computed(() => {
-    // Obtém os status ativos em português
-    const ativosPt = this.statusAtivos()
-      .map((s) => this.statusMap[s.value])
-      .filter(Boolean);
-    const requests = this.userRequests();
-    console.log("[DashboardComponent] Status ativos (pt):", ativosPt);
-    console.log("[DashboardComponent] Requests:", requests);
-    const ativos = requests.filter((r) => ativosPt.includes(r.status));
-    console.log("[DashboardComponent] Requests ativos:", ativos);
-    return ativos;
+  // Computed para filtrar e pesquisar solicitações
+  filteredRequests = computed(() => {
+    let reqs = this.userRequests();
+    const status = this.filterStatus();
+    const startDate = this.filterStartDate();
+    const endDate = this.filterEndDate();
+    const category = this.filterCategory();
+    const search = this.searchTerm().toLowerCase();
+
+    if (status) reqs = reqs.filter((r) => r.status === status);
+
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      reqs = reqs.filter((r) => {
+        if (!r.requested_date) return false;
+        const reqDate = new Date(r.requested_date);
+        return reqDate >= start && reqDate <= end;
+      });
+    }
+
+    if (category) reqs = reqs.filter((r) => String(r.category_id) === category);
+    
+    if (search) {
+      reqs = reqs.filter(
+        (r) =>
+          r.title?.toLowerCase().includes(search) ||
+          r.zip_code?.toLowerCase().includes(search) ||
+          String(r.id).includes(search)
+      );
+    }
+    
+    return reqs;
   });
-  completedRequests = computed(() => {
-    // Considera como completados os que não estão nos ativos
-    const ativosPt = this.statusAtivos()
-      .map((s) => this.statusMap[s.value])
-      .filter(Boolean);
-    const requests = this.userRequests();
-    const completados = requests.filter((r) => !ativosPt.includes(r.status));
-    console.log("[DashboardComponent] Requests completados:", completados);
-    return completados;
+
+  // Computed para gerar a lista de filtros ativos
+  activeFilters = computed(() => {
+    const filters: { type: any; label: string; value: string }[] = [];
+    if (this.filterStatus()) {
+      filters.push({
+        type: "status",
+        label: "status",
+        value: this.filterStatus(),
+      });
+    }
+    if (this.filterStartDate() && this.filterEndDate()) {
+      filters.push({
+        type: "period",
+        label: "period",
+        value: `${this.filterStartDate()} - ${this.filterEndDate()}`,
+      });
+    }
+    if (this.filterCategory()) {
+      const catName = this.dataService.categories().find(
+        (c) => String(c.id) === String(this.filterCategory())
+      )?.name || "";
+      filters.push({
+        type: "category",
+        label: "category",
+        value: catName,
+      });
+    }
+    if (this.searchTerm()) {
+      filters.push({
+        type: "search",
+        label: "search",
+        value: this.searchTerm(),
+      });
+    }
+    return filters;
   });
 
   stats = computed(() => {
@@ -148,7 +214,27 @@ export class DashboardComponent {
     const ativosPt = this.statusAtivos()
       .map((s) => this.statusMap[s.value])
       .filter(Boolean);
-    if (currentUser.role === "client" || currentUser.role === "admin") {
+    if (currentUser.role === "client") {
+      return [
+        {
+          label: this.i18n.translate("totalRequests"),
+          value: requests.length,
+          icon: "fas fa-list text-indigo-500",
+        },
+        {
+          label: this.i18n.translate("activeRequests"),
+          value: requests.filter((r) => ativosPt.includes(r.status)).length,
+          icon: "fas fa-cogs text-blue-500",
+        },
+        {
+          label: this.i18n.translate("completedRequests"),
+          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
+          icon: "fas fa-check-circle text-green-500",
+        },
+      ];
+    }
+
+    if (currentUser.role === "admin") {
       return [
         {
           label: this.i18n.translate("activeRequests"),
@@ -215,5 +301,37 @@ export class DashboardComponent {
     this.businessErrorMessage.set(message);
     this.showBusinessError.set(true);
     setTimeout(() => this.showBusinessError.set(false), 6000);
+  }
+
+  applyQuickFilter(status: string) {
+    this.filterStatus.set(this.filterStatus() === status ? "" : status);
+  }
+
+  clearFilters() {
+    this.filterStatus.set("");
+    this.filterStartDate.set("");
+    this.filterEndDate.set("");
+    this.filterCategory.set("");
+    this.searchTerm.set("");
+  }
+
+  removeFilter(
+    filterType: "status" | "period" | "category" | "search"
+  ) {
+    switch (filterType) {
+      case "status":
+        this.filterStatus.set("");
+        break;
+      case "period":
+        this.filterStartDate.set("");
+        this.filterEndDate.set("");
+        break;
+      case "category":
+        this.filterCategory.set("");
+        break;
+      case "search":
+        this.searchTerm.set("");
+        break;
+    }
   }
 }

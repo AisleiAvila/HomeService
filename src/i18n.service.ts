@@ -71,6 +71,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     pendingApproval: "Pending",
     activeRequests: "Active",
     completed: "Completed",
+    myRequests: "My Requests",
+    noRequestsFound: "No requests found",
     activeJobs: "Active Jobs",
     completedJobs: "Completed Jobs",
     totalEarnings: "Total Earnings",
@@ -611,6 +613,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "hours ago",
     daysAgo: "days ago",
     clearFilters: "Clear Filters",
+    quickFilters: "Quick Filters",
+    all: "All",
+    searchPlaceholder: "Search by title, ID or postal code...",
+    activeFilters: "Active Filters",
   },
   pt: {
     // General
@@ -681,6 +687,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     pendingApproval: "Pendentes",
     activeRequests: "Ativas",
     completed: "Concluídas",
+    myRequests: "Minhas Solicitações",
+    noRequestsFound: "Nenhuma solicitação encontrada",
     activeJobs: "Trabalhos Ativos",
     completedJobs: "Trabalhos Concluídos",
     totalEarnings: "Ganhos Totais",
@@ -1244,6 +1252,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     hoursAgo: "horas atrás",
     daysAgo: "dias atrás",
     clearFilters: "Limpar Filtros",
+    quickFilters: "Filtros Rápidos",
+    all: "Todos",
+    searchPlaceholder: "Pesquisar por título, ID ou código postal...",
+    activeFilters: "Filtros Ativos",
   },
 };
 
