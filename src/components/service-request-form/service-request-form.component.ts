@@ -1,6 +1,7 @@
 import {
   Component,
   signal,
+  computed,
   Output,
   EventEmitter,
   inject,
@@ -12,7 +13,10 @@ import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
-import type { ServiceCategory } from "../../models/maintenance.models";
+import type {
+  ServiceCategory,
+  ServiceSubcategory,
+} from "../../models/maintenance.models";
 @Component({
   selector: "app-service-request-form",
   standalone: true,
@@ -55,12 +59,20 @@ export class ServiceRequestFormComponent implements OnInit {
   private i18n = inject(I18nService);
 
   categories = signal<ServiceCategory[]>([]);
+  subcategories = signal<ServiceSubcategory[]>([]);
+  subcategory_id = signal<number | null>(null);
+  filteredSubcategories = computed(() => {
+    return this.subcategories().filter((sub) =>
+      this.category_id() ? sub.category_id === this.category_id() : []
+    );
+  });
   title = signal<string>("");
   description = signal<string>("");
   requestedDateTime = signal<string>("");
   ngOnInit() {
-    // Busca categorias do DataService (signal)
+    // Usar os signals diretamente do DataService
     this.categories.set(this.dataService.categories());
+    this.subcategories.set(this.dataService.subcategories());
   }
   category_id = signal<number | null>(null);
   street = signal<string>("");
@@ -82,6 +94,7 @@ export class ServiceRequestFormComponent implements OnInit {
     title: boolean;
     description: boolean;
     category_id: boolean;
+    subcategory_id: boolean;
     requestedDateTime: boolean;
     street: boolean;
     city: boolean;
@@ -92,6 +105,7 @@ export class ServiceRequestFormComponent implements OnInit {
     title: false,
     description: false,
     category_id: false,
+    subcategory_id: false,
     requestedDateTime: false,
     street: false,
     city: false,
@@ -107,6 +121,7 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.title &&
       fields.description &&
       fields.category_id &&
+      fields.subcategory_id &&
       fields.requestedDateTime &&
       fields.street &&
       fields.city &&
@@ -137,10 +152,19 @@ export class ServiceRequestFormComponent implements OnInit {
         }));
         break;
       case "category_id":
-        this.category_id.set(Number(value));
+        this.category_id.set(value ? Number(value) : null);
+        this.subcategory_id.set(null); // Reset subcategoria quando mudar categoria
         this.validFields.update((fields) => ({
           ...fields,
           category_id: !!value,
+          subcategory_id: false, // Invalida subcategoria
+        }));
+        break;
+      case "subcategory_id":
+        this.subcategory_id.set(value ? Number(value) : null);
+        this.validFields.update((fields) => ({
+          ...fields,
+          subcategory_id: !!value,
         }));
         break;
       case "requestedDateTime":
@@ -284,6 +308,7 @@ export class ServiceRequestFormComponent implements OnInit {
         title: this.title(),
         description: this.description(),
         category_id: this.category_id(),
+        subcategory_id: this.subcategory_id(),
         address,
         requested_datetime: this.requestedDateTime(),
       };
