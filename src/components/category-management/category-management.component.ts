@@ -317,6 +317,23 @@ export class CategoryManagementComponent {
     }
   }
 
+  // Detail subcategory modal
+  selectedSubcategoryForDetails = signal<ServiceSubcategoryExtended | null>(null);
+
+  showSubcategoryDetails(subcategory: ServiceSubcategoryExtended) {
+    this.selectedSubcategoryForDetails.set(subcategory);
+  }
+
+  closeSubcategoryDetails() {
+    this.selectedSubcategoryForDetails.set(null);
+  }
+
+  // Helper para obter nome da categoria pelo ID
+  getCategoryName(categoryId: number): string {
+    const category = this.allCategories().find(cat => cat.id === categoryId);
+    return category?.name || 'N/A';
+  }
+
   // Delete subcategory modal
   showDeleteSubcategoryModal = signal(false);
   subcategoryToDelete = signal<ServiceSubcategoryExtended | null>(null);
