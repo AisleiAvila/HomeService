@@ -286,6 +286,11 @@ export class AppComponent implements OnInit {
 
   // --- Modal & Action Handlers ---
   openNewRequestForm() {
+    // Apenas clientes podem criar novas solicitações
+    if (this.currentUser()?.role !== 'client') {
+      console.warn('Apenas clientes podem criar solicitações de serviço');
+      return;
+    }
     this.isNewRequestFormOpen.set(true);
     this.isSidebarOpen.set(false);
   }
