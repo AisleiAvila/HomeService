@@ -26,8 +26,6 @@ import {
 } from "./models/maintenance.models";
 
 // Components
-import { AdminDashboardComponent } from "./components/admin-dashboard/admin-dashboard.component";
-import { CategoryManagementComponent } from "./components/category-management/category-management.component";
 import { ChatComponent } from "./components/chat/chat.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
@@ -74,8 +72,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     ScheduleComponent,
     SearchComponent,
     ProfileComponent,
-    AdminDashboardComponent,
-    CategoryManagementComponent,
     ServiceRequestFormComponent,
     ServiceRequestDetailsComponent,
     SchedulerComponent,
