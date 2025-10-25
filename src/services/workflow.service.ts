@@ -754,8 +754,6 @@ export class WorkflowService {
       SearchingProfessional: { statuses: [], roles: [] },
       ProfessionalSelected: { statuses: [], roles: [] },
       AwaitingProfessionalConfirmation: { statuses: [], roles: [] },
-      Assigned: { statuses: [], roles: [] },
-      Pending: { statuses: [], roles: [] },
       Scheduled: { statuses: [], roles: [] },
       InProgress: { statuses: [], roles: [] },
       CompletedAwaitingApproval: { statuses: [], roles: [] },
