@@ -107,7 +107,8 @@
             >
           </button>
         </nav>
-        <div class="p-4 border-t border-gray-200">
+        <!-- Botão Nova Solicitação (apenas para clientes) -->
+        <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
           <button
             class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
             (click)="openNewRequestForm()"
@@ -325,7 +326,8 @@
               <span>{{ item.labelKey | i18n }}</span>
             </button>
           </nav>
-          <div class="p-4 border-t border-gray-200">
+          <!-- Botão Nova Solicitação (apenas para clientes) -->
+          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
             <button
               class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
               (click)="openNewRequestForm(); toggleSidebar()"
