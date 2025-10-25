@@ -67,10 +67,10 @@ export class DashboardComponent {
   searchTerm = signal<string>("");
 
   quickFilterOptions = [
-    { status: "Solicitado", label: "statusRequested" },
-    { status: "Em análise", label: "statusInAnalysis" },
-    { status: "Agendado", label: "statusScheduled" },
-    { status: "Finalizado", label: "statusCompleted" },
+    { status: "Requested", label: "statusRequested" },
+    { status: "InAnalysis", label: "statusInAnalysis" },
+    { status: "Scheduled", label: "statusScheduled" },
+    { status: "Completed", label: "statusCompleted" },
   ];
 
   // Método utilitário para uso no template
@@ -142,7 +142,11 @@ export class DashboardComponent {
     const category = this.filterCategory();
     const search = this.searchTerm().toLowerCase();
 
-    if (status) reqs = reqs.filter((r) => r.status === status);
+    // Filtro por status - converte o valor em inglês para português
+    if (status) {
+      const statusPt = this.statusMap[status];
+      reqs = reqs.filter((r) => r.status === statusPt);
+    }
 
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -174,10 +178,14 @@ export class DashboardComponent {
   activeFilters = computed(() => {
     const filters: { type: any; label: string; value: string }[] = [];
     if (this.filterStatus()) {
+      // Encontra o label traduzido do status
+      const statusLabel = this.statusAtivos().find(
+        (s) => s.value === this.filterStatus()
+      )?.label || this.filterStatus();
       filters.push({
         type: "status",
         label: "status",
-        value: this.filterStatus(),
+        value: statusLabel,
       });
     }
     if (this.filterStartDate() && this.filterEndDate()) {
