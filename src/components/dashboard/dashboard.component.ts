@@ -42,8 +42,6 @@ export class DashboardComponent {
     SearchingProfessional: "Buscando profissional",
     ProfessionalSelected: "Profissional selecionado",
     AwaitingProfessionalConfirmation: "Aguardando confirmação do profissional",
-    Assigned: "Agendado",
-    Pending: "Pendente",
     Scheduled: "Agendado",
     InProgress: "Em execução",
     CompletedAwaitingApproval: "Concluído - Aguardando aprovação",

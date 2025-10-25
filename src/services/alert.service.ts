@@ -258,8 +258,6 @@ export class AlertService {
       SearchingProfessional: 0,
       ProfessionalSelected: 0,
       AwaitingProfessionalConfirmation: 0,
-      Assigned: 0,
-      Pending: 0,
       Scheduled: 0,
       InProgress: 0,
       CompletedAwaitingApproval: 0,

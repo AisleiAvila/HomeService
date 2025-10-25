@@ -1,10 +1,8 @@
 import { StatusService } from "@/src/services/status.service";
 import { ServiceStatus } from "@/src/models/maintenance.models";
 
-export const statusServiceToServiceStatus: Record<
-  Exclude<StatusService, StatusService.Assigned | StatusService.Pending>,
-  ServiceStatus
-> = {
+export const statusServiceToServiceStatus: Record<StatusService, ServiceStatus> =
+  {
   [StatusService.Requested]: "Solicitado",
   [StatusService.InAnalysis]: "Em análise",
   [StatusService.AwaitingClarifications]: "Aguardando esclarecimentos",

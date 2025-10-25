@@ -14,8 +14,6 @@ export enum StatusService {
   SearchingProfessional = "SearchingProfessional",
   ProfessionalSelected = "ProfessionalSelected",
   AwaitingProfessionalConfirmation = "AwaitingProfessionalConfirmation",
-  Assigned = "Assigned",
-  Pending = "Pending",
   Scheduled = "Scheduled",
   InProgress = "InProgress",
   CompletedAwaitingApproval = "CompletedAwaitingApproval",

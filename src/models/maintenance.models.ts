@@ -40,8 +40,6 @@ export type ServiceStatus =
   | "SearchingProfessional"
   | "ProfessionalSelected"
   | "AwaitingProfessionalConfirmation"
-  | "Assigned"
-  | "Pending"
   | "Scheduled"
   | "InProgress"
   | "CompletedAwaitingApproval"
