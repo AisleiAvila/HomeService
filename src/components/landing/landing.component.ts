@@ -11,4 +11,5 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 export class LandingComponent {
   signIn = output<void>();
   createAccount = output<void>();
+  currentYear = new Date().getFullYear();
 }
