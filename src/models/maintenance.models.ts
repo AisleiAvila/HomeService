@@ -383,7 +383,7 @@ export interface ServiceRequestPayload {
   title: string;
   description: string;
   category_id: number;
-  subcategory_id?: number;
+  subcategory_id: number; // Agora obrigatório
   address: Address;
   requested_datetime: string; // Data e hora solicitada pelo cliente (ISO string) - OBRIGATÓRIO
 }

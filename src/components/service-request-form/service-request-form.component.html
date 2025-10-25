@@ -58,6 +58,31 @@
     >
   </div>
 
+  <!-- Subcategoria -->
+  <div>
+    <label class="block text-sm font-medium mb-1" for="subcategory_id">
+      {{ "subcategory" | i18n }}
+    </label>
+    <select
+      id="subcategory_id"
+      class="w-full border rounded px-3 py-2"
+      [value]="subcategory_id() || ''"
+      (change)="updateField('subcategory_id', $event.target.value)"
+      [disabled]="!category_id()"
+      required
+    >
+      <option value="" disabled selected>{{ "select" | i18n }}</option>
+      <ng-container *ngFor="let sub of filteredSubcategories()">
+        <option [value]="sub.id">{{ sub.name }}</option>
+      </ng-container>
+    </select>
+    <span
+      *ngIf="!validFields().subcategory_id && subcategory_id()"
+      class="text-xs text-red-500"
+      >{{ "selectSubcategory" | i18n }}</span
+    >
+  </div>
+
   <!-- Título -->
   <div>
     <label class="block text-sm font-medium mb-1" for="title">{{

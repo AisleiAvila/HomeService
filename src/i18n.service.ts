@@ -1263,11 +1263,6 @@ export class I18nService {
 
     // Log inicial do estado
     console.log(`🌍 [I18N] Idioma inicial: ${this.language()}`);
-    console.log(
-      `🌍 [I18N] Testando tradução 'newServiceRequest': ${this.translate(
-        "newServiceRequest"
-      )}`
-    );
   }
 
   getCurrentLanguage(): string {
