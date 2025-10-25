@@ -501,7 +501,7 @@ export class DataService {
       state: payload.address.state,
       zip_code: payload.address.zip_code,
       requested_datetime: requestedDateTime, // Campo principal
-      status: StatusService.Requested,
+      status: statusServiceToServiceStatus[StatusService.Requested],
       payment_status: "Unpaid",
     };
     const { error } = await this.supabase.client
