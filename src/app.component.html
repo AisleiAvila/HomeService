@@ -215,14 +215,24 @@
           <ng-template #mainContent>
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
-                <app-dashboard
-                  [user]="currentUser()!"
-                  (viewDetails)="openDetails($event)"
-                  (openChat)="openChat($event)"
-                  (payNow)="handlePayment($event)"
-                  (scheduleRequest)="openScheduler($event)"
-                  (provideClarification)="openClarificationModal($event)"
-                />
+                <!-- Dashboard do Admin -->
+                <ng-container *ngIf="currentUser()?.role === 'admin'">
+                  <app-admin-dashboard
+                    (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)"
+                  />
+                </ng-container>
+                <!-- Dashboard de Cliente/Profissional -->
+                <ng-container *ngIf="currentUser()?.role !== 'admin'">
+                  <app-dashboard
+                    [user]="currentUser()!"
+                    (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)"
+                    (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)"
+                    (provideClarification)="openClarificationModal($event)"
+                  />
+                </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'schedule'">
                 <app-schedule
