@@ -64,6 +64,27 @@ export class DashboardComponent {
   filterCategory = signal<string>("");
   searchTerm = signal<string>("");
 
+  // Ordenação
+  sortBy = signal<string>("date");
+  sortOrder = signal<"asc" | "desc">("desc");
+
+  // Método para ordenar por coluna clicada
+  sortByColumn(column: string) {
+    if (this.sortBy() === column) {
+      // Se já está ordenando por essa coluna, inverte a ordem
+      this.toggleSortOrder();
+    } else {
+      // Se é uma nova coluna, ordena por ela em ordem decrescente
+      this.sortBy.set(column);
+      this.sortOrder.set("desc");
+    }
+  }
+
+  // Método para alternar a ordem de ordenação
+  toggleSortOrder() {
+    this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
+  }
+
   quickFilterOptions = [
     { status: "Requested", label: "statusRequested" },
     { status: "InAnalysis", label: "statusInAnalysis" },
@@ -169,8 +190,48 @@ export class DashboardComponent {
       );
     }
     
-    return reqs;
+    // Aplicar ordenação
+    return this.sortRequests(reqs);
   });
+
+  // Método para ordenar as solicitações
+  private sortRequests(requests: ServiceRequest[]): ServiceRequest[] {
+    const sortBy = this.sortBy();
+    const sortOrder = this.sortOrder();
+    const multiplier = sortOrder === "asc" ? 1 : -1;
+
+    return [...requests].sort((a, b) => {
+      let compareResult = 0;
+
+      switch (sortBy) {
+        case "date": {
+          const dateA = a.requested_date ? new Date(a.requested_date).getTime() : 0;
+          const dateB = b.requested_date ? new Date(b.requested_date).getTime() : 0;
+          compareResult = dateA - dateB;
+          break;
+        }
+
+        case "status": {
+          compareResult = (a.status || "").localeCompare(b.status || "");
+          break;
+        }
+
+        case "id": {
+          compareResult = a.id - b.id;
+          break;
+        }
+
+        case "category": {
+          const catA = this.dataService.categories().find(c => c.id === a.category_id)?.name || "";
+          const catB = this.dataService.categories().find(c => c.id === b.category_id)?.name || "";
+          compareResult = catA.localeCompare(catB);
+          break;
+        }
+      }
+
+      return compareResult * multiplier;
+    });
+  }
 
   // Computed para gerar a lista de filtros ativos
   activeFilters = computed(() => {

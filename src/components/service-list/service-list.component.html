@@ -4,17 +4,50 @@
     <table class="w-full min-w-full">
       <thead class="bg-gray-50">
         <tr>
-          <th class="service-list-header text-left">
-            {{ "service" | i18n }}
+          <th 
+            class="service-list-header text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+            (click)="handleSortColumn('category')"
+            title="{{ 'clickToSort' | i18n }}"
+          >
+            <div class="flex items-center gap-2">
+              <span>{{ "service" | i18n }}</span>
+              @if(isSortedBy('category')) {
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-blue-600"></i>
+              } @else {
+                <i class="fas fa-sort text-gray-400"></i>
+              }
+            </div>
           </th>
           <th class="service-list-header text-left">
             {{ "address" | i18n }}
           </th>
-          <th class="service-list-header text-center">
-            {{ "date" | i18n }}
+          <th 
+            class="service-list-header text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+            (click)="handleSortColumn('date')"
+            title="{{ 'clickToSort' | i18n }}"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <span>{{ "date" | i18n }}</span>
+              @if(isSortedBy('date')) {
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-blue-600"></i>
+              } @else {
+                <i class="fas fa-sort text-gray-400"></i>
+              }
+            </div>
           </th>
-          <th class="service-list-header text-left">
-            {{ "status" | i18n }}
+          <th 
+            class="service-list-header text-left cursor-pointer hover:bg-gray-100 transition-colors select-none"
+            (click)="handleSortColumn('status')"
+            title="{{ 'clickToSort' | i18n }}"
+          >
+            <div class="flex items-center gap-2">
+              <span>{{ "status" | i18n }}</span>
+              @if(isSortedBy('status')) {
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-blue-600"></i>
+              } @else {
+                <i class="fas fa-sort text-gray-400"></i>
+              }
+            </div>
           </th>
           <th class="service-list-header text-left">
             {{ "professional" | i18n }}

@@ -641,6 +641,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     all: "All",
     searchPlaceholder: "Search by title, ID or postal code...",
     activeFilters: "Active Filters",
+    sortBy: "Sort by",
+    sortByDate: "Date",
+    sortByStatus: "Status",
+    sortById: "ID",
+    sortByCategory: "Category",
+    sortByClient: "Client",
+    sortByProfessional: "Professional",
+    ascending: "Ascending",
+    descending: "Descending",
+    clickToSort: "Click to sort",
   },
   pt: {
     // General
@@ -1304,6 +1314,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     all: "Todos",
     searchPlaceholder: "Pesquisar por título, ID ou código postal...",
     activeFilters: "Filtros Ativos",
+    sortBy: "Ordenar por",
+    sortByDate: "Data",
+    sortByStatus: "Status",
+    sortById: "ID",
+    sortByCategory: "Categoria",
+    sortByClient: "Cliente",
+    sortByProfessional: "Profissional",
+    ascending: "Crescente",
+    descending: "Decrescente",
+    clickToSort: "Clique para ordenar",
   },
 };
 
