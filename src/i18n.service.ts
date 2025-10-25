@@ -455,6 +455,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusQuoteSent: "Quote Sent",
     statusScheduledEn: "Scheduled",
     statusCompletedEn: "Completed",
+    statusPending: "Pending",
 
     // Notifications
     notifications: "Notifications",
@@ -1123,6 +1124,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusQuoteSent: "Orçamento Enviado",
     statusScheduledEn: "Agendado",
     statusCompletedEn: "Concluído",
+    statusPending: "Pendente",
 
     // Notifications
     notifications: "Notificações",
