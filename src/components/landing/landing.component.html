@@ -86,13 +86,17 @@
       <p class="mt-4 italic font-sans">{{ 'landingServicesFooter' | i18n }}</p>
 </div>
 
-<!-- Rodapé discreto -->
-<footer class="w-full text-center text-white/70 text-xs py-4 mt-8">
-  <span>&copy; {{ currentYear }} HomeService. Todos os direitos reservados.</span>
-  <span class="mx-2">|</span>
-  <a href="#" class="underline hover:text-white/90 transition">Política de Privacidade</a>
-  <span class="mx-2">|</span>
-  <a href="#" class="underline hover:text-white/90 transition">Termos de Uso</a>
+<!-- Rodapé sticky -->
+<footer class="w-full fixed bottom-0 left-0 z-50 bg-gradient-to-r from-indigo-900/90 via-indigo-800/90 to-blue-700/90 text-white/80 text-xs py-3 px-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 shadow-t-lg backdrop-blur-md">
+  <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+    <span class="font-semibold">&copy; {{ currentYear }} HomeService</span>
+    <span class="hidden sm:inline">|</span>
+    <a href="#" class="underline hover:text-white transition">Política de Privacidade</a>
+    <span class="hidden sm:inline">|</span>
+    <a href="#" class="underline hover:text-white transition">Termos de Uso</a>
+    <span class="hidden sm:inline">|</span>
+    <a href="mailto:natanconstrucoes@gmail.com" class="underline hover:text-white transition">Contato rápido</a>
+  </div>
 </footer>
         <!-- Removido fechamento extra de div e section aqui -->
 
