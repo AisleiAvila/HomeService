@@ -195,12 +195,11 @@
   >
     {{ "myRequests" | i18n }}
   </h3>
-  @if (user() && isArray(filteredRequests()) && filteredRequests().length > 0) {
+  @if (user() && isArray(paginatedRequests()) && paginatedRequests().length > 0) {
   <app-service-list
-    [serviceRequests]="filteredRequests() || []"
+    [serviceRequests]="paginatedRequests() || []"
     [currentUser]="user()"
-    [enablePagination]="true"
-    [itemsPerPageDefault]="10"
+    [enablePagination]="false"
     [sortBy]="sortBy()"
     [sortOrder]="sortOrder()"
     (sortChange)="sortByColumn($event)"
@@ -218,6 +217,106 @@
     (finishService)="handleFinishService($event)"
   >
   </app-service-list>
+  
+  <!-- Pagination Controls -->
+  @if(filteredRequests().length > 0) {
+  <div
+    class="bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 space-y-3 sm:space-y-0 rounded-b-lg shadow-md"
+  >
+    <!-- Items per page selector -->
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-gray-700"
+        >{{ "itemsPerPage" | i18n }}:</span
+      >
+      <select
+        [value]="itemsPerPage()"
+        (change)="setItemsPerPage(+$any($event.target).value)"
+        class="border border-gray-300 rounded-md px-2 py-1 text-sm"
+      >
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+
+    <!-- Pagination info (hidden on mobile) -->
+    <div class="hidden sm:block">
+      <p class="text-sm text-gray-700">
+        {{ "showing" | i18n }}
+        <span class="font-medium">{{
+          (currentPage() - 1) * itemsPerPage() + 1
+        }}</span>
+        {{ "to" | i18n }}
+        <span class="font-medium">{{
+          Math.min(currentPage() * itemsPerPage(), filteredRequests().length)
+        }}</span>
+        {{ "of" | i18n }}
+        <span class="font-medium">{{ filteredRequests().length }}</span>
+        {{ "results" | i18n }}
+      </p>
+    </div>
+
+    <!-- Pagination buttons -->
+    <div class="flex justify-center sm:justify-end">
+      <nav
+        class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+        aria-label="Pagination"
+      >
+        <!-- Previous button -->
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage() === 1"
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-left"></i>
+          <span class="sr-only">Previous</span>
+        </button>
+
+        <!-- Page numbers (simplified for mobile) -->
+        <div class="hidden sm:flex">
+          @for(page of pageNumbers; track page) { @if(page === -1) {
+          <!-- Ellipsis -->
+          <span
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+          >
+            ...
+          </span>
+          } @else {
+          <button
+            (click)="goToPage(page)"
+            [class]="
+              page === currentPage()
+                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600'
+                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+            "
+          >
+            {{ page }}
+          </button>
+          } }
+        </div>
+
+        <!-- Mobile page indicator -->
+        <div
+          class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+        >
+          {{ currentPage() }} / {{ totalPages() }}
+        </div>
+
+        <!-- Next button -->
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage() === totalPages()"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-right"></i>
+          <span class="sr-only">Next</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+  }
+  
   } @else {
   <div class="text-center text-gray-500 p-4">
     {{ "noRequestsFound" | i18n }}
