@@ -677,6 +677,44 @@ const allTranslations: Record<Language, Record<string, string>> = {
     ascending: "Ascending",
     descending: "Descending",
     clickToSort: "Click to sort",
+
+  landingStatsYears: "Years of Experience",
+  landingStatsProjects: "Projects Completed",
+  landingStatsSatisfaction: "Customer Satisfaction",
+
+  landingDifferential1Title: "Guaranteed Quality",
+  landingDifferential1Text: "Top-quality materials and skilled workmanship",
+  landingDifferential2Title: "On-Time Delivery",
+  landingDifferential2Text: "Strict commitment to established schedules",
+  landingDifferential3Title: "Total Satisfaction",
+  landingDifferential3Text: "Personalized service from start to finish",
+  landingDifferential4Title: "Constant Innovation",
+  landingDifferential4Text: "Modern techniques and sustainable solutions",
+
+  landingContactsInfo: "Get in Touch",
+
+  landingSocialMedia: "Follow us",
+
+  landingQuoteFormTitle: "Request a Quote",
+  landingFormName: "Name",
+  landingFormNamePlaceholder: "Your full name",
+  landingFormEmail: "Email",
+  landingFormEmailPlaceholder: "youremail@example.com",
+  landingFormPhone: "Phone",
+  landingFormPhonePlaceholder: "+351 000 000 000",
+  landingFormService: "Service Type",
+  landingFormServiceSelect: "Select a service",
+  landingFormMessage: "Message",
+  landingFormMessagePlaceholder: "Describe your project...",
+  landingFormSubmit: "Send Request",
+
+  landingWhatsAppMessage: "Hello! I would like to request a quote.",
+
+  landingFooterTagline: "Building dreams for over 20 years",
+  landingFooterPrivacy: "Privacy Policy",
+  landingFooterTerms: "Terms of Use",
+  landingFooterContact: "Contact"
+
   },
   pt: {
     // General
@@ -1376,6 +1414,48 @@ const allTranslations: Record<Language, Record<string, string>> = {
     ascending: "Crescente",
     descending: "Decrescente",
     clickToSort: "Clique para ordenar",
+ 
+    landingCtaQuote: "Solicitar Orçamento",
+    landingCtaServices: "Ver Serviços",
+  
+    landingStatsYears: "Anos de Experiência",
+    landingStatsProjects: "Projetos Realizados",
+    landingStatsSatisfaction: "Satisfação do Cliente",
+    
+    
+    landingDifferential1Title: "Qualidade Garantida",
+    landingDifferential1Text: "Materiais de primeira linha e mão de obra especializada",
+    landingDifferential2Title: "Prazos Cumpridos",
+    landingDifferential2Text: "Compromisso rigoroso com cronogramas estabelecidos",
+    landingDifferential3Title: "Satisfação Total",
+    landingDifferential3Text: "Atendimento personalizado do início ao fim",
+    landingDifferential4Title: "Inovação Constante",
+    landingDifferential4Text: "Técnicas modernas e soluções sustentáveis",
+    
+    landingContactsInfo: "Entre em Contacto",
+    
+    landingSocialMedia: "Siga-nos",
+    
+    landingQuoteFormTitle: "Solicite um Orçamento",
+    landingFormName: "Nome",
+    landingFormNamePlaceholder: "O seu nome completo",
+    landingFormEmail: "Email",
+    landingFormEmailPlaceholder: "seuemail@exemplo.com",
+    landingFormPhone: "Telefone",
+    landingFormPhonePlaceholder: "+351 000 000 000",
+    landingFormService: "Tipo de Serviço",
+    landingFormServiceSelect: "Selecione um serviço",
+    landingFormMessage: "Mensagem",
+    landingFormMessagePlaceholder: "Descreva o seu projeto...",
+    landingFormSubmit: "Enviar Pedido",
+    
+    landingWhatsAppMessage: "Olá! Gostaria de solicitar um orçamento.",
+    
+    landingFooterTagline: "Construindo sonhos há mais de 20 anos",
+    landingFooterPrivacy: "Política de Privacidade",
+    landingFooterTerms: "Termos de Uso",
+    landingFooterContact: "Contacto"
+
   },
 };
 
