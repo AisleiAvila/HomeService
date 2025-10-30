@@ -4,14 +4,23 @@
 
 
   <!-- Hero visual principal com imagem e overlay -->
-  <div class="relative w-full aspect-[16/10] sm:aspect-[16/7] flex items-end justify-center shadow-2xl rounded-b-3xl mb-8 bg-black">
+  <div class="relative w-full aspect-[16/10] sm:aspect-[16/7] flex items-end justify-center shadow-2xl rounded-b-3xl mb-8 bg-black max-h-[90vh]">
     <img
-      src="src/assets/landing-page.png"
+  [src]="imgError ? placeholderDataUrl : 'src/assets/landing-page.png'"
       alt="Família feliz em frente a uma casa construída pela Natan Construtora"
       class="absolute inset-0 w-full h-full object-contain object-center z-0"
       style="filter: brightness(0.82) saturate(1.1);"
       loading="eager"
+      (error)="imgError = true"
     />
+    <div *ngIf="imgError" class="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/70">
+      <svg class="w-20 h-20 text-blue-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="3" fill="none" />
+        <path d="M16 32l8-8 8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <path d="M24 16v8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      </svg>
+      <span class="text-blue-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
+    </div>
     <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10"></div>
     <div class="relative z-20 flex flex-col items-center justify-end w-full h-full pb-8 px-4">
       <div class="flex flex-row flex-nowrap items-center gap-2 sm:gap-4 mt-4">
