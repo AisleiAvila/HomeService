@@ -80,6 +80,7 @@
       <aside
         class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
         [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-64'"
+        aria-label="Menu lateral de navegação"
       >
         <div class="h-16 flex items-center px-4 border-b border-gray-200">
           <img
@@ -88,7 +89,7 @@
             class="h-8 w-auto"
           />
         </div>
-        <nav class="flex-1 overflow-y-auto p-2 space-y-1">
+  <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
           <button
             *ngFor="let item of navItems()"
             (click)="navigate(item.id)"
@@ -300,9 +301,12 @@
         <div
           class="fixed inset-0 bg-black/40 z-40"
           (click)="toggleSidebar()"
+          (keydown.enter)="toggleSidebar()"
+          aria-label="Fechar menu lateral"
         ></div>
         <aside
           class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
+          aria-label="Menu lateral de navegação (mobile)"
         >
           <div
             class="h-16 flex items-center px-4 border-b border-gray-200 justify-between"
@@ -312,7 +316,7 @@
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
-          <nav class="flex-1 overflow-y-auto p-2 space-y-1">
+          <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral (mobile)">
             <button
               *ngFor="let item of navItems()"
               (click)="navigate(item.id)"
@@ -359,18 +363,22 @@
 
     <!-- Modals Layer (somente no modo app) -->
     <ng-container *ngIf="isNotificationCenterOpen()">
-      <div class="modal-backdrop-right" (click)="closeModal()">
+  <div class="modal-backdrop-right" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar centro de notificações">
         <app-notification-center
           (close)="closeModal()"
           (click)="$event.stopPropagation()"
+          (keydown.enter)="$event.stopPropagation(); closeModal()"
+          aria-label="Centro de notificações"
         />
       </div>
     </ng-container>
     <ng-container *ngIf="isChatOpen() && selectedRequest()">
-      <div class="modal-backdrop" (click)="closeModal()">
+  <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de chat">
         <div
           class="modal-content max-w-2xl h-3/4"
           (click)="$event.stopPropagation()"
+          (keydown.enter)="$event.stopPropagation(); closeModal()"
+          aria-label="Conteúdo do chat"
         >
           <app-chat
             [currentUser]="currentUser()!"
@@ -381,8 +389,8 @@
       </div>
     </ng-container>
     <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
-      <div class="modal-backdrop" (click)="closeModal()">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de agendamento">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Conteúdo do agendamento">
           <app-scheduler
             [serviceRequest]="selectedRequest()!"
             (close)="closeModal()"
