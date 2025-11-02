@@ -14,10 +14,10 @@ import {
   providedIn: "root",
 })
 export class WorkflowService {
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
-  private i18n = inject(I18nService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
 
   /**
    * FASE 1: SOLICITAÇÃO E ORÇAMENTO

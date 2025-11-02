@@ -8,9 +8,9 @@ import { ServiceRequest, Payment } from "../models/maintenance.models";
   providedIn: "root",
 })
 export class PaymentService {
-  private supabase = inject(SupabaseService);
-  private authService = inject(AuthService);
-  private notificationService = inject(NotificationService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
 
   // Taxa da plataforma (7%)
   private readonly PLATFORM_FEE_RATE = 0.07;

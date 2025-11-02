@@ -64,9 +64,9 @@ export class DataService {
       arteria_completa: data.arteria_completa || "",
     };
   }
-  private i18n = inject(I18nService);
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly notificationService = inject(NotificationService);
   // Exposed intentionally for some components that access auth via dataService.authService
   public readonly authService = inject(AuthService);
 
