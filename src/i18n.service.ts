@@ -1,5 +1,6 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
+import { ci } from "@fullcalendar/core/internal-common";
 
 export type Language = "en" | "pt";
 
@@ -726,7 +727,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterContact: "Contact",
 
     streetPlaceholder: "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
-    numberPlaceholder: "Number"
+    numberPlaceholder: "Number",
+    cityPlaceholder: "City",
+    statePlaceholder: "State",
+    zipPlaceholder: "ZIP Code"
   },
   pt: {
     // General
@@ -1476,7 +1480,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterContact: "Contacto",
 
     streetPlaceholder: "Rua Exemplo",
-    numberPlaceholder: "123"
+    numberPlaceholder: "123",
+    cityPlaceholder: "Lisboa",
+    statePlaceholder: "Lisboa",
+    countryPlaceholder: "Portugal"
 
 
   },
