@@ -25,8 +25,8 @@ export class ClarificationModalComponent {
   serviceRequest = input.required<ServiceRequest>();
   close = output<void>();
 
-  private workflowService = inject(WorkflowService);
-  private i18n = inject(I18nService);
+  private readonly workflowService = inject(WorkflowService);
+  private readonly i18n = inject(I18nService);
 
   clarificationText = signal("");
   isSubmitting = signal(false);

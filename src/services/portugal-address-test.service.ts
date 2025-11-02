@@ -6,8 +6,8 @@ import { PortugalAddressDatabaseService } from "./portugal-address-database.serv
   providedIn: "root",
 })
 export class PortugalAddressTestService {
-  private validationService = inject(PortugalAddressValidationService);
-  private databaseService = inject(PortugalAddressDatabaseService);
+  private readonly validationService = inject(PortugalAddressValidationService);
+  private readonly databaseService = inject(PortugalAddressDatabaseService);
 
   /**
    * Teste completo da integração

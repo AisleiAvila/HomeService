@@ -12,7 +12,7 @@ import {
   providedIn: "root",
 })
 export class PortugalAddressDatabaseService {
-  private supabase = inject(SupabaseService);
+  private readonly supabase = inject(SupabaseService);
 
   /**
    * Busca todos os distritos

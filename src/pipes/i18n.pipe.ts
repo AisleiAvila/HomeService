@@ -7,7 +7,7 @@ import { I18nService } from "../i18n.service";
   pure: false, // To re-evaluate when language changes, as it depends on service state
 })
 export class I18nPipe implements PipeTransform {
-  private i18n = inject(I18nService);
+  private readonly i18n = inject(I18nService);
 
   transform(key: string, params?: Record<string, string | number>): string {
     // Força a reatividade usando o signal da linguagem

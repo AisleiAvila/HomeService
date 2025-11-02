@@ -12,7 +12,7 @@ import {
   providedIn: "root",
 })
 export class NotificationService {
-  private supabase = inject(SupabaseService);
+  private readonly supabase = inject(SupabaseService);
 
   private notificationIdCounter = 1;
 

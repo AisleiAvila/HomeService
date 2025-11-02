@@ -37,12 +37,12 @@ export class ProfileComponent implements OnDestroy {
   user = input.required<User>();
   receiveSmsNotifications = signal<boolean>(false);
 
-  private authService = inject(AuthService);
-  private notificationService = inject(NotificationService);
-  private dataService = inject(DataService);
-  private smsVerificationService = inject(SmsVerificationService);
-  i18n = inject(I18nService);
-  private appComponent = inject(AppComponent);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly dataService = inject(DataService);
+  private readonly smsVerificationService = inject(SmsVerificationService);
+  readonly i18n = inject(I18nService);
+  private readonly appComponent = inject(AppComponent);
   goToDashboard() {
     this.appComponent.currentNav.set("dashboard");
   }

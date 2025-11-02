@@ -17,7 +17,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LanguageSwitcherComponent {
-  i18n = inject(I18nService);
+  readonly i18n = inject(I18nService);
   isOpen = signal(false);
   theme = input<"light" | "dark">("light");
 

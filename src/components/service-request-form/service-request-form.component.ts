@@ -55,8 +55,8 @@ export class ServiceRequestFormComponent implements OnInit {
     this.updateField("zip_code", formatted);
   }
   @Output() close = new EventEmitter<void>();
-  private dataService = inject(DataService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly i18n = inject(I18nService);
 
   categories = signal<ServiceCategory[]>([]);
   subcategories = signal<ServiceSubcategory[]>([]);

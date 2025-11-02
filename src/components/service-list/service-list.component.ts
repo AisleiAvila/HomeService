@@ -65,9 +65,9 @@ export class ServiceListComponent {
   // Ids de requests com ação em andamento (controlado pelo pai)
   actionLoadingIds = input<number[]>([]);
 
-  private dataService = inject(DataService);
-  private workflowService = inject(WorkflowService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly workflowService = inject(WorkflowService);
+  private readonly i18n = inject(I18nService);
 
   // Expose Math for template use
   Math = Math;

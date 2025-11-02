@@ -16,7 +16,7 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 })
 export class NotificationCenterComponent {
   close = output<void>();
-  notificationService = inject(NotificationService);
+  readonly notificationService = inject(NotificationService);
   
   private readonly initialNotificationIds: ReadonlySet<number>;
 

@@ -25,9 +25,9 @@ import {
 })
 export class TimeReportsComponent {
   // Services
-  private dataService = inject(DataService);
-  private authService = inject(AuthService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
 
   // State
   selectedDateRange = signal<"today" | "week" | "month" | "custom">("week");

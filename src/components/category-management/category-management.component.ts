@@ -22,7 +22,7 @@ import {
 })
 export class CategoryManagementComponent {
   newCategory = signal("");
-  private dataService = inject(DataService);
+  private readonly dataService = inject(DataService);
   // Signals para gerenciamento de subcategorias
   // Consolidado: signals e métodos para subcategorias
   selectedCategoryForSubcategories = signal<ServiceCategory | null>(null);

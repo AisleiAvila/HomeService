@@ -22,7 +22,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 })
 export class SearchComponent {
   user = input.required<User>();
-  private dataService = inject(DataService);
+  private readonly dataService = inject(DataService);
 
   allRequests = this.dataService.serviceRequests;
   categories = this.dataService.categories;

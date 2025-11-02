@@ -26,7 +26,7 @@ export class SmsVerificationModalComponent {
   }>();
   verified = output<boolean>();
 
-  private smsService = inject(SmsVerificationService);
+  private readonly smsService = inject(SmsVerificationService);
 
   code = signal("");
   sentCode = signal("");

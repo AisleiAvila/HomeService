@@ -81,9 +81,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   user = input.required<User>();
   viewDetails = output<ServiceRequest>();
 
-  private dataService = inject(DataService);
-  i18n = inject(I18nService);
-  private injector = inject(Injector);
+  private readonly dataService = inject(DataService);
+  readonly i18n = inject(I18nService);
+  private readonly injector = inject(Injector);
   private resizeHandler?: () => void;
 
   calendarComponent = viewChild.required<FullCalendarComponent>("calendar");

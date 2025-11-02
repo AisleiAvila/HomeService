@@ -14,8 +14,8 @@ export class AuthService {
   async refreshAppUser(authId: string): Promise<void> {
     await this.fetchAppUser(authId, false);
   }
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly notificationService = inject(NotificationService);
 
   private supabaseUser = this.supabase.currentUser;
 

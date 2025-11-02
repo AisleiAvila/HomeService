@@ -165,7 +165,7 @@ export class LoginComponent {
   isLoading = signal(false);
 
   // Injeção do serviço de internacionalização
-  i18n = inject(I18nService);
+  readonly i18n = inject(I18nService);
 
   login() {
     console.log("Logging in with", this.email(), this.password());

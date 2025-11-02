@@ -7,8 +7,8 @@ import { ServiceRequest, Contract, User } from "../models/maintenance.models";
   providedIn: "root",
 })
 export class ContractService {
-  private supabase = inject(SupabaseService);
-  private authService = inject(AuthService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly authService = inject(AuthService);
 
   /**
    * Gerar contrato digital para um pedido de serviço

@@ -274,8 +274,8 @@ export class ServiceClarificationsComponent {
   clarificationAdded = output<void>();
   
   // Injeção de serviços
-  private dataService = inject(DataService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly i18n = inject(I18nService);
 
   // Estados locais
   readonly newQuestionTitle = signal("");

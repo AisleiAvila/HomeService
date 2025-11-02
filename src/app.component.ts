@@ -87,11 +87,11 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
 })
 export class AppComponent implements OnInit {
   // Services
-  authService = inject(AuthService);
-  dataService = inject(DataService);
-  notificationService = inject(NotificationService);
-  i18n = inject(I18nService);
-  private pushNotificationService = inject(PushNotificationService);
+  readonly authService = inject(AuthService);
+  readonly dataService = inject(DataService);
+  readonly notificationService = inject(NotificationService);
+  readonly i18n = inject(I18nService);
+  private readonly pushNotificationService = inject(PushNotificationService);
 
   // App State
   view = signal<View>("landing");

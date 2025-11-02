@@ -8,9 +8,9 @@ import { Evaluation, ServiceRequest, User } from "../models/maintenance.models";
   providedIn: "root",
 })
 export class EvaluationService {
-  private supabase = inject(SupabaseService);
-  private authService = inject(AuthService);
-  private notificationService = inject(NotificationService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
 
   /**
    * Cliente avalia profissional

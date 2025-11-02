@@ -11,7 +11,7 @@ import { Observable, map, of, from } from "rxjs";
   providedIn: "root",
 })
 export class PortugalAddressValidationService {
-  private databaseService = inject(PortugalAddressDatabaseService);
+  private readonly databaseService = inject(PortugalAddressDatabaseService);
 
   constructor() {}
 

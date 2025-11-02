@@ -182,9 +182,9 @@ export class DashboardComponent {
 
   public selectedRequest = signal<ServiceRequest | null>(null);
 
-  dataService = inject(DataService);
-  private workflowService = inject(WorkflowService);
-  private i18n = inject(I18nService);
+  readonly dataService = inject(DataService);
+  private readonly workflowService = inject(WorkflowService);
+  private readonly i18n = inject(I18nService);
 
   userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();

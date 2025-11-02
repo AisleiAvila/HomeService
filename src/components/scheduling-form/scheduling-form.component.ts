@@ -32,9 +32,9 @@ export class SchedulingFormComponent {
   scheduled = output<ServiceRequest>();
 
   // Serviços
-  private dataService = inject(DataService);
-  private authService = inject(AuthService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
 
   // Estado do formulário
   selectedProfessionalId = signal<number | null>(null);
