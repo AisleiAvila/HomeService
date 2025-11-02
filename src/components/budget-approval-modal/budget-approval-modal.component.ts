@@ -22,6 +22,8 @@ export class BudgetApprovalModalComponent {
   request = input.required<ServiceRequest>();
   user = input.required<User>();
   show = input<boolean>(false);
+  // Controls disabled state and spinners while parent processes the action
+  loading = input<boolean>(false);
   approve = output<ServiceRequest>();
   reject = output<ServiceRequest>();
   close = output<void>();
@@ -35,16 +37,19 @@ export class BudgetApprovalModalComponent {
   }
 
   handleApprove() {
+    if (this.loading()) return;
     this.approve.emit(this.request());
     this.close.emit();
   }
 
   handleReject() {
+    if (this.loading()) return;
     this.reject.emit(this.request());
     this.close.emit();
   }
 
   handleClose() {
+    if (this.loading()) return;
     this.close.emit();
   }
 }

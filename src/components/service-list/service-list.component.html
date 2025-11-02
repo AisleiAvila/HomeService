@@ -19,7 +19,7 @@
             </div>
           </th>
           <th class="service-list-header text-left">
-            {{ "address" | i18n }}
+            {{ "locality" | i18n }}
           </th>
           <th 
             class="service-list-header text-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
@@ -80,8 +80,8 @@
             </div>
           </td>
           <td class="service-list-empty-row">
-            <div class="max-w-xs truncate">
-              {{ formatAddress(request) }}
+            <div class="max-w-xs truncate text-sm text-gray-700">
+              {{ getAddressParts(request).locality || '—' }}
             </div>
           </td>
           <td class="service-list-empty-row text-center">
@@ -143,22 +143,28 @@
               @if(currentUser().role === 'professional' && (request.status ===
               'Agendado' || request.status === 'Scheduled')) {
               <button
-                (click)="startService.emit(request)"
+                (click)="!isLoading(request.id) && startService.emit(request)"
                 class="service-list-action-start-service"
                 title="{{ 'startService' | i18n }}"
+                [disabled]="isLoading(request.id)"
               >
-                <i class="fas fa-play"></i>
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'"
+                ></i>
               </button>
               }
               <!-- Profissional: Finalizar serviço para status Em execução -->
               @if(currentUser().role === 'professional' && (request.status ===
               'Em Progresso' || request.status === 'In Progress')) {
               <button
-                (click)="finishService.emit(request)"
+                (click)="!isLoading(request.id) && finishService.emit(request)"
                 class="service-list-action-finish-service"
                 title="{{ 'finishService' | i18n }}"
+                [disabled]="isLoading(request.id)"
               >
-                <i class="fas fa-check"></i>
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
+                ></i>
               </button>
               }
 
@@ -176,20 +182,24 @@
               } @if(request.status === 'Data proposta pelo administrador' ||
               request.status === 'Aguardando aprovação da data') {
               <button
-                (click)="approveExecutionDate.emit(request)"
+                (click)="!isLoading(request.id) && approveExecutionDate.emit(request)"
                 class="service-list-action-approve-date"
                 title="{{ 'approveExecutionDate' | i18n }}"
+                [disabled]="isLoading(request.id)"
               >
-                <i class="fas fa-calendar-check"></i>
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-calendar-check'"
+                ></i>
               </button>
               <button
-                (click)="
-                  rejectExecutionDate.emit({ request: request, reason: '' })
-                "
+                (click)="!isLoading(request.id) && rejectExecutionDate.emit({ request: request, reason: '' })"
                 class="service-list-action-reject-date"
                 title="{{ 'rejectExecutionDate' | i18n }}"
+                [disabled]="isLoading(request.id)"
               >
-                <i class="fas fa-calendar-times"></i>
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-calendar-times'"
+                ></i>
               </button>
               } @if(request.status === 'Aguardando esclarecimentos' &&
               isActionAvailable(request, 'provide_clarification')) {
@@ -267,7 +277,7 @@
         <div
           class="service-request-details space-y-2 sm:space-y-3 mb-3 sm:mb-4"
         >
-          <!-- Address -->
+          <!-- Locality (mobile simplified) -->
           <div class="service-request-info-item">
             <div class="flex items-start gap-2 sm:gap-3">
               <svg
@@ -291,7 +301,8 @@
               </svg>
               <div class="text-sm text-gray-700 min-w-0 flex-1">
                 <div class="font-medium break-words">
-                  {{ formatAddress(request) }}
+                  <span class="font-semibold">{{ 'locality' | i18n }}:</span>
+                  <span class="ml-1">{{ getAddressParts(request).locality || '—' }}</span>
                 </div>
               </div>
             </div>
@@ -454,17 +465,25 @@
           'Quoted') {
           <div class="service-list-actions mb-3">
             <button
-              (click)="approveQuote.emit(request)"
+              (click)="!isLoading(request.id) && approveQuote.emit(request)"
               class="service-list-action-approve"
+              [disabled]="isLoading(request.id)"
             >
-              <i class="fas fa-check mr-1 sm:mr-2"></i>
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
+                class="mr-1 sm:mr-2"
+              ></i>
               {{ "approve" | i18n }}
             </button>
             <button
-              (click)="rejectQuote.emit(request)"
+              (click)="!isLoading(request.id) && rejectQuote.emit(request)"
               class="service-list-action-reject"
+              [disabled]="isLoading(request.id)"
             >
-              <i class="fas fa-times mr-1 sm:mr-2"></i>
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
+                class="mr-1 sm:mr-2"
+              ></i>
               {{ "reject" | i18n }}
             </button>
           </div>
@@ -472,19 +491,23 @@
           request.status === 'Aguardando aprovação da data') {
           <div class="service-list-actions mb-3">
             <button
-              (click)="approveExecutionDate.emit(request)"
+              (click)="!isLoading(request.id) && approveExecutionDate.emit(request)"
               class="service-list-action-approve-date"
+              [disabled]="isLoading(request.id)"
             >
-              <i class="fas fa-calendar-check mr-1 sm:mr-2"></i>
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin mr-1 sm:mr-2' : 'fas fa-calendar-check mr-1 sm:mr-2'"
+              ></i>
               {{ "approveExecutionDate" | i18n }}
             </button>
             <button
-              (click)="
-                rejectExecutionDate.emit({ request: request, reason: '' })
-              "
+              (click)="!isLoading(request.id) && rejectExecutionDate.emit({ request: request, reason: '' })"
               class="service-list-action-reject-date"
+              [disabled]="isLoading(request.id)"
             >
-              <i class="fas fa-calendar-times mr-1 sm:mr-2"></i>
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin mr-1 sm:mr-2' : 'fas fa-calendar-times mr-1 sm:mr-2'"
+              ></i>
               {{ "rejectExecutionDate" | i18n }}
             </button>
           </div>
@@ -515,6 +538,39 @@
             {{ "payNow" | i18n }}
           </button>
           } }
+
+          <!-- Professional actions (mobile): start/finish -->
+          @if(currentUser().role === 'professional') {
+          <div class="service-list-actions mb-3">
+            @if(request.status === 'Agendado' || request.status === 'Scheduled') {
+            <button
+              (click)="!isLoading(request.id) && startService.emit(request)"
+              class="service-list-action-start-service"
+              [disabled]="isLoading(request.id)"
+            >
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'"
+                class="mr-1 sm:mr-2"
+              ></i>
+              {{ 'startService' | i18n }}
+            </button>
+            }
+
+            @if(request.status === 'Em Progresso' || request.status === 'In Progress') {
+            <button
+              (click)="!isLoading(request.id) && finishService.emit(request)"
+              class="service-list-action-finish-service"
+              [disabled]="isLoading(request.id)"
+            >
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
+                class="mr-1 sm:mr-2"
+              ></i>
+              {{ 'finishService' | i18n }}
+            </button>
+            }
+          </div>
+          }
 
           <!-- Secondary Actions -->
           <div class="service-list-actions">
@@ -628,6 +684,7 @@
     [request]="selectedRequestForBudget()"
     [user]="currentUser()"
     [show]="showBudgetApprovalModal()"
+    [loading]="isLoading(selectedRequestForBudget()!.id)"
     (approve)="handleApproveQuote($event)"
     (reject)="handleRejectQuote($event)"
     (close)="handleCloseBudgetModal()"
@@ -637,6 +694,7 @@
     *ngIf="showPaymentModal() && selectedRequestForPayment()"
     [request]="selectedRequestForPayment()"
     [show]="showPaymentModal()"
+    [loading]="isLoading(selectedRequestForPayment()!.id)"
     (onPay)="handlePaymentConfirmed($event)"
     (onClose)="handlePaymentModalClose()"
   />

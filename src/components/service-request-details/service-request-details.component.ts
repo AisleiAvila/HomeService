@@ -23,6 +23,7 @@ import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timelin
 import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
 import { WorkflowService } from "../../services/workflow.service";
 import { NotificationService } from "../../services/notification.service";
+import { extractPtAddressParts } from "@/src/utils/address-utils";
 
 @Component({
   selector: "app-service-request-details",
@@ -246,21 +247,37 @@ import { NotificationService } from "../../services/notification.service";
           </div>
         </div>
 
-        <!-- Address Information -->
-        @if (request().address) {
+        <!-- Address Information (detailed with labels) -->
+        @if (hasAddress()) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">
             {{ "address" | i18n }}
           </h3>
-          <div class="text-gray-900">
-            <p>
-              {{ request().address.street }}, {{ request().address.number }}
-            </p>
-            <p>
-              {{ request().address.postal_code }}
-              {{ request().address.locality }}
-            </p>
-            <p>{{ request().address.district }}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'streetAddress' | i18n }}
+              </label>
+              <p class="break-words">{{ addressParts().streetNumber || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'postalCode' | i18n }}
+              </label>
+              <p class="break-words">{{ addressParts().postalCode || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'locality' | i18n }}
+              </label>
+              <p class="break-words">{{ addressParts().locality || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'district' | i18n }}
+              </label>
+              <p class="break-words">{{ addressParts().district || '—' }}</p>
+            </div>
           </div>
         </div>
         }
@@ -337,6 +354,31 @@ export class ServiceRequestDetailsComponent {
 
   // Signals para UI state
   showMobileActions = signal(false);
+
+  // Verifica se há dados de endereço (aninhado ou campos planos)
+  hasAddress = computed(() => {
+    const r = this.request();
+    const nested = (r as any).address;
+    return !!(
+      nested?.street ||
+      nested?.postal_code ||
+      nested?.locality ||
+      nested?.district ||
+      r.street ||
+      r.city ||
+      r.state ||
+      r.zip_code
+    );
+  });
+
+  // Linhas de endereço formatadas PT
+  private addressParts = computed(() => extractPtAddressParts(this.request()));
+  addressLine1 = computed(() => this.addressParts().streetNumber);
+  addressLine2 = computed(() => {
+    const p = this.addressParts();
+    return [p.postalCode, p.locality].filter(Boolean).join(" ");
+  });
+  addressLine3 = computed(() => this.addressParts().district);
 
   // Outputs para eventos
   @Output() close = new EventEmitter<void>();
