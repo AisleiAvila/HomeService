@@ -29,7 +29,7 @@ export class SchedulerComponent {
     date: Date;
   }>();
 
-  private dataService = inject(DataService);
+  private readonly dataService = inject(DataService);
 
   availableProfessionals = computed(() => {
     return this.dataService.getProfessionalsByCategory(

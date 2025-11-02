@@ -349,8 +349,8 @@ export class ServiceRequestDetailsComponent {
   currentUser = input.required<User>();
 
   // Injeção de serviços
-  private workflowService = inject(WorkflowService);
-  private notificationService = inject(NotificationService);
+  private readonly workflowService = inject(WorkflowService);
+  private readonly notificationService = inject(NotificationService);
 
   // Signals para UI state
   showMobileActions = signal(false);

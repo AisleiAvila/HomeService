@@ -7,8 +7,8 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class PushNotificationService {
-  private notificationService = inject(NotificationService);
-  private i18n = inject(I18nService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
   private swRegistration: ServiceWorkerRegistration | null = null;
 
   constructor() {

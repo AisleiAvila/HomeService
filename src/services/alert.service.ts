@@ -8,9 +8,9 @@ import { ServiceRequest, ServiceStatus } from "../models/maintenance.models";
   providedIn: "root",
 })
 export class AlertService {
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
-  private authService = inject(AuthService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly authService = inject(AuthService);
 
   // Configurações de prazos (em horas)
   private readonly DEADLINES = {

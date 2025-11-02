@@ -28,7 +28,7 @@ export class BudgetApprovalModalComponent {
   reject = output<ServiceRequest>();
   close = output<void>();
 
-  private i18n = inject(I18nService);
+  private readonly i18n = inject(I18nService);
   selectedLanguage = signal(this.i18n.language());
 
   setLanguage(lang: "en" | "pt") {

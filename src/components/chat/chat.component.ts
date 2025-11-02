@@ -31,7 +31,7 @@ export class ChatComponent {
   currentUser = input.required<User>();
   close = output<void>();
 
-  private dataService = inject(DataService);
+  private readonly dataService = inject(DataService);
 
   chatContainer = viewChild<ElementRef<HTMLDivElement>>("chatContainer");
 

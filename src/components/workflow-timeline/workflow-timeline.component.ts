@@ -34,7 +34,7 @@ export class WorkflowTimelineComponent {
   serviceRequest = input.required<ServiceRequest>();
 
   // Injeção de serviços
-  private i18n = inject(I18nService);
+  private readonly i18n = inject(I18nService);
 
   // Computed signals
   phases = computed(() => {

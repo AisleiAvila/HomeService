@@ -28,8 +28,8 @@ export class ResetPasswordComponent implements OnInit {
   // Input para receber email da tela anterior
   initialEmail = input<string>("");
 
-  private authService = inject(AuthService);
-  private notificationService = inject(NotificationService);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
 
   email = signal("");
   resetCode = signal("");

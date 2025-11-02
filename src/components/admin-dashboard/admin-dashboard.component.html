@@ -416,76 +416,108 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th
-                    (click)="sortByColumn('category')"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                    title="{{ 'clickToSort' | i18n }}"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    [attr.aria-sort]="sortBy() === 'category' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                    scope="col"
                   >
-                    <div class="flex items-center justify-between">
-                      <span>{{ "service" | i18n }}</span>
-                      @if (sortBy() === 'category') {
-                        @if (sortOrder() === 'asc') {
-                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                    <button
+                      type="button"
+                      class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                      (click)="sortByColumn('category')"
+                      [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
+                      [attr.title]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span>{{ "service" | i18n }}</span>
+                        @if (sortBy() === 'category') {
+                          @if (sortOrder() === 'asc') {
+                            <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                          } @else {
+                            <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          }
                         } @else {
-                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          <i class="fas fa-sort text-gray-400 ml-1"></i>
                         }
-                      } @else {
-                        <i class="fas fa-sort text-gray-400 ml-1"></i>
-                      }
-                    </div>
+                      </div>
+                    </button>
                   </th>
                   <th
-                    (click)="sortByColumn('client')"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                    title="{{ 'clickToSort' | i18n }}"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    [attr.aria-sort]="sortBy() === 'client' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                    scope="col"
                   >
-                    <div class="flex items-center justify-between">
-                      <span>{{ "client" | i18n }}</span>
-                      @if (sortBy() === 'client') {
-                        @if (sortOrder() === 'asc') {
-                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                    <button
+                      type="button"
+                      class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                      (click)="sortByColumn('client')"
+                      [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('client' | i18n)"
+                      [attr.title]="('clickToSort' | i18n) + ': ' + ('client' | i18n)"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span>{{ "client" | i18n }}</span>
+                        @if (sortBy() === 'client') {
+                          @if (sortOrder() === 'asc') {
+                            <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                          } @else {
+                            <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          }
                         } @else {
-                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          <i class="fas fa-sort text-gray-400 ml-1"></i>
                         }
-                      } @else {
-                        <i class="fas fa-sort text-gray-400 ml-1"></i>
-                      }
-                    </div>
+                      </div>
+                    </button>
                   </th>
                   <th
-                    (click)="sortByColumn('professional')"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                    title="{{ 'clickToSort' | i18n }}"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    [attr.aria-sort]="sortBy() === 'professional' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                    scope="col"
                   >
-                    <div class="flex items-center justify-between">
-                      <span>{{ "professional" | i18n }}</span>
-                      @if (sortBy() === 'professional') {
-                        @if (sortOrder() === 'asc') {
-                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                    <button
+                      type="button"
+                      class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                      (click)="sortByColumn('professional')"
+                      [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('professional' | i18n)"
+                      [attr.title]="('clickToSort' | i18n) + ': ' + ('professional' | i18n)"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span>{{ "professional" | i18n }}</span>
+                        @if (sortBy() === 'professional') {
+                          @if (sortOrder() === 'asc') {
+                            <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                          } @else {
+                            <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          }
                         } @else {
-                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          <i class="fas fa-sort text-gray-400 ml-1"></i>
                         }
-                      } @else {
-                        <i class="fas fa-sort text-gray-400 ml-1"></i>
-                      }
-                    </div>
+                      </div>
+                    </button>
                   </th>
                   <th
-                    (click)="sortByColumn('status')"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:bg-gray-100 select-none"
-                    title="{{ 'clickToSort' | i18n }}"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                    [attr.aria-sort]="sortBy() === 'status' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                    scope="col"
                   >
-                    <div class="flex items-center justify-between">
-                      <span>{{ "status" | i18n }}</span>
-                      @if (sortBy() === 'status') {
-                        @if (sortOrder() === 'asc') {
-                          <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                    <button
+                      type="button"
+                      class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                      (click)="sortByColumn('status')"
+                      [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
+                      [attr.title]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span>{{ "status" | i18n }}</span>
+                        @if (sortBy() === 'status') {
+                          @if (sortOrder() === 'asc') {
+                            <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                          } @else {
+                            <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          }
                         } @else {
-                          <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                          <i class="fas fa-sort text-gray-400 ml-1"></i>
                         }
-                      } @else {
-                        <i class="fas fa-sort text-gray-400 ml-1"></i>
-                      }
-                    </div>
+                      </div>
+                    </button>
                   </th>
                   <th
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"

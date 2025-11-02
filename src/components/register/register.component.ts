@@ -37,9 +37,9 @@ export class RegisterComponent {
   role = signal<UserRole>("client");
 
   // Injeção do serviço de internacionalização
-  i18n = inject(I18nService);
+  readonly i18n = inject(I18nService);
 
-  private notificationService = inject(NotificationService);
+  private readonly notificationService = inject(NotificationService);
 
   register() {
     const emailValue = this.email().trim();

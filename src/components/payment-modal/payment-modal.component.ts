@@ -26,7 +26,7 @@ export class PaymentModalComponent {
   onPay = output<{ request: ServiceRequest; method: string }>();
   onClose = output<void>();
 
-  private i18n = inject(I18nService);
+  private readonly i18n = inject(I18nService);
 
   selectedMethod = signal<string>("");
 

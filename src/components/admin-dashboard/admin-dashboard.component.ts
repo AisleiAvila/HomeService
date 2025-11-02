@@ -290,8 +290,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const end = start + this.itemsPerPage();
     return reqs.slice(start, end);
   });
-  private dataService = inject(DataService);
-  private i18n = inject(I18nService);
+  private readonly dataService = inject(DataService);
+  private readonly i18n = inject(I18nService);
   // Título do gráfico de status, internacionalizado
   statusGraphTitle = this.i18n.translate("statusGraphTitle");
   // Labels internacionalizados para status
@@ -339,8 +339,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     // Adicionados para garantir exibição dos dados reais do banco
     Completed: this.i18n.translate("statusCompletedEn"),
   };
-  private notificationService = inject(NotificationService);
-  private workflowService = inject(WorkflowService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly workflowService = inject(WorkflowService);
 
   // Expose Math for template use
   Math = Math;
