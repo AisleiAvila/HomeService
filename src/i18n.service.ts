@@ -188,8 +188,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
+  subcategory: "Subcategory",
+  selectSubcategory: "Select a subcategory",
     descriptionPlaceholder: "Describe what you need...",
-    requestedDateTimeHelp: "When would you like this service to be performed?",
+  dateTime: "Date & Time",
+  dateTimePlaceholder: "Select preferred date and time",
+  requestedDateTimeHelp: "When would you like this service to be performed?",
+  validFutureDateTime: "Please select a valid future date and time",
+  complement: "Address Complement",
+  complementPlaceholder: "Apartment, floor, reference (optional)",
     submitting: "Submitting",
     submitRequest: "Submit Request",
 
@@ -716,8 +723,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterTagline: "Building dreams for over 20 years",
     landingFooterPrivacy: "Privacy Policy",
     landingFooterTerms: "Terms of Use",
-    landingFooterContact: "Contact"
+    landingFooterContact: "Contact",
 
+    streetPlaceholder: "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
+    numberPlaceholder: "Number"
   },
   pt: {
     // General
@@ -907,9 +916,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
     selectCategory: "Selecione uma categoria...",
+    subcategory: "Subcategoria",
+    selectSubcategory: "Selecione uma subcategoria",
     descriptionPlaceholder: "Descreva o que você precisa...",
+    dateTime: "Data e Hora",
+    dateTimePlaceholder: "Selecione a data e hora desejadas",
     requestedDateTimeHelp:
       "Quando você gostaria que este serviço fosse realizado?",
+    validFutureDateTime: "Selecione uma data e hora futura válidas",
+    complement: "Complemento",
+    complementPlaceholder: "Apartamento, andar, referência (opcional)",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
 
@@ -1457,7 +1473,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterTagline: "Construindo sonhos há mais de 20 anos",
     landingFooterPrivacy: "Política de Privacidade",
     landingFooterTerms: "Termos de Uso",
-    landingFooterContact: "Contacto"
+    landingFooterContact: "Contacto",
+
+    streetPlaceholder: "Rua Exemplo",
+    numberPlaceholder: "123"
+
 
   },
 };
