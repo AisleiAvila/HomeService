@@ -200,6 +200,7 @@
       [enablePagination]="false"
       [sortBy]="sortBy()"
       [sortOrder]="sortOrder()"
+  [actionLoadingIds]="actionLoadingIds()"
       (sortChange)="sortByColumn($event)"
       (viewDetails)="handleViewDetails($event)"
       (openChat)="openChat.emit($event)"
@@ -212,6 +213,7 @@
       "
       (scheduleRequest)="scheduleRequest.emit($event)"
       (provideClarification)="handleProvideClarification($event)"
+      (startService)="handleStartService($event)"
       (finishService)="handleFinishService($event)"
     >
     </app-service-list>
