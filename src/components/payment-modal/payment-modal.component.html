@@ -5,7 +5,8 @@
   <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
     <button
       (click)="handleClose()"
-      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+      [disabled]="loading()"
+      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
       aria-label="Fechar"
     >
       <i class="fas fa-times"></i>
@@ -40,9 +41,9 @@
       </div>
     </div>
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-2">{{
+      <div class="block text-sm font-medium text-gray-700 mb-2">{{
         "choosePaymentMethod" | i18n
-      }}</label>
+      }}</div>
       <div class="space-y-2">
         <ng-container *ngFor="let method of paymentMethods">
           <label class="flex items-center cursor-pointer">
@@ -53,6 +54,7 @@
               [checked]="selectedMethod() === method.id"
               (change)="selectedMethod.set(method.id)"
               class="form-radio text-green-600"
+              [disabled]="loading()"
             />
             <span class="ml-2 text-gray-800">{{ method.label }}</span>
           </label>
@@ -61,10 +63,13 @@
     </div>
     <button
       (click)="handlePay()"
-      [disabled]="!selectedMethod()"
+      [disabled]="!selectedMethod() || loading()"
       class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50"
     >
-      <i class="fas fa-credit-card mr-2"></i>{{ "confirmPayment" | i18n }}
+      <i
+        [class]="loading() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
+      ></i
+      >{{ "confirmPayment" | i18n }}
     </button>
   </div>
 </div>

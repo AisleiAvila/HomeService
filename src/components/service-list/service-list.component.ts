@@ -21,6 +21,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 import { BudgetApprovalModalComponent } from "../budget-approval-modal";
 import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
 import { I18nService } from "@/src/i18n.service";
+import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-utils";
 
 @Component({
   selector: "app-service-list",
@@ -61,6 +62,8 @@ export class ServiceListComponent {
   provideClarification = output<ServiceRequest>();
   startService = output<ServiceRequest>();
   finishService = output<ServiceRequest>();
+  // Ids de requests com ação em andamento (controlado pelo pai)
+  actionLoadingIds = input<number[]>([]);
 
   private dataService = inject(DataService);
   private workflowService = inject(WorkflowService);
@@ -219,8 +222,12 @@ export class ServiceListComponent {
     return availableActions.includes(action);
   }
 
-  formatAddress(address: Address): string {
-    return address.street + ", " + address.city;
+  formatAddress(src: ServiceRequest | Address): string {
+    return formatPtAddress(src);
+  }
+
+  getAddressParts(src: ServiceRequest | Address) {
+    return extractPtAddressParts(src);
   }
 
   getProfessionalName(professionalId: number | null): string {
@@ -244,6 +251,10 @@ export class ServiceListComponent {
       `[ServiceListComponent] getStatusLabel: status='${status}' => label='${label}'`
     );
     return label;
+  }
+
+  isLoading(requestId: number): boolean {
+    return (this.actionLoadingIds() || []).includes(requestId);
   }
 
   showBudgetApprovalModal = signal(false);

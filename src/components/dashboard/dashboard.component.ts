@@ -113,15 +113,60 @@ export class DashboardComponent {
   finishService = output<ServiceRequest>();
 
   statusAtivos = signal<{ value: string; label: string }[]>([]);
+  // IDs com ações em andamento para feedback visual na lista
+  actionLoadingIds = signal<number[]>([]);
 
   async handleFinishService(request: ServiceRequest) {
+    // ativa loading do item
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
+    );
     try {
-      await this.dataService.finishServiceWork(request.id);
+      // Use WorkflowService para manter histórico e notificações
+      await this.workflowService.completeWork(request.id);
       this.selectedRequest.set(null);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Erro ao finalizar serviço:", error);
       this.showBusinessError.set(true);
       this.businessErrorMessage.set(
         this.i18n.translate("errorFinishingService")
+      );
+    } finally {
+      // desativa loading do item
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
+      );
+    }
+  }
+
+  async handleStartService(request: ServiceRequest) {
+    // ativa loading do item
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
+    );
+    try {
+      // Respeita as regras de negócio centralizadas no WorkflowService
+      await this.workflowService.startWork(request.id);
+      // Atualização ocorrerá via sinais/realtime; opcionalmente podemos fechar detalhes
+      this.selectedRequest.set(null);
+    } catch (error: any) {
+      // Impedir início antes da data agendada
+      if (
+        error instanceof Error &&
+        error.message.includes("Tentativa de início antes da data agendada")
+      ) {
+        this.showBusinessRuleError(
+          "Não é permitido iniciar o serviço antes da data agendada!"
+        );
+      } else {
+        console.error("Erro ao iniciar serviço:", error);
+        this.showBusinessError.set(true);
+        this.businessErrorMessage.set(this.i18n.translate("genericError"));
+      }
+    } finally {
+      // desativa loading do item
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
       );
     }
   }
@@ -396,20 +441,46 @@ export class DashboardComponent {
     return [];
   });
 
-  handleQuoteResponse(request: ServiceRequest, approved: boolean) {
-    this.dataService.respondToQuote(request.id, approved);
+  async handleQuoteResponse(request: ServiceRequest, approved: boolean) {
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
+    );
+    try {
+      await this.dataService.respondToQuote(request.id, approved);
+    } catch (error) {
+      console.error("Erro ao responder orçamento:", error);
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("genericError"));
+    } finally {
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
+      );
+    }
   }
 
-  handleExecutionDateResponse(
+  async handleExecutionDateResponse(
     request: ServiceRequest,
     approved: boolean,
     rejectionReason?: string
   ) {
-    this.dataService.respondToExecutionDate(
-      request.id,
-      approved,
-      rejectionReason
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
     );
+    try {
+      await this.dataService.respondToExecutionDate(
+        request.id,
+        approved,
+        rejectionReason
+      );
+    } catch (error) {
+      console.error("Erro ao responder data de execução:", error);
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("genericError"));
+    } finally {
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
+      );
+    }
   }
 
   handleProvideClarification(request: ServiceRequest) {

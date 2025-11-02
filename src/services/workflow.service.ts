@@ -293,10 +293,13 @@ export class WorkflowService {
     if (!request) throw new Error("Service request not found");
 
     const now = new Date();
-    const scheduledDate = request.scheduled_date
-      ? new Date(request.scheduled_date)
+    // Verifica ambas as colunas por compatibilidade com dados antigos/novos
+    const scheduledStart = request.scheduled_start_datetime
+      ? new Date(request.scheduled_start_datetime as any)
+      : request.scheduled_date
+      ? new Date(request.scheduled_date as any)
       : null;
-    if (scheduledDate && now < scheduledDate) {
+    if (scheduledStart && now < scheduledStart) {
       // Notificar usuário e impedir início
       this.notificationService.addNotification(
         "Não é permitido iniciar o serviço antes da data agendada!"
@@ -310,12 +313,24 @@ export class WorkflowService {
       status: "Em execução",
     };
 
-    await this.updateRequestWithHistory(
-      requestId,
-      updates,
-      currentUser.id,
-      "Trabalho iniciado"
-    );
+    try {
+      await this.updateRequestWithHistory(
+        requestId,
+        updates,
+        currentUser.id,
+        "Trabalho iniciado"
+      );
+    } catch (error: any) {
+      // Mapeia violação de constraint do banco para erro de regra de negócio amigável
+      const msg = String(error?.message || "");
+      if (error?.code === "23514" || msg.includes("chk_scheduled_before_actual_start")) {
+        this.notificationService.addNotification(
+          "Não é permitido iniciar o serviço antes da data agendada!"
+        );
+        throw new Error("Tentativa de início antes da data agendada");
+      }
+      throw error;
+    }
 
     // Notificar cliente e admin
     await this.notifyStakeholders(requestId, "work_started", "Cliente,Admin");

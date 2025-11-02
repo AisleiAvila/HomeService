@@ -575,13 +575,15 @@ export class DataService {
     return this.serviceRequests().find((r) => r.id === id);
   }
 
-  respondToQuote(requestId: number, approved: boolean) {
+  async respondToQuote(requestId: number, approved: boolean) {
     const status = approved
       ? StatusService.QuoteApproved
       : StatusService.QuoteRejected;
-    this.setServiceStatus(requestId, status);
+    await this.updateServiceRequest(requestId, {
+      status: statusServiceToServiceStatus[status],
+    });
     this.notificationService.addNotification(
-      `Or├ºamento do pedido #${requestId} foi ${
+      `Orçamento do pedido #${requestId} foi ${
         approved ? "aprovado" : "rejeitado"
       }.`
     );

@@ -21,6 +21,8 @@ import { I18nService } from "../../i18n.service";
 export class PaymentModalComponent {
   request = input.required<ServiceRequest>();
   show = input<boolean>(false);
+  // Controls disabled state and spinner until parent completes payment
+  loading = input<boolean>(false);
   onPay = output<{ request: ServiceRequest; method: string }>();
   onClose = output<void>();
 
@@ -35,6 +37,7 @@ export class PaymentModalComponent {
   ];
 
   handlePay() {
+    if (this.loading()) return;
     if (this.selectedMethod()) {
       this.onPay.emit({
         request: this.request(),
@@ -44,6 +47,7 @@ export class PaymentModalComponent {
   }
 
   handleClose() {
+    if (this.loading()) return;
     this.onClose.emit();
   }
 }
