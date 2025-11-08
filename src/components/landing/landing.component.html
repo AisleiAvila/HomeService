@@ -4,11 +4,11 @@
 
 
   <!-- Hero visual principal com imagem e overlay -->
-  <div class="relative w-full aspect-[16/10] sm:aspect-[16/7] flex items-end justify-center shadow-2xl rounded-b-3xl mb-8 bg-black max-h-[90vh]">
+  <div class="relative w-full h-[60vh] sm:h-auto sm:aspect-[16/7] flex items-end justify-center shadow-2xl rounded-b-3xl mb-8 bg-black">
     <img
   [src]="imgError ? placeholderDataUrl : 'src/assets/landing-page.png'"
       alt="Família feliz em frente a uma casa construída pela Natan Construtora"
-      class="absolute inset-0 w-full h-full object-contain object-center z-0"
+      class="absolute inset-0 w-full h-full object-cover sm:object-contain object-center z-0"
       style="filter: brightness(0.82) saturate(1.1);"
       loading="eager"
       (error)="imgError = true"
@@ -56,18 +56,6 @@
   <div class="container mx-auto px-2 sm:px-4 pb-40 pt-24 sm:pt-8">
     <!-- Hero Section -->
     <div class="text-center animate-fadeInUp mb-12 sm:mb-16">
-      <!-- <div class="mb-4 sm:mb-6 flex items-center justify-center w-screen max-w-none p-0 m-0 overflow-x-hidden">
-        <img
-          src="src/assets/logo-natan.png"
-          alt="Logotipo Natan Construtora - Empresa de construção civil com mais de 20 anos de experiência"
-          class="block w-full max-w-[100vw] sm:max-w-[340px] md:max-w-[420px] h-auto drop-shadow-2xl object-contain transition-transform duration-300 hover:scale-105"
-          style="max-height: 160px"
-          loading="eager"
-        />
-      </div>
-      <p class="text-lg sm:text-xl md:text-2xl font-serif mb-4 sm:mb-6 text-blue-200">
-        Construindo mais que obras, com propósito e excelência para realizar sonhos.
-      </p> -->
       
       <!-- CTA Principal -->
   <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center items-center w-full">
