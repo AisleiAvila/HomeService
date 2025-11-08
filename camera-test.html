@@ -56,8 +56,8 @@
       }
 
       button {
-        background: #007bff;
-        color: white;
+        background: #0056b3;
+        color: #ffffff;
         border: none;
         padding: 10px 20px;
         border-radius: 5px;
@@ -117,6 +117,7 @@
         <canvas id="canvas" style="display: none"></canvas>
         <img
           id="captured-photo"
+          alt="Foto capturada da câmera"
           style="max-width: 300px; margin-top: 10px; display: none"
         />
       </div>
@@ -291,7 +292,9 @@
       // Limpeza ao sair
       window.addEventListener("beforeunload", function () {
         if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
+          for (const track of stream.getTracks()) {
+            track.stop();
+          }
         }
       });
     </script>

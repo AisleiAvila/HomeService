@@ -126,6 +126,27 @@ A aplicação possui um sistema completo de notificações que informa sobre tod
    npm run build
    ```
 
+5. **Build para celulares:**
+   ```bash
+   ng build --configuration=production
+   ```
+
+6. **Cópia para executar nos celulares:**
+   ```bash
+   npx cap copy
+   ```
+
+7. **Cópia para executar nos celulares Android:**
+   ```bash
+   npx cap add android
+   ```
+
+8. **Cópia para executar nos celulares Ios:**
+   ```bash
+   npx cap add ios
+   ```
+
+
 ## 🏗️ Arquitetura Técnica
 
 ### Frontend:
