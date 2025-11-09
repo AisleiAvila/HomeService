@@ -185,6 +185,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // New Service Request Form
     newServiceRequest: "New Service Request",
+    fillFormToCreateRequest: "Fill out the form below to create a new service request",
+    serviceCategory: "Service Category",
+    formValid: "Form Valid",
+    formInvalid: "Form Invalid",
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
@@ -733,7 +737,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statePlaceholder: "State",
     zipPlaceholder: "ZIP Code",
 
-    createServiceRequest: "Create Service Request"
+    createServiceRequest: "Create Service Request",
+    applicant: "Applicant",
+    serviceRequestDescription: "Create a new service request on behalf of a client",
   },
   pt: {
     // General
@@ -920,6 +926,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // New Service Request Form
     newServiceRequest: "Nova Solicitação de Serviço",
+    fillFormToCreateRequest: "Preencha o formulário abaixo para criar uma nova solicitação de serviço",
+    serviceCategory: "Categoria do Serviço",
+    formValid: "Formulário Válido",
+    formInvalid: "Formulário Inválido",
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
     selectCategory: "Selecione uma categoria...",
@@ -1490,8 +1500,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statePlaceholder: "Lisboa",
     countryPlaceholder: "Portugal",
 
-    createServiceRequest: "Criar Solicitação de Serviço"
-
+    createServiceRequest: "Criar Solicitação de Serviço",
+    applicant: "Solicitante",
+    serviceRequestDescription: "Crie e gerencie solicitações de serviço em nome dos clientes.",
 
   },
 };

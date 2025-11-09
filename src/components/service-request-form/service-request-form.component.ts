@@ -1,7 +1,6 @@
 import {
   Component,
   signal,
-  computed,
   Output,
   EventEmitter,
   inject,
@@ -13,10 +12,8 @@ import { FormsModule } from "@angular/forms";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
-import type {
-  ServiceCategory,
-  ServiceSubcategory,
-} from "../../models/maintenance.models";
+import type { ServiceSubcategory } from "../../models/maintenance.models";
+
 @Component({
   selector: "app-service-request-form",
   standalone: true,
@@ -58,22 +55,46 @@ export class ServiceRequestFormComponent implements OnInit {
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
 
-  categories = signal<ServiceCategory[]>([]);
+  // Usar signals diretamente do DataService
+  categories = this.dataService.categories;
   subcategories = signal<ServiceSubcategory[]>([]);
   subcategory_id = signal<number | null>(null);
-  filteredSubcategories = computed(() => {
-    return this.subcategories().filter((sub) =>
-      this.category_id() ? sub.category_id === this.category_id() : []
-    );
-  });
+
   title = signal<string>("");
   description = signal<string>("");
   requestedDateTime = signal<string>("");
   ngOnInit() {
-    // Usar os signals diretamente do DataService
-    this.categories.set(this.dataService.categories());
-    this.subcategories.set(this.dataService.subcategories());
+    console.log('=== ServiceRequestForm ngOnInit ===');
+    console.log('Categories:', this.categories());
+    console.log('Categories length:', this.categories().length);
   }
+
+  onCategoryChange(value: string) {
+    console.log('=== onCategoryChange called ===');
+    console.log('Value received:', value);
+    
+    const categoryId = value ? Number(value) : null;
+    this.category_id.set(categoryId);
+    
+    // Buscar subcategorias da categoria selecionada
+    if (categoryId) {
+      const selectedCategory = this.categories().find(c => c.id === categoryId);
+      console.log('Selected category:', selectedCategory);
+      this.subcategories.set(selectedCategory?.subcategories || []);
+      console.log('Subcategories set to:', this.subcategories().length);
+    } else {
+      this.subcategories.set([]);
+    }
+    
+    // Reset subcategoria
+    this.subcategory_id.set(null);
+    this.validFields.update((fields) => ({
+      ...fields,
+      category_id: !!categoryId,
+      subcategory_id: false,
+    }));
+  }
+
   category_id = signal<number | null>(null);
   street = signal<string>("");
   city = signal<string>("");
@@ -152,12 +173,15 @@ export class ServiceRequestFormComponent implements OnInit {
         }));
         break;
       case "category_id":
-        this.category_id.set(value ? Number(value) : null);
-        this.subcategory_id.set(null); // Reset subcategoria quando mudar categoria
+        // Não deve chegar aqui, onCategoryChange é chamado diretamente
+        console.log('=== updateField category_id (legacy) ===');
+        const numValue = value ? Number(value) : null;
+        this.category_id.set(numValue);
+        this.subcategory_id.set(null);
         this.validFields.update((fields) => ({
           ...fields,
           category_id: !!value,
-          subcategory_id: false, // Invalida subcategoria
+          subcategory_id: false,
         }));
         break;
       case "subcategory_id":
