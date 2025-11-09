@@ -11,6 +11,8 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
+  input,
+  effect,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
@@ -45,6 +47,9 @@ import { StatusService } from "@/src/services/status.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
+  // Input para receber a visualização do componente pai
+  viewFromParent = input<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>();
+  
   // Filtros avançados e pesquisa
   filterStatus = signal<string>("");
   filterStartDate = signal<string>("");
@@ -92,6 +97,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     "Aveiro",
   ];
   professionalOptions: User[] = [];
+  
   ngOnInit() {
     this.startAutoRefresh();
     this.professionalOptions = this.professionals();
@@ -343,7 +349,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   Math = Math;
 
   constructor() {
-    // Component initialized
+    // Sincronizar a visualização com o componente pai
+    effect(() => {
+      const parentView = this.viewFromParent();
+      if (parentView) {
+        this.currentView.set(parentView);
+      }
+    });
   }
 
   // ngOnInit já definido acima

@@ -9,7 +9,7 @@ import {
   signal,
   ViewChild,
 } from "@angular/core";
-import { Router, RouterModule, NavigationEnd } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
 
 // Services
 import { AuthService } from "./services/auth.service";
@@ -93,6 +93,47 @@ export class AppComponent implements OnInit {
   view = signal<View>("landing");
   currentNav = signal<Nav>("dashboard");
   isRouterOutletActivated = false;
+  
+  // Admin navigation views
+  adminViews = computed(() => [
+    {
+      id: "overview" as const,
+      label: this.i18n.translate("overview"),
+      icon: "fas fa-tachometer-alt",
+    },
+    {
+      id: "requests" as const,
+      label: this.i18n.translate("requests"),
+      icon: "fas fa-list",
+    },
+    {
+      id: "approvals" as const,
+      label: this.i18n.translate("approvals"),
+      icon: "fas fa-user-check",
+    },
+    {
+      id: "finances" as const,
+      label: this.i18n.translate("finances"),
+      icon: "fas fa-chart-line",
+    },
+    {
+      id: "professionals" as const,
+      label: this.i18n.translate("professionals"),
+      icon: "fas fa-users",
+    },
+    {
+      id: "clients" as const,
+      label: this.i18n.translate("clients"),
+      icon: "fas fa-user-friends",
+    },
+    {
+      id: "categories" as const,
+      label: this.i18n.translate("categories"),
+      icon: "fas fa-tags",
+    },
+  ]);
+  
+  currentAdminView = signal<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>('overview');
 
   // Modal State
   isSidebarOpen = signal(false);
@@ -149,12 +190,6 @@ export class AppComponent implements OnInit {
   });
 
   constructor() {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        this.isRouterOutletActivated = this.router.routerState.snapshot.root.firstChild !== null;
-      }
-    });
-
     globalThis.window.addEventListener("message", (event) => {
       if (event.origin !== globalThis.window.location.origin) {
         return;
@@ -198,6 +233,14 @@ export class AppComponent implements OnInit {
 
   onDeactivate(event: any) {
     this.isRouterOutletActivated = false;
+  }
+  
+  setAdminView(viewId: 'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories') {
+    this.currentAdminView.set(viewId);
+    // Ensure we're on the dashboard nav
+    if (this.currentNav() !== 'dashboard') {
+      this.navigate('dashboard');
+    }
   }
 
   showLogin() {
