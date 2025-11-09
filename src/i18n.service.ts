@@ -1,6 +1,5 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
-import { ci } from "@fullcalendar/core/internal-common";
 
 export type Language = "en" | "pt";
 
@@ -732,8 +731,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statePlaceholder: "State",
     zipPlaceholder: "ZIP Code",
 
-    newAdminServiceRequest: "New Service Request",
-    createAdminServiceRequest: "Create Service Request"
+    createServiceRequest: "Create Service Request"
   },
   pt: {
     // General
@@ -1488,8 +1486,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statePlaceholder: "Lisboa",
     countryPlaceholder: "Portugal",
 
-    newAdminServiceRequest: "Criar Solicitação de Serviço",
-    createAdminServiceRequest: "Criar Solicitação de Serviço"
+    createServiceRequest: "Criar Solicitação de Serviço"
 
 
   },
@@ -1523,7 +1520,7 @@ export class I18nService {
     console.log(`🌍 [I18N] Idioma alterado para: ${lang}`);
 
     // Força reload da página para garantir que as traduções sejam atualizadas
-    window.location.reload();
+    globalThis.location.reload();
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
@@ -1534,9 +1531,9 @@ export class I18nService {
     let result = translation || key;
 
     if (params) {
-      Object.keys(params).forEach((paramKey) => {
+      for (const paramKey of Object.keys(params)) {
         result = result.replace(`{${paramKey}}`, String(params[paramKey]));
-      });
+      }
     }
     return result;
   }

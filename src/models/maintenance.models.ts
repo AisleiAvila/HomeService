@@ -1,4 +1,4 @@
-export type UserRole = "professional" | "admin";
+export type UserRole = "client" | "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected";
 export type ServiceStatus =
   | "Solicitado"
