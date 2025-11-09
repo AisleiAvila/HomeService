@@ -80,7 +80,7 @@
             @if (postalCodeSuggestions().length > 0) {
               <ul class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md mt-1 shadow-lg max-h-40 overflow-y-auto">
                 @for (suggestion of postalCodeSuggestions(); track suggestion) {
-                  <li (click)="selectSuggestion('postal_code', suggestion)" class="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</li>
+                  <li><button type="button" (click)="selectSuggestion('postal_code', suggestion)" class="w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</button></li>
                 }
               </ul>
             }
@@ -88,10 +88,10 @@
           <div class="relative">
             <label for="locality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'locality' | i18n }}</label>
             <input type="text" id="locality" name="locality" [ngModel]="newRequest().locality" (ngModelChange)="onLocalityChange($event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-             @if (localitySuggestions().length > 0) {
+            @if (localitySuggestions().length > 0) {
               <ul class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md mt-1 shadow-lg max-h-40 overflow-y-auto">
                 @for (suggestion of localitySuggestions(); track suggestion) {
-                  <li (click)="selectSuggestion('locality', suggestion)" class="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</li>
+                  <li><button type="button" (click)="selectSuggestion('locality', suggestion)" class="w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</button></li>
                 }
               </ul>
             }
