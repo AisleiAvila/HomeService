@@ -117,7 +117,7 @@
           >
             <i class="fa-solid fa-plus"></i>
             <span [class.hidden]="isSidebarCollapsed()">{{
-              "newAdminServiceRequest" | i18n
+              "createServiceRequest" | i18n
             }}</span>
           </button>
         </div>
@@ -190,29 +190,10 @@
           </div>
         </header>
         <main
-          [class]="
-            'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
-          "
+          class="flex-1 overflow-y-auto overflow-x-hidden min-w-0"
         >
-          <ng-container *ngIf="isNewRequestFormOpen(); else mainContent">
-            <div
-              class="w-full flex flex-col items-center justify-center bg-white pt-2 pb-0"
-            >
-              <h2
-                class="text-2xl md:text-3xl font-extrabold text-indigo-700 drop-shadow-sm mb-2 text-center"
-              >
-                {{ "newServiceRequest" | i18n }}
-              </h2>
-            </div>
-            <div class="w-full h-full flex flex-col bg-white p-6">
-              <app-service-request-form
-                [user]="currentUser()!"
-                (close)="closeModal()"
-                (formSubmitted)="handleFormSubmitted($event)"
-              />
-            </div>
-          </ng-container>
-          <ng-template #mainContent>
+          <router-outlet></router-outlet>
+          <ng-container *ngIf="!isRouterOutletActivated">
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
                 <!-- Dashboard do Admin -->
@@ -224,6 +205,17 @@
                 </ng-container>
                 <!-- Dashboard de Profissional -->
                 <ng-container *ngIf="currentUser()?.role === 'professional'">
+                  <app-dashboard
+                    [user]="currentUser()!"
+                    (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)"
+                    (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)"
+                    (provideClarification)="openClarificationModal($event)"
+                  />
+                </ng-container>
+                 <!-- Dashboard do Cliente -->
+                <ng-container *ngIf="currentUser()?.role === 'client'">
                   <app-dashboard
                     [user]="currentUser()!"
                     (viewDetails)="openDetails($event)"
@@ -290,7 +282,7 @@
                 </button>
               </app-modal>
             </ng-container>
-          </ng-template>
+          </ng-container>
         </main>
       </div>
 
@@ -335,7 +327,7 @@
               (click)="openNewAdminRequestForm(); toggleSidebar()"
             >
               <i class="fa-solid fa-plus"></i>
-              <span>{{ "newAdminServiceRequest" | i18n }}</span>
+              <span>{{ "createServiceRequest" | i18n }}</span>
             </button>
           </div>
           <!-- Bloco de perfil do usuário (mobile) -->
