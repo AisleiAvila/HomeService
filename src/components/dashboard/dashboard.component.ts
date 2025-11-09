@@ -191,9 +191,7 @@ export class DashboardComponent {
     const currentUser = this.user();
 
     let filtered = [];
-    if (currentUser.role === "client") {
-      filtered = allRequests.filter((r) => r.client_id === currentUser.id);
-    } else if (currentUser.role === "professional") {
+    if (currentUser.role === "professional") {
       filtered = allRequests.filter(
         (r) => r.professional_id === currentUser.id
       );
@@ -379,26 +377,6 @@ export class DashboardComponent {
     const ativosPt = this.statusAtivos()
       .map((s) => this.statusMap[s.value])
       .filter(Boolean);
-    if (currentUser.role === "client") {
-      return [
-        {
-          label: this.i18n.translate("totalRequests"),
-          value: requests.length,
-          icon: "fas fa-list text-indigo-500",
-        },
-        {
-          label: this.i18n.translate("activeRequests"),
-          value: requests.filter((r) => ativosPt.includes(r.status)).length,
-          icon: "fas fa-cogs text-blue-500",
-        },
-        {
-          label: this.i18n.translate("completedRequests"),
-          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
-          icon: "fas fa-check-circle text-green-500",
-        },
-      ];
-    }
-
     if (currentUser.role === "admin") {
       return [
         {

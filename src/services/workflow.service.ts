@@ -4,7 +4,6 @@ import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
 import {
-  ClientApproval,
   ProfessionalResponse,
   ServiceRequest,
   ServiceStatus,
@@ -81,7 +80,7 @@ export class WorkflowService {
     if (!currentUser) throw new Error("User not authenticated");
 
     const updates: Partial<ServiceRequest> = {
-      client_clarifications: answers,
+      clarifications: answers,
       status: "Em análise",
     };
 
@@ -138,7 +137,7 @@ export class WorkflowService {
       requestId,
       updates,
       currentUser.id,
-      "Orçamento aprovado pelo cliente"
+      "Orçamento aprovado"
     );
 
     // Notificar admin
@@ -398,10 +397,9 @@ export class WorkflowService {
     if (!currentUser) throw new Error("User not authenticated");
 
     const updates: Partial<ServiceRequest> = {
-      client_approval: "approved" as ClientApproval,
-      client_approval_at: new Date().toISOString(),
-      client_feedback: feedback,
-      status: "Aprovado pelo cliente",
+      approval_at: new Date().toISOString(),
+      feedback: feedback,
+      status: "Aprovado",
       payment_due_date: new Date(
         Date.now() + 7 * 24 * 60 * 60 * 1000
       ).toISOString(), // 7 dias para pagamento
@@ -411,7 +409,7 @@ export class WorkflowService {
       requestId,
       updates,
       currentUser.id,
-      "Trabalho aprovado pelo cliente"
+      "Trabalho aprovado"
     );
 
     // Notificar admin e profissional
@@ -428,11 +426,10 @@ export class WorkflowService {
     if (!currentUser) throw new Error("User not authenticated");
 
     const updates: Partial<ServiceRequest> = {
-      client_approval: "rejected" as ClientApproval,
-      client_approval_at: new Date().toISOString(),
+      approval_at: new Date().toISOString(),
       revision_requested: true,
       revision_reason: reason,
-      status: "Rejeitado pelo cliente",
+      status: "Rejeitado",
     };
 
     await this.updateRequestWithHistory(
@@ -493,14 +490,14 @@ export class WorkflowService {
   // Finalizar processo com avaliações
   async finalizeWithEvaluations(
     requestId: number,
-    clientRating: number,
+    rating: number,
     professionalRating: number
   ): Promise<void> {
     const currentUser = this.authService.appUser();
     if (!currentUser) throw new Error("User not authenticated");
 
     const updates: Partial<ServiceRequest> = {
-      client_rating: clientRating,
+      rating: rating,
       professional_rating: professionalRating,
       mutual_evaluation_completed: true,
       status: "Finalizado",
@@ -673,7 +670,7 @@ export class WorkflowService {
       },
       "Aguardando esclarecimentos": {
         statuses: ["Em análise", "Cancelado"],
-        roles: ["client"],
+        roles: ["admin"],
       },
       "Orçamento enviado": {
         statuses: ["Aguardando aprovação do orçamento"],
@@ -681,7 +678,7 @@ export class WorkflowService {
       },
       "Aguardando aprovação do orçamento": {
         statuses: ["Orçamento aprovado", "Orçamento rejeitado"],
-        roles: ["client"],
+        roles: ["admin"],
       },
       "Orçamento aprovado": {
         statuses: [
@@ -696,18 +693,18 @@ export class WorkflowService {
         roles: ["admin"],
       },
       "Data proposta pelo administrador": {
-        statuses: ["Data aprovada pelo cliente", "Data rejeitada pelo cliente"],
-        roles: ["client"],
+        statuses: ["Data aprovada", "Data rejeitada"],
+        roles: ["admin"],
       },
       "Aguardando aprovação da data": {
-        statuses: ["Data aprovada pelo cliente", "Data rejeitada pelo cliente"],
-        roles: ["client"],
+        statuses: ["Data aprovada", "Data rejeitada"],
+        roles: ["admin"],
       },
-      "Data aprovada pelo cliente": {
+      "Data aprovada": {
         statuses: ["Agendado"],
         roles: ["admin"],
       },
-      "Data rejeitada pelo cliente": {
+      "Data rejeitada": {
         statuses: ["Data proposta pelo administrador", "Cancelado"],
         roles: ["admin"],
       },
@@ -736,20 +733,20 @@ export class WorkflowService {
         roles: ["professional"],
       },
       "Concluído - Aguardando aprovação": {
-        statuses: ["Aprovado pelo cliente", "Rejeitado pelo cliente"],
-        roles: ["client"],
+        statuses: ["Aprovado", "Rejeitado"],
+        roles: ["admin"],
       },
-      "Aprovado pelo cliente": {
+      Aprovado: {
         statuses: ["Pago"],
-        roles: ["client", "admin"],
+        roles: ["admin"],
       },
-      "Rejeitado pelo cliente": {
+      Rejeitado: {
         statuses: ["Em execução", "Cancelado"],
         roles: ["admin"],
       },
       Pago: {
         statuses: ["Finalizado"],
-        roles: ["admin", "client", "professional"],
+        roles: ["admin", "professional"],
       },
       Finalizado: { statuses: [], roles: [] },
       Cancelado: { statuses: [], roles: [] },
@@ -764,8 +761,8 @@ export class WorkflowService {
       AwaitingExecutionDate: { statuses: [], roles: [] },
       DateProposedByAdmin: { statuses: [], roles: [] },
       AwaitingDateApproval: { statuses: [], roles: [] },
-      DateApprovedByClient: { statuses: [], roles: [] },
-      DateRejectedByClient: { statuses: [], roles: [] },
+      DateApproved: { statuses: [], roles: [] },
+      DateRejected: { statuses: [], roles: [] },
       SearchingProfessional: { statuses: [], roles: [] },
       ProfessionalSelected: { statuses: [], roles: [] },
       AwaitingProfessionalConfirmation: { statuses: [], roles: [] },
@@ -802,12 +799,12 @@ export class WorkflowService {
         }
         break;
       case "Aguardando esclarecimentos":
-        if (userRole === "client") {
+        if (userRole === "admin") {
           actions.push("provide_clarification");
         }
         break;
       case "Orçamento enviado":
-        if (userRole === "client") {
+        if (userRole === "admin") {
           actions.push("approve_quote", "reject_quote");
         }
         break;
@@ -837,17 +834,17 @@ export class WorkflowService {
         }
         break;
       case "Concluído - Aguardando aprovação":
-        if (userRole === "client") {
+        if (userRole === "admin") {
           actions.push("approve_work", "reject_work");
         }
         break;
-      case "Aprovado pelo cliente":
-        if (userRole === "client") {
+      case "Aprovado":
+        if (userRole === "admin") {
           actions.push("process_payment");
         }
         break;
       case "Pago":
-        if (userRole === "client" || userRole === "professional") {
+        if (userRole === "professional") {
           actions.push("submit_evaluation");
         }
         break;

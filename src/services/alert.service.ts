@@ -107,8 +107,8 @@ export class AlertService {
     const { count: paymentsOverdue } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
-      .eq("status", "Aprovado pelo cliente")
-      .lt("client_approval_at", paymentDeadline.toISOString());
+      .eq("status", "Aprovado")
+      .lt("approval_at", paymentDeadline.toISOString());
 
     stats.payments_overdue = paymentsOverdue || 0;
 
@@ -162,7 +162,7 @@ export class AlertService {
       case "Agendado":
         stakeholders = ["professional"];
         break;
-      case "Aprovado pelo cliente":
+      case "Aprovado":
         stakeholders = ["client"];
         break;
       case "Pago":
@@ -222,7 +222,7 @@ export class AlertService {
       "Aguardando aprovação do orçamento": 3,
       "Profissional selecionado": 2,
       Agendado: 4,
-      "Aprovado pelo cliente": 5,
+      Aprovado: 5,
       "Em execução": 1,
       Pago: 1,
       Solicitado: 1,
@@ -234,12 +234,12 @@ export class AlertService {
       "Aguardando data de execução": 2,
       "Data proposta pelo administrador": 3,
       "Aguardando aprovação da data": 3,
-      "Data aprovada pelo cliente": 2,
-      "Data rejeitada pelo cliente": 2,
+      "Data aprovada": 2,
+      "Data rejeitada": 2,
       "Buscando profissional": 1,
       "Aguardando confirmação do profissional": 2,
       "Concluído - Aguardando aprovação": 1,
-      "Rejeitado pelo cliente": 1,
+      "Rejeitado": 1,
       Finalizado: 0,
       Cancelado: 0,
       // Status em inglês (prioridade 0)
@@ -253,8 +253,8 @@ export class AlertService {
       AwaitingExecutionDate: 0,
       DateProposedByAdmin: 0,
       AwaitingDateApproval: 0,
-      DateApprovedByClient: 0,
-      DateRejectedByClient: 0,
+      DateApproved: 0,
+      DateRejected: 0,
       SearchingProfessional: 0,
       ProfessionalSelected: 0,
       AwaitingProfessionalConfirmation: 0,
@@ -357,9 +357,9 @@ export class AlertService {
         }
         break;
 
-      case "Aprovado pelo cliente":
-        if (request.client_approval_at) {
-          const deadline = new Date(request.client_approval_at);
+      case "Aprovado":
+        if (request.approval_at) {
+          const deadline = new Date(request.approval_at);
           deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
           if (now > deadline) {
             isOverdue = true;
@@ -434,9 +434,9 @@ export class AlertService {
         }
         break;
 
-      case "Aprovado pelo cliente":
-        if (request.client_approval_at) {
-          const deadline = new Date(request.client_approval_at);
+      case "Aprovado":
+        if (request.approval_at) {
+          const deadline = new Date(request.approval_at);
           deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
           const warningTime = new Date(deadline);
           warningTime.setHours(warningTime.getHours() - warningHours);

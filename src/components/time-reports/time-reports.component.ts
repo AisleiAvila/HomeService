@@ -216,7 +216,6 @@ export class TimeReportsComponent {
       id: request.id,
       title: request.title,
       category: request.category,
-      client: request.client_name || "",
       professional: request.professional_name || "",
       status: request.status,
       requested_datetime: request.requested_datetime || request.requested_date,

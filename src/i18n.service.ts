@@ -730,7 +730,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     numberPlaceholder: "Number",
     cityPlaceholder: "City",
     statePlaceholder: "State",
-    zipPlaceholder: "ZIP Code"
+    zipPlaceholder: "ZIP Code",
+
+    newAdminServiceRequest: "New Service Request",
+    createAdminServiceRequest: "Create Service Request"
   },
   pt: {
     // General
@@ -1483,7 +1486,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     numberPlaceholder: "123",
     cityPlaceholder: "Lisboa",
     statePlaceholder: "Lisboa",
-    countryPlaceholder: "Portugal"
+    countryPlaceholder: "Portugal",
+
+    newAdminServiceRequest: "Criar Solicitação de Serviço",
+    createAdminServiceRequest: "Criar Solicitação de Serviço"
 
 
   },

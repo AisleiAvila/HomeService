@@ -91,8 +91,8 @@ export class WorkflowTimelineComponent {
         description: this.i18n.translate("approvalAndPaymentDescription"),
         statuses: [
           "Concluído - Aguardando aprovação",
-          "Aprovado pelo cliente",
-          "Rejeitado pelo cliente",
+          "Aprovado",
+          "Rejeitado",
           "Pago",
           "Finalizado",
           "Cancelado",
@@ -184,8 +184,8 @@ export class WorkflowTimelineComponent {
       case 4:
         return [
           "Concluído - Aguardando aprovação",
-          "Aprovado pelo cliente",
-          "Rejeitado pelo cliente",
+          "Aprovado",
+          "Rejeitado",
           "Pago",
           "Finalizado",
           "Cancelado",

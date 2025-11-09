@@ -13,8 +13,8 @@ export const statusServiceToServiceStatus: Record<StatusService, ServiceStatus> 
   [StatusService.AwaitingExecutionDate]: "Aguardando data de execução",
   [StatusService.DateProposedByAdmin]: "Data proposta pelo administrador",
   [StatusService.AwaitingDateApproval]: "Aguardando aprovação da data",
-  [StatusService.DateApprovedByClient]: "Data aprovada pelo cliente",
-  [StatusService.DateRejectedByClient]: "Data rejeitada pelo cliente",
+  [StatusService.DateApprovedByClient]: "Data aprovada",
+  [StatusService.DateRejectedByClient]: "Data rejeitada",
   [StatusService.SearchingProfessional]: "Buscando profissional",
   [StatusService.ProfessionalSelected]: "Profissional selecionado",
   [StatusService.AwaitingProfessionalConfirmation]:
