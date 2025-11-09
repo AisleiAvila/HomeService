@@ -300,7 +300,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   
   // Método para navegar para criação de solicitação
   navigateToCreateRequest(): void {
-    this.router.navigate(['/admin-create-service-request']);
+    this.router.navigate(['/create-service-request']);
   }
   
   // Título do gráfico de status, internacionalizado
