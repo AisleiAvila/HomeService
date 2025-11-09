@@ -75,7 +75,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
 
   // Retorna os status selecionados formatados para exibir na combo
   public getSelectedStatusLabel(): string {
-    const selected = this.selectedStatuses();
     return this.i18n.translate("selectStatus");
   }
   user = input.required<User>();
@@ -87,7 +86,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   private resizeHandler?: () => void;
 
   calendarComponent = viewChild.required<FullCalendarComponent>("calendar");
-  private calendarApi = signal<CalendarApi | undefined>(undefined);
+  private readonly calendarApi = signal<CalendarApi | undefined>(undefined);
 
   visibleStatuses = signal<Set<ServiceStatus>>(new Set());
   isFilterVisible = signal(false);
@@ -115,7 +114,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     );
   });
 
-  private handleEventClick = (clickInfo: EventClickArg) => {
+  private readonly handleEventClick = (clickInfo: EventClickArg) => {
     runInInjectionContext(this.injector, () => {
       const request = this.dataService.getServiceRequestById(
         Number(clickInfo.event.id)
@@ -124,7 +123,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     });
   };
 
-  private handleEventDidMount = (info: {
+  private readonly handleEventDidMount = (info: {
     event: EventClickArg["event"];
     el: HTMLElement;
   }) => {
@@ -137,7 +136,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       const professionalName = this.getProfessionalName(
         request.professional_id
       );
-      const clientName = this.getClientName(request.client_id);
       const startTime = this.formatTime(request.scheduled_start_datetime);
 
       const tooltipContent = `
@@ -154,11 +152,11 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
         request.status
       )}</span></div>
           ${
-            this.user().role !== "professional"
-              ? `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
+            this.user().role === "professional"
+              ? ""
+              : `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
                   "professional"
                 )}:</strong> <span class="font-sans">${professionalName}</span></div>`
-              : ""
           }
         </div>
       `;
@@ -215,8 +213,8 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    if (this.resizeHandler && typeof window !== "undefined") {
-      window.removeEventListener("resize", this.resizeHandler);
+    if (this.resizeHandler && globalThis.window !== undefined) {
+      globalThis.window.removeEventListener("resize", this.resizeHandler);
     }
   }
 
@@ -260,17 +258,17 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
         userRequests = allRequests;
       }
 
-      const pastEventStatuses: ServiceStatus[] = [
+      const pastEventStatuses = new Set<ServiceStatus>([
         "Finalizado",
         "Pago",
         "Cancelado",
         "Concluído - Aguardando aprovação",
-      ];
+      ]);
 
       const scheduledEvents = userRequests
         .filter((r) => r.scheduled_date || r.scheduled_start_datetime)
         .map((request) => {
-          const isPastEvent = pastEventStatuses.includes(request.status);
+          const isPastEvent = pastEventStatuses.has(request.status);
 
           if (!isPastEvent && !visible.has(request.status)) {
             return null;
@@ -281,7 +279,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
             title: `${request.title} (${this.getStatusTranslation(
               request.status
             )})`,
-            start: request.scheduled_start_datetime || request.scheduled_date!,
+            start: request.scheduled_start_datetime || request.scheduled_date || '',
             backgroundColor: isPastEvent
               ? StatusUtilsService.getColor(request.status) + "80"
               : StatusUtilsService.getColor(request.status),
@@ -301,7 +299,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     });
 
     effect(() => {
-      const language = this.i18n.language();
+      this.i18n.language();
       const calendarApi = this.calendarApi();
       if (calendarApi) {
         this.updateCalendarLocale(calendarApi);
@@ -310,9 +308,9 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
   }
 
   private setupResizeListener() {
-    if (typeof window !== "undefined") {
+    if (globalThis.window !== undefined) {
       this.resizeHandler = () => this.updateCalendarForResize();
-      window.addEventListener("resize", this.resizeHandler);
+      globalThis.window.addEventListener("resize", this.resizeHandler);
       this.updateCalendarForResize();
     }
   }
@@ -321,8 +319,8 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     const calendarApi = this.calendarApi();
     if (!calendarApi) return;
 
-    const isMobile = window.innerWidth < 768;
-    calendarApi.setOption("aspectRatio", isMobile ? 1.0 : 1.35);
+    const isMobile = globalThis.window.innerWidth < 768;
+    calendarApi.setOption("aspectRatio", isMobile ? 1 : 1.35);
     calendarApi.setOption("height", isMobile ? 500 : "100%");
     calendarApi.setOption("contentHeight", isMobile ? 400 : "auto");
     calendarApi.setOption("dayMaxEvents", isMobile ? 2 : 5);

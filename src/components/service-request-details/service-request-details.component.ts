@@ -36,7 +36,6 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
     WorkflowTimelineComponent,
     ServiceClarificationsComponent,
   ],
-  outputs: ["businessRuleError"],
   template: `
     @if (!request()) {
     <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold">
@@ -54,7 +53,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
           <!-- Botão Voltar e Título -->
           <div class="flex items-center space-x-4">
             <button
-              (click)="close.emit()"
+              (click)="closeDetails.emit()"
               class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <i class="fas fa-arrow-left text-lg"></i>
@@ -372,7 +371,7 @@ export class ServiceRequestDetailsComponent {
   });
 
   // Linhas de endereço formatadas PT
-  private addressParts = computed(() => extractPtAddressParts(this.request()));
+  private readonly addressParts = computed(() => extractPtAddressParts(this.request()));
   addressLine1 = computed(() => this.addressParts().streetNumber);
   addressLine2 = computed(() => {
     const p = this.addressParts();
@@ -381,7 +380,7 @@ export class ServiceRequestDetailsComponent {
   addressLine3 = computed(() => this.addressParts().district);
 
   // Outputs para eventos
-  @Output() close = new EventEmitter<void>();
+  @Output() closeDetails = new EventEmitter<void>();
   @Output() openChat = new EventEmitter<ServiceRequest>();
   @Output() approveQuote = new EventEmitter<ServiceRequest>();
   @Output() rejectQuote = new EventEmitter<ServiceRequest>();
@@ -398,112 +397,78 @@ export class ServiceRequestDetailsComponent {
   availableActions = computed(() => {
     const user = this.currentUser();
     const req = this.request();
-    const actions = [];
 
     console.log("🔍 [Actions Debug] User role:", user.role);
     console.log("🔍 [Actions Debug] Request status:", req.status);
 
-    // Fase 1: Solicitação e Orçamento
-    if (
-      user.role === "professional" &&
-      req.status === "Solicitado" &&
-      !req.professional_id
-    ) {
-      actions.push({
+    const allPossibleActions = [
+      // Fase 1: Solicitação e Orçamento
+      {
         type: "quote",
         label: "provideQuote",
         class: "primary",
         loading: false,
-      });
-    }
-
-    // Fase 2: Aprovação de Orçamento (Admin)
-    if (
-      user.role === "admin" &&
-      req.status === "Orçamento enviado"
-    ) {
-      actions.push({
+        condition: user.role === "professional" && req.status === "Solicitado" && !req.professional_id,
+      },
+      // Fase 2: Aprovação de Orçamento (Admin)
+      {
         type: "approve",
         label: "approveQuote",
         class: "primary",
         loading: false,
-      });
-      actions.push({
+        condition: user.role === "admin" && req.status === "Orçamento enviado",
+      },
+      {
         type: "reject",
         label: "rejectQuote",
         class: "secondary",
         loading: false,
-      });
-    }
-
-    // Fase 3: Agendamento
-    if (
-      user.role === "professional" &&
-      req.professional_id === user.id &&
-      req.status === "Orçamento aprovado" &&
-      !req.scheduled_date
-    ) {
-      actions.push({
+        condition: user.role === "admin" && req.status === "Orçamento enviado",
+      },
+      // Fase 3: Agendamento
+      {
         type: "schedule",
         label: "scheduleService",
         class: "primary",
         loading: false,
-      });
-    }
-
-    // Fase 4: Execução do Serviço
-    if (
-      user.role === "professional" &&
-      req.professional_id === user.id &&
-      req.status === "Agendado"
-    ) {
-      actions.push({
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Orçamento aprovado" && !req.scheduled_date,
+      },
+      // Fase 4: Execução do Serviço
+      {
         type: "start",
         label: "startService",
         class: "primary",
         loading: false,
-      });
-    }
-
-    if (
-      user.role === "professional" &&
-      req.professional_id === user.id &&
-      req.status === "Em execução"
-    ) {
-      actions.push({
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Agendado",
+      },
+      {
         type: "complete",
         label: "completeService",
         class: "primary",
         loading: false,
-      });
-    }
-
-    // Fase 5: Pagamento
-    if (
-      user.role === "admin" &&
-      req.status === "Concluído - Aguardando aprovação" &&
-      req.cost &&
-      !req.payment_status
-    ) {
-      actions.push({
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Em execução",
+      },
+      // Fase 5: Pagamento
+      {
         type: "pay",
         label: "payNow",
         class: "primary",
         loading: false,
-      });
-    }
-
-    // Chat sempre disponível para partes envolvidas
-    if (
-      (user.role === "professional" && req.professional_id === user.id)
-    ) {
-      actions.push({
+        condition: user.role === "admin" && req.status === "Concluído - Aguardando aprovação" && req.cost && !req.payment_status,
+      },
+      // Chat sempre disponível para partes envolvidas
+      {
         type: "chat",
         label: "chat",
         class: "secondary",
         loading: false,
-      });
-    }
+        condition: user.role === "professional" && req.professional_id === user.id,
+      },
+    ];
+
+    const actions = allPossibleActions
+      .filter((action) => action.condition)
+      .map(({ condition, ...action }) => action);
 
     console.log("🔍 [Actions Debug] Available actions:", actions);
     return actions;
@@ -535,7 +500,7 @@ export class ServiceRequestDetailsComponent {
     const baseClasses = "px-2 py-1 text-xs font-medium rounded-full";
     // Usa cor do utilitário centralizado
     const color = StatusUtilsService.getColor(status);
-    return `${baseClasses} text-white`;
+    return `${baseClasses} ${color} text-white`;
   }
 
   getStatusLabel(status: ServiceStatus): string {
@@ -592,48 +557,10 @@ export class ServiceRequestDetailsComponent {
           this.scheduleRequest.emit(this.request());
           break;
         case "start":
-          try {
-            await this.workflowService.startWork(this.request().id);
-            this.notificationService.addNotification(
-              "Serviço iniciado com sucesso!"
-            );
-            this.refreshRequest.emit();
-          } catch (error: any) {
-            if (
-              error instanceof Error &&
-              error.message.includes(
-                "Tentativa de início antes da data agendada"
-              )
-            ) {
-              this.businessRuleError.emit(
-                "Não é permitido iniciar o serviço antes da data agendada!"
-              );
-            } else {
-              throw error;
-            }
-          }
+          await this.handleStartService();
           break;
         case "complete":
-          try {
-            await this.workflowService.completeWork(this.request().id);
-            this.notificationService.addNotification(
-              "Serviço marcado como concluído!"
-            );
-            this.refreshRequest.emit();
-          } catch (error: any) {
-            if (
-              error instanceof Error &&
-              error.message.includes(
-                "Tentativa de conclusão antes do tempo mínimo"
-              )
-            ) {
-              this.businessRuleError.emit(
-                "Não é permitido concluir o serviço antes do tempo mínimo!"
-              );
-            } else {
-              throw error;
-            }
-          }
+          await this.handleCompleteService();
           break;
         case "chat":
           this.openChat.emit(this.request());
@@ -643,6 +570,48 @@ export class ServiceRequestDetailsComponent {
       console.error(`Error executing action ${action.type}:`, error);
     } finally {
       action.loading = false;
+    }
+  }
+
+  private async handleStartService(): Promise<void> {
+    try {
+      await this.workflowService.startWork(this.request().id);
+      this.notificationService.addNotification(
+        "Serviço iniciado com sucesso!"
+      );
+      this.refreshRequest.emit();
+    } catch (error: any) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Tentativa de início antes da data agendada")
+      ) {
+        this.businessRuleError.emit(
+          "Não é permitido iniciar o serviço antes da data agendada!"
+        );
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  private async handleCompleteService(): Promise<void> {
+    try {
+      await this.workflowService.completeWork(this.request().id);
+      this.notificationService.addNotification(
+        "Serviço marcado como concluído!"
+      );
+      this.refreshRequest.emit();
+    } catch (error: any) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Tentativa de conclusão antes do tempo mínimo")
+      ) {
+        this.businessRuleError.emit(
+          "Não é permitido concluir o serviço antes do tempo mínimo!"
+        );
+      } else {
+        throw error;
+      }
     }
   }
 }

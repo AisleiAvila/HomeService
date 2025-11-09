@@ -3,12 +3,12 @@ import {
   ChangeDetectionStrategy,
   output,
   signal,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { UserRole } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { inject } from "@angular/core";
 import { NotificationService } from "../../services/notification.service";
 import { I18nService } from "@/src/i18n.service";
 
