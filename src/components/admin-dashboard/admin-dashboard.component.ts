@@ -15,6 +15,7 @@ import {
   effect,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import {
   ServiceCategory,
   ServiceRequest,
@@ -295,6 +296,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   });
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+  
+  // Método para navegar para criação de solicitação
+  navigateToCreateRequest(): void {
+    this.router.navigate(['/admin-create-service-request']);
+  }
+  
   // Título do gráfico de status, internacionalizado
   statusGraphTitle = this.i18n.translate("statusGraphTitle");
   // Labels internacionalizados para status
