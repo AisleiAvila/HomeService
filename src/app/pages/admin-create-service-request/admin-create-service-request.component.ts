@@ -20,8 +20,8 @@ export class AdminCreateServiceRequestComponent {
   private readonly router = inject(Router);
 
   goBack() {
-    if (window.history.length > 1) {
-      window.history.back();
+    if (globalThis.history.length > 1) {
+      globalThis.history.back();
     } else {
       this.router.navigate(['/']);
     }
