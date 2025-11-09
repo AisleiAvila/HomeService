@@ -390,7 +390,19 @@ export class DataService {
   private async fetchCategories() {
     const { data, error } = await this.supabase.client
       .from("service_categories")
-      .select("id, name")
+      .select(`
+        id, 
+        name,
+        subcategories:service_subcategories(
+          id,
+          name,
+          category_id,
+          type,
+          average_time_minutes,
+          price,
+          description
+        )
+      `)
       .order("name");
 
     if (error) {
@@ -403,6 +415,7 @@ export class DataService {
       );
       // Keep default categories if fetch fails
     } else if (data && data.length > 0) {
+      console.log('Categories with subcategories loaded:', data);
       this.categories.set(data as ServiceCategory[]);
     } else {
       console.log("No categories found in Supabase, keeping sample data");

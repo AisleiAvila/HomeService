@@ -89,7 +89,12 @@ export class AdminServiceRequestFormComponent {
     const categoryId = +(event.target as HTMLSelectElement).value;
     this.newRequest.update(req => ({ ...req, category_id: categoryId }));
     const selectedCategory = this.categories().find(c => c.id === categoryId);
+    console.log('=== onCategoryChange (admin) ===');
+    console.log('Category ID:', categoryId);
+    console.log('Selected category:', selectedCategory);
+    console.log('Subcategories from category:', selectedCategory?.subcategories);
     this.subcategories.set(selectedCategory?.subcategories || []);
+    console.log('Subcategories signal set to:', this.subcategories().length, 'items');
     this.newRequest.update(req => ({ ...req, subcategory_id: 0 }));
   }
 

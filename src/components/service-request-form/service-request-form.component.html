@@ -1,7 +1,7 @@
 <form
   autocomplete="off"
   (ngSubmit)="onSubmit()"
-  class="w-full px-0 mobile-safe space-y-4 md:space-y-7 relative"
+  class="w-full mobile-safe relative"
 >
   <!-- Overlay spinner central -->
   <div
@@ -34,496 +34,550 @@
       }}</span>
     </div>
   </div>
-  <!-- Categoria -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="category_id">
-      {{ "category" | i18n }}
-    </label>
-    <select
-      id="category_id"
-      class="w-full border rounded px-3 py-2"
-      [value]="category_id() || ''"
-      (change)="updateField('category_id', $event.target.value)"
-      required
-    >
-      <option value="" disabled selected>{{ "select" | i18n }}</option>
-      <ng-container *ngFor="let cat of categories()">
-        <option [value]="cat.id">{{ cat.name }}</option>
-      </ng-container>
-    </select>
-    <span
-      *ngIf="!validFields().category_id && category_id()"
-      class="text-xs text-red-500"
-      >{{ "selectCategory" | i18n }}</span
-    >
-  </div>
 
-  <!-- Subcategoria -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="subcategory_id">
-      {{ "subcategory" | i18n }}
-    </label>
-    <select
-      id="subcategory_id"
-      class="w-full border rounded px-3 py-2"
-      [value]="subcategory_id() || ''"
-      (change)="updateField('subcategory_id', $event.target.value)"
-      [disabled]="!category_id()"
-      required
-    >
-      <option value="" disabled selected>{{ "select" | i18n }}</option>
-      <ng-container *ngFor="let sub of filteredSubcategories()">
-        <option [value]="sub.id">{{ sub.name }}</option>
-      </ng-container>
-    </select>
-    <span
-      *ngIf="!validFields().subcategory_id && subcategory_id()"
-      class="text-xs text-red-500"
-      >{{ "selectSubcategory" | i18n }}</span
-    >
-  </div>
-
-  <!-- Título -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="title">{{
-      "title" | i18n
-    }}</label>
-    <div class="relative">
-      <input
-        id="title"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [ngClass]="
-          touched.title
-            ? !validFields().title && title()
-              ? 'border-red-500'
-              : validFields().title && title()
-              ? 'border-green-500'
-              : ''
-            : ''
-        "
-        [value]="title()"
-        (input)="
-          updateField('title', $event.target.value); touched.title = true
-        "
-        required
-        minlength="3"
-        [placeholder]="'titlePlaceholder' | i18n"
-        aria-label="{{ 'title' | i18n }}"
-        aria-describedby="title-error"
-        [attr.aria-invalid]="
-          touched.title && !validFields().title ? 'true' : null
-        "
-      />
-      <span
-        *ngIf="touched.title && !validFields().title && title()"
-        class="absolute right-2 top-2 text-red-500"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
-          />
-        </svg>
-      </span>
+  <!-- Card Container -->
+  <div class="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-lg shadow-md overflow-hidden">
+    <!-- Título do Formulário -->
+    <div class="px-6 py-4 border-b border-white border-opacity-20">
+      <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+        <i class="fas fa-plus-circle mr-3"></i>
+        {{ "newServiceRequest" | i18n }}
+      </h2>
+      <p class="text-gray-800 text-sm mt-1">
+        {{ "fillFormToCreateRequest" | i18n }}
+      </p>
     </div>
-    <span
-      *ngIf="touched.title && !validFields().title && title()"
-      id="title-error"
-      class="text-xs text-red-500"
-      role="alert"
-    >
-      {{ "titleMinLength" | i18n }}
-    </span>
-  </div>
 
-  <!-- Descrição -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="description">
-      {{ "description" | i18n }}
-    </label>
-    <div class="relative">
-      <textarea
-        id="description"
-        class="w-full border rounded px-3 py-2"
-        [ngClass]="
-          touched.description
-            ? !validFields().description && description()
-              ? 'border-red-500'
-              : validFields().description && description()
-              ? 'border-green-500'
-              : ''
-            : ''
-        "
-        [value]="description()"
-        (input)="
-          updateField('description', $event.target.value);
-          touched.description = true
-        "
-        required
-        minlength="10"
-        [placeholder]="'descriptionPlaceholder' | i18n"
-        aria-label="{{ 'description' | i18n }}"
-        aria-describedby="description-error"
-        [attr.aria-invalid]="
-          touched.description && !validFields().description ? 'true' : null
-        "
-      ></textarea>
-      <span
-        *ngIf="
-          touched.description && !validFields().description && description()
-        "
-        class="absolute right-2 top-2 text-red-500"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
-          />
-        </svg>
-      </span>
-    </div>
-    <span
-      *ngIf="touched.description && !validFields().description && description()"
-      id="description-error"
-      class="text-xs text-red-500"
-      role="alert"
-    >
-      {{ "descriptionMinLength" | i18n }}
-    </span>
-  </div>
-
-  <!-- Data/Hora solicitada -->
-  <div>
-    <label class="block text-sm font-medium mb-1" for="requestedDateTime">
-      {{ "dateTime" | i18n }}
-    </label>
-    <div class="relative">
-      <input
-        id="requestedDateTime"
-        type="datetime-local"
-        class="w-full border rounded px-3 py-2"
-        [ngClass]="
-          touched.requestedDateTime
-            ? !validFields().requestedDateTime && requestedDateTime()
-              ? 'border-red-500'
-              : validFields().requestedDateTime && requestedDateTime()
-              ? 'border-green-500'
-              : ''
-            : ''
-        "
-        [value]="requestedDateTime()"
-        (input)="
-          updateField('requestedDateTime', $event.target.value);
-          touched.requestedDateTime = true
-        "
-        required
-        [placeholder]="'dateTimePlaceholder' | i18n"
-        aria-label="{{ 'dateTime' | i18n }}"
-        aria-describedby="requestedDateTime-error"
-        [attr.aria-invalid]="
-          touched.requestedDateTime && !validFields().requestedDateTime
-            ? 'true'
-            : null
-        "
-      />
-      <span
-        *ngIf="
-          touched.requestedDateTime &&
-          !validFields().requestedDateTime &&
-          requestedDateTime()
-        "
-        class="absolute right-2 top-2 text-red-500"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
-          />
-        </svg>
-      </span>
-    </div>
-    <span
-      *ngIf="
-        touched.requestedDateTime &&
-        !validFields().requestedDateTime &&
-        requestedDateTime()
-      "
-      id="requestedDateTime-error"
-      class="text-xs text-red-500"
-      role="alert"
-    >
-      {{ "validFutureDateTime" | i18n }}
-    </span>
-  </div>
-
-  <!-- Endereço -->
-  <fieldset
-    class="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded p-4 mt-2"
-  >
-    <legend class="text-base font-semibold mb-2 px-2">
-      {{ "address" | i18n }}
-    </legend>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="zip_code">
-        {{ "postalCode" | i18n }}
-      </label>
-      <div class="relative">
-        <input
-          id="zip_code"
-          type="text"
-          class="w-full border rounded px-3 py-2"
-          [ngClass]="
-            touched.zip_code
-              ? !validFields().zip_code && zip_code()
-                ? 'border-red-500'
-                : validFields().zip_code && zip_code()
-                ? 'border-green-500'
-                : ''
-              : ''
-          "
-          [value]="zip_code()"
-          (input)="
-            updateField('zip_code', $event.target.value);
-            touched.zip_code = true
-          "
-          (paste)="onZipCodePaste($event)"
+    <!-- Seção de Categoria e Subcategoria -->
+    <div class="p-6 bg-white">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-tags text-indigo-600"></i>
+        <h3 class="text-lg font-semibold text-gray-800">{{ "serviceCategory" | i18n }}</h3>
+      </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Categoria -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="category_id">
+          <i class="fas fa-folder text-indigo-500 mr-2 text-xs"></i>
+          {{ "category" | i18n }}
+        </label>
+        <select
+          id="category_id"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          [value]="category_id() || ''"
+          (change)="onCategoryChange($any($event.target).value)"
           required
-          pattern="\d{4}-\d{3}"
-          maxlength="8"
-          inputmode="numeric"
-          [placeholder]="'postalCodePlaceholder' | i18n"
-          autocomplete="postal-code"
-          aria-label="{{ 'postalCode' | i18n }}"
-          aria-describedby="zip_code-error"
-          [attr.aria-invalid]="
-            touched.zip_code && !validFields().zip_code ? 'true' : null
-          "
-        />
-        <span
-          *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
-          class="absolute right-2 top-2 text-red-500"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
-            />
-          </svg>
+          <option value="" disabled selected>{{ "select" | i18n }}</option>
+          <ng-container *ngFor="let cat of categories()">
+            <option [value]="cat.id">{{ cat.name }}</option>
+          </ng-container>
+        </select>
+        <span
+          *ngIf="!validFields().category_id && category_id()"
+          class="text-xs text-red-500 flex items-center mt-1"
+        >
+          <i class="fas fa-exclamation-circle mr-1"></i>
+          {{ "selectCategory" | i18n }}
         </span>
       </div>
-      <span
-        *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
-        id="zip_code-error"
-        class="text-xs text-red-500"
-        role="alert"
-      >
-        {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
-      </span>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="street">
-        {{ "logradouro" | i18n }}
-      </label>
-      <input
-        id="street"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="street()"
-        readonly
-        required
-        minlength="5"
-        [placeholder]="'streetPlaceholder' | i18n"
-        aria-label="{{ 'logradouro' | i18n }}"
-        tabindex="0"
-        aria-readonly="true"
-      />
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="number">
-        {{ "number" | i18n }}
-      </label>
-      <div class="relative">
-        <input
-          id="number"
-          type="text"
-          class="w-full border rounded px-3 py-2"
-          [ngClass]="
-            touched.number
-              ? number() && number().length > 0 && !validFields().number
-                ? 'border-red-500'
-                : validFields().number && number()
-                ? 'border-green-500'
-                : ''
-              : ''
-          "
-          [value]="number()"
-          (input)="
-            updateField('number', $event.target.value); touched.number = true
-          "
+
+      <!-- Subcategoria -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="subcategory_id">
+          <i class="fas fa-tag text-indigo-500 mr-2 text-xs"></i>
+          {{ "subcategory" | i18n }}
+        </label>
+        <select
+          id="subcategory_id"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+          [value]="subcategory_id() || ''"
+          (change)="updateField('subcategory_id', $any($event.target).value)"
+          [disabled]="!category_id()"
           required
-          [placeholder]="'numberPlaceholder' | i18n"
-          aria-label="{{ 'number' | i18n }}"
-          aria-describedby="number-error"
-          [attr.aria-invalid]="
-            touched.number && number() && !validFields().number ? 'true' : null
-          "
-        />
+        >
+          <option value="" disabled selected>{{ "select" | i18n }}</option>
+          <ng-container *ngFor="let sub of subcategories()">
+            <option [value]="sub.id">{{ sub.name }}</option>
+          </ng-container>
+        </select>
         <span
-          *ngIf="
-            touched.number &&
-            number() &&
-            number().length > 0 &&
-            !validFields().number
-          "
-          id="number-error"
-          class="absolute right-2 top-2 text-red-500"
+          *ngIf="!validFields().subcategory_id && subcategory_id()"
+          class="text-xs text-red-500 flex items-center mt-1"
+        >
+          <i class="fas fa-exclamation-circle mr-1"></i>
+          {{ "selectSubcategory" | i18n }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seção de Detalhes do Serviço -->
+    <div class="p-6 bg-white">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-file-alt text-indigo-600"></i>
+        <h3 class="text-lg font-semibold text-gray-800">{{ "serviceDetails" | i18n }}</h3>
+      </div>
+    
+    <div class="space-y-4">
+      <!-- Título -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="title">
+          <i class="fas fa-heading text-indigo-500 mr-2 text-xs"></i>
+          {{ "title" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="title"
+            type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.title
+                ? !validFields().title && title()
+                  ? 'border-red-500'
+                  : validFields().title && title()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="title()"
+            (input)="
+              updateField('title', $event.target.value); touched.title = true
+            "
+            required
+            minlength="3"
+            [placeholder]="'titlePlaceholder' | i18n"
+            aria-label="{{ 'title' | i18n }}"
+            aria-describedby="title-error"
+            [attr.aria-invalid]="
+              touched.title && !validFields().title ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.title && validFields().title && title()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="touched.title && !validFields().title && title()"
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.title && !validFields().title && title()"
+          id="title-error"
+          class="text-xs text-red-500 flex items-center mt-1"
           role="alert"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "titleMinLength" | i18n }}
+        </span>
+      </div>
+
+      <!-- Descrição -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="description">
+          <i class="fas fa-align-left text-indigo-500 mr-2 text-xs"></i>
+          {{ "description" | i18n }}
+        </label>
+        <div class="relative">
+          <textarea
+            id="description"
+            rows="4"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
+            [ngClass]="
+              touched.description
+                ? !validFields().description && description()
+                  ? 'border-red-500'
+                  : validFields().description && description()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="description()"
+            (input)="
+              updateField('description', $event.target.value);
+              touched.description = true
+            "
+            required
+            minlength="10"
+            [placeholder]="'descriptionPlaceholder' | i18n"
+            aria-label="{{ 'description' | i18n }}"
+            aria-describedby="description-error"
+            [attr.aria-invalid]="
+              touched.description && !validFields().description ? 'true' : null
+            "
+          ></textarea>
+          <span
+            *ngIf="touched.description && validFields().description && description()"
+            class="absolute right-3 top-2.5 text-green-500"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z"
-            />
-          </svg>
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="
+              touched.description && !validFields().description && description()
+            "
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.description && !validFields().description && description()"
+          id="description-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "descriptionMinLength" | i18n }}
+        </span>
+      </div>
+
+      <!-- Data/Hora solicitada -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="requestedDateTime">
+          <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
+          {{ "dateTime" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="requestedDateTime"
+            type="datetime-local"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.requestedDateTime
+                ? !validFields().requestedDateTime && requestedDateTime()
+                  ? 'border-red-500'
+                  : validFields().requestedDateTime && requestedDateTime()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="requestedDateTime()"
+            (input)="
+              updateField('requestedDateTime', $event.target.value);
+              touched.requestedDateTime = true
+            "
+            required
+            [placeholder]="'dateTimePlaceholder' | i18n"
+            aria-label="{{ 'dateTime' | i18n }}"
+            aria-describedby="requestedDateTime-error"
+            [attr.aria-invalid]="
+              touched.requestedDateTime && !validFields().requestedDateTime
+                ? 'true'
+                : null
+            "
+          />
+          <span
+            *ngIf="touched.requestedDateTime && validFields().requestedDateTime && requestedDateTime()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="
+              touched.requestedDateTime &&
+              !validFields().requestedDateTime &&
+              requestedDateTime()
+            "
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="
+            touched.requestedDateTime &&
+            !validFields().requestedDateTime &&
+            requestedDateTime()
+          "
+          id="requestedDateTime-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "validFutureDateTime" | i18n }}
         </span>
       </div>
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="complement">
-        {{ "complement" | i18n }}
-      </label>
-      <input
-        id="complement"
-        type="text"
-        class="w-full border rounded px-3 py-2"
-        [value]="complement()"
-        (input)="updateField('complement', $event.target.value)"
-        [placeholder]="'complementPlaceholder' | i18n"
-      />
+  </div>
+
+  <!-- Seção de Endereço -->
+    <div class="p-6 bg-white">
+      <div class="flex items-center gap-2 mb-4">
+        <i class="fas fa-map-marker-alt text-indigo-600"></i>
+        <h3 class="text-lg font-semibold text-gray-800">{{ "address" | i18n }}</h3>
+      </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Código Postal -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="zip_code">
+          <i class="fas fa-mail-bulk text-indigo-500 mr-2 text-xs"></i>
+          {{ "postalCode" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="zip_code"
+            type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.zip_code
+                ? !validFields().zip_code && zip_code()
+                  ? 'border-red-500'
+                  : validFields().zip_code && zip_code()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="zip_code()"
+            (input)="
+              updateField('zip_code', $event.target.value);
+              touched.zip_code = true
+            "
+            (paste)="onZipCodePaste($event)"
+            required
+            pattern="\d{4}-\d{3}"
+            maxlength="8"
+            inputmode="numeric"
+            [placeholder]="'postalCodePlaceholder' | i18n"
+            autocomplete="postal-code"
+            aria-label="{{ 'postalCode' | i18n }}"
+            aria-describedby="zip_code-error"
+            [attr.aria-invalid]="
+              touched.zip_code && !validFields().zip_code ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.zip_code && validFields().zip_code && zip_code()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
+          id="zip_code-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ formError() ? formError() : ("invalidPostalCode" | i18n) }}
+        </span>
+      </div>
+
+      <!-- Logradouro -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="street">
+          <i class="fas fa-road text-indigo-500 mr-2 text-xs"></i>
+          {{ "logradouro" | i18n }}
+        </label>
+        <input
+          id="street"
+          type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          [value]="street()"
+          readonly
+          required
+          minlength="5"
+          [placeholder]="'streetPlaceholder' | i18n"
+          aria-label="{{ 'logradouro' | i18n }}"
+          tabindex="0"
+          aria-readonly="true"
+        />
+      </div>
+
+      <!-- Número -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="number">
+          <i class="fas fa-hashtag text-indigo-500 mr-2 text-xs"></i>
+          {{ "number" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="number"
+            type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.number
+                ? number() && number().length > 0 && !validFields().number
+                  ? 'border-red-500'
+                  : validFields().number && number()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="number()"
+            (input)="
+              updateField('number', $event.target.value); touched.number = true
+            "
+            required
+            [placeholder]="'numberPlaceholder' | i18n"
+            aria-label="{{ 'number' | i18n }}"
+            aria-describedby="number-error"
+            [attr.aria-invalid]="
+              touched.number && number() && !validFields().number ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.number && validFields().number && number()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="
+              touched.number &&
+              number() &&
+              number().length > 0 &&
+              !validFields().number
+            "
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Complemento -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="complement">
+          <i class="fas fa-building text-indigo-500 mr-2 text-xs"></i>
+          {{ "complement" | i18n }}
+        </label>
+        <input
+          id="complement"
+          type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          [value]="complement()"
+          (input)="updateField('complement', $event.target.value)"
+          [placeholder]="'complementPlaceholder' | i18n"
+        />
+      </div>
+
+      <!-- Localidade -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="locality">
+          <i class="fas fa-city text-indigo-500 mr-2 text-xs"></i>
+          {{ "locality" | i18n }}
+        </label>
+        <input
+          id="locality"
+          type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          [value]="locality()"
+          readonly
+          [placeholder]="'localityPlaceholder' | i18n"
+          aria-label="{{ 'locality' | i18n }}"
+          tabindex="0"
+          aria-readonly="true"
+        />
+      </div>
+
+      <!-- Concelho -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="city">
+          <i class="fas fa-map text-indigo-500 mr-2 text-xs"></i>
+          {{ "concelho" | i18n }}
+        </label>
+        <input
+          id="city"
+          type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          [value]="county()"
+          readonly
+          [placeholder]="'cityPlaceholder' | i18n"
+          aria-label="{{ 'concelho' | i18n }}"
+          tabindex="0"
+          aria-readonly="true"
+        />
+        <span *ngIf="!validFields().city && city()" class="text-xs text-red-500 flex items-center mt-1">
+          <i class="fas fa-exclamation-circle mr-1"></i>
+          {{ "cityMinLength" | i18n }}
+        </span>
+      </div>
+
+      <!-- Distrito -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="district">
+          <i class="fas fa-map-marked-alt text-indigo-500 mr-2 text-xs"></i>
+          {{ "district" | i18n }}
+        </label>
+        <input
+          id="district"
+          type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          [value]="district()"
+          readonly
+          [placeholder]="'districtPlaceholder' | i18n"
+          aria-label="{{ 'district' | i18n }}"
+          tabindex="0"
+          aria-readonly="true"
+        />
+      </div>
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="locality">
-        {{ "locality" | i18n }}
-      </label>
-      <input
-        id="locality"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="locality()"
-        readonly
-        [placeholder]="'localityPlaceholder' | i18n"
-        aria-label="{{ 'locality' | i18n }}"
-        tabindex="0"
-        aria-readonly="true"
-      />
+  </div>
+
+  <!-- Seção de Mensagens e Botões -->
+  <div class="p-6 bg-white">
+    <!-- Mensagens de erro/sucesso -->
+    <div *ngIf="formError()" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center text-red-800">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        <span class="text-sm font-medium">{{ formError() }}</span>
+      </div>
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="city">
-        {{ "concelho" | i18n }}
-      </label>
-      <input
-        id="city"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="county()"
-        readonly
-        [placeholder]="'cityPlaceholder' | i18n"
-        aria-label="{{ 'concelho' | i18n }}"
-        tabindex="0"
-        aria-readonly="true"
-      />
-      <span *ngIf="!validFields().city && city()" class="text-xs text-red-500">
-        {{ "cityMinLength" | i18n }}
+  <div *ngIf="formSuccess()" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+    <div class="flex items-center text-green-800">
+      <i class="fas fa-check-circle mr-2"></i>
+      <span class="text-sm font-medium">{{ formSuccess() }}</span>
+    </div>
+  </div>
+
+  <!-- Botões de Ação -->
+  <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
+    <!-- Status de Validação -->
+    <div class="flex items-center gap-2">
+      <span
+        class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
+        [ngClass]="isFormValid() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+      >
+        <i [class]="isFormValid() ? 'fas fa-check-circle mr-1' : 'fas fa-times-circle mr-1'"></i>
+        {{ isFormValid() ? ("formValid" | i18n) : ("formInvalid" | i18n) }}
       </span>
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1" for="district">
-        {{ "district" | i18n }}
-      </label>
-      <input
-        id="district"
-        type="text"
-        class="w-full border rounded px-3 py-2 bg-gray-100"
-        [value]="district()"
-        readonly
-        [placeholder]="'districtPlaceholder' | i18n"
-        aria-label="{{ 'district' | i18n }}"
-        tabindex="0"
-        aria-readonly="true"
-      />
+
+    <!-- Botões -->
+    <div class="flex gap-3">
+      <button
+        type="button"
+        class="px-6 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+        (click)="close.emit()"
+      >
+        <i class="fas fa-times"></i>
+        {{ "cancel" | i18n }}
+      </button>
+      <button
+        type="submit"
+        class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2 min-w-[140px] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        [disabled]="!isFormValid() || isSubmitting()"
+      >
+        <i class="fas fa-paper-plane"></i>
+        {{ "submit" | i18n }}
+      </button>
     </div>
-  </fieldset>
-
-  <!-- Mensagens de erro/sucesso -->
-  <div *ngIf="formError()" class="text-red-600 text-sm mt-2">
-    {{ formError() }}
   </div>
-  <div *ngIf="formSuccess()" class="text-green-600 text-sm mt-2">
-    {{ formSuccess() }}
   </div>
-
-  <!-- Botões -->
-  <div class="flex justify-end gap-2 mt-6">
-    <button
-      type="button"
-      class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-      (click)="close.emit()"
-    >
-      {{ "cancel" | i18n }}
-    </button>
-    <button
-      type="submit"
-      class="px-4 py-2 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 flex items-center justify-center min-w-[110px]"
-      [disabled]="!isFormValid() || isSubmitting()"
-    >
-      {{ "submit" | i18n }}
-    </button>
-    <span
-      class="ml-4 text-xs"
-      [ngClass]="isFormValid() ? 'text-green-600' : 'text-red-600'"
-    >
-      {{ isFormValid() ? "Formulário válido" : "Formulário inválido" }}
-    </span>
   </div>
 </form>

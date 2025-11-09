@@ -4,7 +4,7 @@
       {{ 'createServiceRequest' | i18n }}
     </h2>
     <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
-      {{ 'adminServiceRequestDescription' | i18n }}
+      {{ 'serviceRequestDescription' | i18n }}
     </p>
   </div>
 
@@ -51,7 +51,7 @@
         <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">{{ 'requesterInfo' | i18n }}</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="requester_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'fullName' | i18n }}</label>
+            <label for="requester_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'client' | i18n }}</label>
             <input type="text" id="requester_name" name="requester_name" [ngModel]="newRequest().requester_name" (ngModelChange)="updateNewRequest('requester_name', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
           </div>
           <div>
