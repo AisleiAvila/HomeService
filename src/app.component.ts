@@ -355,7 +355,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  openNewAdminRequestForm() {
+  openNewRequestForm() {
     this.router.navigate(['/create-service-request']);
     this.isSidebarOpen.set(false);
   }
