@@ -293,11 +293,13 @@ export class WorkflowService {
 
     const now = new Date();
     // Verifica ambas as colunas por compatibilidade com dados antigos/novos
-    const scheduledStart = request.scheduled_start_datetime
-      ? new Date(request.scheduled_start_datetime as any)
-      : request.scheduled_date
-      ? new Date(request.scheduled_date as any)
-      : null;
+    let scheduledStart: Date | null = null;
+    if (request.scheduled_start_datetime) {
+      scheduledStart = new Date(request.scheduled_start_datetime as any);
+    } else if (request.scheduled_date) {
+      scheduledStart = new Date(request.scheduled_date as any);
+    }
+    
     if (scheduledStart && now < scheduledStart) {
       // Notificar usuário e impedir início
       this.notificationService.addNotification(
@@ -457,7 +459,7 @@ export class WorkflowService {
 
     // Buscar dados do pedido para calcular taxas
     const request = await this.getServiceRequest(requestId);
-    if (!request || !request.quote_amount) {
+    if (!request?.quote_amount) {
       throw new Error("Request or quote amount not found");
     }
 
@@ -785,71 +787,54 @@ export class WorkflowService {
 
   // Obter próximas ações possíveis para um pedido
   getAvailableActions(request: ServiceRequest, userRole: string): string[] {
-    const actions: string[] = [];
+    const actionMap: Record<ServiceStatus, Record<string, string[]>> = {
+      Solicitado: { admin: ["analyze", "request_clarification"] },
+      "Em análise": { admin: ["send_quote", "request_clarification"] },
+      "Aguardando esclarecimentos": { admin: ["provide_clarification"] },
+      "Orçamento enviado": { admin: ["approve_quote", "reject_quote"] },
+      "Orçamento aprovado": { admin: ["select_professional"] },
+      "Profissional selecionado": { professional: ["accept_job", "reject_job"] },
+      "Aguardando confirmação do profissional": { admin: ["schedule_work"] },
+      Agendado: { professional: ["start_work"] },
+      "Em execução": { professional: ["complete_work", "add_progress_update"] },
+      "Concluído - Aguardando aprovação": { admin: ["approve_work", "reject_work"] },
+      Aprovado: { admin: ["process_payment"] },
+      Pago: { professional: ["submit_evaluation"] },
+      "Orçamento rejeitado": {},
+      "Aguardando aprovação do orçamento": {},
+      "Aguardando data de execução": {},
+      "Data proposta pelo administrador": {},
+      "Aguardando aprovação da data": {},
+      "Data aprovada": {},
+      "Data rejeitada": {},
+      "Buscando profissional": {},
+      Rejeitado: {},
+      Finalizado: {},
+      Cancelado: {},
+      Requested: {},
+      InAnalysis: {},
+      AwaitingClarifications: {},
+      QuoteSent: {},
+      AwaitingQuoteApproval: {},
+      QuoteApproved: {},
+      QuoteRejected: {},
+      AwaitingExecutionDate: {},
+      DateProposedByAdmin: {},
+      AwaitingDateApproval: {},
+      DateApproved: {},
+      DateRejected: {},
+      SearchingProfessional: {},
+      ProfessionalSelected: {},
+      AwaitingProfessionalConfirmation: {},
+      Scheduled: {},
+      InProgress: {},
+      CompletedAwaitingApproval: {},
+      Completed: {},
+      Cancelled: {},
+      Paid: {},
+    };
 
-    switch (request.status) {
-      case "Solicitado":
-        if (userRole === "admin") {
-          actions.push("analyze", "request_clarification");
-        }
-        break;
-      case "Em análise":
-        if (userRole === "admin") {
-          actions.push("send_quote", "request_clarification");
-        }
-        break;
-      case "Aguardando esclarecimentos":
-        if (userRole === "admin") {
-          actions.push("provide_clarification");
-        }
-        break;
-      case "Orçamento enviado":
-        if (userRole === "admin") {
-          actions.push("approve_quote", "reject_quote");
-        }
-        break;
-      case "Orçamento aprovado":
-        if (userRole === "admin") {
-          actions.push("select_professional");
-        }
-        break;
-      case "Profissional selecionado":
-        if (userRole === "professional") {
-          actions.push("accept_job", "reject_job");
-        }
-        break;
-      case "Aguardando confirmação do profissional":
-        if (userRole === "admin") {
-          actions.push("schedule_work");
-        }
-        break;
-      case "Agendado":
-        if (userRole === "professional") {
-          actions.push("start_work");
-        }
-        break;
-      case "Em execução":
-        if (userRole === "professional") {
-          actions.push("complete_work", "add_progress_update");
-        }
-        break;
-      case "Concluído - Aguardando aprovação":
-        if (userRole === "admin") {
-          actions.push("approve_work", "reject_work");
-        }
-        break;
-      case "Aprovado":
-        if (userRole === "admin") {
-          actions.push("process_payment");
-        }
-        break;
-      case "Pago":
-        if (userRole === "professional") {
-          actions.push("submit_evaluation");
-        }
-        break;
-    }
-
-    return actions;
+    const statusActions = actionMap[request.status];
+    return statusActions?.[userRole] || [];
   }
 }

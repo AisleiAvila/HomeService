@@ -2,7 +2,7 @@ import { ServiceStatus } from "@/src/models/maintenance.models";
 import { I18nService } from "@/src/i18n.service";
 
 export class StatusUtilsService {
-  static colorMap: Record<ServiceStatus, string> = {
+  static readonly colorMap: Record<ServiceStatus, string> = {
     // Português
     Solicitado: "#eab308",
     "Em análise": "#06b6d4",
@@ -51,7 +51,7 @@ export class StatusUtilsService {
     Paid: "#10b981",
   };
 
-  static statusMap: Record<ServiceStatus, string> = {
+  static readonly statusMap: Record<ServiceStatus, string> = {
     // Português
     Solicitado: "statusPending",
     "Em análise": "statusAnalyzing",

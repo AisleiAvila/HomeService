@@ -1,24 +1,22 @@
 ﻿import { inject, Injectable, signal } from "@angular/core";
 import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
+import { I18nService } from "../i18n.service";
 import {
   ChatMessage,
   PaymentStatus,
   SchedulingStatus,
   ServiceCategory,
-  ServiceSubcategory,
-  ServiceSubcategoryExtended,
   ServiceClarification,
   ServiceRequest,
   ServiceRequestPayload,
-  ServiceStatus,
-  User,
+  ServiceSubcategoryExtended,
+  User
 } from "../models/maintenance.models";
+import { StatusService } from "../services/status.service";
+import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
-import { I18nService } from "../i18n.service";
-import { StatusService } from "../services/status.service";
-import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 
 @Injectable({
   providedIn: "root",
@@ -1091,13 +1089,13 @@ export class DataService {
       let totalDuration = 0;
       let onTimeCount = 0;
 
-      services.forEach((service) => {
+      for (const service of services) {
         const actualDuration = this.calculateActualDuration(service);
         if (actualDuration) {
           totalDuration += actualDuration;
         }
 
-        // Considera "no hor├írio" se iniciou dentro de 15 minutos do agendado
+        // Considera "no horário" se iniciou dentro de 15 minutos do agendado
         if (service.scheduled_start_datetime && service.actual_start_datetime) {
           const scheduled = new Date(service.scheduled_start_datetime);
           const actual = new Date(service.actual_start_datetime);
@@ -1107,7 +1105,7 @@ export class DataService {
             onTimeCount++;
           }
         }
-      });
+      }
 
       return {
         professional_id: professional.id,

@@ -1,11 +1,10 @@
 import { Injectable, inject } from "@angular/core";
-import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
+import { Observable, from, map } from "rxjs";
 import {
-  ValidationResult,
-  PostalCodeInfo,
+  ValidationResult
 } from "../interfaces/postal-code.interface";
 import { PostalCodeUtils } from "../utils/postal-code.utils";
-import { Observable, map, of, from } from "rxjs";
+import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
 
 @Injectable({
   providedIn: "root",
@@ -118,7 +117,7 @@ export class PortugalAddressValidationService {
   async getPortugueseDistricts(): Promise<string[]> {
     try {
       const distritos = await this.databaseService.getDistritos();
-      return distritos.map((d) => d.nome).sort();
+      return distritos.map((d) => d.nome).sort((a, b) => a.localeCompare(b, 'pt-PT'));
     } catch (error) {
       console.warn(
         "Erro ao buscar distritos da base de dados, usando lista fixa:",
@@ -263,7 +262,7 @@ export class PortugalAddressValidationService {
         const concelhos = await this.databaseService.getConcelhosByDistrito(
           distrito.id
         );
-        return concelhos.map((c) => c.nome).sort();
+        return concelhos.map((c) => c.nome).sort((a, b) => a.localeCompare(b, 'pt-PT'));
       }
 
       return [];
