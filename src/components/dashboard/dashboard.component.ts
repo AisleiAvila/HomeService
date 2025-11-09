@@ -10,6 +10,7 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
@@ -187,6 +188,12 @@ export class DashboardComponent implements OnInit {
   readonly dataService = inject(DataService);
   private readonly workflowService = inject(WorkflowService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
+  // Método para navegar para criação de solicitação
+  navigateToCreateRequest(): void {
+    this.router.navigate(['/create-service-request']);
+  }
 
   userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
