@@ -17,7 +17,7 @@ export class AuthService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
 
-  private supabaseUser = this.supabase.currentUser;
+  private readonly supabaseUser = this.supabase.currentUser;
 
   // The application's user profile, fetched from the 'users' table.
   readonly appUser = signal<User | null>(null);
@@ -47,7 +47,7 @@ export class AuthService {
     });
 
     // Listener para confirmação de email via link
-    window.addEventListener("emailConfirmedViaLink", async (event: any) => {
+    globalThis.addEventListener("emailConfirmedViaLink", async (event: any) => {
       console.log("🔗 Processando confirmação via link...");
       await this.handleEmailConfirmedViaLink(event.detail);
     });
@@ -78,54 +78,70 @@ export class AuthService {
 
     // Verificar se o email foi verificado
     if (!user.email_verified) {
-      console.log("⚠️ Email NÃO verificado na tabela users.");
-
-      // CORREÇÃO: Verificar se email foi confirmado no Supabase
-      console.log("🔍 Verificando confirmação no Supabase...");
-      const { data: supabaseUser, error: supabaseError } =
-        await this.supabase.client.auth.getUser();
-
-      if (!supabaseError && supabaseUser.user?.email_confirmed_at) {
-        console.log(
-          "✅ Email confirmado no Supabase! Atualizando tabela users..."
-        );
-
-        // Atualizar email_verified na tabela users
-        const { error: updateError } = await this.supabase.client
-          .from("users")
-          .update({ email_verified: true })
-          .eq("auth_id", userId);
-
-        if (updateError) {
-          console.error("❌ Erro ao atualizar email_verified:", updateError);
-        } else {
-          console.log("✅ Campo email_verified atualizado com sucesso");
-          // Recarregar dados do usuário com email_verified atualizado
-          user.email_verified = true;
-        }
-      } else {
-        console.log("❌ Email ainda não confirmado no Supabase");
-
-        if (isAutomatic) {
-          // Se é uma chamada automática (effect), apenas fazer logout silencioso
-          console.log("🔄 Chamada automática - fazendo logout silencioso");
-          await this.supabase.client.auth.signOut();
-          this.appUser.set(null);
-          // NÃO definir pendingEmailConfirmation para não redirecionar
-        } else {
-          // Se é uma chamada manual (verificação), redirecionar para tela de verificação
-          console.log("📧 Chamada manual - redirecionando para verificação");
-          this.pendingEmailConfirmation.set(user.email);
-          this.appUser.set(null);
-          await this.supabase.client.auth.signOut();
-        }
-        return;
-      }
+      await this.handleUnverifiedEmail(user, userId, isAutomatic);
+      return;
     }
 
     console.log("✅ Email verificado. Carregando usuário");
     this.pendingEmailConfirmation.set(null);
     this.appUser.set(user);
+  }
+
+  private async handleUnverifiedEmail(
+    user: User,
+    userId: string,
+    isAutomatic: boolean
+  ): Promise<void> {
+    console.log("⚠️ Email NÃO verificado na tabela users.");
+    console.log("🔍 Verificando confirmação no Supabase...");
+
+    const { data: supabaseUser, error: supabaseError } =
+      await this.supabase.client.auth.getUser();
+
+    if (!supabaseError && supabaseUser.user?.email_confirmed_at) {
+      await this.syncEmailVerification(user, userId);
+    } else {
+      await this.handleEmailNotConfirmed(user, isAutomatic);
+    }
+  }
+
+  private async syncEmailVerification(
+    user: User,
+    userId: string
+  ): Promise<void> {
+    console.log("✅ Email confirmado no Supabase! Atualizando tabela users...");
+
+    const { error: updateError } = await this.supabase.client
+      .from("users")
+      .update({ email_verified: true })
+      .eq("auth_id", userId);
+
+    if (updateError) {
+      console.error("❌ Erro ao atualizar email_verified:", updateError);
+    } else {
+      console.log("✅ Campo email_verified atualizado com sucesso");
+      user.email_verified = true;
+      this.pendingEmailConfirmation.set(null);
+      this.appUser.set(user);
+    }
+  }
+
+  private async handleEmailNotConfirmed(
+    user: User,
+    isAutomatic: boolean
+  ): Promise<void> {
+    console.log("❌ Email ainda não confirmado no Supabase");
+
+    if (isAutomatic) {
+      console.log("🔄 Chamada automática - fazendo logout silencioso");
+      await this.supabase.client.auth.signOut();
+      this.appUser.set(null);
+    } else {
+      console.log("📧 Chamada manual - redirecionando para verificação");
+      this.pendingEmailConfirmation.set(user.email);
+      this.appUser.set(null);
+      await this.supabase.client.auth.signOut();
+    }
   }
 
   private handleAuthError(
@@ -166,7 +182,7 @@ export class AuthService {
           status: response.error.status,
           name: response.error.name,
         });
-        this.handleAuthError(response.error as AuthError, "logging in");
+        this.handleAuthError(response.error, "logging in");
         return response;
       }
 
@@ -182,7 +198,9 @@ export class AuthService {
 
         if (userError) {
           console.error("❌ Erro ao verificar email_verified:", userError);
-        } else if (!userData?.email_verified) {
+        } else if (userData?.email_verified) {
+          console.log("✅ Email verificado, login permitido");
+        } else {
           console.log("⚠️ Email não verificado, bloqueando login");
 
           // Fazer logout imediatamente
@@ -206,8 +224,6 @@ export class AuthService {
               status: 400,
             } as AuthError,
           };
-        } else {
-          console.log("✅ Email verificado, login permitido");
         }
       }
 
@@ -338,99 +354,110 @@ export class AuthService {
     });
 
     if (response.error) {
-      this.handleAuthError(response.error as AuthError, "verifying OTP");
+      this.handleAuthError(response.error, "verifying OTP");
       return response;
     }
 
-    // Se a verificação foi bem-sucedida, criar o perfil do usuário
     if (response.data.user) {
       console.log("✅ OTP verificado com sucesso!");
-
-      // Recuperar dados temporários do usuário
-      const tempUserDataStr = localStorage.getItem("tempUserData");
-      if (tempUserDataStr) {
-        try {
-          const tempUserData = JSON.parse(tempUserDataStr);
-          console.log("📝 Criando perfil do usuário com dados temporários...");
-
-          // Criar perfil na tabela users
-          const insertData = {
-            auth_id: response.data.user.id,
-            name: tempUserData.name,
-            email: tempUserData.email,
-            role: tempUserData.role,
-            status: tempUserData.role === "professional" ? "Pending" : "Active",
-            avatar_url: `https://i.pravatar.cc/150?u=${response.data.user.id}`,
-            email_verified: true, // Email verificado via OTP
-          };
-
-          const { error: insertError } = await this.supabase.client
-            .from("users")
-            .insert(insertData);
-
-          if (insertError) {
-            if (insertError.message.includes("duplicate key")) {
-              console.log("⚠️ Usuário já existe, atualizando...");
-
-              const { error: updateError } = await this.supabase.client
-                .from("users")
-                .update({
-                  name: tempUserData.name,
-                  role: tempUserData.role,
-                  status:
-                    tempUserData.role === "professional" ? "Pending" : "Active",
-                  email_verified: true,
-                })
-                .eq("auth_id", response.data.user.id);
-
-              if (updateError) {
-                console.error("❌ Erro no update:", updateError);
-                this.handleAuthError(updateError, "updating user profile");
-              } else {
-                console.log("✅ Perfil atualizado com sucesso");
-              }
-            } else {
-              console.error("❌ Erro ao criar perfil:", insertError);
-              this.handleAuthError(insertError, "creating user profile");
-            }
-          } else {
-            console.log("✅ Perfil criado com sucesso");
-          }
-
-          // Limpar dados temporários
-          localStorage.removeItem("tempUserData");
-
-          // Definir senha do usuário (necessário para login posterior)
-          if (tempUserData.password) {
-            console.log("🔑 Definindo senha do usuário...");
-            const { error: passwordError } =
-              await this.supabase.client.auth.updateUser({
-                password: tempUserData.password,
-              });
-
-            if (passwordError) {
-              console.error("❌ Erro ao definir senha:", passwordError);
-            } else {
-              console.log("✅ Senha definida com sucesso");
-            }
-          }
-
-          // Marcar email como verificado na tabela
-          await this.markEmailAsVerified(response.data.user.id);
-        } catch (e) {
-          console.error("❌ Erro ao processar dados temporários:", e);
-          // Limpar dados temporários mesmo em caso de erro
-          localStorage.removeItem("tempUserData");
-        }
-      } else {
-        console.log(
-          "⚠️ Dados temporários não encontrados, apenas marcando email como verificado"
-        );
-        await this.markEmailAsVerified(response.data.user.id);
-      }
+      await this.handleSuccessfulOtpVerification(response.data.user);
     }
 
     return response;
+  }
+
+  private async handleSuccessfulOtpVerification(user: any): Promise<void> {
+    const tempUserDataStr = localStorage.getItem("tempUserData");
+    
+    if (tempUserDataStr) {
+      await this.createUserProfileFromTempData(user, tempUserDataStr);
+    } else {
+      console.log("⚠️ Dados temporários não encontrados, apenas marcando email como verificado");
+      await this.markEmailAsVerified(user.id);
+    }
+  }
+
+  private async createUserProfileFromTempData(user: any, tempUserDataStr: string): Promise<void> {
+    try {
+      const tempUserData = JSON.parse(tempUserDataStr);
+      console.log("📝 Criando perfil do usuário com dados temporários...");
+
+      await this.insertOrUpdateUserProfile(user.id, tempUserData);
+      await this.setUserPassword(tempUserData.password);
+      await this.markEmailAsVerified(user.id);
+
+      localStorage.removeItem("tempUserData");
+    } catch (e) {
+      console.error("❌ Erro ao processar dados temporários:", e);
+      localStorage.removeItem("tempUserData");
+    }
+  }
+
+  private async insertOrUpdateUserProfile(authId: string, tempUserData: any): Promise<void> {
+    const insertData = {
+      auth_id: authId,
+      name: tempUserData.name,
+      email: tempUserData.email,
+      role: tempUserData.role,
+      status: tempUserData.role === "professional" ? "Pending" : "Active",
+      avatar_url: `https://i.pravatar.cc/150?u=${authId}`,
+      email_verified: true,
+    };
+
+    const { error: insertError } = await this.supabase.client
+      .from("users")
+      .insert(insertData);
+
+    if (insertError) {
+      await this.handleInsertError(insertError, authId, tempUserData);
+    } else {
+      console.log("✅ Perfil criado com sucesso");
+    }
+  }
+
+  private async handleInsertError(insertError: any, authId: string, tempUserData: any): Promise<void> {
+    if (insertError.message.includes("duplicate key")) {
+      await this.updateExistingUserProfile(authId, tempUserData);
+    } else {
+      console.error("❌ Erro ao criar perfil:", insertError);
+      this.handleAuthError(insertError, "creating user profile");
+    }
+  }
+
+  private async updateExistingUserProfile(authId: string, tempUserData: any): Promise<void> {
+    console.log("⚠️ Usuário já existe, atualizando...");
+
+    const { error: updateError } = await this.supabase.client
+      .from("users")
+      .update({
+        name: tempUserData.name,
+        role: tempUserData.role,
+        status: tempUserData.role === "professional" ? "Pending" : "Active",
+        email_verified: true,
+      })
+      .eq("auth_id", authId);
+
+    if (updateError) {
+      console.error("❌ Erro no update:", updateError);
+      this.handleAuthError(updateError, "updating user profile");
+    } else {
+      console.log("✅ Perfil atualizado com sucesso");
+    }
+  }
+
+  private async setUserPassword(password: string | undefined): Promise<void> {
+    if (!password) return;
+
+    console.log("🔑 Definindo senha do usuário...");
+    const { error: passwordError } = await this.supabase.client.auth.updateUser({
+      password: password,
+    });
+
+    if (passwordError) {
+      console.error("❌ Erro ao definir senha:", passwordError);
+    } else {
+      console.log("✅ Senha definida com sucesso");
+    }
   }
 
   async resendVerificationCode(email: string): Promise<void> {
@@ -464,7 +491,7 @@ export class AuthService {
     const { error } = await this.supabase.client.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: window.location.origin,
+        redirectTo: globalThis.location.origin,
       }
     );
     this.handleAuthError(error, "requesting password reset");
@@ -705,7 +732,7 @@ export class AuthService {
     try {
       await this.supabase.client.auth.signOut({ scope: "local" });
     } catch (error) {
-      console.log("🔄 Limpeza local do Supabase concluída");
+      console.log("🔄 Limpeza local do Supabase concluída com erro:", error);
     }
   }
 
@@ -799,7 +826,7 @@ export class AuthService {
     try {
       // Extract file path from the current avatar URL
       const urlParts = currentAvatarUrl.split("/");
-      const bucketIndex = urlParts.findIndex((part) => part === "avatars");
+      const bucketIndex = urlParts.indexOf("avatars");
 
       if (bucketIndex === -1 || bucketIndex >= urlParts.length - 1) {
         console.log("Could not extract file path from avatar URL");
@@ -922,7 +949,20 @@ export class AuthService {
         .eq("auth_id", user.id)
         .single();
 
-      if (!existingProfile) {
+      if (existingProfile) {
+        console.log("📝 Perfil já existe, atualizando email_verified...");
+
+        const { error: updateError } = await this.supabase.client
+          .from("users")
+          .update({ email_verified: true })
+          .eq("auth_id", user.id);
+
+        if (updateError) {
+          console.error("❌ Erro ao atualizar email_verified:", updateError);
+        } else {
+          console.log("✅ email_verified atualizado com sucesso");
+        }
+      } else {
         console.log("📝 Criando perfil para usuário confirmado via link...");
 
         // Criar perfil na tabela users
@@ -944,19 +984,6 @@ export class AuthService {
           console.error("❌ Erro ao criar perfil:", insertError);
         } else {
           console.log("✅ Perfil criado com sucesso");
-        }
-      } else {
-        console.log("📝 Perfil já existe, atualizando email_verified...");
-
-        const { error: updateError } = await this.supabase.client
-          .from("users")
-          .update({ email_verified: true })
-          .eq("auth_id", user.id);
-
-        if (updateError) {
-          console.error("❌ Erro ao atualizar email_verified:", updateError);
-        } else {
-          console.log("✅ email_verified atualizado com sucesso");
         }
       }
 

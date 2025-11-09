@@ -9,6 +9,7 @@ import {
   signal,
   ViewChild,
 } from "@angular/core";
+import { Router, RouterModule, NavigationEnd } from "@angular/router";
 
 // Services
 import { AuthService } from "./services/auth.service";
@@ -21,7 +22,6 @@ import { PushNotificationService } from "./services/push-notification.service";
 import { AdminServiceRequestFormComponent, AdminServiceRequestPayload } from "./components/admin-service-request-form/admin-service-request-form.component";
 import {
   ServiceRequest,
-  ServiceRequestPayload,
 } from "./models/maintenance.models";
 
 // Components
@@ -39,12 +39,9 @@ import { ScheduleComponent } from "./components/schedule/schedule.component";
 import { SchedulerComponent } from "./components/scheduler/scheduler.component";
 import { SearchComponent } from "./components/search/search.component";
 import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
-import { ServiceRequestFormComponent } from "./components/service-request-form/service-request-form.component";
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
 import { I18nPipe } from "./pipes/i18n.pipe";
-
-// Pipes (none used directly in this component)
 
 type View =
   | "landing"
@@ -54,7 +51,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
+type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create-service-request";
 
 @Component({
   selector: "app-root",
@@ -62,6 +59,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
   imports: [
     CommonModule,
     I18nPipe,
+    RouterModule,
     LandingComponent,
     LoginComponent,
     RegisterComponent,
@@ -73,7 +71,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     ScheduleComponent,
     SearchComponent,
     ProfileComponent,
-    ServiceRequestFormComponent,
     ServiceRequestDetailsComponent,
     SchedulerComponent,
     ChatComponent,
@@ -92,18 +89,18 @@ export class AppComponent implements OnInit {
   readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
   private readonly pushNotificationService = inject(PushNotificationService);
+  private readonly router = inject(Router);
 
   // App State
   view = signal<View>("landing");
   currentNav = signal<Nav>("dashboard");
+  isRouterOutletActivated = false;
 
   // Modal State
   isSidebarOpen = signal(false);
-  // Colapso apenas para desktop (md+)
   isSidebarCollapsed = signal(false);
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
-  isNewRequestFormOpen = signal(false);
   isAdminServiceRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
@@ -148,12 +145,20 @@ export class AppComponent implements OnInit {
       },
       { id: "profile", labelKey: "profile", icon: "fa-solid fa-user" },
     ];
+    if (this.currentUser()?.role === 'client') {
+      items.push({ id: 'create-service-request', labelKey: 'newServiceRequest', icon: 'fa-solid fa-plus' });
+    }
     return items;
   });
 
   constructor() {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.isRouterOutletActivated = this.router.routerState.snapshot.root.firstChild !== null;
+      }
+    });
+
     globalThis.window.addEventListener("message", (event) => {
-      // Verify the origin of the message for security
       if (event.origin !== globalThis.window.location.origin) {
         return;
       }
@@ -190,7 +195,14 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // --- View Navigation ---
+  onActivate(event: any) {
+    this.isRouterOutletActivated = true;
+  }
+
+  onDeactivate(event: any) {
+    this.isRouterOutletActivated = false;
+  }
+
   showLogin() {
     this.view.set("login");
   }
@@ -201,11 +213,15 @@ export class AppComponent implements OnInit {
     this.view.set("landing");
   }
   navigate(nav: Nav) {
-    this.currentNav.set(nav);
+    if (nav === 'create-service-request') {
+      this.router.navigate(['/create-service-request']);
+    } else {
+      this.router.navigate(['/']);
+      this.currentNav.set(nav);
+    }
     if (this.isMobile()) this.isSidebarOpen.set(false);
   }
 
-  // --- Auth Handlers ---
   async handleLogin(payload: LoginPayload) {
     try {
       const response = await this.authService.login(
@@ -284,7 +300,6 @@ export class AppComponent implements OnInit {
       await this.authService.logout();
       this.view.set("landing");
       this.isSidebarOpen.set(false);
-      this.isNewRequestFormOpen.set(false);
       this.selectedRequest.set(null);
       this.isChatOpen.set(false);
       this.isNotificationCenterOpen.set(false);
@@ -298,11 +313,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // --- Modal & Action Handlers ---
-  openNewRequestForm() {
-    this.isNewRequestFormOpen.set(true);
-    this.isSidebarOpen.set(false);
-  }
   openNewAdminRequestForm() {
     this.isAdminServiceRequestFormOpen.set(true);
     this.isSidebarOpen.set(false);
@@ -329,9 +339,7 @@ export class AppComponent implements OnInit {
     this.isClarificationModalOpen.set(true);
   }
 
-  // --- UI helpers ---
   toggleSidebar() {
-    // Em mobile abre/fecha o off-canvas; em desktop colapsa/expande a sidebar
     if (this.isMobile()) {
       this.isSidebarOpen.set(!this.isSidebarOpen());
     } else {
@@ -355,16 +363,6 @@ export class AppComponent implements OnInit {
     this.closeModal();
   }
 
-  async handleFormSubmitted(payload: ServiceRequestPayload) {
-    try {
-      this.notificationService.addNotification("Creating service request...");
-      await this.dataService.addServiceRequest(payload);
-      this.isNewRequestFormOpen.set(false);
-    } catch (error) {
-      console.error("Error creating service request:", error);
-    }
-  }
-
   async handleAdminFormSubmitted(payload: AdminServiceRequestPayload) {
     try {
       this.notificationService.addNotification("Creating admin service request...");
@@ -376,7 +374,6 @@ export class AppComponent implements OnInit {
   }
 
   closeModal() {
-    this.isNewRequestFormOpen.set(false);
     this.isAdminServiceRequestFormOpen.set(false);
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
@@ -425,7 +422,6 @@ export class AppComponent implements OnInit {
     this.view.set("landing");
   }
 
-  // Usado por app-service-request-details (evento refreshRequest)
   handleRefreshRequest() {
     const user = this.currentUser();
     if (user) {
