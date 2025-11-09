@@ -378,12 +378,6 @@
         </div>
       </div>
     </ng-container>
-    <ng-container *ngIf="isAdminServiceRequestFormOpen()">
-      <app-admin-service-request-form
-        (closeModal)="closeModal()"
-        (createRequest)="handleAdminFormSubmitted($event)"
-      />
-    </ng-container>
     <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
   <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de agendamento">
   <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Conteúdo do agendamento">
