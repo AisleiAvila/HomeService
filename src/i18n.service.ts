@@ -196,6 +196,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
   selectSubcategory: "Select a subcategory",
     descriptionPlaceholder: "Describe what you need...",
   dateTime: "Date & Time",
+  preferredDateTime: "Preferred Date & Time",
   dateTimePlaceholder: "Select preferred date and time",
   requestedDateTimeHelp: "When would you like this service to be performed?",
   validFutureDateTime: "Please select a valid future date and time",
@@ -203,6 +204,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
   complementPlaceholder: "Apartment, floor, reference (optional)",
     submitting: "Submitting",
     submitRequest: "Submit Request",
+    
+    // Requester Information
+    requesterInformation: "Requester Information",
+    clientNamePlaceholder: "Enter client name...",
+    phonePlaceholder: "000 000 000",
+    nifPlaceholder: "000 000 000",
+    invalidPhoneNumber: "Please enter a valid 9-digit phone number",
+    invalidNIF: "Please enter a valid 9-digit NIF",
+    clientNameMinLength: "Client name must be at least 3 characters",
+    
+    // Priority
+    priorityNormal: "Normal",
+    priorityUrgent: "Urgent",
 
     // Clarification Modal
     requestedClarification: "Requested Clarification",
@@ -740,6 +754,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     createServiceRequest: "Create Service Request",
     applicant: "Applicant",
     serviceRequestDescription: "Create a new service request on behalf of a client",
+    number: "Number",
+    requesterInfo: "Requester Information",
   },
   pt: {
     // General
@@ -937,6 +953,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectSubcategory: "Selecione uma subcategoria",
     descriptionPlaceholder: "Descreva o que você precisa...",
     dateTime: "Data e Hora",
+    preferredDateTime: "Data e Hora Preferidas",
     dateTimePlaceholder: "Selecione a data e hora desejadas",
     requestedDateTimeHelp:
       "Quando você gostaria que este serviço fosse realizado?",
@@ -945,6 +962,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
     complementPlaceholder: "Apartamento, andar, referência (opcional)",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
+    
+    // Informações do Solicitante
+    requesterInformation: "Informações do Solicitante",
+    clientNamePlaceholder: "Digite o nome do cliente...",
+    phonePlaceholder: "000 000 000",
+    nifPlaceholder: "000 000 000",
+    invalidPhoneNumber: "Por favor, insira um número de telefone válido (9 dígitos)",
+    invalidNIF: "Por favor, insira um NIF válido (9 dígitos)",
+    clientNameMinLength: "O nome do cliente deve ter pelo menos 3 caracteres",
+    
+    // Prioridade
+    priorityNormal: "Normal",
+    priorityUrgent: "Urgente",
 
     // Clarification Modal
     requestedClarification: "Esclarecimentos Solicitados",
@@ -1503,6 +1533,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     createServiceRequest: "Criar Solicitação de Serviço",
     applicant: "Solicitante",
     serviceRequestDescription: "Crie e gerencie solicitações de serviço em nome dos clientes.",
+    number: "Número",
+    requesterInfo: "Informações do Solicitante",
 
   },
 };
