@@ -28,12 +28,18 @@ export class ServiceRequestFormComponent implements OnInit {
     requestedDateTime: boolean;
     zip_code: boolean;
     number: boolean;
+    client_name: boolean;
+    client_phone: boolean;
+    client_nif: boolean;
   } = {
     title: false,
     description: false,
     requestedDateTime: false,
     zip_code: false,
     number: false,
+    client_name: false,
+    client_phone: false,
+    client_nif: false,
   };
   // Sinal para estado de submissão
   isSubmitting = signal<boolean>(false);
@@ -63,6 +69,13 @@ export class ServiceRequestFormComponent implements OnInit {
   title = signal<string>("");
   description = signal<string>("");
   requestedDateTime = signal<string>("");
+  priority = signal<string>("");
+  
+  // Signals para informações do solicitante
+  client_name = signal<string>("");
+  client_phone = signal<string>("");
+  client_nif = signal<string>("");
+  
   ngOnInit() {
     console.log('=== ServiceRequestForm ngOnInit ===');
     console.log('Categories:', this.categories());
@@ -117,22 +130,30 @@ export class ServiceRequestFormComponent implements OnInit {
     category_id: boolean;
     subcategory_id: boolean;
     requestedDateTime: boolean;
+    priority: boolean;
     street: boolean;
     city: boolean;
     state: boolean;
     zip_code: boolean;
     number: boolean;
+    client_name: boolean;
+    client_phone: boolean;
+    client_nif: boolean;
   }>({
     title: false,
     description: false,
     category_id: false,
     subcategory_id: false,
     requestedDateTime: false,
+    priority: false,
     street: false,
     city: false,
     state: false,
     zip_code: false,
     number: false,
+    client_name: false,
+    client_phone: false,
+    client_nif: true, // NIF é opcional, então inicia como válido
   });
 
   // Método para verificar se o formulário está válido
@@ -144,10 +165,14 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.category_id &&
       fields.subcategory_id &&
       fields.requestedDateTime &&
+      fields.priority &&
       fields.street &&
       fields.city &&
       fields.state &&
-      fields.zip_code
+      fields.zip_code &&
+      fields.client_name &&
+      fields.client_phone &&
+      fields.client_nif // NIF sempre válido (opcional)
     );
   }
 
@@ -197,6 +222,13 @@ export class ServiceRequestFormComponent implements OnInit {
         this.validFields.update((fields) => ({
           ...fields,
           requestedDateTime: isValid,
+        }));
+        break;
+      case "priority":
+        this.priority.set(value);
+        this.validFields.update((fields) => ({
+          ...fields,
+          priority: !!value && (value === "Normal" || value === "Urgent"),
         }));
         break;
       case "zip_code":
@@ -264,6 +296,31 @@ export class ServiceRequestFormComponent implements OnInit {
         break;
       case "complement":
         this.complement.set(value);
+        break;
+      case "client_name":
+        this.client_name.set(value);
+        this.validFields.update((fields) => ({
+          ...fields,
+          client_name: value.length >= 3,
+        }));
+        break;
+      case "client_phone":
+        this.client_phone.set(value);
+        // Validar telefone português (9 dígitos)
+        const isValidPhone = /^[0-9]{9}$/.test(value);
+        this.validFields.update((fields) => ({
+          ...fields,
+          client_phone: isValidPhone,
+        }));
+        break;
+      case "client_nif":
+        this.client_nif.set(value);
+        // NIF é opcional, mas se preenchido deve ter 9 dígitos
+        const isValidNIF = !value || /^[0-9]{9}$/.test(value);
+        this.validFields.update((fields) => ({
+          ...fields,
+          client_nif: isValidNIF,
+        }));
         break;
     }
   }
