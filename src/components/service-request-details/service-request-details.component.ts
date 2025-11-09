@@ -126,9 +126,9 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
               </p>
               }
 
-              <!-- Accept/Reject Quote Buttons for Client -->
-              @if ( currentUser().role === "client" && request().client_id ===
-              currentUser().id && response.response_status === "responded" &&
+              <!-- Accept/Reject Quote Buttons for Admin -->
+              @if ( currentUser().role === "admin" &&
+              response.response_status === "responded" &&
               request().status === "Orçamento enviado" ) {
               <div class="flex flex-col sm:flex-row gap-2 mt-3">
                 <button
@@ -417,10 +417,9 @@ export class ServiceRequestDetailsComponent {
       });
     }
 
-    // Fase 2: Aprovação de Orçamento (Cliente)
+    // Fase 2: Aprovação de Orçamento (Admin)
     if (
-      user.role === "client" &&
-      req.client_id === user.id &&
+      user.role === "admin" &&
       req.status === "Orçamento enviado"
     ) {
       actions.push({
@@ -481,8 +480,7 @@ export class ServiceRequestDetailsComponent {
 
     // Fase 5: Pagamento
     if (
-      user.role === "client" &&
-      req.client_id === user.id &&
+      user.role === "admin" &&
       req.status === "Concluído - Aguardando aprovação" &&
       req.cost &&
       !req.payment_status
@@ -497,7 +495,6 @@ export class ServiceRequestDetailsComponent {
 
     // Chat sempre disponível para partes envolvidas
     if (
-      (user.role === "client" && req.client_id === user.id) ||
       (user.role === "professional" && req.professional_id === user.id)
     ) {
       actions.push({

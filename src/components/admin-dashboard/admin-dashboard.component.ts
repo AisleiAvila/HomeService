@@ -220,7 +220,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       reqs = reqs.filter(
         (r) =>
           r.title?.toLowerCase().includes(search) ||
-          this.getClientName(r.client_id)?.toLowerCase().includes(search) ||
           r.zip_code?.toLowerCase().includes(search) ||
           String(r.id).includes(search)
       );
@@ -265,9 +264,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         }
 
         case "client": {
-          const clientA = this.getClientName(a.client_id) || "";
-          const clientB = this.getClientName(b.client_id) || "";
-          compareResult = clientA.localeCompare(clientB);
+          compareResult = 0;
           break;
         }
 
@@ -641,7 +638,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   pendingRegistrations = computed(() =>
     this.allUsers().filter(
       (u) =>
-        (u.role === "professional" || u.role === "client") &&
+        (u.role === "professional") &&
         (u.status === "Pending" || u.email_verified === false)
     )
   );
@@ -663,7 +660,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     )
   );
 
-  clients = computed(() => this.allUsers().filter((u) => u.role === "client"));
+  clients = computed(() => this.allUsers().filter((u) => u.role === "admin"));
 
   completedRequests = computed(() =>
     this.allRequests().filter(
@@ -759,7 +756,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       {
         label: this.i18n.translate("activeClients"),
-        value: users.filter((u) => u.role === "client" && u.status === "Active")
+        value: users.filter((u) => u.role === "admin" && u.status === "Active")
           .length,
         icon: "fas fa-user-friends",
         bgColor:
@@ -906,7 +903,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods
-  getClientName(clientId: number): string {
+  getClientName(clientId: number | null): string {
+    if (!clientId) return this.i18n.translate("unknownClient");
     return (
       this.allUsers().find((u) => u.id === clientId)?.name ||
       this.i18n.translate("unknownClient")
@@ -1180,8 +1178,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       (request.status === "Agendado" && !request.professional_id) ||
       // Status "Orçamento aprovado" (fluxo normal)
       request.status === "Orçamento aprovado" ||
-      // Status "Aprovado pelo cliente" (novo fluxo)
-      request.status === "Aprovado pelo cliente"
+      // Status "Aprovado" (novo fluxo)
+      request.status === "Aprovado"
     );
   }
 

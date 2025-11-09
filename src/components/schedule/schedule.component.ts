@@ -154,13 +154,6 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
         request.status
       )}</span></div>
           ${
-            this.user().role !== "client"
-              ? `<div class="mb-1"><i class="fas fa-user w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
-                  "client"
-                )}:</strong> <span class="font-sans">${clientName}</span></div>`
-              : ""
-          }
-          ${
             this.user().role !== "professional"
               ? `<div class="mb-1"><i class="fas fa-hard-hat w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
                   "professional"
@@ -259,11 +252,7 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       const visible = this.visibleStatuses();
       let userRequests: ServiceRequest[];
 
-      if (currentUser.role === "client") {
-        userRequests = allRequests.filter(
-          (r) => r.client_id === currentUser.id
-        );
-      } else if (currentUser.role === "professional") {
+      if (currentUser.role === "professional") {
         userRequests = allRequests.filter(
           (r) => r.professional_id === currentUser.id
         );
@@ -352,7 +341,8 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     });
   }
 
-  private getClientName(clientId: number): string {
+  private getClientName(clientId: number | null): string {
+    if (!clientId) return this.i18n.translate("unknownClient");
     return (
       this.dataService.users().find((u) => u.id === clientId)?.name ||
       this.i18n.translate("unknownClient")

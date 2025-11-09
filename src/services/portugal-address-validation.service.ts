@@ -320,6 +320,66 @@ export class PortugalAddressValidationService {
   }
 
   /**
+   * NOVO: Busca sugestões de códigos postais parciais
+   */
+  async getPostalCodeSuggestions(partial: string): Promise<string[]> {
+    if (!partial || partial.length < 2) {
+      return [];
+    }
+    try {
+      const suggestions = await this.databaseService.searchPostalCodes(partial);
+      return suggestions.map(s => s.codigo_postal_completo);
+    } catch (error) {
+      console.warn("Erro ao buscar sugestões de código postal:", error);
+      return [];
+    }
+  }
+
+  /**
+   * NOVO: Busca sugestões de localidades parciais
+   */
+  async getLocalitySuggestions(partial: string): Promise<string[]> {
+    if (!partial || partial.length < 2) {
+      return [];
+    }
+    try {
+      const suggestions = await this.databaseService.searchLocalities(partial);
+      return suggestions.map(s => s.localidade);
+    } catch (error) {
+      console.warn("Erro ao buscar sugestões de localidade:", error);
+      return [];
+    }
+  }
+
+  /**
+   * NOVO: Verifica se um código postal está completo (formato XXXX-XXX)
+   */
+  isPostalCodeComplete(postalCode: string): boolean {
+    return /^\d{4}-\d{3}$/.test(postalCode);
+  }
+
+  /**
+   * NOVO: Obtém informações de endereço pelo código postal
+   */
+  async getAddressInfoByPostalCode(postalCode: string): Promise<{ locality: string; district: string } | null> {
+    const result = await this.databaseService.validateCodigoPostal(postalCode);
+    if (result.valid && result.endereco) {
+      return {
+        locality: result.endereco.localidade,
+        district: result.endereco.distrito,
+      };
+    }
+    return null;
+  }
+
+  /**
+   * NOVO: Obtém a lista de distritos a partir do signal no serviço de base de dados
+   */
+  get districts() {
+    return this.databaseService.districts;
+  }
+
+  /**
    * Fallback offline para informações de códigos postais
    */
   private getPostalCodeInfoOffline(postalCode: string): Promise<{

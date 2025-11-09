@@ -7,12 +7,19 @@ import {
   EnderecoCompleto,
   ValidationResultDatabase,
 } from "../interfaces/portugal-address.interface";
+import { signal } from "@angular/core";
 
 @Injectable({
   providedIn: "root",
 })
 export class PortugalAddressDatabaseService {
   private readonly supabase = inject(SupabaseService);
+
+  districts = signal<Distrito[]>([]);
+
+  constructor() {
+    this.getDistritos().then((d) => this.districts.set(d));
+  }
 
   /**
    * Busca todos os distritos
@@ -355,5 +362,54 @@ export class PortugalAddressDatabaseService {
     }
 
     return limpo;
+  }
+
+  /**
+   * NOVO: Busca sugestões de códigos postais por texto parcial
+   */
+  async searchPostalCodes(
+    searchText: string,
+    limit: number = 10
+  ): Promise<CodigoPostal[]> {
+    const { data, error } = await this.supabase.client
+      .from("codigos_postais")
+      .select("*")
+      .like("codigo_postal_completo", `${searchText}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error("Erro ao buscar sugestões de código postal:", error);
+      throw error;
+    }
+    return data || [];
+  }
+
+  /**
+   * NOVO: Busca sugestões de localidades por texto parcial
+   */
+  async searchLocalities(
+    searchText: string,
+    limit: number = 10
+  ): Promise<{ localidade: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from("codigos_postais")
+      .select("nome_localidade")
+      .like("nome_localidade", `${searchText}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error("Erro ao buscar sugestões de localidade:", error);
+      throw error;
+    }
+
+    // O Supabase pode retornar duplicados, então precisamos filtrar
+    if (data) {
+      const uniqueLocalities = [
+        ...new Set(data.map((item) => item.nome_localidade)),
+      ];
+      return uniqueLocalities.map((localidade) => ({ localidade }));
+    }
+
+    return [];
   }
 }

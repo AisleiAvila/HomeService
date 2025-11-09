@@ -34,7 +34,7 @@ export class RegisterComponent {
   name = signal("");
   email = signal("");
   password = signal("");
-  role = signal<UserRole>("client");
+  role = signal<UserRole>("professional");
 
   // Injeção do serviço de internacionalização
   readonly i18n = inject(I18nService);

@@ -1,4 +1,5 @@
 ﻿import { inject, Injectable, signal } from "@angular/core";
+import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
 import {
   ChatMessage,
   PaymentStatus,
@@ -340,36 +341,11 @@ export class DataService {
 
   private async fetchServiceRequests(currentUser: User) {
     let query = this.supabase.client.from("service_requests").select("*");
-    let filtro: { client_auth_id?: string; professional_id?: number } = {};
-    if (currentUser.role === "client") {
-      query = query.eq("client_auth_id", currentUser.auth_id);
-      filtro = { client_auth_id: currentUser.auth_id };
-    } else if (currentUser.role === "professional") {
-      // For├ºar tipo integer
-      const profId =
-        typeof currentUser.id === "string"
-          ? parseInt(currentUser.id, 10)
-          : currentUser.id;
-      console.log(
-        "[DEBUG] Valor de professional_id usado no filtro:",
-        profId,
-        "Tipo:",
-        typeof profId
-      );
-      query = query.eq("professional_id", profId);
-      filtro = { professional_id: profId };
+
+    if (currentUser.role === "professional") {
+      query = query.eq("professional_id", currentUser.id);
     }
     // Admin: sem filtro
-
-    console.log("[fetchServiceRequests] Filtro aplicado:", filtro);
-    // Exibe a query como string SQL simulada para debug
-    let sqlDebug = "SELECT * FROM service_requests";
-    if (filtro.client_auth_id) {
-      sqlDebug += ` WHERE client_auth_id = '${filtro.client_auth_id}'`;
-    } else if (filtro.professional_id) {
-      sqlDebug += ` WHERE professional_id = ${filtro.professional_id}`;
-    }
-    console.log("[DEBUG] SQL simulada:", sqlDebug);
 
     const { data, error } = await query;
 
@@ -386,8 +362,6 @@ export class DataService {
         const users = this.users();
         const requests = (data as any[]).map((r) => ({
           ...r,
-          client_name:
-            users.find((u) => u.id === r.client_id)?.name || "Unknown",
           professional_name:
             users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
         }));
@@ -518,6 +492,63 @@ export class DataService {
         "Service request created successfully!"
       );
       // Reload service requests to show the new one
+      const currentUser = this.authService.appUser();
+      if (currentUser) {
+        await this.fetchServiceRequests(currentUser);
+      }
+      return true;
+    }
+  }
+
+  async addAdminServiceRequest(payload: AdminServiceRequestPayload) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      this.notificationService.addNotification("Apenas administradores podem criar pedidos de serviço.");
+      throw new Error("Only admins can create admin service requests");
+    }
+
+    const { StatusService } = await import("../services/status.service");
+
+    // Mapeamento completo do payload para o objeto do banco de dados
+    const newRequestData = {
+      title: payload.title,
+      description: payload.description,
+      category_id: payload.category_id,
+      subcategory_id: payload.subcategory_id,
+      status: statusServiceToServiceStatus[StatusService.SearchingProfessional],
+      payment_status: "Unpaid" as const,
+      created_by_admin: true,
+      client_id: null,
+      client_auth_id: null,
+      // Campos do solicitante
+      requester_name: payload.requester_name,
+      requester_phone: payload.requester_phone,
+      requester_nif: payload.requester_nif,
+      // Campos de endereço
+      street: payload.street,
+      postal_code: payload.postal_code,
+      locality: payload.locality,
+      district: payload.district,
+      location_details: payload.location_details,
+      location_access_notes: payload.location_access_notes,
+      // Campos de urgência e prazo
+      urgency: payload.urgency,
+      service_deadline: payload.service_deadline,
+    };
+
+    const { error } = await this.supabase.client
+      .from("service_requests")
+      .insert(newRequestData);
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Error creating admin service request: " + error.message
+      );
+      throw error;
+    } else {
+      this.notificationService.addNotification(
+        "Admin service request created successfully!"
+      );
       const currentUser = this.authService.appUser();
       if (currentUser) {
         await this.fetchServiceRequests(currentUser);
