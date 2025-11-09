@@ -1244,7 +1244,7 @@
               {{ "manageProfessionals" | i18n }}
             </h3>
             <button
-              (click)="showAddProfessionalForm.set(true)"
+              (click)="toggleAddProfessionalForm()"
               class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
             >
               <i class="fas fa-plus mr-2"></i>{{ "addProfessional" | i18n }}
@@ -1273,14 +1273,14 @@
                   {{ "specialties" | i18n }}
                 </legend>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                  @for(cat of allCategories(); track cat) {
+                  @for(cat of allCategories(); track cat.id) {
                   <div>
                     <input
                       type="checkbox"
-                      [id]="'new-pro-' + cat"
+                      [id]="'new-pro-' + cat.id"
                       (change)="toggleNewProfessionalSpecialty(cat, $event)"
-                    /><label [for]="'new-pro-' + cat" class="ml-2">{{
-                      cat
+                    /><label [for]="'new-pro-' + cat.id" class="ml-2">{{
+                      cat.name
                     }}</label>
                   </div>
                   }
@@ -2147,15 +2147,15 @@
               {{ "specialties" | i18n }}
             </legend>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-              @for(cat of allCategories(); track cat) {
+              @for(cat of allCategories(); track cat.id) {
               <div>
                 <input
                   type="checkbox"
-                  [id]="'edit-pro-' + cat"
-                  [checked]="editingProfessionalSpecialties().includes(cat)"
+                  [id]="'edit-pro-' + cat.id"
+                  [checked]="isProfessionalSpecialtySelected(cat.id)"
                   (change)="toggleEditProfessionalSpecialty(cat, $event)"
-                /><label [for]="'edit-pro-' + cat" class="ml-2">{{
-                  cat
+                /><label [for]="'edit-pro-' + cat.id" class="ml-2">{{
+                  cat.name
                 }}</label>
               </div>
               }
