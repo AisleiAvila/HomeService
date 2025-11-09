@@ -20,6 +20,7 @@ import { PushNotificationService } from "./services/push-notification.service";
 // Models
 import { LoginPayload } from "./components/login/login.component";
 import { RegisterPayload } from "./components/register/register.component";
+import { AdminServiceRequestFormComponent, AdminServiceRequestPayload } from "./components/admin-service-request-form/admin-service-request-form.component";
 import {
   ServiceRequest,
   ServiceRequestPayload,
@@ -80,6 +81,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     ChatComponent,
     NotificationCenterComponent,
     LanguageSwitcherComponent,
+    AdminServiceRequestFormComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
@@ -104,6 +106,7 @@ export class AppComponent implements OnInit {
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
   isNewRequestFormOpen = signal(false);
+  isAdminServiceRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
@@ -286,14 +289,14 @@ export class AppComponent implements OnInit {
 
   // --- Modal & Action Handlers ---
   openNewRequestForm() {
-    // Apenas clientes podem criar novas solicitações
-    if (this.currentUser()?.role !== 'client') {
-      console.warn('Apenas clientes podem criar solicitações de serviço');
-      return;
-    }
     this.isNewRequestFormOpen.set(true);
     this.isSidebarOpen.set(false);
   }
+  openNewAdminRequestForm() {
+    this.isAdminServiceRequestFormOpen.set(true);
+    this.isSidebarOpen.set(false);
+  }
+
   openChat(request: ServiceRequest) {
     this.selectedRequest.set(request);
     this.isChatOpen.set(true);
@@ -351,8 +354,19 @@ export class AppComponent implements OnInit {
     }
   }
 
+  async handleAdminFormSubmitted(payload: AdminServiceRequestPayload) {
+    try {
+      this.notificationService.addNotification("Creating admin service request...");
+      await this.dataService.addAdminServiceRequest(payload);
+      this.isAdminServiceRequestFormOpen.set(false);
+    } catch (error) {
+      console.error("Error creating admin service request:", error);
+    }
+  }
+
   closeModal() {
     this.isNewRequestFormOpen.set(false);
+    this.isAdminServiceRequestFormOpen.set(false);
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
@@ -362,7 +376,7 @@ export class AppComponent implements OnInit {
 
   handleApproveQuote(request: ServiceRequest) {
     this.dataService.updateServiceRequest(request.id, {
-      status: "Aprovado pelo cliente",
+      status: "Aprovado",
     });
     this.notificationService.addNotification(
       `Quote for "${request.title}" approved`

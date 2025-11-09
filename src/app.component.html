@@ -108,16 +108,16 @@
             >
           </button>
         </nav>
-        <!-- Botão Nova Solicitação (apenas para clientes) -->
-        <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
+        <!-- Botão Nova Solicitação (apenas para administradores) -->
+        <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
           <button
-            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-            (click)="openNewRequestForm()"
+            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+            (click)="openNewAdminRequestForm()"
             [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
           >
             <i class="fa-solid fa-plus"></i>
             <span [class.hidden]="isSidebarCollapsed()">{{
-              "newServiceRequest" | i18n
+              "newAdminServiceRequest" | i18n
             }}</span>
           </button>
         </div>
@@ -191,9 +191,7 @@
         </header>
         <main
           [class]="
-            currentUser()?.role === 'admin'
-              ? 'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
-              : 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0'
+            'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
           "
         >
           <ng-container *ngIf="isNewRequestFormOpen(); else mainContent">
@@ -224,8 +222,8 @@
                     (openChat)="openChat($event)"
                   />
                 </ng-container>
-                <!-- Dashboard de Cliente/Profissional -->
-                <ng-container *ngIf="currentUser()?.role !== 'admin'">
+                <!-- Dashboard de Profissional -->
+                <ng-container *ngIf="currentUser()?.role === 'professional'">
                   <app-dashboard
                     [user]="currentUser()!"
                     (viewDetails)="openDetails($event)"
@@ -330,14 +328,14 @@
               <span>{{ item.labelKey | i18n }}</span>
             </button>
           </nav>
-          <!-- Botão Nova Solicitação (apenas para clientes) -->
-          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
+          <!-- Botão Nova Solicitação (apenas para administradores) -->
+          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
             <button
-              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-              (click)="openNewRequestForm(); toggleSidebar()"
+              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+              (click)="openNewAdminRequestForm(); toggleSidebar()"
             >
               <i class="fa-solid fa-plus"></i>
-              <span>{{ "newServiceRequest" | i18n }}</span>
+              <span>{{ "newAdminServiceRequest" | i18n }}</span>
             </button>
           </div>
           <!-- Bloco de perfil do usuário (mobile) -->
@@ -387,6 +385,12 @@
           />
         </div>
       </div>
+    </ng-container>
+    <ng-container *ngIf="isAdminServiceRequestFormOpen()">
+      <app-admin-service-request-form
+        (closeModal)="closeModal()"
+        (createRequest)="handleAdminFormSubmitted($event)"
+      />
     </ng-container>
     <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
   <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de agendamento">

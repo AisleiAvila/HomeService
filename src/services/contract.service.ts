@@ -64,26 +64,6 @@ export class ContractService {
   }
 
   /**
-   * Cliente assina contrato
-   */
-  async signContractByClient(contractId: number): Promise<void> {
-    const currentUser = this.authService.appUser();
-    if (!currentUser || currentUser.role !== "client") {
-      throw new Error("Only client can sign contract");
-    }
-
-    const { error } = await this.supabase.client
-      .from("contracts")
-      .update({ signed_by_client_at: new Date().toISOString() })
-      .eq("id", contractId);
-
-    if (error) {
-      console.error("Error signing contract by client:", error);
-      throw error;
-    }
-  }
-
-  /**
    * Profissional assina contrato
    */
   async signContractByProfessional(contractId: number): Promise<void> {
@@ -108,9 +88,7 @@ export class ContractService {
    */
   async isContractFullySigned(contractId: number): Promise<boolean> {
     const contract = await this.getContractById(contractId);
-    return !!(
-      contract?.signed_by_client_at && contract?.signed_by_professional_at
-    );
+    return !!(contract?.signed_by_professional_at);
   }
 
   /**
@@ -137,13 +115,10 @@ export class ContractService {
   private async buildContractData(
     serviceRequest: ServiceRequest
   ): Promise<any> {
-    // Buscar dados do cliente e profissional
-    const [clientData, professionalData] = await Promise.all([
-      this.getUserById(serviceRequest.client_id),
-      serviceRequest.professional_id
-        ? this.getUserById(serviceRequest.professional_id)
-        : null,
-    ]);
+    // Buscar dados do profissional
+    const professionalData = serviceRequest.professional_id
+      ? await this.getUserById(serviceRequest.professional_id)
+      : null;
 
     return {
       service_request_id: serviceRequest.id,
@@ -157,13 +132,6 @@ export class ContractService {
         city: serviceRequest.city,
         state: serviceRequest.state,
         zip_code: serviceRequest.zip_code,
-      },
-      client: {
-        id: clientData?.id,
-        name: clientData?.name,
-        email: clientData?.email,
-        phone: clientData?.phone,
-        address: clientData?.address,
       },
       professional: professionalData
         ? {
@@ -251,12 +219,6 @@ export class ContractService {
           <h3>1. PARTES CONTRATANTES</h3>
           <div class="parties">
             <div class="party">
-              <h4>CONTRATANTE (Cliente)</h4>
-              <p><strong>Nome:</strong> ${data.client.name}</p>
-              <p><strong>Email:</strong> ${data.client.email}</p>
-              <p><strong>Telefone:</strong> ${data.client.phone || "N/A"}</p>
-            </div>
-            <div class="party">
               <h4>CONTRATADO (Profissional)</h4>
               <p><strong>Nome:</strong> ${
                 data.professional?.name || "A ser definido"
@@ -329,17 +291,6 @@ export class ContractService {
         </div>
 
         <div class="signature-area">
-          <div class="signature">
-            <p>Cliente</p>
-            <p>${data.client.name}</p>
-            ${
-              contract.signed_by_client_at
-                ? `<p><small>Assinado em: ${new Date(
-                    contract.signed_by_client_at
-                  ).toLocaleString("pt-PT")}</small></p>`
-                : "<p><small>Pendente</small></p>"
-            }
-          </div>
           <div class="signature">
             <p>Profissional</p>
             <p>${data.professional?.name || "A ser definido"}</p>
