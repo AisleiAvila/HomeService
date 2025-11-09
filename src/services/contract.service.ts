@@ -68,7 +68,7 @@ export class ContractService {
    */
   async signContractByProfessional(contractId: number): Promise<void> {
     const currentUser = this.authService.appUser();
-    if (!currentUser || currentUser.role !== "professional") {
+    if (currentUser?.role !== "professional") {
       throw new Error("Only professional can sign contract");
     }
 

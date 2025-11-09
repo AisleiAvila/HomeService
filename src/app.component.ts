@@ -18,8 +18,6 @@ import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
 // Models
-import { LoginPayload } from "./components/login/login.component";
-import { RegisterPayload } from "./components/register/register.component";
 import { AdminServiceRequestFormComponent, AdminServiceRequestPayload } from "./components/admin-service-request-form/admin-service-request-form.component";
 import {
   ServiceRequest,
@@ -32,10 +30,10 @@ import { ChatComponent } from "./components/chat/chat.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { LandingComponent } from "./components/landing/landing.component";
-import { LoginComponent } from "./components/login/login.component";
+import { LoginComponent, LoginPayload } from "./components/login/login.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
 import { ProfileComponent } from "./components/profile/profile.component";
-import { RegisterComponent } from "./components/register/register.component";
+import { RegisterComponent, RegisterPayload } from "./components/register/register.component";
 import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
 import { ScheduleComponent } from "./components/schedule/schedule.component";
 import { SchedulerComponent } from "./components/scheduler/scheduler.component";
@@ -127,8 +125,8 @@ export class AppComponent implements OnInit {
   );
   authTheme = computed(() => (this.view() === "landing" ? "light" : "dark"));
   isMobile = computed(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < 768;
+    if (globalThis.window === undefined) return false;
+    return globalThis.window.innerWidth < 768;
   });
 
   navItems = computed(() => {
@@ -154,7 +152,12 @@ export class AppComponent implements OnInit {
   });
 
   constructor() {
-    window.addEventListener("message", (event) => {
+    globalThis.window.addEventListener("message", (event) => {
+      // Verify the origin of the message for security
+      if (event.origin !== globalThis.window.location.origin) {
+        return;
+      }
+      
       if (event.data?.type === "OPEN_REQUEST_DETAILS" && event.data?.payload) {
         this.openDetails(event.data.payload);
       } else if (event.data?.type === "OPEN_CHAT" && event.data?.payload) {
@@ -212,11 +215,16 @@ export class AppComponent implements OnInit {
       if (response.error) {
         if (this.loginComponent)
           this.loginComponent.setError(response.error.message);
-      } else {
-        if (this.loginComponent) this.loginComponent.clearError();
+      } else if (this.loginComponent) {
+        this.loginComponent.clearError();
       }
     } catch (error) {
-      // noop
+      console.error('Error during login:', error);
+      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('login_error');
+      if (this.loginComponent) {
+        this.loginComponent.setError(errorMessage);
+      }
+      this.notificationService.addNotification(errorMessage);
     }
   }
 
@@ -281,6 +289,9 @@ export class AppComponent implements OnInit {
       this.isChatOpen.set(false);
       this.isNotificationCenterOpen.set(false);
     } catch (error) {
+      console.error('Error during logout:', error);
+      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('logout_error');
+      this.notificationService.addNotification(errorMessage);
       this.view.set("landing");
       this.isSidebarOpen.set(false);
       this.authService.appUser.set(null);
@@ -423,10 +434,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (typeof window !== "undefined") {
-      this.isSidebarOpen.set(window.innerWidth >= 768);
-      window.addEventListener("resize", () => {
-        if (window.innerWidth >= 768) this.isSidebarOpen.set(true);
+    if (globalThis.window !== undefined) {
+      this.isSidebarOpen.set(globalThis.window.innerWidth >= 768);
+      globalThis.window.addEventListener("resize", () => {
+        if (globalThis.window.innerWidth >= 768) this.isSidebarOpen.set(true);
         else this.isSidebarOpen.set(false);
       });
     }

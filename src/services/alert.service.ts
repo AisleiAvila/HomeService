@@ -308,152 +308,190 @@ export class AlertService {
   }
 
   private async checkRequestOverdue(request: ServiceRequest): Promise<void> {
-    const now = new Date();
-    let isOverdue = false;
-    let message = "";
-
-    switch (request.status) {
-      case "Aguardando aprovação do orçamento":
-        if (request.quote_sent_at) {
-          const deadline = new Date(request.quote_sent_at);
-          deadline.setHours(
-            deadline.getHours() + this.DEADLINES.quote_response
-          );
-          if (now > deadline) {
-            isOverdue = true;
-            message =
-              "Resposta ao orçamento está em atraso. Por favor, aprove ou rejeite o orçamento.";
-          }
-        }
-        break;
-
-      case "Profissional selecionado":
-        if (request.updated_at) {
-          const deadline = new Date(request.updated_at);
-          deadline.setHours(
-            deadline.getHours() + this.DEADLINES.professional_response
-          );
-          if (now > deadline) {
-            isOverdue = true;
-            message =
-              "Confirmação do profissional está em atraso. Por favor, aceite ou rejeite o trabalho.";
-          }
-        }
-        break;
-
-      case "Agendado":
-        if (
-          request.scheduled_start_datetime &&
-          !request.actual_start_datetime
-        ) {
-          const scheduledTime = new Date(request.scheduled_start_datetime);
-          const deadline = new Date(scheduledTime);
-          deadline.setHours(deadline.getHours() + this.DEADLINES.work_start);
-          if (now > deadline) {
-            isOverdue = true;
-            message =
-              "Início do trabalho está em atraso. O profissional deveria ter iniciado o serviço.";
-          }
-        }
-        break;
-
-      case "Aprovado":
-        if (request.approval_at) {
-          const deadline = new Date(request.approval_at);
-          deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
-          if (now > deadline) {
-            isOverdue = true;
-            message =
-              "Pagamento está em atraso. Por favor, efetue o pagamento para finalizar o serviço.";
-          }
-        }
-        break;
-
-      case "Pago":
-        if (
-          request.payment_completed_at &&
-          !request.mutual_evaluation_completed
-        ) {
-          const deadline = new Date(request.payment_completed_at);
-          deadline.setHours(deadline.getHours() + this.DEADLINES.evaluation);
-          if (now > deadline) {
-            isOverdue = true;
-            message =
-              "Avaliações estão em atraso. Por favor, avaliem o serviço prestado.";
-          }
-        }
-        break;
-    }
-
-    if (isOverdue) {
-      // Marcar como em atraso no banco
+    const overdueCheck = this.getOverdueStatus(request);
+    
+    if (overdueCheck.isOverdue) {
       await this.markRequestOverdue(request.id);
-
-      // Enviar notificação
-      await this.notifyStakeholders(request.id, "overdue_alert", message);
+      await this.notifyStakeholders(request.id, "overdue_alert", overdueCheck.message);
     }
   }
 
-  private async checkRequestDeadlines(request: ServiceRequest): Promise<void> {
+  private getOverdueStatus(request: ServiceRequest): { isOverdue: boolean; message: string } {
     const now = new Date();
-    let warningNeeded = false;
-    let message = "";
-    const warningHours = 24; // Avisar 24h antes do deadline
 
     switch (request.status) {
       case "Aguardando aprovação do orçamento":
-        if (request.quote_sent_at) {
-          const deadline = new Date(request.quote_sent_at);
-          deadline.setHours(
-            deadline.getHours() + this.DEADLINES.quote_response
-          );
-          const warningTime = new Date(deadline);
-          warningTime.setHours(warningTime.getHours() - warningHours);
-
-          if (now > warningTime && now < deadline) {
-            warningNeeded = true;
-            message = `Lembrete: Você tem até ${deadline.toLocaleString(
-              "pt-PT"
-            )} para responder ao orçamento.`;
-          }
-        }
-        break;
-
+        return this.checkQuoteResponseOverdue(request, now);
+      case "Profissional selecionado":
+        return this.checkProfessionalResponseOverdue(request, now);
       case "Agendado":
-        if (request.scheduled_start_datetime) {
-          const scheduledTime = new Date(request.scheduled_start_datetime);
-          const warningTime = new Date(scheduledTime);
-          warningTime.setHours(warningTime.getHours() - warningHours);
-
-          if (now > warningTime && now < scheduledTime) {
-            warningNeeded = true;
-            message = `Lembrete: Seu serviço está agendado para ${scheduledTime.toLocaleString(
-              "pt-PT"
-            )}.`;
-          }
-        }
-        break;
-
+        return this.checkWorkStartOverdue(request, now);
       case "Aprovado":
-        if (request.approval_at) {
-          const deadline = new Date(request.approval_at);
-          deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
-          const warningTime = new Date(deadline);
-          warningTime.setHours(warningTime.getHours() - warningHours);
+        return this.checkPaymentOverdue(request, now);
+      case "Pago":
+        return this.checkEvaluationOverdue(request, now);
+      default:
+        return { isOverdue: false, message: "" };
+    }
+  }
 
-          if (now > warningTime && now < deadline) {
-            warningNeeded = true;
-            message = `Lembrete: Você tem até ${deadline.toLocaleString(
-              "pt-PT"
-            )} para efetuar o pagamento.`;
-          }
-        }
-        break;
+  private checkQuoteResponseOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
+    if (!request.quote_sent_at) {
+      return { isOverdue: false, message: "" };
     }
 
-    if (warningNeeded && !this.wasAlertSent(request, "deadline_warning")) {
-      await this.notifyStakeholders(request.id, "deadline_warning", message);
+    const deadline = new Date(request.quote_sent_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.quote_response);
+
+    if (now > deadline) {
+      return {
+        isOverdue: true,
+        message: "Resposta ao orçamento está em atraso. Por favor, aprove ou rejeite o orçamento."
+      };
     }
+
+    return { isOverdue: false, message: "" };
+  }
+
+  private checkProfessionalResponseOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
+    if (!request.updated_at) {
+      return { isOverdue: false, message: "" };
+    }
+
+    const deadline = new Date(request.updated_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.professional_response);
+
+    if (now > deadline) {
+      return {
+        isOverdue: true,
+        message: "Confirmação do profissional está em atraso. Por favor, aceite ou rejeite o trabalho."
+      };
+    }
+
+    return { isOverdue: false, message: "" };
+  }
+
+  private checkWorkStartOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
+    if (!request.scheduled_start_datetime || request.actual_start_datetime) {
+      return { isOverdue: false, message: "" };
+    }
+
+    const scheduledTime = new Date(request.scheduled_start_datetime);
+    const deadline = new Date(scheduledTime);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.work_start);
+
+    if (now > deadline) {
+      return {
+        isOverdue: true,
+        message: "Início do trabalho está em atraso. O profissional deveria ter iniciado o serviço."
+      };
+    }
+
+    return { isOverdue: false, message: "" };
+  }
+
+  private checkPaymentOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
+    if (!request.approval_at) {
+      return { isOverdue: false, message: "" };
+    }
+
+    const deadline = new Date(request.approval_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
+
+    if (now > deadline) {
+      return {
+        isOverdue: true,
+        message: "Pagamento está em atraso. Por favor, efetue o pagamento para finalizar o serviço."
+      };
+    }
+
+    return { isOverdue: false, message: "" };
+  }
+
+  private checkEvaluationOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
+    if (!request.payment_completed_at || request.mutual_evaluation_completed) {
+      return { isOverdue: false, message: "" };
+    }
+
+    const deadline = new Date(request.payment_completed_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.evaluation);
+
+    if (now > deadline) {
+      return {
+        isOverdue: true,
+        message: "Avaliações estão em atraso. Por favor, avaliem o serviço prestado."
+      };
+    }
+
+    return { isOverdue: false, message: "" };
+  }
+
+  private async checkRequestDeadlines(request: ServiceRequest): Promise<void> {
+    const warning = this.getDeadlineWarning(request);
+    
+    if (warning && !this.wasAlertSent(request, "deadline_warning")) {
+      await this.notifyStakeholders(request.id, "deadline_warning", warning);
+    }
+  }
+
+  private getDeadlineWarning(request: ServiceRequest): string | null {
+    const now = new Date();
+    const warningHours = 24;
+
+    switch (request.status) {
+      case "Aguardando aprovação do orçamento":
+        return this.checkQuoteResponseDeadline(request, now, warningHours);
+      case "Agendado":
+        return this.checkScheduledStartDeadline(request, now, warningHours);
+      case "Aprovado":
+        return this.checkPaymentDeadline(request, now, warningHours);
+      default:
+        return null;
+    }
+  }
+
+  private checkQuoteResponseDeadline(request: ServiceRequest, now: Date, warningHours: number): string | null {
+    if (!request.quote_sent_at) return null;
+
+    const deadline = new Date(request.quote_sent_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.quote_response);
+    
+    if (this.isWithinWarningPeriod(now, deadline, warningHours)) {
+      return `Lembrete: Você tem até ${deadline.toLocaleString("pt-PT")} para responder ao orçamento.`;
+    }
+    
+    return null;
+  }
+
+  private checkScheduledStartDeadline(request: ServiceRequest, now: Date, warningHours: number): string | null {
+    if (!request.scheduled_start_datetime) return null;
+
+    const scheduledTime = new Date(request.scheduled_start_datetime);
+    
+    if (this.isWithinWarningPeriod(now, scheduledTime, warningHours)) {
+      return `Lembrete: Seu serviço está agendado para ${scheduledTime.toLocaleString("pt-PT")}.`;
+    }
+    
+    return null;
+  }
+
+  private checkPaymentDeadline(request: ServiceRequest, now: Date, warningHours: number): string | null {
+    if (!request.approval_at) return null;
+
+    const deadline = new Date(request.approval_at);
+    deadline.setHours(deadline.getHours() + this.DEADLINES.payment);
+    
+    if (this.isWithinWarningPeriod(now, deadline, warningHours)) {
+      return `Lembrete: Você tem até ${deadline.toLocaleString("pt-PT")} para efetuar o pagamento.`;
+    }
+    
+    return null;
+  }
+
+  private isWithinWarningPeriod(now: Date, deadline: Date, warningHours: number): boolean {
+    const warningTime = new Date(deadline);
+    warningTime.setHours(warningTime.getHours() - warningHours);
+    return now > warningTime && now < deadline;
   }
 
   private async getOverdueRequests(): Promise<ServiceRequest[]> {
@@ -491,8 +529,10 @@ export class AlertService {
     const nearDeadline: ServiceRequest[] = [];
 
     for (const request of requests) {
-      // Lógica similar à checkRequestDeadlines mas sem enviar notificação
-      // ... implementação detalhada
+      const warning = this.getDeadlineWarning(request);
+      if (warning) {
+        nearDeadline.push(request);
+      }
     }
 
     return nearDeadline;
