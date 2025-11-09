@@ -113,6 +113,189 @@
     </div>
   </div>
 
+  <!-- Seção de Informações do Solicitante -->
+  <div class="p-6 bg-white">
+    <div class="flex items-center gap-2 mb-4">
+      <i class="fas fa-user-circle text-indigo-600"></i>
+      <h3 class="text-lg font-semibold text-gray-800">{{ "requesterInformation" | i18n }}</h3>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Cliente -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_name">
+          <i class="fas fa-user text-indigo-500 mr-2 text-xs"></i>
+          {{ "client" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="client_name"
+            type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.client_name
+                ? !validFields().client_name && client_name()
+                  ? 'border-red-500'
+                  : validFields().client_name && client_name()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="client_name()"
+            (input)="
+              updateField('client_name', $event.target.value); touched.client_name = true
+            "
+            required
+            minlength="3"
+            [placeholder]="'clientNamePlaceholder' | i18n"
+            aria-label="{{ 'client' | i18n }}"
+            aria-describedby="client_name-error"
+            [attr.aria-invalid]="
+              touched.client_name && !validFields().client_name ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.client_name && validFields().client_name && client_name()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="touched.client_name && !validFields().client_name && client_name()"
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.client_name && !validFields().client_name && client_name()"
+          id="client_name-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "clientNameMinLength" | i18n }}
+        </span>
+      </div>
+
+      <!-- Telefone -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_phone">
+          <i class="fas fa-phone text-indigo-500 mr-2 text-xs"></i>
+          {{ "phone" | i18n }}
+        </label>
+        <div class="relative">
+          <input
+            id="client_phone"
+            type="tel"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.client_phone
+                ? !validFields().client_phone && client_phone()
+                  ? 'border-red-500'
+                  : validFields().client_phone && client_phone()
+                  ? 'border-green-500'
+                  : ''
+                : ''
+            "
+            [value]="client_phone()"
+            (input)="
+              updateField('client_phone', $event.target.value); touched.client_phone = true
+            "
+            required
+            pattern="[0-9]{9}"
+            maxlength="9"
+            inputmode="numeric"
+            [placeholder]="'phonePlaceholder' | i18n"
+            autocomplete="tel"
+            aria-label="{{ 'phone' | i18n }}"
+            aria-describedby="client_phone-error"
+            [attr.aria-invalid]="
+              touched.client_phone && !validFields().client_phone ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.client_phone && validFields().client_phone && client_phone()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="touched.client_phone && !validFields().client_phone && client_phone()"
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.client_phone && !validFields().client_phone && client_phone()"
+          id="client_phone-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "invalidPhoneNumber" | i18n }}
+        </span>
+      </div>
+
+      <!-- NIF (Opcional) -->
+      <div>
+        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_nif">
+          <i class="fas fa-id-card text-indigo-500 mr-2 text-xs"></i>
+          {{ "nif" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
+        </label>
+        <div class="relative">
+          <input
+            id="client_nif"
+            type="text"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [ngClass]="
+              touched.client_nif && client_nif()
+                ? !validFields().client_nif
+                  ? 'border-red-500'
+                  : 'border-green-500'
+                : ''
+            "
+            [value]="client_nif()"
+            (input)="
+              updateField('client_nif', $event.target.value); touched.client_nif = true
+            "
+            pattern="[0-9]{9}"
+            maxlength="9"
+            inputmode="numeric"
+            [placeholder]="'nifPlaceholder' | i18n"
+            aria-label="{{ 'nif' | i18n }}"
+            aria-describedby="client_nif-error"
+            [attr.aria-invalid]="
+              touched.client_nif && client_nif() && !validFields().client_nif ? 'true' : null
+            "
+          />
+          <span
+            *ngIf="touched.client_nif && validFields().client_nif && client_nif()"
+            class="absolute right-3 top-2.5 text-green-500"
+          >
+            <i class="fas fa-check-circle"></i>
+          </span>
+          <span
+            *ngIf="touched.client_nif && client_nif() && !validFields().client_nif"
+            class="absolute right-3 top-2.5 text-red-500"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+          </span>
+        </div>
+        <span
+          *ngIf="touched.client_nif && client_nif() && !validFields().client_nif"
+          id="client_nif-error"
+          class="text-xs text-red-500 flex items-center mt-1"
+          role="alert"
+        >
+          <i class="fas fa-info-circle mr-1"></i>
+          {{ "invalidNIF" | i18n }}
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- Seção de Detalhes do Serviço -->
     <div class="p-6 bg-white">
       <div class="flex items-center gap-2 mb-4">
@@ -238,71 +421,100 @@
         </span>
       </div>
 
-      <!-- Data/Hora solicitada -->
-      <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="requestedDateTime">
-          <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
-          {{ "dateTime" | i18n }}
-        </label>
-        <div class="relative">
-          <input
-            id="requestedDateTime"
-            type="datetime-local"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-            [ngClass]="
-              touched.requestedDateTime
-                ? !validFields().requestedDateTime && requestedDateTime()
-                  ? 'border-red-500'
-                  : validFields().requestedDateTime && requestedDateTime()
-                  ? 'border-green-500'
+      <!-- Data/Hora Preferida e Prioridade na mesma linha -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Data/Hora solicitada -->
+        <div>
+          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="requestedDateTime">
+            <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
+            {{ "preferredDateTime" | i18n }}
+          </label>
+          <div class="relative">
+            <input
+              id="requestedDateTime"
+              type="datetime-local"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              [ngClass]="
+                touched.requestedDateTime
+                  ? !validFields().requestedDateTime && requestedDateTime()
+                    ? 'border-red-500'
+                    : validFields().requestedDateTime && requestedDateTime()
+                    ? 'border-green-500'
+                    : ''
                   : ''
-                : ''
-            "
-            [value]="requestedDateTime()"
-            (input)="
-              updateField('requestedDateTime', $event.target.value);
-              touched.requestedDateTime = true
-            "
-            required
-            [placeholder]="'dateTimePlaceholder' | i18n"
-            aria-label="{{ 'dateTime' | i18n }}"
-            aria-describedby="requestedDateTime-error"
-            [attr.aria-invalid]="
-              touched.requestedDateTime && !validFields().requestedDateTime
-                ? 'true'
-                : null
-            "
-          />
-          <span
-            *ngIf="touched.requestedDateTime && validFields().requestedDateTime && requestedDateTime()"
-            class="absolute right-3 top-2.5 text-green-500"
-          >
-            <i class="fas fa-check-circle"></i>
-          </span>
+              "
+              [value]="requestedDateTime()"
+              (input)="
+                updateField('requestedDateTime', $event.target.value);
+                touched.requestedDateTime = true
+              "
+              required
+              [placeholder]="'dateTimePlaceholder' | i18n"
+              aria-label="{{ 'dateTime' | i18n }}"
+              aria-describedby="requestedDateTime-error"
+              [attr.aria-invalid]="
+                touched.requestedDateTime && !validFields().requestedDateTime
+                  ? 'true'
+                  : null
+              "
+            />
+            <span
+              *ngIf="touched.requestedDateTime && validFields().requestedDateTime && requestedDateTime()"
+              class="absolute right-3 top-2.5 text-green-500"
+            >
+              <i class="fas fa-check-circle"></i>
+            </span>
+            <span
+              *ngIf="
+                touched.requestedDateTime &&
+                !validFields().requestedDateTime &&
+                requestedDateTime()
+              "
+              class="absolute right-3 top-2.5 text-red-500"
+            >
+              <i class="fas fa-exclamation-circle"></i>
+            </span>
+          </div>
           <span
             *ngIf="
               touched.requestedDateTime &&
               !validFields().requestedDateTime &&
               requestedDateTime()
             "
-            class="absolute right-3 top-2.5 text-red-500"
+            id="requestedDateTime-error"
+            class="text-xs text-red-500 flex items-center mt-1"
+            role="alert"
           >
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="fas fa-info-circle mr-1"></i>
+            {{ "validFutureDateTime" | i18n }}
           </span>
         </div>
-        <span
-          *ngIf="
-            touched.requestedDateTime &&
-            !validFields().requestedDateTime &&
-            requestedDateTime()
-          "
-          id="requestedDateTime-error"
-          class="text-xs text-red-500 flex items-center mt-1"
-          role="alert"
-        >
-          <i class="fas fa-info-circle mr-1"></i>
-          {{ "validFutureDateTime" | i18n }}
-        </span>
+
+        <!-- Prioridade -->
+        <div>
+          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="priority">
+            <i class="fas fa-exclamation-triangle text-indigo-500 mr-2 text-xs"></i>
+            {{ "priority" | i18n }}
+          </label>
+          <select
+            id="priority"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [value]="priority() || ''"
+            (change)="updateField('priority', $any($event.target).value)"
+            required
+          >
+            <option value="" disabled selected>{{ "select" | i18n }}</option>
+            <option value="Normal">{{ "priorityNormal" | i18n }}</option>
+            <option value="Urgent">{{ "priorityUrgent" | i18n }}</option>
+          </select>
+          <span
+            *ngIf="!validFields().priority && priority()"
+            class="text-xs text-red-500 flex items-center mt-1"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ "selectPriority" | i18n }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
