@@ -1249,6 +1249,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Professional management
+  toggleAddProfessionalForm() {
+    const currentValue = this.showAddProfessionalForm();
+    console.log('toggleAddProfessionalForm - Current value:', currentValue);
+    this.showAddProfessionalForm.set(!currentValue);
+    console.log('toggleAddProfessionalForm - New value:', this.showAddProfessionalForm());
+  }
+
+  isProfessionalSpecialtySelected(categoryId: number): boolean {
+    return this.editingProfessionalSpecialties().some(s => s.id === categoryId);
+  }
+
   toggleNewProfessionalSpecialty(category: ServiceCategory, event: Event) {
     // category agora é ServiceCategory
     const checked = (event.target as HTMLInputElement).checked;
