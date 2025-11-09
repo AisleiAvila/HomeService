@@ -19,7 +19,6 @@ import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
 // Models
-import { AdminServiceRequestFormComponent, AdminServiceRequestPayload } from "./components/admin-service-request-form/admin-service-request-form.component";
 import {
   ServiceRequest,
 } from "./models/maintenance.models";
@@ -51,7 +50,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create-service-request";
+type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create-service-request" | "admin-create-service-request";
 
 @Component({
   selector: "app-root",
@@ -76,7 +75,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
     ChatComponent,
     NotificationCenterComponent,
     LanguageSwitcherComponent,
-    AdminServiceRequestFormComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
@@ -101,7 +99,6 @@ export class AppComponent implements OnInit {
   isSidebarCollapsed = signal(false);
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
-  isAdminServiceRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
@@ -215,6 +212,8 @@ export class AppComponent implements OnInit {
   navigate(nav: Nav) {
     if (nav === 'create-service-request') {
       this.router.navigate(['/create-service-request']);
+    } else if (nav === 'admin-create-service-request') {
+      this.router.navigate(['/admin-create-service-request']);
     } else {
       this.router.navigate(['/']);
       this.currentNav.set(nav);
@@ -314,7 +313,7 @@ export class AppComponent implements OnInit {
   }
 
   openNewAdminRequestForm() {
-    this.isAdminServiceRequestFormOpen.set(true);
+    this.router.navigate(['/admin-create-service-request']);
     this.isSidebarOpen.set(false);
   }
 
@@ -363,18 +362,7 @@ export class AppComponent implements OnInit {
     this.closeModal();
   }
 
-  async handleAdminFormSubmitted(payload: AdminServiceRequestPayload) {
-    try {
-      this.notificationService.addNotification("Creating admin service request...");
-      await this.dataService.addAdminServiceRequest(payload);
-      this.isAdminServiceRequestFormOpen.set(false);
-    } catch (error) {
-      console.error("Error creating admin service request:", error);
-    }
-  }
-
   closeModal() {
-    this.isAdminServiceRequestFormOpen.set(false);
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
