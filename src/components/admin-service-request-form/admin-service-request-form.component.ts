@@ -10,6 +10,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../i18n.service";
+import { NotificationService } from "../../services/notification.service";
 import {
   ServiceSubcategory,
   Urgency,
@@ -44,10 +45,10 @@ export interface AdminServiceRequestPayload {
 })
 export class AdminServiceRequestFormComponent {
   closeModal = output<void>();
-  createRequest = output<AdminServiceRequestPayload>();
 
   private readonly i18n = inject(I18nService);
   private readonly dataService = inject(DataService);
+  private readonly notificationService = inject(NotificationService);
   private readonly addressService = inject(PortugalAddressValidationService);
 
   categories = this.dataService.categories;
@@ -137,7 +138,15 @@ export class AdminServiceRequestFormComponent {
     }
   }
 
-  submitRequest(): void {
-    this.createRequest.emit(this.newRequest());
+  async submitRequest(): Promise<void> {
+    try {
+      this.notificationService.addNotification(this.i18n.translate("creating_service_request"));
+      await this.dataService.addAdminServiceRequest(this.newRequest());
+      this.notificationService.addNotification(this.i18n.translate("service_request_created_successfully"));
+      this.closeModal.emit();
+    } catch (error) {
+      console.error("Error creating admin service request:", error);
+      this.notificationService.addNotification(this.i18n.translate("error_creating_service_request"));
+    }
   }
 }
