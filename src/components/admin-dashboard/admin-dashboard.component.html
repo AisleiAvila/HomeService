@@ -1,64 +1,10 @@
 <!-- Admin Dashboard Main Container -->
 <div class="flex flex-col h-full bg-gray-100">
-  <!-- Navigation Tabs -->
+  <!-- Navigation Tabs - HIDDEN porque agora está no app.component -->
   <!-- Content Area -->
   <div class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
     <div class="flex flex-col h-full bg-gray-100">
-      <!-- Navigation Tabs -->
-      <div class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
-        <!-- Mobile Dropdown Menu (visible only on very small screens) -->
-        <div class="block sm:hidden px-4 py-3">
-          <select
-            [value]="currentView()"
-            (change)="setView($any($event.target).value)"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            @for (view of views(); track view.id) {
-            <option [value]="view.id">
-              {{ view.label }}
-              @if (view.id === 'approvals' && pendingApprovalCount() > 0) { ({{
-                pendingApprovalCount()
-              }}) }
-            </option>
-            }
-          </select>
-        </div>
-
-        <!-- Horizontal Scrollable Menu (visible on small+ screens) -->
-        <nav
-          class="hidden sm:flex overflow-x-auto -mb-px px-4 sm:px-6 scrollbar-hide"
-        >
-          <div class="flex space-x-4 sm:space-x-6 min-w-max">
-            @for (view of views(); track view.id) {
-            <button
-              (click)="setView(view.id)"
-              [class]="
-                'whitespace-nowrap py-3 px-3 sm:py-4 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 flex-shrink-0 min-w-[80px] sm:min-w-0 ' +
-                (currentView() === view.id
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
-              "
-              class="flex items-center justify-center sm:justify-start"
-            >
-              <i
-                [class]="view.icon + ' sm:mr-2'"
-                class="text-sm sm:text-base"
-              ></i>
-              <span class="hidden md:inline ml-1 sm:ml-0">{{
-                view.label
-              }}</span>
-              @if (view.id === 'approvals' && pendingApprovalCount() > 0) {
-              <span
-                class="ml-1 sm:ml-2 inline-flex items-center px-1.5 py-0.5 sm:px-2.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
-              >
-                {{ pendingApprovalCount() }}
-              </span>
-              }
-            </button>
-            }
-          </div>
-        </nav>
-      </div>
+      <!-- Navigation Tabs - Removido daqui, agora está no app.component -->
 
       <!-- Content Area -->
       <div class="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
