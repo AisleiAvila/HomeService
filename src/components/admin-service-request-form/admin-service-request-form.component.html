@@ -1,16 +1,14 @@
-<div class="w-full h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-  <div class="w-full bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{{ 'createServiceRequest' | i18n }}</h2>
-      <button (click)="closeModal.emit()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
-    </div>
+<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
+  <div>
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 break-words">
+      {{ 'createServiceRequest' | i18n }}
+    </h2>
+    <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+      {{ 'adminServiceRequestDescription' | i18n }}
+    </p>
   </div>
 
-  <div class="flex-1 overflow-y-auto">
-    <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-4 sm:p-6 my-4 sm:my-6 rounded-lg shadow-sm">
-
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
     <form (ngSubmit)="submitRequest()" #form="ngForm" class="space-y-4">
 
       <!-- Service Details Section -->
@@ -147,6 +145,5 @@
         <button type="submit" [disabled]="form.invalid" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">{{ 'create' | i18n }}</button>
       </div>
     </form>
-    </div>
   </div>
 </div>
