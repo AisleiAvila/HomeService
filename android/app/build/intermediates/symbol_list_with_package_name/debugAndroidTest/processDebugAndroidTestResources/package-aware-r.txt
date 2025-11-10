@@ -1,0 +1,3 @@
+com.nathan.app.test
+style WhiteBackgroundDialogTheme
+style WhiteBackgroundTheme
