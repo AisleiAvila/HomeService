@@ -47,7 +47,7 @@ export class ServiceRequestFormComponent implements OnInit {
   onZipCodePaste(event: ClipboardEvent) {
     event.preventDefault();
     const pasted = event.clipboardData?.getData("text") || "";
-    let digits = pasted.replace(/\D/g, "");
+    let digits = pasted.replaceAll(/\D/g, "");
     let formatted = digits;
     if (digits.length > 4) {
       formatted = digits.slice(0, 4) + "-" + digits.slice(4, 7);
@@ -57,7 +57,7 @@ export class ServiceRequestFormComponent implements OnInit {
     }
     this.updateField("zip_code", formatted);
   }
-  @Output() close = new EventEmitter<void>();
+  @Output() closeForm = new EventEmitter<void>();
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
 
@@ -182,154 +182,183 @@ export class ServiceRequestFormComponent implements OnInit {
       return;
     }
     this.formError.set(null);
-    switch (field) {
-      case "title":
-        this.title.set(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          title: value.length >= 3,
-        }));
-        break;
-      case "description":
-        this.description.set(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          description: value.length >= 10,
-        }));
-        break;
-      case "category_id":
-        // Não deve chegar aqui, onCategoryChange é chamado diretamente
-        console.log('=== updateField category_id (legacy) ===');
-        const numValue = value ? Number(value) : null;
-        this.category_id.set(numValue);
-        this.subcategory_id.set(null);
-        this.validFields.update((fields) => ({
-          ...fields,
-          category_id: !!value,
-          subcategory_id: false,
-        }));
-        break;
-      case "subcategory_id":
-        this.subcategory_id.set(value ? Number(value) : null);
-        this.validFields.update((fields) => ({
-          ...fields,
-          subcategory_id: !!value,
-        }));
-        break;
-      case "requestedDateTime":
-        this.requestedDateTime.set(value);
-        const isValid = !!value && new Date(value) > new Date();
-        this.validFields.update((fields) => ({
-          ...fields,
-          requestedDateTime: isValid,
-        }));
-        break;
-      case "priority":
-        this.priority.set(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          priority: !!value && (value === "Normal" || value === "Urgent"),
-        }));
-        break;
-      case "zip_code":
-        // Auto-format zip code: insert hyphen after 4 digits if not present
-        let formatted = value.replace(/\D/g, "");
-        if (formatted.length > 4) {
-          formatted = formatted.slice(0, 4) + "-" + formatted.slice(4, 7);
-        }
-        if (formatted.length > 8) {
-          formatted = formatted.slice(0, 8);
-        }
-        this.zip_code.set(formatted);
-        const isValidZip = this.isValidPostalCode(formatted);
-        this.validFields.update((fields) => ({
-          ...fields,
-          zip_code: isValidZip,
-        }));
-        if (isValidZip) {
-          // Consultar tabela codigos_postais
-          const result = await this.dataService.getPostalCodeInfo(formatted);
-          if (result) {
-            this.locality.set(result.localidade || "");
-            this.district.set(result.distrito || "");
-            this.county.set(result.concelho || "");
-            this.street.set(result.arteria_completa || "");
-            // Validar campos automáticos
-            this.validFields.update((fields) => ({
-              ...fields,
-              street: !!result.arteria_completa,
-              city: !!result.concelho,
-              state: !!result.distrito,
-            }));
-          } else {
-            this.locality.set("");
-            this.district.set("");
-            this.county.set("");
-            this.street.set("");
-            this.validFields.update((fields) => ({
-              ...fields,
-              street: false,
-              city: false,
-              state: false,
-            }));
-            this.formError.set("Código postal não encontrado.");
-          }
-        } else {
-          this.locality.set("");
-          this.district.set("");
-          this.county.set("");
-          this.street.set("");
-          this.validFields.update((fields) => ({
-            ...fields,
-            street: false,
-            city: false,
-            state: false,
-          }));
-        }
-        break;
-      case "number":
-        this.number.set(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          number: !!value && value.length > 0,
-        }));
-        break;
-      case "complement":
-        this.complement.set(value);
-        break;
-      case "client_name":
-        this.client_name.set(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          client_name: value.length >= 3,
-        }));
-        break;
-      case "client_phone":
-        this.client_phone.set(value);
-        // Validar telefone português (9 dígitos)
-        const isValidPhone = /^[0-9]{9}$/.test(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          client_phone: isValidPhone,
-        }));
-        break;
-      case "client_nif":
-        this.client_nif.set(value);
-        // NIF é opcional, mas se preenchido deve ter 9 dígitos
-        const isValidNIF = !value || /^[0-9]{9}$/.test(value);
-        this.validFields.update((fields) => ({
-          ...fields,
-          client_nif: isValidNIF,
-        }));
-        break;
+    
+    const fieldHandlers: Record<string, () => void | Promise<void>> = {
+      title: () => this.updateTitle(value),
+      description: () => this.updateDescription(value),
+      category_id: () => this.updateCategoryId(value),
+      subcategory_id: () => this.updateSubcategoryId(value),
+      requestedDateTime: () => this.updateRequestedDateTime(value),
+      priority: () => this.updatePriority(value),
+      zip_code: () => this.updateZipCode(value),
+      number: () => this.updateNumber(value),
+      complement: () => this.complement.set(value),
+      client_name: () => this.updateClientName(value),
+      client_phone: () => this.updateClientPhone(value),
+      client_nif: () => this.updateClientNif(value),
+    };
+
+    const handler = fieldHandlers[field];
+    if (handler) {
+      await handler();
     }
+  }
+
+  private updateTitle(value: string) {
+    this.title.set(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      title: value.length >= 3,
+    }));
+  }
+
+  private updateDescription(value: string) {
+    this.description.set(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      description: value.length >= 10,
+    }));
+  }
+
+  private updateCategoryId(value: string) {
+    console.log('=== updateField category_id (legacy) ===');
+    const numValue = value ? Number(value) : null;
+    this.category_id.set(numValue);
+    this.subcategory_id.set(null);
+    this.validFields.update((fields) => ({
+      ...fields,
+      category_id: !!value,
+      subcategory_id: false,
+    }));
+  }
+
+  private updateSubcategoryId(value: string) {
+    this.subcategory_id.set(value ? Number(value) : null);
+    this.validFields.update((fields) => ({
+      ...fields,
+      subcategory_id: !!value,
+    }));
+  }
+
+  private updateRequestedDateTime(value: string) {
+    this.requestedDateTime.set(value);
+    const isValid = !!value && new Date(value) > new Date();
+    this.validFields.update((fields) => ({
+      ...fields,
+      requestedDateTime: isValid,
+    }));
+  }
+
+  private updatePriority(value: string) {
+    this.priority.set(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      priority: !!value && (value === "Normal" || value === "Urgent"),
+    }));
+  }
+
+  private async updateZipCode(value: string) {
+    const formatted = this.formatZipCode(value);
+    this.zip_code.set(formatted);
+    const isValidZip = this.isValidPostalCode(formatted);
+    this.validFields.update((fields) => ({
+      ...fields,
+      zip_code: isValidZip,
+    }));
+
+    if (isValidZip) {
+      await this.fetchPostalCodeInfo(formatted);
+    } else {
+      this.clearAddressFields();
+    }
+  }
+
+  private formatZipCode(value: string): string {
+    let formatted = value.replaceAll(/\D/g, "");
+    if (formatted.length > 4) {
+      formatted = formatted.slice(0, 4) + "-" + formatted.slice(4, 7);
+    }
+    if (formatted.length > 8) {
+      formatted = formatted.slice(0, 8);
+    }
+    return formatted;
+  }
+
+  private async fetchPostalCodeInfo(formatted: string) {
+    const result = await this.dataService.getPostalCodeInfo(formatted);
+    if (result) {
+      this.populateAddressFields(result);
+    } else {
+      this.clearAddressFields();
+      this.formError.set("Código postal não encontrado.");
+    }
+  }
+
+  private populateAddressFields(result: any) {
+    this.locality.set(result.localidade || "");
+    this.district.set(result.distrito || "");
+    this.county.set(result.concelho || "");
+    this.street.set(result.arteria_completa || "");
+    this.validFields.update((fields) => ({
+      ...fields,
+      street: !!result.arteria_completa,
+      city: !!result.concelho,
+      state: !!result.distrito,
+    }));
+  }
+
+  private clearAddressFields() {
+    this.locality.set("");
+    this.district.set("");
+    this.county.set("");
+    this.street.set("");
+    this.validFields.update((fields) => ({
+      ...fields,
+      street: false,
+      city: false,
+      state: false,
+    }));
+  }
+
+  private updateNumber(value: string) {
+    this.number.set(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      number: !!value && value.length > 0,
+    }));
+  }
+
+  private updateClientName(value: string) {
+    this.client_name.set(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      client_name: value.length >= 3,
+    }));
+  }
+
+  private updateClientPhone(value: string) {
+    this.client_phone.set(value);
+    const isValidPhone = /^\d{9}$/.test(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      client_phone: isValidPhone,
+    }));
+  }
+
+  private updateClientNif(value: string) {
+    this.client_nif.set(value);
+    const isValidNIF = !value || /^\d{9}$/.test(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      client_nif: isValidNIF,
+    }));
   }
 
   // Método para validação de código postal português
   isValidPostalCode(postalCode: string): boolean {
     // Aceita formato 'XXXX-XXX' ou apenas dígitos (7 caracteres)
     const regex = /^\d{4}-\d{3}$/;
-    const digitsOnly = postalCode.replace(/\D/g, "");
+    const digitsOnly = postalCode.replaceAll(/\D/g, "");
     // Aceita 'XXXX-XXX' ou 'XXXXXXX'
     if (regex.test(postalCode)) {
       return true;
@@ -373,7 +402,7 @@ export class ServiceRequestFormComponent implements OnInit {
     try {
       // Normaliza zip_code para formato XXXX-XXX
       let zip = this.zip_code();
-      const digitsOnly = zip.replace(/\D/g, "");
+      const digitsOnly = zip.replaceAll(/\D/g, "");
       if (digitsOnly.length === 7) {
         zip = digitsOnly.slice(0, 4) + "-" + digitsOnly.slice(4);
       }
@@ -396,7 +425,7 @@ export class ServiceRequestFormComponent implements OnInit {
       await this.dataService.addServiceRequest(payload);
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));
       // Opcional: resetar campos ou fechar modal
-      this.close.emit();
+      this.closeForm.emit();
       this.isSubmitting.set(false);
     } catch (error) {
       console.error("Erro ao enviar solicitação de serviço:", error);

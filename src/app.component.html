@@ -79,7 +79,7 @@
       <!-- Sidebar (desktop) -->
       <aside
         class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
-        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-64'"
+        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'"
         aria-label="Menu lateral de navegação"
       >
         <div class="h-16 flex items-center px-4 border-b border-gray-200">
@@ -108,22 +108,9 @@
             >
           </button>
         </nav>
-        <!-- Botão Nova Solicitação (apenas para administradores) -->
-        <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
-          <button
-            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-            (click)="openNewAdminRequestForm()"
-            [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
-          >
-            <i class="fa-solid fa-plus"></i>
-            <span [class.hidden]="isSidebarCollapsed()">{{
-              "createServiceRequest" | i18n
-            }}</span>
-          </button>
-        </div>
         <!-- Bloco de perfil do usuário -->
         <div
-          class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
+          class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100"
         >
           <img
             [src]="currentUser()?.avatar_url || 'src/assets/logo.jpg'"
