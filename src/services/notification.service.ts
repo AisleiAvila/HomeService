@@ -38,7 +38,7 @@ export class NotificationService {
     const newNotification: Notification = {
       id: this.notificationIdCounter++,
       message,
-      timestamp: new Date(),
+      created_at: new Date(),
       read: false,
     };
     this.notifications.update((current) => [newNotification, ...current]);
@@ -95,13 +95,12 @@ export class NotificationService {
       action_required: options?.actionRequired || false,
       priority: options?.priority || "medium",
       read: false,
-      timestamp: new Date(),
       expires_at: options?.expiresInHours
         ? new Date(Date.now() + options.expiresInHours * 60 * 60 * 1000)
         : undefined,
     };
 
-    // Salvar no banco
+    // Salvar no banco (created_at será gerado automaticamente)
     const { data, error } = await this.supabase.client
       .from("enhanced_notifications")
       .insert(notification)

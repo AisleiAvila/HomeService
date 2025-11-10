@@ -299,7 +299,7 @@ export interface ChatMessage {
 export interface Notification {
   id: number;
   message: string;
-  timestamp: Date;
+  created_at: Date;
   read: boolean;
 }
 
@@ -312,7 +312,6 @@ export interface EnhancedNotification extends Notification {
   priority: "low" | "medium" | "high";
   user_id: number;
   expires_at?: Date;
-  created_at?: string; // ISO string from database
 }
 
 // Interface para contratos

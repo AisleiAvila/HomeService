@@ -598,6 +598,17 @@ const allTranslations: Record<Language, Record<string, string>> = {
     errorAnalyzingRequest: "Error analyzing request. Please try again.",
     enterClarificationRequest: "Enter your clarification request:",
     clarificationRequestSent: "Clarification request sent for '{title}'",
+    
+    // Direct Assignment Action
+    directAssign: "Direct to Professional",
+    directAssignmentTitle: "Direct Service Request to Professional",
+    directAssignmentDescription: "Assign a professional and schedule the service execution",
+    assignmentSuccess: "Service request #{id} successfully directed to {professional}",
+    assignmentError: "Error directing service request",
+    professionalNotified: "Professional {professional} has been notified",
+    newServiceAssignment: "New Service Assignment",
+    serviceAssignmentMessage: "You have been assigned to service request #{id}: {title}. Scheduled for {date}.",
+    pleaseConfirmAssignment: "Please confirm or reject this assignment as soon as possible.",
     errorRequestingClarification:
       "Error requesting clarification. Please try again.",
 
@@ -1096,6 +1107,17 @@ const allTranslations: Record<Language, Record<string, string>> = {
     executionDateProposed: "Data de execução proposta para solicitação #{id}",
     executionDateApproved: "Data de execução aprovada para solicitação #{id}",
     executionDateRejected: "Data de execução rejeitada para solicitação #{id}",
+    
+    // Direct Assignment Action
+    directAssign: "Direcionar para Profissional",
+    directAssignmentTitle: "Direcionar Solicitação de Serviço para Profissional",
+    directAssignmentDescription: "Atribua um profissional e agende a execução do serviço",
+    directAssignmentSuccess: "Solicitação #{id} direcionada com sucesso para {professional}",
+    directAssignmentError: "Erro ao direcionar solicitação de serviço",
+    professionalNotified: "Profissional {professional} foi notificado",
+    newServiceAssignment: "Nova Atribuição de Serviço",
+    serviceAssignmentMessage: "Você foi designado para a solicitação de serviço #{id}: {title}. Agendado para {date}.",
+    pleaseConfirmAssignment: "Por favor, confirme ou rejeite esta atribuição o mais breve possível.",
 
     // General
     assignProfessionalToScheduled: "Atribuir Profissional ao Serviço Agendado",
