@@ -1,20 +1,19 @@
-import {
-  Component,
-  inject,
-  computed,
-  signal,
-  ChangeDetectionStrategy,
-} from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
-import { DataService } from "../../services/data.service";
-import { AuthService } from "../../services/auth.service";
-import { I18nService } from "../../i18n.service";
-import { I18nPipe } from "../../pipes/i18n.pipe";
 import {
-  ServiceRequest,
-  SchedulingStatus,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { I18nService } from "../../i18n.service";
+import {
+  SchedulingStatus
 } from "../../models/maintenance.models";
+import { I18nPipe } from "../../pipes/i18n.pipe";
+import { AuthService } from "../../services/auth.service";
+import { DataService } from "../../services/data.service";
 
 @Component({
   selector: "app-time-reports",
@@ -126,7 +125,7 @@ export class TimeReportsComponent {
     let totalActualMinutes = 0;
     let onTimeCount = 0;
 
-    completed.forEach((request) => {
+    for (const request of completed) {
       if (request.estimated_duration_minutes) {
         totalEstimatedMinutes += request.estimated_duration_minutes;
       }
@@ -146,7 +145,7 @@ export class TimeReportsComponent {
           onTimeCount++;
         }
       }
-    });
+    }
 
     return {
       totalRequests: requests.length,
@@ -216,7 +215,6 @@ export class TimeReportsComponent {
       id: request.id,
       title: request.title,
       category: request.category,
-      client: request.client_name || "",
       professional: request.professional_name || "",
       status: request.status,
       requested_datetime: request.requested_datetime || request.requested_date,
@@ -266,6 +264,6 @@ export class TimeReportsComponent {
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   }
 }

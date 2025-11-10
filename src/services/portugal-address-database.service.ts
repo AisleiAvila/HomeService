@@ -1,4 +1,4 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import {
   Distrito,
@@ -14,10 +14,22 @@ import {
 export class PortugalAddressDatabaseService {
   private readonly supabase = inject(SupabaseService);
 
+  districts = signal<Distrito[]>([]);
+  private _districtsLoaded = false;
+
+  private async loadDistricts(): Promise<void> {
+    if (this._districtsLoaded) return;
+    this._districtsLoaded = true;
+    const d = await this.getDistritos();
+    this.districts.set(d);
+  }
+
+  /**
   /**
    * Busca todos os distritos
    */
   async getDistritos(): Promise<Distrito[]> {
+    await this.loadDistricts();
     const { data, error } = await this.supabase.client
       .from("distritos")
       .select("*")
@@ -30,7 +42,6 @@ export class PortugalAddressDatabaseService {
 
     return data || [];
   }
-
   /**
    * Busca distrito por código
    */
@@ -168,9 +179,32 @@ export class PortugalAddressDatabaseService {
       return null;
     }
 
+    const data = await this.fetchCodigoPostalData(normalizado);
+    if (!data) {
+      return null;
+    }
+
+    console.log(
+      "🔧 [DATABASE] Construindo endereço completo a partir dos dados..."
+    );
+
+    const [distritoData, concelhoData] = await this.fetchDistritoAndConcelho(data);
+
+    const endereco = this.buildEnderecoCompleto(data, distritoData, concelhoData);
+
+    console.log(
+      "✅ [DATABASE] Endereço completo construído com sucesso:",
+      endereco
+    );
+    return endereco;
+  }
+
+  /**
+   * Busca dados do código postal no Supabase
+   */
+  private async fetchCodigoPostalData(normalizado: string): Promise<CodigoPostal | null> {
     console.log("💾 [DATABASE] Executando query no Supabase...");
 
-    // TESTE: Buscar apenas o código postal sem JOINs para debug
     const { data, error } = await this.supabase.client
       .from("codigos_postais")
       .select("*")
@@ -184,7 +218,7 @@ export class PortugalAddressDatabaseService {
     if (error) {
       if (error.code === "PGRST116") {
         console.warn("❌ [DATABASE] Nenhum registro encontrado (PGRST116)");
-        return null; // No rows found
+        return null;
       }
       console.error("❌ [DATABASE] Erro ao buscar endereço:", error);
       throw error;
@@ -195,11 +229,13 @@ export class PortugalAddressDatabaseService {
       return null;
     }
 
-    console.log(
-      "🔧 [DATABASE] Construindo endereço completo a partir dos dados..."
-    );
+    return data;
+  }
 
-    // Buscar informações de distrito e concelho separadamente
+  /**
+   * Busca informações de distrito e concelho
+   */
+  private async fetchDistritoAndConcelho(data: CodigoPostal): Promise<[{ nome_distrito: string } | null, { nome_concelho: string } | null]> {
     console.log("🔍 [DATABASE] Buscando distrito:", data.cod_distrito);
     const { data: distritoData } = await this.supabase.client
       .from("distritos")
@@ -222,7 +258,13 @@ export class PortugalAddressDatabaseService {
     console.log("📊 [DATABASE] Distrito encontrado:", distritoData);
     console.log("📊 [DATABASE] Concelho encontrado:", concelhoData);
 
-    // Construir endereço completo
+    return [distritoData, concelhoData];
+  }
+
+  /**
+   * Constrói o objeto EnderecoCompleto a partir dos dados
+   */
+  private buildEnderecoCompleto(data: CodigoPostal, distritoData: { nome_distrito: string } | null, concelhoData: { nome_concelho: string } | null): EnderecoCompleto {
     const endereco: EnderecoCompleto = {
       codigo_postal: data.codigo_postal_completo,
       localidade: data.nome_localidade,
@@ -233,25 +275,27 @@ export class PortugalAddressDatabaseService {
 
     console.log("🏗️ [DATABASE] Endereço base construído:", endereco);
 
-    // Adicionar arteria se disponível
     if (data.nome_arteria) {
-      let arteria = "";
-
-      if (data.tipo_arteria) arteria += data.tipo_arteria + " ";
-      if (data.prep1) arteria += data.prep1 + " ";
-      if (data.titulo_arteria) arteria += data.titulo_arteria + " ";
-      if (data.nome_arteria) arteria += data.nome_arteria;
-      if (data.local_arteria) arteria += " (" + data.local_arteria + ")";
-
-      endereco.arteria = arteria.trim();
+      endereco.arteria = this.buildArteria(data);
       console.log("🛣️ [DATABASE] Arteria adicionada:", endereco.arteria);
     }
 
-    console.log(
-      "✅ [DATABASE] Endereço completo construído com sucesso:",
-      endereco
-    );
     return endereco;
+  }
+
+  /**
+   * Constrói a string da arteria a partir dos dados
+   */
+  private buildArteria(data: CodigoPostal): string {
+    let arteria = "";
+
+    if (data.tipo_arteria) arteria += data.tipo_arteria + " ";
+    if (data.prep1) arteria += data.prep1 + " ";
+    if (data.titulo_arteria) arteria += data.titulo_arteria + " ";
+    if (data.nome_arteria) arteria += data.nome_arteria;
+    if (data.local_arteria) arteria += " (" + data.local_arteria + ")";
+
+    return arteria.trim();
   }
 
   /**
@@ -342,7 +386,7 @@ export class PortugalAddressDatabaseService {
     if (!codigo) return null;
 
     // Remover todos os caracteres não numéricos exceto hífen
-    let limpo = codigo.replace(/[^0-9-]/g, "");
+    let limpo = codigo.replaceAll(/[^0-9-]/g, "");
 
     // Se não tem hífen, adicionar na posição correta (XXXX-XXX)
     if (limpo.length === 7 && !limpo.includes("-")) {
@@ -355,5 +399,54 @@ export class PortugalAddressDatabaseService {
     }
 
     return limpo;
+  }
+
+  /**
+   * NOVO: Busca sugestões de códigos postais por texto parcial
+   */
+  async searchPostalCodes(
+    searchText: string,
+    limit: number = 10
+  ): Promise<CodigoPostal[]> {
+    const { data, error } = await this.supabase.client
+      .from("codigos_postais")
+      .select("*")
+      .like("codigo_postal_completo", `${searchText}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error("Erro ao buscar sugestões de código postal:", error);
+      throw error;
+    }
+    return data || [];
+  }
+
+  /**
+   * NOVO: Busca sugestões de localidades por texto parcial
+   */
+  async searchLocalities(
+    searchText: string,
+    limit: number = 10
+  ): Promise<{ localidade: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from("codigos_postais")
+      .select("nome_localidade")
+      .like("nome_localidade", `${searchText}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error("Erro ao buscar sugestões de localidade:", error);
+      throw error;
+    }
+
+    // O Supabase pode retornar duplicados, então precisamos filtrar
+    if (data) {
+      const uniqueLocalities = [
+        ...new Set(data.map((item) => item.nome_localidade)),
+      ];
+      return uniqueLocalities.map((localidade) => ({ localidade }));
+    }
+
+    return [];
   }
 }

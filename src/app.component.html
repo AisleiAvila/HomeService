@@ -79,12 +79,12 @@
       <!-- Sidebar (desktop) -->
       <aside
         class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
-        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-64'"
+        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'"
         aria-label="Menu lateral de navegação"
       >
         <div class="h-16 flex items-center px-4 border-b border-gray-200">
           <img
-            src="src/assets/logo_dasad.png"
+            src="src/assets/logo.jpg"
             alt="HomeService"
             class="h-8 w-auto"
           />
@@ -108,25 +108,12 @@
             >
           </button>
         </nav>
-        <!-- Botão Nova Solicitação (apenas para clientes) -->
-        <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
-          <button
-            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-            (click)="openNewRequestForm()"
-            [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
-          >
-            <i class="fa-solid fa-plus"></i>
-            <span [class.hidden]="isSidebarCollapsed()">{{
-              "newServiceRequest" | i18n
-            }}</span>
-          </button>
-        </div>
         <!-- Bloco de perfil do usuário -->
         <div
-          class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
+          class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100"
         >
           <img
-            [src]="currentUser()?.avatar_url || 'src/assets/logo_dasad.png'"
+            [src]="currentUser()?.avatar_url || 'src/assets/logo.jpg'"
             alt="Avatar do usuário"
             class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
           />
@@ -189,43 +176,77 @@
             </button>
           </div>
         </header>
-        <main
-          [class]="
-            currentUser()?.role === 'admin'
-              ? 'flex-1 overflow-y-auto overflow-x-hidden min-w-0'
-              : 'flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 md:px-6 md:py-6 bg-gray-100 min-w-0'
-          "
-        >
-          <ng-container *ngIf="isNewRequestFormOpen(); else mainContent">
-            <div
-              class="w-full flex flex-col items-center justify-center bg-white pt-2 pb-0"
+        
+        <!-- Admin Navigation Tabs (only visible for admin users) -->
+        <div *ngIf="currentUser()?.role === 'admin'" class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
+          <!-- Mobile Dropdown Menu (visible only on very small screens) -->
+          <div class="block sm:hidden px-4 py-3">
+            <select
+              [value]="currentAdminView()"
+              (change)="setAdminView($any($event.target).value)"
+              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <h2
-                class="text-2xl md:text-3xl font-extrabold text-indigo-700 drop-shadow-sm mb-2 text-center"
+              @for (view of adminViews(); track view.id) {
+              <option [value]="view.id">
+                {{ view.label }}
+              </option>
+              }
+            </select>
+          </div>
+
+          <!-- Horizontal Scrollable Menu (visible on small+ screens) -->
+          <nav
+            class="hidden sm:flex overflow-x-auto -mb-px px-4 sm:px-6 scrollbar-hide"
+            aria-label="Navegação de visualizações administrativas"
+          >
+            <div class="flex space-x-4 sm:space-x-6 min-w-max">
+              @for (view of adminViews(); track view.id) {
+              <button
+                (click)="setAdminView(view.id)"
+                [class]="
+                  'whitespace-nowrap py-3 px-3 sm:py-4 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 flex-shrink-0 min-w-[80px] sm:min-w-0 ' +
+                  (currentAdminView() === view.id
+                    ? 'border-indigo-500 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
+                "
+                class="flex items-center justify-center sm:justify-start"
               >
-                {{ "newServiceRequest" | i18n }}
-              </h2>
+                <i [class]="view.icon + ' mr-0 sm:mr-2'"></i>
+                <span class="hidden sm:inline">{{ view.label }}</span>
+              </button>
+              }
             </div>
-            <div class="w-full h-full flex flex-col bg-white p-6">
-              <app-service-request-form
-                [user]="currentUser()!"
-                (close)="closeModal()"
-                (formSubmitted)="handleFormSubmitted($event)"
-              />
-            </div>
-          </ng-container>
-          <ng-template #mainContent>
+          </nav>
+        </div>
+        
+        <main
+          class="flex-1 overflow-y-auto overflow-x-hidden min-w-0"
+        >
+          <router-outlet (activate)="onActivate($event)" (deactivate)="onDeactivate($event)"></router-outlet>
+          <ng-container *ngIf="!isRouterOutletActivated">
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
                 <!-- Dashboard do Admin -->
                 <ng-container *ngIf="currentUser()?.role === 'admin'">
                   <app-admin-dashboard
+                    [viewFromParent]="currentAdminView()"
                     (viewDetails)="openDetails($event)"
                     (openChat)="openChat($event)"
                   />
                 </ng-container>
-                <!-- Dashboard de Cliente/Profissional -->
-                <ng-container *ngIf="currentUser()?.role !== 'admin'">
+                <!-- Dashboard de Profissional -->
+                <ng-container *ngIf="currentUser()?.role === 'professional'">
+                  <app-dashboard
+                    [user]="currentUser()!"
+                    (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)"
+                    (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)"
+                    (provideClarification)="openClarificationModal($event)"
+                  />
+                </ng-container>
+                 <!-- Dashboard do Cliente -->
+                <ng-container *ngIf="currentUser()?.role === 'client'">
                   <app-dashboard
                     [user]="currentUser()!"
                     (viewDetails)="openDetails($event)"
@@ -292,7 +313,7 @@
                 </button>
               </app-modal>
             </ng-container>
-          </ng-template>
+          </ng-container>
         </main>
       </div>
 
@@ -330,14 +351,14 @@
               <span>{{ item.labelKey | i18n }}</span>
             </button>
           </nav>
-          <!-- Botão Nova Solicitação (apenas para clientes) -->
-          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'client'">
+          <!-- Botão Nova Solicitação (apenas para administradores) -->
+          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
             <button
-              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
               (click)="openNewRequestForm(); toggleSidebar()"
             >
               <i class="fa-solid fa-plus"></i>
-              <span>{{ "newServiceRequest" | i18n }}</span>
+              <span>{{ "createServiceRequest" | i18n }}</span>
             </button>
           </div>
           <!-- Bloco de perfil do usuário (mobile) -->
@@ -345,7 +366,7 @@
             class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
           >
             <img
-              [src]="currentUser()?.avatar_url || 'src/assets/logo_dasad.png'"
+              [src]="currentUser()?.avatar_url || 'src/assets/logo.jpg'"
               alt="Avatar do usuário"
               class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
             />

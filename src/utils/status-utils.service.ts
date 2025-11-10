@@ -2,7 +2,7 @@ import { ServiceStatus } from "@/src/models/maintenance.models";
 import { I18nService } from "@/src/i18n.service";
 
 export class StatusUtilsService {
-  static colorMap: Record<ServiceStatus, string> = {
+  static readonly colorMap: Record<ServiceStatus, string> = {
     // Português
     Solicitado: "#eab308",
     "Em análise": "#06b6d4",
@@ -14,16 +14,16 @@ export class StatusUtilsService {
     "Aguardando data de execução": "#fbbf24",
     "Data proposta pelo administrador": "#3b82f6",
     "Aguardando aprovação da data": "#6366f1",
-    "Data aprovada pelo cliente": "#22c55e",
-    "Data rejeitada pelo cliente": "#ef4444",
+    "Data aprovada": "#22c55e",
+    "Data rejeitada": "#ef4444",
     "Buscando profissional": "#a855f7",
     "Profissional selecionado": "#14b8a6",
     "Aguardando confirmação do profissional": "#f97316",
     Agendado: "#3b82f6",
     "Em execução": "#8b5cf6",
     "Concluído - Aguardando aprovação": "#84cc16",
-    "Aprovado pelo cliente": "#22c55e",
-    "Rejeitado pelo cliente": "#ef4444",
+    Aprovado: "#22c55e",
+    Rejeitado: "#ef4444",
     Pago: "#10b981",
     Finalizado: "#059669",
     Cancelado: "#6b7280",
@@ -38,8 +38,8 @@ export class StatusUtilsService {
     AwaitingExecutionDate: "#fbbf24",
     DateProposedByAdmin: "#3b82f6",
     AwaitingDateApproval: "#6366f1",
-    DateApprovedByClient: "#22c55e",
-    DateRejectedByClient: "#ef4444",
+    DateApproved: "#22c55e",
+    DateRejected: "#ef4444",
     SearchingProfessional: "#a855f7",
     ProfessionalSelected: "#14b8a6",
     AwaitingProfessionalConfirmation: "#f97316",
@@ -51,7 +51,7 @@ export class StatusUtilsService {
     Paid: "#10b981",
   };
 
-  static statusMap: Record<ServiceStatus, string> = {
+  static readonly statusMap: Record<ServiceStatus, string> = {
     // Português
     Solicitado: "statusPending",
     "Em análise": "statusAnalyzing",
@@ -63,8 +63,8 @@ export class StatusUtilsService {
     "Aguardando data de execução": "statusAwaitingExecutionDate",
     "Data proposta pelo administrador": "statusDateProposedByAdmin",
     "Aguardando aprovação da data": "statusAwaitingDateApproval",
-    "Data aprovada pelo cliente": "statusDateApprovedByClient",
-    "Data rejeitada pelo cliente": "statusDateRejectedByClient",
+    "Data aprovada": "statusDateApproved",
+    "Data rejeitada": "statusDateRejected",
     "Buscando profissional": "statusSearchingProfessional",
     "Profissional selecionado": "statusProfessionalSelected",
     "Aguardando confirmação do profissional":
@@ -72,8 +72,8 @@ export class StatusUtilsService {
     Agendado: "statusScheduled",
     "Em execução": "statusInProgress",
     "Concluído - Aguardando aprovação": "statusCompletedAwaitingApproval",
-    "Aprovado pelo cliente": "statusApprovedByClient",
-    "Rejeitado pelo cliente": "statusRejectedByClient",
+    Aprovado: "statusApproved",
+    Rejeitado: "statusRejected",
     Pago: "statusPaid",
     Finalizado: "statusCompleted",
     Cancelado: "statusCancelled",
@@ -88,8 +88,8 @@ export class StatusUtilsService {
     AwaitingExecutionDate: "statusAwaitingExecutionDate",
     DateProposedByAdmin: "statusDateProposedByAdmin",
     AwaitingDateApproval: "statusAwaitingDateApproval",
-    DateApprovedByClient: "statusDateApprovedByClient",
-    DateRejectedByClient: "statusDateRejectedByClient",
+    DateApproved: "statusDateApproved",
+    DateRejected: "statusDateRejected",
     SearchingProfessional: "statusSearchingProfessional",
     ProfessionalSelected: "statusProfessionalSelected",
     AwaitingProfessionalConfirmation: "statusAwaitingProfessionalConfirmation",

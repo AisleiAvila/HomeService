@@ -6,9 +6,11 @@ import {
   output,
   inject,
   signal,
+  OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowService } from "../../services/workflow.service";
@@ -21,12 +23,13 @@ import { StatusService } from "../../services/status.service";
   selector: "app-dashboard",
   standalone: true,
   imports: [CommonModule, FormsModule, ServiceListComponent, I18nPipe],
-  templateUrl: "./dashboard.component.html",
+  templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   // Mapeamento entre status do enum e status dos dados
-  private statusMap: Record<string, string> = {
+  // Mapeamento entre status do enum e status dos dados
+  private readonly statusMap: Record<string, string> = {
     Requested: "Solicitado",
     InAnalysis: "Em análise",
     AwaitingClarifications: "Aguardando esclarecimentos",
@@ -185,15 +188,19 @@ export class DashboardComponent {
   readonly dataService = inject(DataService);
   private readonly workflowService = inject(WorkflowService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
+  // Método para navegar para criação de solicitação
+  navigateToCreateRequest(): void {
+    this.router.navigate(['/create-service-request']);
+  }
 
   userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
     const currentUser = this.user();
 
     let filtered = [];
-    if (currentUser.role === "client") {
-      filtered = allRequests.filter((r) => r.client_id === currentUser.id);
-    } else if (currentUser.role === "professional") {
+    if (currentUser.role === "professional") {
       filtered = allRequests.filter(
         (r) => r.professional_id === currentUser.id
       );
@@ -376,39 +383,21 @@ export class DashboardComponent {
     const currentUser = this.user();
     const requests = this.userRequests();
 
-    const ativosPt = this.statusAtivos()
-      .map((s) => this.statusMap[s.value])
-      .filter(Boolean);
-    if (currentUser.role === "client") {
-      return [
-        {
-          label: this.i18n.translate("totalRequests"),
-          value: requests.length,
-          icon: "fas fa-list text-indigo-500",
-        },
-        {
-          label: this.i18n.translate("activeRequests"),
-          value: requests.filter((r) => ativosPt.includes(r.status)).length,
-          icon: "fas fa-cogs text-blue-500",
-        },
-        {
-          label: this.i18n.translate("completedRequests"),
-          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
-          icon: "fas fa-check-circle text-green-500",
-        },
-      ];
-    }
-
+    const ativosPt = new Set(
+      this.statusAtivos()
+        .map((s) => this.statusMap[s.value])
+        .filter(Boolean)
+    );
     if (currentUser.role === "admin") {
       return [
         {
           label: this.i18n.translate("activeRequests"),
-          value: requests.filter((r) => ativosPt.includes(r.status)).length,
+          value: requests.filter((r) => ativosPt.has(r.status)).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
           label: this.i18n.translate("completedRequests"),
-          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
+          value: requests.filter((r) => !ativosPt.has(r.status)).length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
@@ -422,12 +411,12 @@ export class DashboardComponent {
       return [
         {
           label: this.i18n.translate("activeJobs"),
-          value: requests.filter((r) => ativosPt.includes(r.status)).length,
+          value: requests.filter((r) => ativosPt.has(r.status)).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {
           label: this.i18n.translate("completedJobs"),
-          value: requests.filter((r) => !ativosPt.includes(r.status)).length,
+          value: requests.filter((r) => !ativosPt.has(r.status)).length,
           icon: "fas fa-check-double text-green-500",
         },
         {

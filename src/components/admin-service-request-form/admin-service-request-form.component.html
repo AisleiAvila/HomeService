@@ -1,0 +1,149 @@
+<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
+  <div>
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 break-words">
+      {{ 'createServiceRequest' | i18n }}
+    </h2>
+    <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+      {{ 'serviceRequestDescription' | i18n }}
+    </p>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+    <form (ngSubmit)="submitRequest()" #form="ngForm" class="space-y-4">
+
+      <!-- Service Details Section -->
+      <div class="p-4 border rounded-lg dark:border-gray-700">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">{{ 'serviceDetails' | i18n }}</h3>
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'title' | i18n }}</label>
+            <input type="text" id="title" name="title" [ngModel]="newRequest().title" (ngModelChange)="updateNewRequest('title', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'description' | i18n }}</label>
+            <textarea id="description" name="description" [ngModel]="newRequest().description" (ngModelChange)="updateNewRequest('description', $event)" required rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'category' | i18n }}</label>
+              <select id="category" name="category" [ngModel]="newRequest().category_id" (change)="onCategoryChange($event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <option value="0" disabled>{{ 'selectCategory' | i18n }}</option>
+                @for (category of categories(); track category.id) {
+                  <option [value]="category.id">{{ category.name | i18n }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label for="subcategory" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'subcategory' | i18n }}</label>
+              <select id="subcategory" name="subcategory" [ngModel]="newRequest().subcategory_id" (ngModelChange)="updateNewRequest('subcategory_id', +$event)" required [disabled]="!newRequest().category_id" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:opacity-50">
+                <option value="0" disabled>{{ 'selectSubcategory' | i18n }}</option>
+                @for (subcategory of subcategories(); track subcategory.id) {
+                  <option [value]="subcategory.id">{{ subcategory.name | i18n }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Requester Info Section -->
+      <div class="p-4 border rounded-lg dark:border-gray-700">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">{{ 'requesterInfo' | i18n }}</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="requester_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'client' | i18n }}</label>
+            <input type="text" id="requester_name" name="requester_name" [ngModel]="newRequest().requester_name" (ngModelChange)="updateNewRequest('requester_name', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="requester_phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'phone' | i18n }}</label>
+            <input type="tel" id="requester_phone" name="requester_phone" [ngModel]="newRequest().requester_phone" (ngModelChange)="updateNewRequest('requester_phone', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="requester_nif" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'nif' | i18n }} ({{ 'optional' | i18n }})</label>
+            <input type="text" id="requester_nif" name="requester_nif" [ngModel]="newRequest().requester_nif" (ngModelChange)="updateNewRequest('requester_nif', $event)" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Section -->
+      <div class="p-4 border rounded-lg dark:border-gray-700">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">{{ 'address' | i18n }}</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="sm:col-span-2">
+            <label for="street" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'street' | i18n }}</label>
+            <input type="text" id="street" name="street" [ngModel]="newRequest().street" (ngModelChange)="updateNewRequest('street', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+          <div class="relative">
+            <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'postalCode' | i18n }}</label>
+            <input type="text" id="postal_code" name="postal_code" [ngModel]="newRequest().postal_code" (ngModelChange)="onPostalCodeChange($event)" required placeholder="0000-000" class="mt-1 block w-full rounded-md shadow-sm sm:text-sm" [class.border-red-500]="!isPostalCodeValid()" [class.border-gray-300]="isPostalCodeValid()" [class.dark:border-gray-600]="isPostalCodeValid()">
+            @if (!isPostalCodeValid()) {
+              <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ 'invalidPostalCode' | i18n }}</p>
+            }
+            @if (postalCodeSuggestions().length > 0) {
+              <ul class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md mt-1 shadow-lg max-h-40 overflow-y-auto">
+                @for (suggestion of postalCodeSuggestions(); track suggestion) {
+                  <li><button type="button" (click)="selectSuggestion('postal_code', suggestion)" class="w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</button></li>
+                }
+              </ul>
+            }
+          </div>
+          <div class="relative">
+            <label for="locality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'locality' | i18n }}</label>
+            <input type="text" id="locality" name="locality" [ngModel]="newRequest().locality" (ngModelChange)="onLocalityChange($event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            @if (localitySuggestions().length > 0) {
+              <ul class="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md mt-1 shadow-lg max-h-40 overflow-y-auto">
+                @for (suggestion of localitySuggestions(); track suggestion) {
+                  <li><button type="button" (click)="selectSuggestion('locality', suggestion)" class="w-full text-left px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-white">{{ suggestion }}</button></li>
+                }
+              </ul>
+            }
+          </div>
+          <div>
+            <label for="district" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'district' | i18n }}</label>
+            <select id="district" name="district" [ngModel]="newRequest().district" (ngModelChange)="updateNewRequest('district', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+              <option value="" disabled>{{ 'selectDistrict' | i18n }}</option>
+              @for (district of districts(); track district) {
+                <option [value]="district">{{ district }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4 mt-4">
+           <div>
+            <label for="location_details" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'locationDetails' | i18n }} ({{ 'optional' | i18n }})</label>
+            <input type="text" id="location_details" name="location_details" [ngModel]="newRequest().location_details" (ngModelChange)="updateNewRequest('location_details', $event)" placeholder="{{ 'locationDetailsPlaceholder' | i18n }}" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+          <div>
+            <label for="location_access_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'locationAccessNotes' | i18n }} ({{ 'optional' | i18n }})</label>
+            <textarea id="location_access_notes" name="location_access_notes" [ngModel]="newRequest().location_access_notes" (ngModelChange)="updateNewRequest('location_access_notes', $event)" rows="2" placeholder="{{ 'locationAccessNotesPlaceholder' | i18n }}" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Urgency and Deadline Section -->
+      <div class="p-4 border rounded-lg dark:border-gray-700">
+        <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">{{ 'priority' | i18n }}</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="urgency" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'urgency' | i18n }}</label>
+            <select id="urgency" name="urgency" [ngModel]="newRequest().urgency" (ngModelChange)="updateNewRequest('urgency', $event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+              @for (level of urgencyLevels; track level) {
+                <option [value]="level">{{ 'urgency_' + level | i18n }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label for="service_deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'serviceDeadline' | i18n }} ({{ 'optional' | i18n }})</label>
+            <input type="date" id="service_deadline" name="service_deadline" [ngModel]="newRequest().service_deadline" (ngModelChange)="updateNewRequest('service_deadline', $event)" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end space-x-4 pt-4">
+        <button type="button" (click)="closeModal.emit()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">{{ 'cancel' | i18n }}</button>
+        <button type="submit" [disabled]="form.invalid" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">{{ 'create' | i18n }}</button>
+      </div>
+    </form>
+  </div>
+</div>

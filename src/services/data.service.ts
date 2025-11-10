@@ -1,23 +1,22 @@
 ﻿import { inject, Injectable, signal } from "@angular/core";
+import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
+import { I18nService } from "../i18n.service";
 import {
   ChatMessage,
   PaymentStatus,
   SchedulingStatus,
   ServiceCategory,
-  ServiceSubcategory,
-  ServiceSubcategoryExtended,
   ServiceClarification,
   ServiceRequest,
   ServiceRequestPayload,
-  ServiceStatus,
-  User,
+  ServiceSubcategoryExtended,
+  User
 } from "../models/maintenance.models";
+import { StatusService } from "../services/status.service";
+import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
-import { I18nService } from "../i18n.service";
-import { StatusService } from "../services/status.service";
-import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 
 @Injectable({
   providedIn: "root",
@@ -31,7 +30,7 @@ export class DataService {
     arteria_completa?: string;
   } | null> {
     // Normaliza para formato 'XXXX-XXX'
-    let normalized = postalCode.replace(/\D/g, "");
+    let normalized = postalCode.replaceAll(/\D/g, "");
     if (normalized.length === 7) {
       normalized = normalized.slice(0, 4) + "-" + normalized.slice(4);
     } else if (normalized.length === 8) {
@@ -77,6 +76,45 @@ export class DataService {
   readonly categories = signal<ServiceCategory[]>([]);
   readonly subcategories = signal<ServiceSubcategoryExtended[]>([]);
 
+  /** Constrói o payload para criar ou atualizar subcategoria */
+  private buildSubcategoryPayload(
+    name: string,
+    category_id: number,
+    options?: {
+      type?: "precificado" | "orçado";
+      average_time_minutes?: number | null;
+      price?: number | null;
+      description?: string | null;
+    }
+  ): any {
+    const payload: any = { name, category_id };
+    if (options) {
+      if (options.type !== undefined) payload.type = options.type;
+      if (options.average_time_minutes !== undefined)
+        payload.average_time_minutes = options.average_time_minutes ?? null;
+      if (options.price !== undefined) payload.price = options.price ?? null;
+      if (options.description !== undefined)
+        payload.description = options.description ?? null;
+    }
+    return payload;
+  }
+
+  /** Normaliza os dados de subcategoria retornados do Supabase */
+  private normalizeSubcategoryData(raw: any): ServiceSubcategoryExtended {
+    return {
+      ...raw,
+      category_id:
+        typeof raw.category_id === "string"
+          ? Number.parseInt(raw.category_id, 10)
+          : raw.category_id,
+      average_time_minutes:
+        raw.average_time_minutes === undefined
+          ? null
+          : raw.average_time_minutes,
+      price: raw.price === undefined ? null : raw.price,
+    };
+  }
+
   /** Adiciona uma nova subcategoria de serviço */
   async addSubcategory(
     name: string,
@@ -88,15 +126,7 @@ export class DataService {
       description?: string | null;
     }
   ): Promise<ServiceSubcategoryExtended | null> {
-    const payload: any = { name, category_id };
-    if (options) {
-      if (options.type !== undefined) payload.type = options.type;
-      if (options.average_time_minutes !== undefined)
-        payload.average_time_minutes = options.average_time_minutes ?? null;
-      if (options.price !== undefined) payload.price = options.price ?? null;
-      if (options.description !== undefined)
-        payload.description = options.description ?? null;
-    }
+    const payload = this.buildSubcategoryPayload(name, category_id, options);
 
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
@@ -113,19 +143,7 @@ export class DataService {
       return null;
     }
     if (data) {
-      const raw = data as any;
-      const created: ServiceSubcategoryExtended = {
-        ...raw,
-        category_id:
-          typeof raw.category_id === "string"
-            ? parseInt(raw.category_id, 10)
-            : raw.category_id,
-        average_time_minutes:
-          raw.average_time_minutes === undefined
-            ? null
-            : raw.average_time_minutes,
-        price: raw.price === undefined ? null : raw.price,
-      };
+      const created = this.normalizeSubcategoryData(data);
       this.subcategories.update((s) => [...s, created]);
       this.notificationService.addNotification(
         "Subcategoria criada com sucesso!"
@@ -176,7 +194,7 @@ export class DataService {
         ...raw,
         category_id:
           typeof raw.category_id === "string"
-            ? parseInt(raw.category_id, 10)
+            ? Number.parseInt(raw.category_id, 10)
             : raw.category_id,
         average_time_minutes:
           raw.average_time_minutes === undefined
@@ -340,36 +358,11 @@ export class DataService {
 
   private async fetchServiceRequests(currentUser: User) {
     let query = this.supabase.client.from("service_requests").select("*");
-    let filtro: { client_auth_id?: string; professional_id?: number } = {};
-    if (currentUser.role === "client") {
-      query = query.eq("client_auth_id", currentUser.auth_id);
-      filtro = { client_auth_id: currentUser.auth_id };
-    } else if (currentUser.role === "professional") {
-      // For├ºar tipo integer
-      const profId =
-        typeof currentUser.id === "string"
-          ? parseInt(currentUser.id, 10)
-          : currentUser.id;
-      console.log(
-        "[DEBUG] Valor de professional_id usado no filtro:",
-        profId,
-        "Tipo:",
-        typeof profId
-      );
-      query = query.eq("professional_id", profId);
-      filtro = { professional_id: profId };
+
+    if (currentUser.role === "professional") {
+      query = query.eq("professional_id", currentUser.id);
     }
     // Admin: sem filtro
-
-    console.log("[fetchServiceRequests] Filtro aplicado:", filtro);
-    // Exibe a query como string SQL simulada para debug
-    let sqlDebug = "SELECT * FROM service_requests";
-    if (filtro.client_auth_id) {
-      sqlDebug += ` WHERE client_auth_id = '${filtro.client_auth_id}'`;
-    } else if (filtro.professional_id) {
-      sqlDebug += ` WHERE professional_id = ${filtro.professional_id}`;
-    }
-    console.log("[DEBUG] SQL simulada:", sqlDebug);
 
     const { data, error } = await query;
 
@@ -381,27 +374,35 @@ export class DataService {
       this.notificationService.addNotification(
         "Using sample data - Error fetching service requests: " + error.message
       );
+    } else if (data && data.length > 0) {
+      const users = this.users();
+      const requests = data.map((r) => ({
+        ...r,
+        professional_name:
+          users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
+      }));
+      this.serviceRequests.set(requests);
     } else {
-      if (data && data.length > 0) {
-        const users = this.users();
-        const requests = (data as any[]).map((r) => ({
-          ...r,
-          client_name:
-            users.find((u) => u.id === r.client_id)?.name || "Unknown",
-          professional_name:
-            users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
-        }));
-        this.serviceRequests.set(requests);
-      } else {
-        this.serviceRequests.set([]);
-      }
+      this.serviceRequests.set([]);
     }
   }
 
   private async fetchCategories() {
     const { data, error } = await this.supabase.client
       .from("service_categories")
-      .select("id, name")
+      .select(`
+        id, 
+        name,
+        subcategories:service_subcategories(
+          id,
+          name,
+          category_id,
+          type,
+          average_time_minutes,
+          price,
+          description
+        )
+      `)
       .order("name");
 
     if (error) {
@@ -414,6 +415,7 @@ export class DataService {
       );
       // Keep default categories if fetch fails
     } else if (data && data.length > 0) {
+      console.log('Categories with subcategories loaded:', data);
       this.categories.set(data as ServiceCategory[]);
     } else {
       console.log("No categories found in Supabase, keeping sample data");
@@ -442,7 +444,7 @@ export class DataService {
         currentUserId: this.authService?.appUser?.()?.id ?? null,
       });
     } catch (e) {
-      // ignore
+      console.error("[DataService] Error logging subcategories response:", e);
     }
 
     if (data && data.length > 0) {
@@ -451,7 +453,7 @@ export class DataService {
         ...d,
         category_id:
           typeof d.category_id === "string"
-            ? parseInt(d.category_id, 10)
+            ? Number.parseInt(d.category_id, 10)
             : d.category_id,
         average_time_minutes:
           d.average_time_minutes === undefined ? null : d.average_time_minutes,
@@ -471,7 +473,7 @@ export class DataService {
           console.debug("[DataService] subcategories sample types:", sample);
         }
       } catch (e) {
-        /* ignore logging errors */
+        console.error("[DataService] Error logging subcategories debug info:", e);
       }
       this.subcategories.set(normalized as ServiceSubcategoryExtended[]);
     } else {
@@ -513,17 +515,76 @@ export class DataService {
         "Error creating service request: " + error.message
       );
       throw error;
-    } else {
-      this.notificationService.addNotification(
-        "Service request created successfully!"
-      );
-      // Reload service requests to show the new one
-      const currentUser = this.authService.appUser();
-      if (currentUser) {
-        await this.fetchServiceRequests(currentUser);
-      }
-      return true;
     }
+    
+    this.notificationService.addNotification(
+      "Service request created successfully!"
+    );
+    // Reload service requests to show the new one
+    if (currentUser) {
+      await this.fetchServiceRequests(currentUser);
+    }
+    return true;
+  }
+
+  async addAdminServiceRequest(payload: AdminServiceRequestPayload) {
+    const currentUser = this.authService.appUser();
+    if (currentUser?.role !== 'admin') {
+      this.notificationService.addNotification("Apenas administradores podem criar pedidos de serviço.");
+      throw new Error("Only admins can create admin service requests");
+    }
+
+    const { StatusService } = await import("../services/status.service");
+
+    // Mapeamento completo do payload para o objeto do banco de dados
+    const newRequestData = {
+      title: payload.title,
+      description: payload.description,
+      category_id: payload.category_id,
+      subcategory_id: payload.subcategory_id,
+      status: statusServiceToServiceStatus[StatusService.SearchingProfessional],
+      payment_status: "Unpaid" as const,
+      created_by_admin: true,
+      client_id: null,
+      client_auth_id: null,
+      // Campos do solicitante
+      requester_name: payload.requester_name,
+      requester_phone: payload.requester_phone,
+      requester_nif: payload.requester_nif,
+      // Campos de endereço
+      street: payload.street,
+      postal_code: payload.postal_code,
+      locality: payload.locality,
+      district: payload.district,
+      location_details: payload.location_details,
+      location_access_notes: payload.location_access_notes,
+      // Campos de urgência e prazo
+      urgency: payload.urgency,
+      service_deadline: payload.service_deadline,
+    };
+
+    const { error } = await this.supabase.client
+      .from("service_requests")
+      .insert(newRequestData);
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Error creating admin service request: " + error.message
+      );
+      throw error;
+    }
+    
+    this.notificationService.addNotification(
+      "Admin service request created successfully!"
+    );
+    if (currentUser) {
+      await this.fetchServiceRequests(currentUser);
+    }
+    return true;
+  }
+
+  getServiceRequestById(id: number): ServiceRequest | undefined {
+    return this.serviceRequests().find((r) => r.id === id);
   }
 
   async updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
@@ -539,40 +600,37 @@ export class DataService {
       this.notificationService.addNotification(
         "Error updating request: " + error.message
       );
-    } else {
-      // Notify about status changes
-      if (
-        updates.status &&
-        currentRequest &&
-        currentRequest.status !== updates.status
-      ) {
-        this.notificationService.addNotification(
-          this.i18n.translate("statusChangedFromTo", {
-            id: id.toString(),
-            from: currentRequest.status,
-            to: updates.status,
-          })
-        );
-      }
-
-      // Notify about payment status changes
-      if (
-        updates.payment_status &&
-        currentRequest &&
-        currentRequest.payment_status !== updates.payment_status
-      ) {
-        this.notificationService.addNotification(
-          this.i18n.translate("paymentStatusChanged", {
-            id: id.toString(),
-            status: updates.payment_status,
-          })
-        );
-      }
+      return;
     }
-  }
+    
+    // Notify about status changes
+    if (
+      updates.status &&
+      currentRequest &&
+      currentRequest.status !== updates.status
+    ) {
+      this.notificationService.addNotification(
+        this.i18n.translate("statusChangedFromTo", {
+          id: id.toString(),
+          from: currentRequest.status,
+          to: updates.status,
+        })
+      );
+    }
 
-  getServiceRequestById(id: number): ServiceRequest | undefined {
-    return this.serviceRequests().find((r) => r.id === id);
+    // Notify about payment status changes
+    if (
+      updates.payment_status &&
+      currentRequest &&
+      currentRequest.payment_status !== updates.payment_status
+    ) {
+      this.notificationService.addNotification(
+        this.i18n.translate("paymentStatusChanged", {
+          id: id.toString(),
+          status: updates.payment_status,
+        })
+      );
+    }
   }
 
   async respondToQuote(requestId: number, approved: boolean) {
@@ -742,19 +800,20 @@ export class DataService {
       this.notificationService.addNotification(
         "Error updating user: " + error.message
       );
-    } else {
-      // Refresh users data
-      await this.fetchUsers();
+      return;
+    }
+    
+    // Refresh users data
+    await this.fetchUsers();
 
-      // Notify about user updates
-      if (updates.status) {
-        this.notificationService.addNotification(
-          this.i18n.translate("userStatusUpdated", {
-            id: userId.toString(),
-            status: updates.status,
-          })
-        );
-      }
+    // Notify about user updates
+    if (updates.status) {
+      this.notificationService.addNotification(
+        this.i18n.translate("userStatusUpdated", {
+          userId: userId.toString(),
+          status: updates.status
+        })
+      );
     }
   }
 
@@ -1043,13 +1102,13 @@ export class DataService {
       let totalDuration = 0;
       let onTimeCount = 0;
 
-      services.forEach((service) => {
+      for (const service of services) {
         const actualDuration = this.calculateActualDuration(service);
         if (actualDuration) {
           totalDuration += actualDuration;
         }
 
-        // Considera "no hor├írio" se iniciou dentro de 15 minutos do agendado
+        // Considera "no horário" se iniciou dentro de 15 minutos do agendado
         if (service.scheduled_start_datetime && service.actual_start_datetime) {
           const scheduled = new Date(service.scheduled_start_datetime);
           const actual = new Date(service.actual_start_datetime);
@@ -1059,7 +1118,7 @@ export class DataService {
             onTimeCount++;
           }
         }
-      });
+      }
 
       return {
         professional_id: professional.id,
@@ -1100,11 +1159,11 @@ export class DataService {
         "Erro ao buscar esclarecimentos: " + error.message
       );
       return [];
-    } else {
-      const clarifications = data as ServiceClarification[];
-      this.serviceClarifications.set(clarifications);
-      return clarifications;
     }
+    
+    const clarifications = data as ServiceClarification[];
+    this.serviceClarifications.set(clarifications);
+    return clarifications;
   }
 
   /**
@@ -1141,24 +1200,24 @@ export class DataService {
         "Erro ao adicionar pergunta: " + error.message
       );
       throw error;
-    } else {
-      this.notificationService.addNotification(
-        "Pergunta adicionada com sucesso!"
-      );
-
-      // Recarregar esclarecimentos
-      await this.fetchServiceClarifications(serviceRequestId);
-
-      // Criar notifica├º├úo para outros participantes
-      await this.createClarificationNotification(
-        serviceRequestId,
-        "clarification_requested",
-        "Nova pergunta adicionada",
-        `${currentUser.name} fez uma nova pergunta: ${title}`
-      );
-
-      return data;
     }
+    
+    this.notificationService.addNotification(
+      "Pergunta adicionada com sucesso!"
+    );
+
+    // Recarregar esclarecimentos
+    await this.fetchServiceClarifications(serviceRequestId);
+
+    // Criar notifica├º├úo para outros participantes
+    await this.createClarificationNotification(
+      serviceRequestId,
+      "clarification_requested",
+      "Nova pergunta adicionada",
+      `${currentUser.name} fez uma nova pergunta: ${title}`
+    );
+
+    return data;
   }
 
   /**
@@ -1197,24 +1256,24 @@ export class DataService {
         "Erro ao adicionar resposta: " + error.message
       );
       throw error;
-    } else {
-      this.notificationService.addNotification(
-        "Resposta adicionada com sucesso!"
-      );
-
-      // Recarregar esclarecimentos
-      await this.fetchServiceClarifications(serviceRequestId);
-
-      // Criar notifica├º├úo para outros participantes
-      await this.createClarificationNotification(
-        serviceRequestId,
-        "clarification_provided",
-        "Nova resposta adicionada",
-        `${currentUser.name} respondeu: ${title}`
-      );
-
-      return data;
     }
+    
+    this.notificationService.addNotification(
+      "Resposta adicionada com sucesso!"
+    );
+
+    // Recarregar esclarecimentos
+    await this.fetchServiceClarifications(serviceRequestId);
+
+    // Criar notifica├º├úo para outros participantes
+    await this.createClarificationNotification(
+      serviceRequestId,
+      "clarification_provided",
+      "Nova resposta adicionada",
+      `${currentUser.name} respondeu: ${title}`
+    );
+
+    return data;
   }
 
   /**
@@ -1284,14 +1343,14 @@ export class DataService {
         "Erro ao deletar esclarecimento: " + error.message
       );
       throw error;
-    } else {
-      this.notificationService.addNotification(
-        "Esclarecimento deletado com sucesso!"
-      );
-
-      // Recarregar esclarecimentos
-      await this.fetchServiceClarifications(serviceRequestId);
     }
+    
+    this.notificationService.addNotification(
+      "Esclarecimento deletado com sucesso!"
+    );
+
+    // Recarregar esclarecimentos
+    await this.fetchServiceClarifications(serviceRequestId);
   }
 
   /**

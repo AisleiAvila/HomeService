@@ -1,5 +1,5 @@
 {
-  "name": "home-service-pro",
+  "name": "natan-home-service-pro",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -19,6 +19,11 @@
     "@angular/forms": "^20.1.6-0",
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.2.4",
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/geolocation": "^7.1.5",
+    "@capacitor/ios": "^7.4.4",
     "@fullcalendar/angular": "^6.1.19",
     "@fullcalendar/core": "^6.1.19",
     "@fullcalendar/daygrid": "^6.1.19",

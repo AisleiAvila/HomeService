@@ -9,6 +9,7 @@ import {
   signal,
   ViewChild,
 } from "@angular/core";
+import { Router, RouterModule } from "@angular/router";
 
 // Services
 import { AuthService } from "./services/auth.service";
@@ -18,11 +19,8 @@ import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
 // Models
-import { LoginPayload } from "./components/login/login.component";
-import { RegisterPayload } from "./components/register/register.component";
 import {
   ServiceRequest,
-  ServiceRequestPayload,
 } from "./models/maintenance.models";
 
 // Components
@@ -31,21 +29,18 @@ import { ChatComponent } from "./components/chat/chat.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { LandingComponent } from "./components/landing/landing.component";
-import { LoginComponent } from "./components/login/login.component";
+import { LoginComponent, LoginPayload } from "./components/login/login.component";
 import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
 import { ProfileComponent } from "./components/profile/profile.component";
-import { RegisterComponent } from "./components/register/register.component";
+import { RegisterComponent, RegisterPayload } from "./components/register/register.component";
 import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
 import { ScheduleComponent } from "./components/schedule/schedule.component";
 import { SchedulerComponent } from "./components/scheduler/scheduler.component";
 import { SearchComponent } from "./components/search/search.component";
 import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
-import { ServiceRequestFormComponent } from "./components/service-request-form/service-request-form.component";
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
 import { I18nPipe } from "./pipes/i18n.pipe";
-
-// Pipes (none used directly in this component)
 
 type View =
   | "landing"
@@ -55,7 +50,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
+type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create-service-request" | "admin-create-service-request";
 
 @Component({
   selector: "app-root",
@@ -63,6 +58,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
   imports: [
     CommonModule,
     I18nPipe,
+    RouterModule,
     LandingComponent,
     LoginComponent,
     RegisterComponent,
@@ -74,7 +70,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details";
     ScheduleComponent,
     SearchComponent,
     ProfileComponent,
-    ServiceRequestFormComponent,
     ServiceRequestDetailsComponent,
     SchedulerComponent,
     ChatComponent,
@@ -92,18 +87,59 @@ export class AppComponent implements OnInit {
   readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
   private readonly pushNotificationService = inject(PushNotificationService);
+  private readonly router = inject(Router);
 
   // App State
   view = signal<View>("landing");
   currentNav = signal<Nav>("dashboard");
+  isRouterOutletActivated = false;
+  
+  // Admin navigation views
+  adminViews = computed(() => [
+    {
+      id: "overview" as const,
+      label: this.i18n.translate("overview"),
+      icon: "fas fa-tachometer-alt",
+    },
+    {
+      id: "requests" as const,
+      label: this.i18n.translate("requests"),
+      icon: "fas fa-list",
+    },
+    {
+      id: "approvals" as const,
+      label: this.i18n.translate("approvals"),
+      icon: "fas fa-user-check",
+    },
+    {
+      id: "finances" as const,
+      label: this.i18n.translate("finances"),
+      icon: "fas fa-chart-line",
+    },
+    {
+      id: "professionals" as const,
+      label: this.i18n.translate("professionals"),
+      icon: "fas fa-users",
+    },
+    {
+      id: "clients" as const,
+      label: this.i18n.translate("clients"),
+      icon: "fas fa-user-friends",
+    },
+    {
+      id: "categories" as const,
+      label: this.i18n.translate("categories"),
+      icon: "fas fa-tags",
+    },
+  ]);
+  
+  currentAdminView = signal<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>('overview');
 
   // Modal State
   isSidebarOpen = signal(false);
-  // Colapso apenas para desktop (md+)
   isSidebarCollapsed = signal(false);
   isNotificationCenterOpen = signal(false);
   isChatOpen = signal(false);
-  isNewRequestFormOpen = signal(false);
   isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
@@ -124,8 +160,8 @@ export class AppComponent implements OnInit {
   );
   authTheme = computed(() => (this.view() === "landing" ? "light" : "dark"));
   isMobile = computed(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < 768;
+    if (globalThis.window === undefined) return false;
+    return globalThis.window.innerWidth < 768;
   });
 
   navItems = computed(() => {
@@ -147,11 +183,18 @@ export class AppComponent implements OnInit {
       },
       { id: "profile", labelKey: "profile", icon: "fa-solid fa-user" },
     ];
+    if (this.currentUser()?.role === 'client') {
+      items.push({ id: 'create-service-request', labelKey: 'newServiceRequest', icon: 'fa-solid fa-plus' });
+    }
     return items;
   });
 
   constructor() {
-    window.addEventListener("message", (event) => {
+    globalThis.window.addEventListener("message", (event) => {
+      if (event.origin !== globalThis.window.location.origin) {
+        return;
+      }
+      
       if (event.data?.type === "OPEN_REQUEST_DETAILS" && event.data?.payload) {
         this.openDetails(event.data.payload);
       } else if (event.data?.type === "OPEN_CHAT" && event.data?.payload) {
@@ -184,7 +227,22 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // --- View Navigation ---
+  onActivate(event: any) {
+    this.isRouterOutletActivated = true;
+  }
+
+  onDeactivate(event: any) {
+    this.isRouterOutletActivated = false;
+  }
+  
+  setAdminView(viewId: 'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories') {
+    this.currentAdminView.set(viewId);
+    // Ensure we're on the dashboard nav
+    if (this.currentNav() !== 'dashboard') {
+      this.navigate('dashboard');
+    }
+  }
+
   showLogin() {
     this.view.set("login");
   }
@@ -195,11 +253,17 @@ export class AppComponent implements OnInit {
     this.view.set("landing");
   }
   navigate(nav: Nav) {
-    this.currentNav.set(nav);
+    if (nav === 'create-service-request') {
+      this.router.navigate(['/create-service-request']);
+    } else if (nav === 'admin-create-service-request') {
+      this.router.navigate(['/admin-create-service-request']);
+    } else {
+      this.router.navigate(['/']);
+      this.currentNav.set(nav);
+    }
     if (this.isMobile()) this.isSidebarOpen.set(false);
   }
 
-  // --- Auth Handlers ---
   async handleLogin(payload: LoginPayload) {
     try {
       const response = await this.authService.login(
@@ -209,11 +273,16 @@ export class AppComponent implements OnInit {
       if (response.error) {
         if (this.loginComponent)
           this.loginComponent.setError(response.error.message);
-      } else {
-        if (this.loginComponent) this.loginComponent.clearError();
+      } else if (this.loginComponent) {
+        this.loginComponent.clearError();
       }
     } catch (error) {
-      // noop
+      console.error('Error during login:', error);
+      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('login_error');
+      if (this.loginComponent) {
+        this.loginComponent.setError(errorMessage);
+      }
+      this.notificationService.addNotification(errorMessage);
     }
   }
 
@@ -273,27 +342,24 @@ export class AppComponent implements OnInit {
       await this.authService.logout();
       this.view.set("landing");
       this.isSidebarOpen.set(false);
-      this.isNewRequestFormOpen.set(false);
       this.selectedRequest.set(null);
       this.isChatOpen.set(false);
       this.isNotificationCenterOpen.set(false);
     } catch (error) {
+      console.error('Error during logout:', error);
+      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('logout_error');
+      this.notificationService.addNotification(errorMessage);
       this.view.set("landing");
       this.isSidebarOpen.set(false);
       this.authService.appUser.set(null);
     }
   }
 
-  // --- Modal & Action Handlers ---
   openNewRequestForm() {
-    // Apenas clientes podem criar novas solicitações
-    if (this.currentUser()?.role !== 'client') {
-      console.warn('Apenas clientes podem criar solicitações de serviço');
-      return;
-    }
-    this.isNewRequestFormOpen.set(true);
+    this.router.navigate(['/create-service-request']);
     this.isSidebarOpen.set(false);
   }
+
   openChat(request: ServiceRequest) {
     this.selectedRequest.set(request);
     this.isChatOpen.set(true);
@@ -315,9 +381,7 @@ export class AppComponent implements OnInit {
     this.isClarificationModalOpen.set(true);
   }
 
-  // --- UI helpers ---
   toggleSidebar() {
-    // Em mobile abre/fecha o off-canvas; em desktop colapsa/expande a sidebar
     if (this.isMobile()) {
       this.isSidebarOpen.set(!this.isSidebarOpen());
     } else {
@@ -341,18 +405,7 @@ export class AppComponent implements OnInit {
     this.closeModal();
   }
 
-  async handleFormSubmitted(payload: ServiceRequestPayload) {
-    try {
-      this.notificationService.addNotification("Creating service request...");
-      await this.dataService.addServiceRequest(payload);
-      this.isNewRequestFormOpen.set(false);
-    } catch (error) {
-      console.error("Error creating service request:", error);
-    }
-  }
-
   closeModal() {
-    this.isNewRequestFormOpen.set(false);
     this.isNotificationCenterOpen.set(false);
     this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
@@ -362,7 +415,7 @@ export class AppComponent implements OnInit {
 
   handleApproveQuote(request: ServiceRequest) {
     this.dataService.updateServiceRequest(request.id, {
-      status: "Aprovado pelo cliente",
+      status: "Aprovado",
     });
     this.notificationService.addNotification(
       `Quote for "${request.title}" approved`
@@ -400,7 +453,6 @@ export class AppComponent implements OnInit {
     this.view.set("landing");
   }
 
-  // Usado por app-service-request-details (evento refreshRequest)
   handleRefreshRequest() {
     const user = this.currentUser();
     if (user) {
@@ -409,10 +461,10 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (typeof window !== "undefined") {
-      this.isSidebarOpen.set(window.innerWidth >= 768);
-      window.addEventListener("resize", () => {
-        if (window.innerWidth >= 768) this.isSidebarOpen.set(true);
+    if (globalThis.window !== undefined) {
+      this.isSidebarOpen.set(globalThis.window.innerWidth >= 768);
+      globalThis.window.addEventListener("resize", () => {
+        if (globalThis.window.innerWidth >= 768) this.isSidebarOpen.set(true);
         else this.isSidebarOpen.set(false);
       });
     }
