@@ -62,6 +62,8 @@ export class ServiceListComponent {
   provideClarification = output<ServiceRequest>();
   startService = output<ServiceRequest>();
   finishService = output<ServiceRequest>();
+  confirmAssignment = output<ServiceRequest>();
+  rejectAssignment = output<ServiceRequest>();
   // Ids de requests com ação em andamento (controlado pelo pai)
   actionLoadingIds = input<number[]>([]);
 

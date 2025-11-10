@@ -163,6 +163,31 @@
               >
                 <i class="fas fa-comments"></i>
               </button>
+              
+              <!-- Profissional: Confirmar/Recusar atribuição -->
+              @if(currentUser().role === 'professional' && request.status === 'Aguardando confirmação do profissional') {
+              <button
+                (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
+                class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                title="{{ 'confirmAssignment' | i18n }}"
+                [disabled]="isLoading(request.id)"
+              >
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
+                ></i>
+              </button>
+              <button
+                (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
+                class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                title="{{ 'rejectAssignment' | i18n }}"
+                [disabled]="isLoading(request.id)"
+              >
+                <i
+                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
+                ></i>
+              </button>
+              }
+              
               <!-- Profissional: Iniciar serviço para status Agendado -->
               @if(currentUser().role === 'professional' && (request.status ===
               'Agendado' || request.status === 'Scheduled')) {
@@ -566,6 +591,32 @@
           <!-- Professional actions (mobile): start/finish -->
           @if(currentUser().role === 'professional') {
           <div class="service-list-actions mb-3">
+            <!-- Confirmação/Recusa de Direcionamento -->
+            @if(request.status === 'Aguardando confirmação do profissional') {
+            <button
+              (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
+              class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors flex items-center justify-center w-full sm:w-auto mb-2 sm:mb-0 sm:mr-2"
+              [disabled]="isLoading(request.id)"
+            >
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
+                class="mr-1 sm:mr-2"
+              ></i>
+              {{ 'confirmAssignment' | i18n }}
+            </button>
+            <button
+              (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
+              class="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center w-full sm:w-auto"
+              [disabled]="isLoading(request.id)"
+            >
+              <i
+                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
+                class="mr-1 sm:mr-2"
+              ></i>
+              {{ 'rejectAssignment' | i18n }}
+            </button>
+            }
+            
             @if(request.status === 'Agendado' || request.status === 'Scheduled') {
             <button
               (click)="!isLoading(request.id) && startService.emit(request)"

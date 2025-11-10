@@ -543,4 +543,53 @@ export class DashboardComponent implements OnInit {
 
   // Expose Math for template
   Math = Math;
+
+  async handleConfirmAssignment(request: ServiceRequest) {
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
+    );
+    try {
+      // Atualizar status para "Agendado"
+      await this.dataService.updateServiceRequest(request.id, {
+        status: "Agendado",
+      });
+      
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("assignmentConfirmed"));
+      setTimeout(() => this.showBusinessError.set(false), 3000);
+    } catch (error) {
+      console.error("Erro ao confirmar atribuição:", error);
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("errorConfirmingAssignment"));
+    } finally {
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
+      );
+    }
+  }
+
+  async handleRejectAssignment(request: ServiceRequest) {
+    this.actionLoadingIds.update((ids) =>
+      Array.from(new Set([...(ids || []), request.id]))
+    );
+    try {
+      // Atualizar status para "Buscando profissional" e remover o profissional
+      await this.dataService.updateServiceRequest(request.id, {
+        status: "Buscando profissional",
+        professional_id: null,
+      });
+      
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("assignmentRejected"));
+      setTimeout(() => this.showBusinessError.set(false), 3000);
+    } catch (error) {
+      console.error("Erro ao rejeitar atribuição:", error);
+      this.showBusinessError.set(true);
+      this.businessErrorMessage.set(this.i18n.translate("errorRejectingAssignment"));
+    } finally {
+      this.actionLoadingIds.update((ids) =>
+        (ids || []).filter((id) => id !== request.id)
+      );
+    }
+  }
 }

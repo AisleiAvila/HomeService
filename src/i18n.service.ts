@@ -609,6 +609,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     newServiceAssignment: "New Service Assignment",
     serviceAssignmentMessage: "You have been assigned to service request #{id}: {title}. Scheduled for {date}.",
     pleaseConfirmAssignment: "Please confirm or reject this assignment as soon as possible.",
+    confirmAssignment: "Confirm Assignment",
+    rejectAssignment: "Reject Assignment",
+    assignmentConfirmed: "Assignment confirmed successfully",
+    assignmentRejected: "Assignment rejected successfully",
+    errorConfirmingAssignment: "Error confirming assignment. Please try again.",
+    errorRejectingAssignment: "Error rejecting assignment. Please try again.",
     errorRequestingClarification:
       "Error requesting clarification. Please try again.",
 
@@ -1118,6 +1124,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     newServiceAssignment: "Nova Atribuição de Serviço",
     serviceAssignmentMessage: "Você foi designado para a solicitação de serviço #{id}: {title}. Agendado para {date}.",
     pleaseConfirmAssignment: "Por favor, confirme ou rejeite esta atribuição o mais breve possível.",
+    confirmAssignment: "Confirmar Atribuição",
+    rejectAssignment: "Rejeitar Atribuição",
+    assignmentConfirmed: "Atribuição confirmada com sucesso",
+    assignmentRejected: "Atribuição rejeitada com sucesso",
+    errorConfirmingAssignment: "Erro ao confirmar atribuição. Tente novamente.",
+    errorRejectingAssignment: "Erro ao rejeitar atribuição. Tente novamente.",
 
     // General
     assignProfessionalToScheduled: "Atribuir Profissional ao Serviço Agendado",

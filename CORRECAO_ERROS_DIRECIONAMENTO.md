@@ -138,6 +138,31 @@ Após executar os comandos SQL necessários no Supabase:
 3. **`src/components/admin-dashboard/admin-dashboard.component.html`**
    - Botão "Direcionar para Profissional" agora oculto quando status é "Aguardando confirmação do profissional"
    - Aplicado tanto na versão desktop quanto mobile
+   - Botões de ação exibem apenas ícones com tooltips explicativos
+
+4. **`src/components/service-list/service-list.component.ts`**
+   - Adicionados outputs `confirmAssignment` e `rejectAssignment` para profissionais
+
+5. **`src/components/service-list/service-list.component.html`**
+   - Adicionados botões de confirmação/recusa para profissionais quando status é "Aguardando confirmação do profissional"
+   - Aplicado tanto na versão desktop (tabela) quanto mobile (cards)
+
+6. **`src/components/dashboard/dashboard.component.ts`**
+   - Implementados métodos `handleConfirmAssignment()` e `handleRejectAssignment()`
+   - Confirmação: muda status para "Agendado"
+   - Recusa: muda status para "Buscando profissional" e remove o profissional
+
+7. **`src/components/dashboard/dashboard.component.html`**
+   - Conectados eventos `confirmAssignment` e `rejectAssignment` aos handlers
+
+8. **`src/i18n.service.ts`**
+   - Adicionadas traduções PT/EN:
+     - `confirmAssignment`: "Confirmar Atribuição" / "Confirm Assignment"
+     - `rejectAssignment`: "Rejeitar Atribuição" / "Reject Assignment"
+     - `assignmentConfirmed`: "Atribuição confirmada com sucesso" / "Assignment confirmed successfully"
+     - `assignmentRejected`: "Atribuição rejeitada com sucesso" / "Assignment rejected successfully"
+     - `errorConfirmingAssignment`: Mensagens de erro PT/EN
+     - `errorRejectingAssignment`: Mensagens de erro PT/EN
 
 ### Arquivo SQL Criado:
 
@@ -162,7 +187,19 @@ Se ainda houver erros após estas correções:
 
 Depois de corrigir no Supabase, teste o fluxo completo:
 
+### Fluxo de Direcionamento pelo Admin:
 1. ✅ Admin direciona solicitação para profissional
 2. ✅ Status muda para "Aguardando confirmação do profissional"
 3. ✅ Profissional recebe notificação
 4. ✅ Data, hora e duração são salvos corretamente
+5. ✅ Botão "Direcionar para Profissional" desaparece da lista do admin
+
+### Fluxo de Confirmação/Recusa pelo Profissional:
+1. ✅ Profissional vê solicitações com status "Aguardando confirmação do profissional" em seu dashboard
+2. ✅ Profissional pode **Confirmar** a atribuição:
+   - Status muda para "Agendado"
+   - Serviço fica disponível para iniciar na data/hora programada
+3. ✅ Profissional pode **Rejeitar** a atribuição:
+   - Status muda para "Buscando profissional"
+   - Profissional é removido da solicitação
+   - Admin pode atribuir a outro profissional
