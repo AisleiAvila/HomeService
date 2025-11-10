@@ -1,6 +1,5 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
-import { ci } from "@fullcalendar/core/internal-common";
 
 export type Language = "en" | "pt";
 
@@ -186,6 +185,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // New Service Request Form
     newServiceRequest: "New Service Request",
+    fillFormToCreateRequest: "Fill out the form below to create a new service request",
+    serviceCategory: "Service Category",
+    formValid: "Form Valid",
+    formInvalid: "Form Invalid",
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
@@ -193,6 +196,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
   selectSubcategory: "Select a subcategory",
     descriptionPlaceholder: "Describe what you need...",
   dateTime: "Date & Time",
+  preferredDateTime: "Preferred Date & Time",
   dateTimePlaceholder: "Select preferred date and time",
   requestedDateTimeHelp: "When would you like this service to be performed?",
   validFutureDateTime: "Please select a valid future date and time",
@@ -200,6 +204,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
   complementPlaceholder: "Apartment, floor, reference (optional)",
     submitting: "Submitting",
     submitRequest: "Submit Request",
+    
+    // Requester Information
+    requesterInformation: "Requester Information",
+    clientNamePlaceholder: "Enter client name...",
+    phonePlaceholder: "000 000 000",
+    nifPlaceholder: "000 000 000",
+    invalidPhoneNumber: "Please enter a valid 9-digit phone number",
+    invalidNIF: "Please enter a valid 9-digit NIF",
+    clientNameMinLength: "Client name must be at least 3 characters",
+    
+    // Priority
+    priorityNormal: "Normal",
+    priorityUrgent: "Urgent",
 
     // Clarification Modal
     requestedClarification: "Requested Clarification",
@@ -672,6 +689,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     daysAgo: "days ago",
     clearFilters: "Clear Filters",
     quickFilters: "Quick Filters",
+    advancedFilters: "Advanced Filters",
+    manageAllServiceRequests: "View and manage all service requests in the system",
     all: "All",
     searchPlaceholder: "Search by title, ID or postal code...",
     activeFilters: "Active Filters",
@@ -730,7 +749,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     numberPlaceholder: "Number",
     cityPlaceholder: "City",
     statePlaceholder: "State",
-    zipPlaceholder: "ZIP Code"
+    zipPlaceholder: "ZIP Code",
+
+    createServiceRequest: "Create Service Request",
+    applicant: "Applicant",
+    serviceRequestDescription: "Create a new service request on behalf of a client",
+    number: "Number",
+    requesterInfo: "Requester Information",
   },
   pt: {
     // General
@@ -917,6 +942,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // New Service Request Form
     newServiceRequest: "Nova Solicitação de Serviço",
+    fillFormToCreateRequest: "Preencha o formulário abaixo para criar uma nova solicitação de serviço",
+    serviceCategory: "Categoria do Serviço",
+    formValid: "Formulário Válido",
+    formInvalid: "Formulário Inválido",
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
     selectCategory: "Selecione uma categoria...",
@@ -924,6 +953,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectSubcategory: "Selecione uma subcategoria",
     descriptionPlaceholder: "Descreva o que você precisa...",
     dateTime: "Data e Hora",
+    preferredDateTime: "Data e Hora Preferidas",
     dateTimePlaceholder: "Selecione a data e hora desejadas",
     requestedDateTimeHelp:
       "Quando você gostaria que este serviço fosse realizado?",
@@ -932,6 +962,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
     complementPlaceholder: "Apartamento, andar, referência (opcional)",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
+    
+    // Informações do Solicitante
+    requesterInformation: "Informações do Solicitante",
+    clientNamePlaceholder: "Digite o nome do cliente...",
+    phonePlaceholder: "000 000 000",
+    nifPlaceholder: "000 000 000",
+    invalidPhoneNumber: "Por favor, insira um número de telefone válido (9 dígitos)",
+    invalidNIF: "Por favor, insira um NIF válido (9 dígitos)",
+    clientNameMinLength: "O nome do cliente deve ter pelo menos 3 caracteres",
+    
+    // Prioridade
+    priorityNormal: "Normal",
+    priorityUrgent: "Urgente",
 
     // Clarification Modal
     requestedClarification: "Esclarecimentos Solicitados",
@@ -1424,6 +1467,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     daysAgo: "dias atrás",
     clearFilters: "Limpar Filtros",
     quickFilters: "Filtros Rápidos",
+    advancedFilters: "Filtros Avançados",
+    manageAllServiceRequests: "Visualize e gerencie todas as solicitações de serviço no sistema",
     all: "Todos",
     searchPlaceholder: "Pesquisar por título, ID ou código postal...",
     activeFilters: "Filtros Ativos",
@@ -1483,8 +1528,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     numberPlaceholder: "123",
     cityPlaceholder: "Lisboa",
     statePlaceholder: "Lisboa",
-    countryPlaceholder: "Portugal"
+    countryPlaceholder: "Portugal",
 
+    createServiceRequest: "Criar Solicitação de Serviço",
+    applicant: "Solicitante",
+    serviceRequestDescription: "Crie e gerencie solicitações de serviço em nome dos clientes.",
+    number: "Número",
+    requesterInfo: "Informações do Solicitante",
 
   },
 };
@@ -1517,7 +1567,7 @@ export class I18nService {
     console.log(`🌍 [I18N] Idioma alterado para: ${lang}`);
 
     // Força reload da página para garantir que as traduções sejam atualizadas
-    window.location.reload();
+    globalThis.location.reload();
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
@@ -1528,9 +1578,9 @@ export class I18nService {
     let result = translation || key;
 
     if (params) {
-      Object.keys(params).forEach((paramKey) => {
+      for (const paramKey of Object.keys(params)) {
         result = result.replace(`{${paramKey}}`, String(params[paramKey]));
-      });
+      }
     }
     return result;
   }

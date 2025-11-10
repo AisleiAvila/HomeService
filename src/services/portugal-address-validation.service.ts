@@ -1,11 +1,10 @@
 import { Injectable, inject } from "@angular/core";
-import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
+import { Observable, from, map } from "rxjs";
 import {
-  ValidationResult,
-  PostalCodeInfo,
+  ValidationResult
 } from "../interfaces/postal-code.interface";
 import { PostalCodeUtils } from "../utils/postal-code.utils";
-import { Observable, map, of, from } from "rxjs";
+import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
 
 @Injectable({
   providedIn: "root",
@@ -118,7 +117,7 @@ export class PortugalAddressValidationService {
   async getPortugueseDistricts(): Promise<string[]> {
     try {
       const distritos = await this.databaseService.getDistritos();
-      return distritos.map((d) => d.nome).sort();
+      return distritos.map((d) => d.nome).sort((a, b) => a.localeCompare(b, 'pt-PT'));
     } catch (error) {
       console.warn(
         "Erro ao buscar distritos da base de dados, usando lista fixa:",
@@ -263,7 +262,7 @@ export class PortugalAddressValidationService {
         const concelhos = await this.databaseService.getConcelhosByDistrito(
           distrito.id
         );
-        return concelhos.map((c) => c.nome).sort();
+        return concelhos.map((c) => c.nome).sort((a, b) => a.localeCompare(b, 'pt-PT'));
       }
 
       return [];
@@ -317,6 +316,66 @@ export class PortugalAddressValidationService {
         total_codigos_postais: 0,
       };
     }
+  }
+
+  /**
+   * NOVO: Busca sugestões de códigos postais parciais
+   */
+  async getPostalCodeSuggestions(partial: string): Promise<string[]> {
+    if (!partial || partial.length < 2) {
+      return [];
+    }
+    try {
+      const suggestions = await this.databaseService.searchPostalCodes(partial);
+      return suggestions.map(s => s.codigo_postal_completo);
+    } catch (error) {
+      console.warn("Erro ao buscar sugestões de código postal:", error);
+      return [];
+    }
+  }
+
+  /**
+   * NOVO: Busca sugestões de localidades parciais
+   */
+  async getLocalitySuggestions(partial: string): Promise<string[]> {
+    if (!partial || partial.length < 2) {
+      return [];
+    }
+    try {
+      const suggestions = await this.databaseService.searchLocalities(partial);
+      return suggestions.map(s => s.localidade);
+    } catch (error) {
+      console.warn("Erro ao buscar sugestões de localidade:", error);
+      return [];
+    }
+  }
+
+  /**
+   * NOVO: Verifica se um código postal está completo (formato XXXX-XXX)
+   */
+  isPostalCodeComplete(postalCode: string): boolean {
+    return /^\d{4}-\d{3}$/.test(postalCode);
+  }
+
+  /**
+   * NOVO: Obtém informações de endereço pelo código postal
+   */
+  async getAddressInfoByPostalCode(postalCode: string): Promise<{ locality: string; district: string } | null> {
+    const result = await this.databaseService.validateCodigoPostal(postalCode);
+    if (result.valid && result.endereco) {
+      return {
+        locality: result.endereco.localidade,
+        district: result.endereco.distrito,
+      };
+    }
+    return null;
+  }
+
+  /**
+   * NOVO: Obtém a lista de distritos a partir do signal no serviço de base de dados
+   */
+  get districts() {
+    return this.databaseService.districts;
   }
 
   /**

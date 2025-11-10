@@ -11,8 +11,11 @@ import {
   ElementRef,
   ViewChildren,
   QueryList,
+  input,
+  effect,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import {
   ServiceCategory,
   ServiceRequest,
@@ -45,6 +48,9 @@ import { StatusService } from "@/src/services/status.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
+  // Input para receber a visualização do componente pai
+  viewFromParent = input<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>();
+  
   // Filtros avançados e pesquisa
   filterStatus = signal<string>("");
   filterStartDate = signal<string>("");
@@ -92,6 +98,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     "Aveiro",
   ];
   professionalOptions: User[] = [];
+  
   ngOnInit() {
     this.startAutoRefresh();
     this.professionalOptions = this.professionals();
@@ -220,7 +227,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       reqs = reqs.filter(
         (r) =>
           r.title?.toLowerCase().includes(search) ||
-          this.getClientName(r.client_id)?.toLowerCase().includes(search) ||
           r.zip_code?.toLowerCase().includes(search) ||
           String(r.id).includes(search)
       );
@@ -265,9 +271,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         }
 
         case "client": {
-          const clientA = this.getClientName(a.client_id) || "";
-          const clientB = this.getClientName(b.client_id) || "";
-          compareResult = clientA.localeCompare(clientB);
+          // Client sorting not implemented yet - maintains current order
           break;
         }
 
@@ -292,6 +296,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   });
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+  
+  // Método para navegar para criação de solicitação
+  navigateToCreateRequest(): void {
+    this.router.navigate(['/create-service-request']);
+  }
+  
   // Título do gráfico de status, internacionalizado
   statusGraphTitle = this.i18n.translate("statusGraphTitle");
   // Labels internacionalizados para status
@@ -346,7 +357,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   Math = Math;
 
   constructor() {
-    // Component initialized
+    // Sincronizar a visualização com o componente pai
+    effect(() => {
+      const parentView = this.viewFromParent();
+      if (parentView) {
+        this.currentView.set(parentView);
+      }
+    });
   }
 
   // ngOnInit já definido acima
@@ -451,14 +468,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     // Garante que todas categorias aparecem, mesmo sem pedidos
-    categories.forEach((cat) => {
+    for (const cat of categories) {
       if (!(cat.id in categoryMap)) categoryMap[cat.id] = 0;
-    });
-
-    // Adiciona "Sem categoria" se houver algum
-    if (categoryMap["none"] !== undefined) {
-      categoryMap["none"] = categoryMap["none"];
     }
+
+    // "Sem categoria" já está incluído no categoryMap se existir
 
     return categoryMap;
   });
@@ -469,9 +483,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const labels: Record<string, string> = {};
 
     // Mapeia as categorias existentes pelo id
-    categories.forEach((category) => {
+    for (const category of categories) {
       labels[category.id] = category.name;
-    });
+    }
 
     // Adiciona label para "Sem categoria"
     labels["none"] = this.i18n.translate("noCategory");
@@ -509,7 +523,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const activities: any[] = [];
 
     // Simular atividades recentes baseadas nos dados existentes
-    requests.slice(0, 5).forEach((req) => {
+    for (const req of requests.slice(0, 5)) {
       activities.push({
         type: "request",
         message: this.i18n.translate("requestCreated") + ` #${req.id}`,
@@ -517,9 +531,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         icon: "fas fa-file-alt",
         color: "text-blue-600",
       });
-    });
+    }
 
-    users.slice(0, 3).forEach((user) => {
+    for (const user of users.slice(0, 3)) {
       activities.push({
         type: "user",
         message: this.i18n.translate("userRegistered") + `: ${user.name}`,
@@ -527,10 +541,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         icon: "fas fa-user-plus",
         color: "text-green-600",
       });
-    });
+    }
 
     // Ordenar por tempo (mais recente primeiro)
-    return activities
+    return [...activities]
       .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
       .slice(0, 8);
   });
@@ -641,7 +655,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   pendingRegistrations = computed(() =>
     this.allUsers().filter(
       (u) =>
-        (u.role === "professional" || u.role === "client") &&
+        (u.role === "professional") &&
         (u.status === "Pending" || u.email_verified === false)
     )
   );
@@ -663,7 +677,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     )
   );
 
-  clients = computed(() => this.allUsers().filter((u) => u.role === "client"));
+  clients = computed(() => this.allUsers().filter((u) => u.role === "admin"));
 
   completedRequests = computed(() =>
     this.allRequests().filter(
@@ -759,7 +773,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       {
         label: this.i18n.translate("activeClients"),
-        value: users.filter((u) => u.role === "client" && u.status === "Active")
+        value: users.filter((u) => u.role === "admin" && u.status === "Active")
           .length,
         icon: "fas fa-user-friends",
         bgColor:
@@ -906,7 +920,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods
-  getClientName(clientId: number): string {
+  getClientName(clientId: number | null): string {
+    if (!clientId) return this.i18n.translate("unknownClient");
     return (
       this.allUsers().find((u) => u.id === clientId)?.name ||
       this.i18n.translate("unknownClient")
@@ -1036,7 +1051,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   async requestClarificationFromClient(request: ServiceRequest) {
     // In a real implementation, this would open a modal to input the clarification request
     // For now, we'll use a simple prompt
-    const clarificationText = window.prompt(
+    const clarificationText = globalThis.prompt(
       this.i18n.translate("enterClarificationRequest")
     );
 
@@ -1159,17 +1174,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         minute: "2-digit",
       });
     } catch (error) {
+      console.error('Error formatting date:', error);
       return isoString;
     }
   }
 
   canAssignProfessional(): boolean {
+    const duration = this.estimatedDurationMinutes();
     return !!(
       this.assigningProfessionalId() &&
       this.scheduledDate() &&
       this.scheduledTime() &&
-      this.estimatedDurationMinutes() &&
-      this.estimatedDurationMinutes()! > 0
+      duration &&
+      duration > 0
     );
   }
 
@@ -1180,8 +1197,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       (request.status === "Agendado" && !request.professional_id) ||
       // Status "Orçamento aprovado" (fluxo normal)
       request.status === "Orçamento aprovado" ||
-      // Status "Aprovado pelo cliente" (novo fluxo)
-      request.status === "Aprovado pelo cliente"
+      // Status "Aprovado" (novo fluxo)
+      request.status === "Aprovado"
     );
   }
 
@@ -1240,6 +1257,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Professional management
+  toggleAddProfessionalForm() {
+    const currentValue = this.showAddProfessionalForm();
+    console.log('toggleAddProfessionalForm - Current value:', currentValue);
+    this.showAddProfessionalForm.set(!currentValue);
+    console.log('toggleAddProfessionalForm - New value:', this.showAddProfessionalForm());
+  }
+
+  isProfessionalSpecialtySelected(categoryId: number): boolean {
+    return this.editingProfessionalSpecialties().some(s => s.id === categoryId);
+  }
+
   toggleNewProfessionalSpecialty(category: ServiceCategory, event: Event) {
     // category agora é ServiceCategory
     const checked = (event.target as HTMLInputElement).checked;
@@ -1258,7 +1286,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   addProfessional() {
     const name = this.newProfessionalName().trim();
     const email = this.newProfessionalEmail().trim();
-    const specialties = this.newProfessionalSpecialties();
 
     if (!name || !email) {
       this.notificationService.addNotification(
@@ -1455,7 +1482,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   printInvoice() {
-    window.print();
+    globalThis.print();
   }
 
   exportFinancialsAsCSV() {
@@ -1500,14 +1527,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
 
     const csvContent =
-      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\\n");
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", "financial_report.csv");
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
 
     this.notificationService.addNotification(
       this.i18n.translate("reportExported")
@@ -1515,12 +1542,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Legacy methods for compatibility
-  handleApproval(user: User, isApproved: boolean) {
-    if (isApproved) {
-      this.approveClient(user.id);
-    } else {
-      this.rejectClient(user.id);
-    }
+  handleApprove(user: User) {
+    this.approveClient(user.id);
+  }
+
+  handleReject(user: User) {
+    this.rejectClient(user.id);
   }
 
   // Admin Dashboard specific actions
@@ -1528,36 +1555,36 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     console.log("Admin Dashboard - viewRequestDetails called:", request);
     // Emit to parent component to open modal
     // For now, we'll just log - the parent app component should handle this
-    window.postMessage(
+    globalThis.postMessage(
       {
         type: "OPEN_REQUEST_DETAILS",
         payload: request,
       },
-      "*"
+      globalThis.location.origin
     );
   }
 
   openChat(request: ServiceRequest) {
     console.log("Admin Dashboard - openChat called:", request);
     // Emit to parent component to open chat
-    window.postMessage(
+    globalThis.postMessage(
       {
         type: "OPEN_CHAT",
         payload: request,
       },
-      "*"
+      globalThis.location.origin
     );
   }
 
   // New actions for changing professional and adjusting schedule
   changeProfessional(request: ServiceRequest) {
     console.log("Admin Dashboard - changeProfessional called:", request);
-    window.postMessage(
+    globalThis.postMessage(
       {
         type: "OPEN_CHANGE_PROFESSIONAL",
         payload: request,
       },
-      "*"
+      globalThis.location.origin
     );
     this.notificationService.addNotification(
       this.i18n.translate("changeProfessionalAction")
@@ -1566,12 +1593,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   adjustSchedule(request: ServiceRequest) {
     console.log("Admin Dashboard - adjustSchedule called:", request);
-    window.postMessage(
+    globalThis.postMessage(
       {
         type: "OPEN_ADJUST_SCHEDULE",
         payload: request,
       },
-      "*"
+      globalThis.location.origin
     );
     this.notificationService.addNotification(
       this.i18n.translate("adjustScheduleAction")

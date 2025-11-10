@@ -1,7 +1,7 @@
 import "@angular/compiler";
 
-// import { applyFetchInterceptor } from "./src/app/core/interceptors/fetch.interceptor";
-// applyFetchInterceptor();
+import { provideRouter } from "@angular/router";
+import { routes } from "./src/app/app.routes";
 
 import { provideZonelessChangeDetection, LOCALE_ID } from "@angular/core";
 import { provideHttpClient, withFetch } from "@angular/common/http";
@@ -23,12 +23,17 @@ const tailwindScript = document.createElement("script");
 tailwindScript.src = "https://cdn.tailwindcss.com";
 document.head.appendChild(tailwindScript);
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideZonelessChangeDetection(),
-    provideHttpClient(withFetch()), // Enable HTTP client with fetch API
-    { provide: LOCALE_ID, useValue: "de" }, // German locale for Euro
-  ],
-}).catch((err) => console.error(err));
+try {
+  await bootstrapApplication(AppComponent, {
+    providers: [
+      provideRouter(routes),
+      provideZonelessChangeDetection(),
+      provideHttpClient(withFetch()), // Enable HTTP client with fetch API
+      { provide: LOCALE_ID, useValue: "de" }, // German locale for Euro
+    ],
+  });
+} catch (err) {
+  console.error(err);
+}
 
 // AI Studio always uses an `index.tsx` file for all project types.
