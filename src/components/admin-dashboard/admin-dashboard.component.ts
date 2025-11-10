@@ -442,6 +442,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   scheduledDate = signal<string>("");
   scheduledTime = signal<string>("");
   estimatedDurationMinutes = signal<number | null>(null);
+  
+  // Direct assignment data (nova funcionalidade)
+  directAssignmentRequest = signal<ServiceRequest | null>(null);
+  directAssignmentProfessionalId = signal<number | null>(null);
+  directAssignmentDate = signal<string>("");
+  directAssignmentTime = signal<string>("");
+  directAssignmentDuration = signal<number | null>(null);
 
   // Computed: total de serviços por status
   servicesByStatus = computed(() => {
@@ -1603,6 +1610,111 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.notificationService.addNotification(
       this.i18n.translate("adjustScheduleAction")
     );
+  }
+  
+  // Direct Assignment Methods (nova funcionalidade)
+  openDirectAssignmentModal(request: ServiceRequest) {
+    this.directAssignmentRequest.set(request);
+    this.directAssignmentProfessionalId.set(null);
+    this.directAssignmentDate.set("");
+    this.directAssignmentTime.set("");
+    this.directAssignmentDuration.set(null);
+  }
+
+  canDirectAssign(): boolean {
+    const duration = this.directAssignmentDuration();
+    return !!(
+      this.directAssignmentProfessionalId() &&
+      this.directAssignmentDate() &&
+      this.directAssignmentTime() &&
+      duration &&
+      duration > 0
+    );
+  }
+
+  async submitDirectAssignment() {
+    const request = this.directAssignmentRequest();
+    const professionalId = this.directAssignmentProfessionalId();
+    const date = this.directAssignmentDate();
+    const time = this.directAssignmentTime();
+    const duration = this.directAssignmentDuration();
+
+    if (!request || !professionalId || !date || !time || !duration) {
+      this.notificationService.addNotification(
+        this.i18n.translate("fillRequiredFields")
+      );
+      return;
+    }
+
+    // Combine date and time into ISO datetime string
+    const scheduledDateTime = this.combineDateTime(date, time);
+
+    try {
+      // Atualizar a solicitação com status "Aguardando confirmação do profissional"
+      await this.dataService.updateServiceRequest(request.id, {
+        professional_id: professionalId,
+        status: "Aguardando confirmação do profissional",
+        scheduled_start_datetime: scheduledDateTime,
+        estimated_duration_minutes: duration,
+      });
+
+      const professionalName = this.getProfessionalName(professionalId);
+
+      // Enviar notificação para o profissional
+      await this.notificationService.createEnhancedNotification(
+        professionalId,
+        "professional_assigned",
+        this.i18n.translate("newServiceAssignment"),
+        this.i18n.translate("serviceAssignmentMessage", {
+          id: request.id.toString(),
+          title: request.title,
+          date: this.formatDateTime(scheduledDateTime),
+        }) + " " + this.i18n.translate("pleaseConfirmAssignment"),
+        {
+          serviceRequestId: request.id,
+          actionRequired: true,
+          priority: "high",
+        }
+      );
+
+      this.notificationService.addNotification(
+        this.i18n.translate("directAssignmentSuccess", {
+          id: request.id.toString(),
+          professional: professionalName,
+        })
+      );
+
+      this.notificationService.addNotification(
+        this.i18n.translate("professionalNotified", {
+          professional: professionalName,
+        })
+      );
+
+      // Refresh data
+      const currentUser = this.dataService.authService.appUser();
+      if (currentUser) {
+        await this.dataService.loadInitialData(currentUser);
+      }
+
+      this.cancelDirectAssignment();
+    } catch (error) {
+      console.error("Error directing service request:", error);
+      this.notificationService.addNotification(
+        this.i18n.translate("directAssignmentError")
+      );
+    }
+  }
+
+  cancelDirectAssignment() {
+    this.directAssignmentRequest.set(null);
+    this.directAssignmentProfessionalId.set(null);
+    this.directAssignmentDate.set("");
+    this.directAssignmentTime.set("");
+    this.directAssignmentDuration.set(null);
+  }
+
+  setDirectAssignmentDuration(minutes: number) {
+    this.directAssignmentDuration.set(minutes);
   }
 
   // Computed properties for backward compatibility
