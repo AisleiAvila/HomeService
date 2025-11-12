@@ -31,6 +31,8 @@ import { CategoryBarChartComponent } from "../category-bar-chart.component";
 import { TemporalEvolutionChartComponent } from "../temporal-evolution-chart.component";
 import { CategoryManagementComponent } from "../category-management/category-management.component";
 import { StatusService } from "@/src/services/status.service";
+import { SupabaseService } from "../../services/supabase.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-admin-dashboard",
@@ -297,6 +299,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
+  private readonly supabaseService = inject(SupabaseService);
+  private readonly authService = inject(AuthService);
   
   // Método para navegar para criação de solicitação
   navigateToCreateRequest(): void {
@@ -1290,23 +1294,101 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  addProfessional() {
+  async addProfessional() {
+    console.log("🎯 AdminDashboard.addProfessional() chamado");
+    
     const name = this.newProfessionalName().trim();
     const email = this.newProfessionalEmail().trim();
 
+    console.log("📝 Dados do novo profissional:", { name, email });
+
     if (!name || !email) {
+      console.log("❌ Validação falhou: campos vazios");
       this.notificationService.addNotification(
         this.i18n.translate("fillRequiredFields")
       );
       return;
     }
 
-    // In a real app, this would call an API to create the professional
-    this.notificationService.addNotification(
-      this.i18n.translate("professionalAdded", { name })
-    );
+    // Validar formato de e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log("❌ Validação falhou: formato de e-mail inválido");
+      this.notificationService.addNotification(
+        "Por favor, insira um e-mail válido (exemplo: usuario@email.com)"
+      );
+      return;
+    }
 
-    this.resetNewProfessionalForm();
+    try {
+      console.log("📞 Enviando código de verificação via OTP para:", email);
+      
+      // Usar signInWithOtp para enviar e-mail de verificação
+      const { error } = await this.supabaseService.client.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            name,
+            role: 'professional',
+            createdByAdmin: true,
+          },
+        },
+      });
+
+      if (error) {
+        console.error("❌ Erro ao enviar código de verificação:", error);
+        
+        if (error.message.includes("User already registered")) {
+          this.notificationService.addNotification(
+            "Este e-mail já está cadastrado no sistema."
+          );
+        } else if (error.message.includes("rate limit")) {
+          this.notificationService.addNotification(
+            "Muitas tentativas. Aguarde alguns minutos e tente novamente."
+          );
+        } else {
+          this.notificationService.addNotification(
+            `Erro ao criar profissional: ${error.message}`
+          );
+        }
+        return;
+      }
+
+      console.log("✅ Código de verificação enviado com sucesso!");
+      console.log("✅ ========================================");
+      console.log("✅ E-MAIL DE VERIFICAÇÃO ENVIADO!");
+      console.log("✅ Destinatário:", email);
+      console.log("✅ Nome:", name);
+      console.log("✅ Tipo: Profissional (criado por admin)");
+      console.log("✅ ========================================");
+
+      const successMessage = `✅ Profissional ${name} adicionado com sucesso!\n\n📧 E-mail de verificação enviado para:\n${email}\n\n⚠️ IMPORTANTE:\n- Verifique a pasta de SPAM\n- O profissional deve inserir o código recebido\n- Configure SMTP no Supabase para produção`;
+      
+      // Notificação visual
+      this.notificationService.addNotification(
+        `✅ Profissional ${name} adicionado! Um e-mail de verificação foi enviado para ${email}.`
+      );
+      
+      // Alert para garantir visualização
+      alert(successMessage);
+
+      this.resetNewProfessionalForm();
+      
+      // Recarregar lista de profissionais após alguns segundos
+      setTimeout(() => {
+        const user = this.authService.appUser();
+        if (user) {
+          this.dataService.loadInitialData(user);
+        }
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error("❌ Erro inesperado ao adicionar profissional:", error);
+      this.notificationService.addNotification(
+        `Erro ao adicionar profissional: ${error.message || 'Erro desconhecido'}`
+      );
+    }
   }
 
   resetNewProfessionalForm() {
