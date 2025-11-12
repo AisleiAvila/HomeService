@@ -1333,6 +1333,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             role: 'professional',
             createdByAdmin: true,
           },
+          emailRedirectTo: `${window.location.origin}/auth/confirm` // Garante que o link leve à tela de definição de senha
         },
       });
 
