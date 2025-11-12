@@ -286,14 +286,30 @@ export class AppComponent implements OnInit {
     }
   }
 
-  handleRegister(payload: RegisterPayload) {
-    this.authService.register(
-      payload.name,
-      payload.email,
-      payload.password,
-      payload.role
-    );
-    this.showRegistrationModal.set(true);
+  async handleRegister(payload: RegisterPayload) {
+    console.log("🎯 AppComponent.handleRegister() chamado com payload:", {
+      name: payload.name,
+      email: payload.email,
+      role: payload.role,
+      passwordLength: payload.password.length,
+    });
+    
+    try {
+      console.log("📞 Chamando authService.register()...");
+      await this.authService.register(
+        payload.name,
+        payload.email,
+        payload.password,
+        payload.role
+      );
+      console.log("✅ authService.register() concluído sem erros");
+      // Só mostra o modal se o registro foi bem-sucedido
+      // A verificação de pendingEmailConfirmation já redireciona para tela de verificação
+    } catch (error) {
+      console.error('❌ Erro durante o registro:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao processar cadastro';
+      this.notificationService.addNotification(errorMessage);
+    }
   }
 
   handleVerification(code: string) {

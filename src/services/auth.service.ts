@@ -339,8 +339,15 @@ export class AuthService {
     console.log("🔒 Fazendo logout obrigatório para tela de verificação");
     await this.supabase.client.auth.signOut();
 
+    // Mensagem de sucesso bem visível
+    console.log("✅ ========================================");
+    console.log("✅ E-MAIL DE VERIFICAÇÃO ENVIADO COM SUCESSO!");
+    console.log("✅ Destinatário:", email);
+    console.log("✅ Tipo de cadastro:", role === "professional" ? "Profissional" : "Cliente");
+    console.log("✅ ========================================");
+    
     this.notificationService.addNotification(
-      "Um código de verificação foi enviado para seu e-mail. Verifique sua caixa de entrada e spam."
+      "✅ Cadastro realizado! Um código de verificação foi enviado para seu e-mail. Verifique sua caixa de entrada e pasta de spam."
     );
   }
 
