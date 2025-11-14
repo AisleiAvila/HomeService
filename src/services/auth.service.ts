@@ -973,11 +973,18 @@ export class AuthService {
 
   private async ensureUserProfile(user: any, tempUserData: any): Promise<void> {
     // Verificar se perfil já existe
-    const { data: existingProfile } = await this.supabase.client
+    const { data: existingProfile, error: fetchError } = await this.supabase.client
       .from("users")
       .select("*")
       .eq("auth_id", user.id)
       .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // Erro inesperado ao buscar perfil
+      console.error("❌ Erro ao buscar perfil:", fetchError);
+      this.notificationService.addNotification("Erro ao buscar perfil do usuário: " + (fetchError.message || fetchError.code));
+      return;
+    }
 
     if (existingProfile) {
       console.log("📝 Perfil já existe, atualizando email_verified...");
@@ -987,6 +994,7 @@ export class AuthService {
         .eq("auth_id", user.id);
       if (updateError) {
         console.error("❌ Erro ao atualizar email_verified:", updateError);
+        this.notificationService.addNotification("Erro ao atualizar verificação de email do perfil: " + (updateError.message || updateError.code));
       } else {
         console.log("✅ email_verified atualizado com sucesso");
       }
@@ -1001,13 +1009,32 @@ export class AuthService {
         avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
         email_verified: true,
       };
-      const { error: insertError } = await this.supabase.client
+      console.log("🔎 Dados para insert de perfil:", insertData);
+      // Monta query SQL para debug
+      const insertSQL = `INSERT INTO users (auth_id, name, email, role, status, avatar_url, email_verified) VALUES (
+        '${insertData.auth_id}',
+        '${insertData.name.replace(/'/g, "''")}',
+        '${insertData.email}',
+        '${insertData.role}',
+        '${insertData.status}',
+        '${insertData.avatar_url}',
+        ${insertData.email_verified ? 'TRUE' : 'FALSE'}
+      );`;
+      console.log("📝 Query SQL de insert:", insertSQL);
+      const { data: insertResult, error: insertError } = await this.supabase.client
         .from("users")
-        .insert(insertData);
+        .insert(insertData)
+        .select();
+      console.log("🟢 Resultado do insert:", { insertResult, insertError });
       if (insertError) {
-        console.error("❌ Erro ao criar perfil:", insertError);
+        console.error("❌ Erro ao criar perfil:", insertError, "Payload:", insertData);
+        this.notificationService.addNotification(
+          "Erro ao criar perfil do usuário: " + (insertError.message || insertError.code) +
+          (insertError.details ? "\n" + insertError.details : "")
+        );
       } else {
-        console.log("✅ Perfil criado com sucesso");
+        console.log("✅ Perfil criado com sucesso", insertResult);
+        this.notificationService.addNotification("Perfil criado com sucesso!");
       }
     }
   }
