@@ -1322,18 +1322,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
     try {
       console.log("📞 Enviando código de verificação via OTP para:", email);
-      
-      // Usar signInWithOtp para enviar e-mail de verificação
+      // Sempre define role como 'professional' ao criar novo profissional
       const { error } = await this.supabaseService.client.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
           data: {
             name,
-            role: 'professional',
+            role: 'professional', // Garantido
             createdByAdmin: true,
           },
-          emailRedirectTo: `${window.location.origin}/auth/confirm` // Garante que o link leve à tela de definição de senha
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
         },
       });
 
@@ -1431,6 +1430,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       name: this.editingProfessionalName(),
       email: this.editingProfessionalEmail(),
       specialties: this.editingProfessionalSpecialties(),
+      role: 'professional' as User['role'], // Garantir tipo UserRole
     };
 
     this.dataService.updateUser(professional.id, updates);
