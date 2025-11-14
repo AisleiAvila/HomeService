@@ -44,24 +44,41 @@ export class ConfirmEmailComponent {
   loading = false;
   error = '';
   success = false;
+  private readonly i18n = inject<any>(/* I18nService */ require('../../i18n.service'));
+
+  /**
+   * Obtém token, type e email dos query params ou do hash fragment
+   */
+  private getTokenParams(): { token: string | null, type: string | null, email: string | null } {
+    let token = this.route.snapshot.queryParamMap.get('token');
+    let type = this.route.snapshot.queryParamMap.get('type');
+    let email = this.route.snapshot.queryParamMap.get('email');
+    if (!token && globalThis.location.hash) {
+      const params = new URLSearchParams(globalThis.location.hash.substring(1));
+      token = params.get('access_token');
+      type = params.get('type') || 'magiclink';
+      email = params.get('email');
+    }
+    return { token, type, email };
+  }
 
   async onSubmit() {
     this.error = '';
     if (this.password.length < 6) {
-      this.error = 'A senha deve ter pelo menos 6 caracteres.';
+      this.error = this.i18n.translate('passwordTooShort', 'A senha deve ter pelo menos 6 caracteres. Por favor, escolha uma senha mais forte.');
       return;
     }
     if (this.password !== this.confirmPassword) {
-      this.error = 'As senhas não coincidem.';
+      this.error = this.i18n.translate('passwordsDoNotMatch', 'As senhas informadas não coincidem. Verifique e tente novamente.');
       return;
     }
     this.loading = true;
-    // O token vem como query param: ?token=...&type=signup
-  const token = this.route.snapshot.queryParamMap.get('token');
-  const type = this.route.snapshot.queryParamMap.get('type') as EmailOtpType;
-  const email = this.route.snapshot.queryParamMap.get('email');
+
+    // Aceita token, type e email tanto via query string quanto via hash fragment
+    const { token, type, email } = this.getTokenParams();
+
     if (!token || !type || !email) {
-      this.error = 'Link de confirmação inválido.';
+      this.error = this.i18n.translate('invalidOrExpiredLink', 'O link de acesso é inválido ou expirou. Solicite um novo convite ao administrador.');
       this.loading = false;
       return;
     }
@@ -70,10 +87,10 @@ export class ConfirmEmailComponent {
       const { error: verifyError } = await this.supabase.client.auth.verifyOtp({
         email,
         token,
-        type
+        type: type as EmailOtpType
       });
       if (verifyError) {
-        this.error = verifyError.message;
+        this.error = this.i18n.translate('invalidOrUsedLink', 'O link de acesso é inválido, expirou ou já foi utilizado. Solicite um novo convite ao administrador.');
         this.loading = false;
         return;
       }
@@ -82,17 +99,18 @@ export class ConfirmEmailComponent {
         password: this.password
       });
       if (updateError) {
-        this.error = updateError.message;
+        this.error = this.i18n.translate('unableToSetPassword', 'Não foi possível definir a nova senha. Tente novamente ou entre em contato com o suporte.');
         this.loading = false;
         return;
       }
       this.success = true;
-      this.notification.addNotification('Senha definida com sucesso!');
+      this.notification.addNotification(this.i18n.translate('passwordSetSuccess', 'Senha definida com sucesso! Agora você já pode acessar a plataforma.'));
       setTimeout(() => {
         this.router.navigate(['/']);
-      }, 2000);
+      }, 2500);
     } catch (e: any) {
-      this.error = e.message || 'Erro ao definir senha.';
+      console.error('Erro inesperado ao definir a senha:', e);
+      this.error = this.i18n.translate('unexpectedPasswordError', 'Ocorreu um erro inesperado ao definir a senha. Tente novamente ou contate o suporte.');
     } finally {
       this.loading = false;
     }
