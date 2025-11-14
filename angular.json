@@ -18,6 +18,7 @@
             },
             "browser": "index.tsx",
             "tsConfig": "tsconfig.json",
+            "baseHref": "/",
             "assets": [
               "favicon.ico",
               "favicon.svg",

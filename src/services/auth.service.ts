@@ -944,92 +944,97 @@ export class AuthService {
 
     try {
       const { user, tempData } = detail;
-      const tempUserData = JSON.parse(tempData);
+      const tempUserData = this.parseTempUserData(tempData);
 
-      console.log("📝 Dados temporários encontrados:", tempUserData);
-      console.log("👤 Usuário confirmado:", user.email);
-
-      // Verificar se perfil já existe
-      const { data: existingProfile } = await this.supabase.client
-        .from("users")
-        .select("*")
-        .eq("auth_id", user.id)
-        .single();
-
-      if (existingProfile) {
-        console.log("📝 Perfil já existe, atualizando email_verified...");
-
-        const { error: updateError } = await this.supabase.client
-          .from("users")
-          .update({ email_verified: true })
-          .eq("auth_id", user.id);
-
-        if (updateError) {
-          console.error("❌ Erro ao atualizar email_verified:", updateError);
-        } else {
-          console.log("✅ email_verified atualizado com sucesso");
-        }
+      console.log("� Usuário confirmado:", user.email);
+      if (tempUserData) {
+        console.log("�📝 Dados temporários encontrados:", tempUserData);
       } else {
-        console.log("📝 Criando perfil para usuário confirmado via link...");
-
-        // Criar perfil na tabela users
-        const insertData = {
-          auth_id: user.id,
-          name: tempUserData.name,
-          email: tempUserData.email,
-          role: tempUserData.role,
-          status: tempUserData.role === "professional" ? "Pending" : "Active",
-          avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
-          email_verified: true, // Email já confirmado via link
-        };
-
-        const { error: insertError } = await this.supabase.client
-          .from("users")
-          .insert(insertData);
-
-        if (insertError) {
-          console.error("❌ Erro ao criar perfil:", insertError);
-        } else {
-          console.log("✅ Perfil criado com sucesso");
-        }
+        console.log("⚠️ Nenhum dado temporário encontrado. Será criado perfil mínimo.");
       }
 
-      // Definir senha do usuário
-      if (tempUserData.password) {
-        console.log("🔑 Definindo senha para usuário confirmado via link...");
+      await this.ensureUserProfile(user, tempUserData);
+      await this.setPasswordIfAvailable(tempUserData);
 
-        const { error: passwordError } =
-          await this.supabase.client.auth.updateUser({
-            password: tempUserData.password,
-          });
-
-        if (passwordError) {
-          console.error("❌ Erro ao definir senha:", passwordError);
-        } else {
-          console.log("✅ Senha definida com sucesso");
-        }
-      }
-
-      // Limpar dados temporários
-      localStorage.removeItem("tempUserData");
-
-      // Fazer logout para forçar login com credenciais
-      console.log("🔒 Fazendo logout para redirecionar para login...");
-      await this.supabase.client.auth.signOut();
-
-      // Mostrar notificação de sucesso
-      this.notificationService.addNotification(
-        `Conta confirmada com sucesso! Faça login com suas credenciais para acessar a aplicação.`
-      );
-
-      // Limpar estado de confirmação pendente
-      this.pendingEmailConfirmation.set(null);
-
-      console.log("✅ Confirmação via link processada com sucesso");
+      this.finalizeEmailConfirmation();
     } catch (error) {
       console.error("❌ Erro ao processar confirmação via link:", error);
-      // Limpar dados temporários mesmo em caso de erro
       localStorage.removeItem("tempUserData");
     }
+  }
+
+  private parseTempUserData(tempData: string): any {
+    try {
+      return tempData ? JSON.parse(tempData) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async ensureUserProfile(user: any, tempUserData: any): Promise<void> {
+    // Verificar se perfil já existe
+    const { data: existingProfile } = await this.supabase.client
+      .from("users")
+      .select("*")
+      .eq("auth_id", user.id)
+      .single();
+
+    if (existingProfile) {
+      console.log("📝 Perfil já existe, atualizando email_verified...");
+      const { error: updateError } = await this.supabase.client
+        .from("users")
+        .update({ email_verified: true })
+        .eq("auth_id", user.id);
+      if (updateError) {
+        console.error("❌ Erro ao atualizar email_verified:", updateError);
+      } else {
+        console.log("✅ email_verified atualizado com sucesso");
+      }
+    } else {
+      console.log("📝 Criando perfil para usuário confirmado via link...");
+      const insertData = {
+        auth_id: user.id,
+        name: tempUserData?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Novo Usuário',
+        email: user.email,
+        role: tempUserData?.role || 'client',
+        status: tempUserData?.role === "professional" ? "Pending" : "Active",
+        avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
+        email_verified: true,
+      };
+      const { error: insertError } = await this.supabase.client
+        .from("users")
+        .insert(insertData);
+      if (insertError) {
+        console.error("❌ Erro ao criar perfil:", insertError);
+      } else {
+        console.log("✅ Perfil criado com sucesso");
+      }
+    }
+  }
+
+  private async setPasswordIfAvailable(tempUserData: any): Promise<void> {
+    if (tempUserData?.password) {
+      console.log("🔑 Definindo senha para usuário confirmado via link...");
+      const { error: passwordError } =
+        await this.supabase.client.auth.updateUser({
+          password: tempUserData.password,
+        });
+      if (passwordError) {
+        console.error("❌ Erro ao definir senha:", passwordError);
+      } else {
+        console.log("✅ Senha definida com sucesso");
+      }
+    }
+  }
+
+  private async finalizeEmailConfirmation(): Promise<void> {
+    localStorage.removeItem("tempUserData");
+    console.log("🔒 Fazendo logout para redirecionar para login...");
+    await this.supabase.client.auth.signOut();
+    this.notificationService.addNotification(
+      `Conta confirmada com sucesso! Faça login com suas credenciais para acessar a aplicação.`
+    );
+    this.pendingEmailConfirmation.set(null);
+    console.log("✅ Confirmação via link processada com sucesso");
   }
 }
