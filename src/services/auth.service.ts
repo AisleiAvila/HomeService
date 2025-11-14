@@ -972,12 +972,17 @@ export class AuthService {
   }
 
   private async ensureUserProfile(user: any, tempUserData: any): Promise<void> {
+    console.log("[DEBUG] ensureUserProfile chamado para:", { user, tempUserData });
     // Verificar se perfil já existe
     const { data: existingProfile, error: fetchError } = await this.supabase.client
       .from("users")
       .select("*")
       .eq("auth_id", user.id)
       .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error("[DEBUG] Erro inesperado ao buscar perfil:", fetchError);
+    }
 
     if (fetchError && fetchError.code !== 'PGRST116') {
       // Erro inesperado ao buscar perfil
