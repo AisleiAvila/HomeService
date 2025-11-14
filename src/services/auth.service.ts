@@ -14,6 +14,46 @@ export class AuthService {
   async refreshAppUser(authId: string): Promise<void> {
     await this.fetchAppUser(authId, false);
   }
+
+  /**
+   * Busca o perfil do usuário autenticado na tabela 'users'
+   * @param authId ID do usuário no Supabase Auth
+   * @param isAutomatic Indica se a chamada é automática (ex: via effect)
+   */
+  private async fetchAppUser(authId: string, isAutomatic: boolean): Promise<void> {
+    try {
+      const { data: user, error } = await this.supabase.client
+        .from("users")
+        .select("*")
+        .eq("auth_id", authId)
+        .single();
+
+      if (error) {
+        console.error("❌ Erro ao buscar perfil do usuário:", error);
+        this.appUser.set(null);
+        return;
+      }
+
+      if (!user) {
+        console.warn("⚠️ Nenhum perfil encontrado para o usuário:", authId);
+        this.appUser.set(null);
+        return;
+      }
+
+      // Se o email não estiver verificado, tratar fluxo de confirmação
+      if (!user.email_verified) {
+        await this.handleUnverifiedEmail(user, authId, isAutomatic);
+        return;
+      }
+
+      // Email verificado, definir usuário na signal
+      this.pendingEmailConfirmation.set(null);
+      this.appUser.set(user as User);
+    } catch (err) {
+      console.error("❌ Erro inesperado ao buscar perfil do usuário:", err);
+      this.appUser.set(null);
+    }
+  }
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
 
@@ -29,63 +69,12 @@ export class AuthService {
     effect(async () => {
       const sUser = this.supabaseUser();
       console.log("🔍 AuthService effect triggered. sUser:", sUser?.id);
-
       if (sUser) {
         console.log("👤 Usuário autenticado, buscando perfil...");
         await this.fetchAppUser(sUser.id, true); // true = chamada automática
-
-        // Inicializar NotificationService para o usuário atual
-        const currentUser = this.appUser();
-        if (currentUser) {
-          this.notificationService.initializeForUser(currentUser.id);
-        }
-      } else {
-        console.log("👤 Nenhum usuário logado");
-        this.appUser.set(null);
-        this.pendingEmailConfirmation.set(null);
       }
-    });
-
-    // Listener para confirmação de email via link
-    globalThis.addEventListener("emailConfirmedViaLink", async (event: any) => {
-      console.log("🔗 Processando confirmação via link...");
-      await this.handleEmailConfirmedViaLink(event.detail);
-    });
-  }
-
-  private async fetchAppUser(userId: string, isAutomatic: boolean = true) {
-    console.log("🔍 Buscando usuário com auth_id:", userId);
-
-    const { data, error } = await this.supabase.client
-      .from("users")
-      .select("*")
-      .eq("auth_id", userId)
-      .single();
-
-    if (error) {
-      console.error("❌ Supabase fetchAppUser error:", error);
-      if (error.code !== "PGRST116") {
-        // PGRST116: "object not found" - this is expected on first login after signup
-        this.handleAuthError(error, "fetching user profile");
-      }
-      this.appUser.set(null);
-      return;
+      });
     }
-
-    const user = data as User;
-    console.log("👤 Usuário encontrado:", user.email);
-    console.log("📧 Email verificado:", user.email_verified);
-
-    // Verificar se o email foi verificado
-    if (!user.email_verified) {
-      await this.handleUnverifiedEmail(user, userId, isAutomatic);
-      return;
-    }
-
-    console.log("✅ Email verificado. Carregando usuário");
-    this.pendingEmailConfirmation.set(null);
-    this.appUser.set(user);
-  }
 
   private async handleUnverifiedEmail(
     user: User,
