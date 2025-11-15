@@ -1296,24 +1296,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   async addProfessional() {
     console.log("🎯 AdminDashboard.addProfessional() chamado");
-    
     const name = this.newProfessionalName().trim();
     const email = this.newProfessionalEmail().trim();
 
     console.log("📝 Dados do novo profissional:", { name, email });
 
+    // 1. Validação básica
     if (!name || !email) {
-      console.log("❌ Validação falhou: campos vazios");
       this.notificationService.addNotification(
         this.i18n.translate("fillRequiredFields")
       );
       return;
     }
-
-    // Validar formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.log("❌ Validação falhou: formato de e-mail inválido");
       this.notificationService.addNotification(
         "Por favor, insira um e-mail válido (exemplo: usuario@email.com)"
       );
@@ -1321,76 +1317,86 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     try {
-      console.log("📞 Enviando código de verificação via OTP para:", email);
-      // Sempre define role como 'professional' ao criar novo profissional
-      const { error } = await this.supabaseService.client.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          data: {
-            name,
-            role: 'professional', // Garantido
-            createdByAdmin: true,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/confirm`
-        },
-      });
-
-      if (error) {
-        console.error("❌ Erro ao enviar código de verificação:", error);
-        
-        if (error.message.includes("User already registered")) {
-          this.notificationService.addNotification(
-            "Este e-mail já está cadastrado no sistema."
-          );
-        } else if (error.message.includes("rate limit")) {
-          this.notificationService.addNotification(
-            "Muitas tentativas. Aguarde alguns minutos e tente novamente."
-          );
-        } else {
-          this.notificationService.addNotification(
-            `Erro ao criar profissional: ${error.message}`
-          );
-        }
+      // 2. Verifica duplicidade
+      const { data: existing, error: checkError } = await this.supabaseService.client
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+      if (checkError) {
+        throw checkError;
+      }
+      if (existing) {
+        this.notificationService.addNotification(
+          'Já existe um usuário cadastrado com este e-mail.'
+        );
         return;
       }
 
-      console.log("✅ Código de verificação enviado com sucesso!");
-      console.log("✅ ========================================");
-      console.log("✅ E-MAIL DE VERIFICAÇÃO ENVIADO!");
-      console.log("✅ Destinatário:", email);
-      console.log("✅ Nome:", name);
-      console.log("✅ Tipo: Profissional (criado por admin)");
-      console.log("✅ ========================================");
+      // 3. Gera token de confirmação (UUID)
+      const confirmationToken = self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
 
-      const successMessage = `✅ Profissional ${name} adicionado com sucesso!\n\n📧 E-mail de verificação enviado para:\n${email}\n\n⚠️ IMPORTANTE:\n- Verifique a pasta de SPAM\n- O profissional deve inserir o código recebido\n- Configure SMTP no Supabase para produção`;
-      
-      // Notificação visual
+      // 4. Insere usuário na tabela users
+      const { error: insertError } = await this.supabaseService.client.from('users').insert({
+        email,
+        name,
+        role: 'professional',
+        status: 'Pending',
+        email_verified: false,
+        confirmation_token: confirmationToken,
+      });
+      if (insertError) {
+        throw insertError;
+      }
+
+      // 5. Envia e-mail de confirmação (mock: adapte para serviço real)
+      const confirmUrl = `${window.location.origin}/auth/confirm?token=${confirmationToken}&email=${encodeURIComponent(email)}`;
+      await this.sendCustomEmail({
+        to: email,
+        subject: 'Confirmação de e-mail - HomeService',
+        html: `<p>Olá ${name},</p><p>Para ativar seu acesso, clique no link abaixo:</p><p><a href="${confirmUrl}">${confirmUrl}</a></p><p>Se não foi você, ignore este e-mail.</p>`
+      });
+
       this.notificationService.addNotification(
-        `✅ Profissional ${name} adicionado! Um e-mail de verificação foi enviado para ${email}.`
+        `✅ Profissional ${name} criado! E-mail de confirmação enviado.`
       );
-      
-      // Alert para garantir visualização
-      alert(successMessage);
-
       this.resetNewProfessionalForm();
-      
-      // Recarregar lista de profissionais após alguns segundos
       setTimeout(() => {
-        const user = this.authService.appUser();
-        if (user) {
-          this.dataService.loadInitialData(user);
-        }
+        this.dataService.loadInitialData(this.authService.appUser());
       }, 2000);
-      
     } catch (error: any) {
-      console.error("❌ Erro inesperado ao adicionar profissional:", error);
+      console.error("❌ Erro ao adicionar profissional:", error);
       this.notificationService.addNotification(
         `Erro ao adicionar profissional: ${error.message || 'Erro desconhecido'}`
       );
     }
   }
 
+  /**
+   * Envia e-mail customizado (mock: adapte para serviço real de e-mail)
+   */
+  async sendCustomEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+    // Envia e-mail de verdade via backend Node.js/SendGrid
+    try {
+      const response = await fetch('http://localhost:4001/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html })
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Falha ao enviar e-mail');
+      }
+      return true;
+    } catch (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Limpa o formulário de novo profissional
+   */
   resetNewProfessionalForm() {
     this.showAddProfessionalForm.set(false);
     this.newProfessionalName.set("");
@@ -1398,49 +1404,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.newProfessionalSpecialties.set([]);
   }
 
-  startEditProfessional(professional: User) {
-    this.editingProfessional.set(professional);
-    this.editingProfessionalName.set(professional.name);
-    this.editingProfessionalEmail.set(professional.email);
-    this.editingProfessionalSpecialties.set(
-      professional.specialties ? [...professional.specialties] : []
-    );
-  }
 
-  toggleEditProfessionalSpecialty(category: ServiceCategory, event: Event) {
-    // category agora é ServiceCategory
-    const checked = (event.target as HTMLInputElement).checked;
-    const current = this.editingProfessionalSpecialties();
-    if (checked) {
-      if (!current.some((c) => c.id === category.id)) {
-        this.editingProfessionalSpecialties.set([...current, category]);
-      }
-    } else {
-      this.editingProfessionalSpecialties.set(
-        current.filter((s) => s.id !== category.id)
-      );
-    }
-  }
+/**
+ * Limpa o formulário de novo profissional
+ */
 
-  saveProfessionalEdit() {
-    const professional = this.editingProfessional();
-    if (!professional) return;
-
-    const updates = {
-      name: this.editingProfessionalName(),
-      email: this.editingProfessionalEmail(),
-      specialties: this.editingProfessionalSpecialties(),
-      role: 'professional' as User['role'], // Garantir tipo UserRole
-    };
-
-    this.dataService.updateUser(professional.id, updates);
-
-    this.notificationService.addNotification(
-      this.i18n.translate("professionalUpdated", { name: updates.name })
-    );
-
-    this.cancelEditProfessional();
-  }
 
   cancelEditProfessional() {
     this.editingProfessional.set(null);
