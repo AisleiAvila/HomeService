@@ -10,15 +10,29 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 
 // Substitua pela sua chave da SendGrid
-// const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || 'SUA_API_KEY_AQUI';
-// const FROM_EMAIL = process.env.FROM_EMAIL || 'no-reply@seudominio.com';
-const SENDGRID_API_KEY = '***REMOVED***kcaBcWhRR-yDrBqtTbXpoA.enhaEtfJyA8o1tjgJRvkTBmxJKUhcmEnL3rtDeUUJ7k';
-const FROM_EMAIL = 'aislei@outlook.com.br';
+require('dotenv').config();
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL;
 
 sgMail.setApiKey(SENDGRID_API_KEY);
 
-// CORS aberto para debug: aceita qualquer origem
-app.use(cors());
+// CORS explícito para frontend Angular local e Vercel (função para múltiplos domínios)
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://home-service-nu.vercel.app'
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite requisições sem origin (ex: ferramentas locais, curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 app.post('/api/send-email', async (req, res) => {
