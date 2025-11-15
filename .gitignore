@@ -25,3 +25,6 @@ dist-ssr
 
 # Ignorar cache do Angular
 .angular/cache/
+
+.env
+[.env.development](http://_vscodecontentref_/2)
