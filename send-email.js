@@ -11,10 +11,10 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 
 // Substitua pela sua chave da SendGrid
-// const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || 'SUA_API_KEY_AQUI';
-// const FROM_EMAIL = process.env.FROM_EMAIL || 'no-reply@seudominio.com';
-const SENDGRID_API_KEY = '***REMOVED***kcaBcWhRR-yDrBqtTbXpoA.enhaEtfJyA8o1tjgJRvkTBmxJKUhcmEnL3rtDeUUJ7k';
-const FROM_EMAIL = 'aislei@outlook.com.br';
+import dotenv from 'dotenv';
+dotenv.config();
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL;
 
 sgMail.setApiKey(SENDGRID_API_KEY);
 

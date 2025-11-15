@@ -27,6 +27,7 @@
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.39.7",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "rxjs": "^7.8.2",
     "tippy.js": "^6.3.7"
@@ -34,17 +35,18 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.11",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "concurrently": "^8.2.2"
+    "vite": "^6.2.0"
   },
   "scripts": {
     "dev": "ng serve",
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
-    "start": "concurrently \"ng serve --port 4200\" \"node send-email.cjs\""
+    "start": "concurrently \"ng serve --port 4200\" \"nodemon send-email.cjs\""
   }
 }
