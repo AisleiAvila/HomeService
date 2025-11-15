@@ -40,6 +40,7 @@ import { SearchComponent } from "./components/search/search.component";
 import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
+import { NotificationToastComponent } from "./components/notification-toast/notification-toast.component";
 import { I18nPipe } from "./pipes/i18n.pipe";
 
 type View =
@@ -75,6 +76,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
     ChatComponent,
     NotificationCenterComponent,
     LanguageSwitcherComponent,
+    NotificationToastComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
