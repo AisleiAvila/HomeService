@@ -25,3 +25,7 @@ dist-ssr
 
 # Ignorar cache do Angular
 .angular/cache/
+
+.env
+.env.development
+.env.example
