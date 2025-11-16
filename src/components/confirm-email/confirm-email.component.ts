@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import type { EmailOtpType } from '@supabase/gotrue-js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -33,7 +33,12 @@ import { NotificationService } from '../../services/notification.service';
     </div>
   `
 })
-export class ConfirmEmailComponent {
+
+
+export class ConfirmEmailComponent implements OnInit {
+    constructor() {
+      // Ao inicializar, lógica de logout movida para ngOnInit
+    }
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly supabase = inject(SupabaseService);
@@ -46,10 +51,16 @@ export class ConfirmEmailComponent {
   success = false;
   private readonly i18n = inject<any>(/* I18nService */ require('../../i18n.service'));
 
-  /**
-   * Obtém token, type e email dos query params ou do hash fragment
-   */
-  private getTokenParams(): { token: string | null, type: string | null, email: string | null } {
+  ngOnInit() {
+    // Ao inicializar, força logout se houver sessão ativa
+    this.supabase.client.auth.getSession().then(({ data }) => {
+      if (data?.session) {
+        this.supabase.client.auth.signOut();
+      }
+    });
+  }
+
+  private getTokenParams() {
     let token = this.route.snapshot.queryParamMap.get('token');
     let type = this.route.snapshot.queryParamMap.get('type');
     let email = this.route.snapshot.queryParamMap.get('email');
