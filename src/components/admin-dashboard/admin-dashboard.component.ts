@@ -1350,7 +1350,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       }
 
       // 5. Envia e-mail de confirmação (mock: adapte para serviço real)
-      const confirmUrl = `${globalThis.location.origin}/auth/confirm?token=${confirmationToken}&email=${encodeURIComponent(email)}`;
+      const confirmUrl = `${globalThis.location.origin}/auth/confirm?token=${confirmationToken}&email=${encodeURIComponent(email)}&type=signup`;
       await this.sendCustomEmail({
         to: email,
         subject: 'Natan Home Service - Confirmação de e-mail',
