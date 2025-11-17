@@ -1334,7 +1334,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       }
 
       // 3. Gera token de confirmação (UUID)
-      const confirmationToken = self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
+      const confirmationToken = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
 
       // 4. Insere usuário na tabela users
       const { error: insertError } = await this.supabaseService.client.from('users').insert({
