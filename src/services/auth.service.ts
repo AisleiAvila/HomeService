@@ -144,7 +144,7 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    console.log("AuthService - Tentando login com:", email);
+    // Login iniciado
 
     try {
       // Validação básica
@@ -152,32 +152,24 @@ export class AuthService {
         throw new Error("Email e senha são obrigatórios");
       }
 
-      console.log("Chamando signInWithPassword...");
+      // Chamando signInWithPassword
 
       const response = await this.supabase.client.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
-      console.log("Resposta do signInWithPassword:", {
-        user: response.data?.user?.id,
-        session: !!response.data?.session,
-        error: response.error,
-      });
+      // Resposta do signInWithPassword recebida
 
       if (response.error) {
-        console.error("Erro detalhado:", {
-          message: response.error.message,
-          status: response.error.status,
-          name: response.error.name,
-        });
+        // Erro detalhado
         this.handleAuthError(response.error, "logging in");
         return response;
       }
 
       // Se login foi bem-sucedido, verificar se email foi verificado
       if (response.data?.user) {
-        console.log("🔍 Login bem-sucedido, verificando email_verified...");
+        // Login bem-sucedido, verificando email_verified
 
         const { data: userData, error: userError } = await this.supabase.client
           .from("users")
@@ -186,17 +178,13 @@ export class AuthService {
           .single();
 
         if (userError) {
-          console.error("❌ Erro ao verificar email_verified:", userError);
+          // Erro ao verificar email_verified
         } else if (userData?.email_verified) {
-          console.log("✅ Email verificado, login permitido");
+          // Email verificado, login permitido
         } else {
-          console.log("⚠️ Email não verificado, bloqueando login");
+          // Email não verificado, bloqueando login
 
-          // Fazer logout imediatamente
           await this.supabase.client.auth.signOut();
-
-          // NÃO definir pendingEmailConfirmation - manter na tela de login
-          // this.pendingEmailConfirmation.set(response.data.user.email || email);
 
           // Mostrar notificação de erro na tela de login
           this.notificationService.addNotification(
@@ -218,7 +206,7 @@ export class AuthService {
 
       return response;
     } catch (error) {
-      console.error("Erro inesperado no login:", error);
+      // Erro inesperado no login
       const authError = error as AuthError;
       this.handleAuthError(authError, "logging in");
 
@@ -1007,7 +995,7 @@ export class AuthService {
       // Monta query SQL para debug
       const insertSQL = `INSERT INTO users (auth_id, name, email, role, status, avatar_url, email_verified) VALUES (
         '${insertData.auth_id}',
-        '${insertData.name.replace(/'/g, "''")}',
+        '${insertData.name.replaceAll("'", "''")}',
         '${insertData.email}',
         '${insertData.role}',
         '${insertData.status}',

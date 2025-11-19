@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { I18nService } from '../../i18n.service';
 import type { EmailOtpType } from '@supabase/gotrue-js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -49,7 +50,7 @@ export class ConfirmEmailComponent implements OnInit {
   loading = false;
   error = '';
   success = false;
-  private readonly i18n = inject<any>(/* I18nService */ require('../../i18n.service'));
+  private readonly i18n = inject(I18nService);
 
   ngOnInit() {
     // Ao inicializar, força logout se houver sessão ativa
@@ -76,11 +77,11 @@ export class ConfirmEmailComponent implements OnInit {
   async onSubmit() {
     this.error = '';
     if (this.password.length < 6) {
-      this.error = this.i18n.translate('passwordTooShort', 'A senha deve ter pelo menos 6 caracteres. Por favor, escolha uma senha mais forte.');
+      this.error = this.i18n.translate('passwordTooShort');
       return;
     }
     if (this.password !== this.confirmPassword) {
-      this.error = this.i18n.translate('passwordsDoNotMatch', 'As senhas informadas não coincidem. Verifique e tente novamente.');
+      this.error = this.i18n.translate('passwordsDoNotMatch');
       return;
     }
     this.loading = true;
@@ -89,7 +90,7 @@ export class ConfirmEmailComponent implements OnInit {
     const { token, type, email } = this.getTokenParams();
 
     if (!token || !type || !email) {
-      this.error = this.i18n.translate('invalidOrExpiredLink', 'O link de acesso é inválido ou expirou. Solicite um novo convite ao administrador.');
+      this.error = this.i18n.translate('invalidOrExpiredLink');
       this.loading = false;
       return;
     }
@@ -101,7 +102,7 @@ export class ConfirmEmailComponent implements OnInit {
         type: type as EmailOtpType
       });
       if (verifyError) {
-        this.error = this.i18n.translate('invalidOrUsedLink', 'O link de acesso é inválido, expirou ou já foi utilizado. Solicite um novo convite ao administrador.');
+        this.error = this.i18n.translate('invalidOrUsedLink');
         this.loading = false;
         return;
       }
@@ -110,18 +111,18 @@ export class ConfirmEmailComponent implements OnInit {
         password: this.password
       });
       if (updateError) {
-        this.error = this.i18n.translate('unableToSetPassword', 'Não foi possível definir a nova senha. Tente novamente ou entre em contato com o suporte.');
+        this.error = this.i18n.translate('unableToSetPassword');
         this.loading = false;
         return;
       }
       this.success = true;
-      this.notification.addNotification(this.i18n.translate('passwordSetSuccess', 'Senha definida com sucesso! Agora você já pode acessar a plataforma.'));
+      this.notification.addNotification(this.i18n.translate('passwordSetSuccess'));
       setTimeout(() => {
         this.router.navigate(['/']);
       }, 2500);
     } catch (e: any) {
       console.error('Erro inesperado ao definir a senha:', e);
-      this.error = this.i18n.translate('unexpectedPasswordError', 'Ocorreu um erro inesperado ao definir a senha. Tente novamente ou contate o suporte.');
+      this.error = this.i18n.translate('unexpectedPasswordError');
     } finally {
       this.loading = false;
     }

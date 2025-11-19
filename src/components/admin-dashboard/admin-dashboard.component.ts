@@ -1333,37 +1333,45 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // 3. Gera token de confirmação (UUID)
-      const confirmationToken = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
-
-      // 4. Insere usuário na tabela users
-      const { error: insertError } = await this.supabaseService.client.from('users').insert({
+      // 3. Cria o usuário via Supabase Auth (envia e-mail de confirmação automaticamente)
+      const tempPassword = Math.random().toString(36).slice(-10) + Date.now();
+      const { data, error: signUpError } = await this.supabaseService.client.auth.signUp({
         email,
-        name,
-        role: 'professional',
-        status: 'Pending',
-        email_verified: false,
-        confirmation_token: confirmationToken,
+        password: tempPassword,
+        options: {
+          data: { name, role: 'professional', status: 'Pending' }
+        }
       });
-      if (insertError) {
-        throw insertError;
+      if (signUpError) {
+        throw signUpError;
       }
 
-      // 5. Envia e-mail de confirmação (mock: adapte para serviço real)
-      const confirmUrl = `${globalThis.location.origin}/auth/confirm?token=${confirmationToken}&email=${encodeURIComponent(email)}&type=signup`;
-      await this.sendCustomEmail({
-        to: email,
-        subject: 'Natan Home Service - Confirmação de e-mail',
-        html: `<p>Olá ${name},</p><p>Para ativar seu acesso, clique no link abaixo:</p><p><a href="${confirmUrl}">${confirmUrl}</a></p><p>Se não foi você, ignore este e-mail.</p>`
-      });
+
+      // Não insere mais na tabela users imediatamente!
+      // A inserção será feita automaticamente após a confirmação do e-mail pelo profissional.
+      // O admin será notificado e o profissional só aparecerá na lista após confirmar o e-mail.
+
+      // --- Sincroniza email_verified após confirmação do e-mail ---
+      // (pode ser chamado após confirmação, mas aqui já deixa o método pronto)
+      const syncEmailVerified = async (authId: string) => {
+        // Busca status do usuário no Supabase Auth
+        const { data: userData, error: userError } = await this.supabaseService.client.auth.getUser();
+        if (userError) return;
+        if (userData?.user?.id === authId && userData.user.email_confirmed_at) {
+          await this.supabaseService.client.from('users')
+            .update({ email_verified: true })
+            .eq('auth_id', authId);
+        }
+      };
+      // Exemplo de uso: aguarda alguns segundos e tenta sincronizar
+      setTimeout(() => {
+        if (data.user?.id) syncEmailVerified(data.user.id);
+      }, 5000);
 
       this.notificationService.addNotification(
-        `✅ Profissional ${name} criado! E-mail de confirmação enviado.`
+        `✅ Profissional ${name} criado! E-mail de confirmação enviado pelo Supabase.\nO cadastro só será concluído após o profissional confirmar o e-mail.`
       );
       this.resetNewProfessionalForm();
-      setTimeout(() => {
-        this.dataService.loadInitialData(this.authService.appUser());
-      }, 2000);
     } catch (error: any) {
       console.error("❌ Erro ao adicionar profissional:", error);
       this.notificationService.addNotification(

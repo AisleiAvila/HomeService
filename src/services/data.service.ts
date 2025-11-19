@@ -337,6 +337,7 @@ export class DataService {
   }
 
   private async fetchUsers() {
+    const previousUsers = this.users();
     const { data, error } = await this.supabase.client
       .from("users")
       .select("*");
@@ -349,6 +350,21 @@ export class DataService {
         "Using sample data - Error fetching users: " + error.message
       );
     } else if (data && data.length > 0) {
+      // Detecta novos profissionais confirmados
+      const prevIds = new Set(previousUsers.map(u => u.auth_id));
+      const newProfessionals = (data as User[]).filter(u =>
+        u.role === 'professional' &&
+        u.status === 'Pending' &&
+        u.email_verified === true &&
+        !prevIds.has(u.auth_id)
+      );
+      if (newProfessionals.length > 0) {
+        newProfessionals.forEach(u => {
+          this.notificationService.addNotification(
+            `Novo profissional confirmado: ${u.name} (${u.email})`
+          );
+        });
+      }
       console.log("Loaded users from Supabase:", data.length);
       this.users.set(data as User[]);
     } else {
