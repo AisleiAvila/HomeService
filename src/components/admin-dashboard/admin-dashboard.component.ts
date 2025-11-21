@@ -1,26 +1,9 @@
+
 import { CommonModule } from "@angular/common";
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-  OnInit,
-  OnDestroy,
-  HostListener,
-  ElementRef,
-  ViewChildren,
-  QueryList,
-  input,
-  effect,
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit, OnDestroy, HostListener, ElementRef, ViewChildren, QueryList, input, effect } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import {
-  ServiceCategory,
-  ServiceRequest,
-  User,
-} from "../../models/maintenance.models";
+import { ServiceCategory, ServiceRequest, User } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { DataService } from "../../services/data.service";
 import { I18nService } from "../../i18n.service";
@@ -51,8 +34,8 @@ import { AuthService } from "../../services/auth.service";
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   // Input para receber a visualização do componente pai
-  viewFromParent = input<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>();
-  
+  readonly viewFromParent = input<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>();
+
   // Filtros avançados e pesquisa
   filterStatus = signal<string>("");
   filterStartDate = signal<string>("");
@@ -1865,9 +1848,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshData() {
-    // Atualizar dados do serviço
+    // Atualizar dados do serviço apenas se a aba ativa for relevante
     const currentUser = this.dataService.authService.appUser();
-    if (currentUser) {
+    const activeView = this.currentView();
+    // Defina aqui as abas que precisam de auto-refresh
+    const viewsToRefresh = ["professionals", "requests", "overview"];
+    if (currentUser && viewsToRefresh.includes(activeView)) {
       this.dataService.loadInitialData(currentUser);
       this.lastUpdate.set(new Date());
     }

@@ -95,7 +95,7 @@ export class AppComponent implements OnInit {
   view = signal<View>("landing");
   currentNav = signal<Nav>("dashboard");
   isRouterOutletActivated = false;
-  
+
   // Admin navigation views
   adminViews = computed(() => [
     {
@@ -134,7 +134,7 @@ export class AppComponent implements OnInit {
       icon: "fas fa-tags",
     },
   ]);
-  
+
   currentAdminView = signal<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>('overview');
 
   // Modal State
@@ -191,12 +191,15 @@ export class AppComponent implements OnInit {
     return items;
   });
 
+  // Track last loaded user to prevent infinite loops
+  private lastLoadedUserId: number | undefined = undefined;
+
   constructor() {
     globalThis.window.addEventListener("message", (event) => {
       if (event.origin !== globalThis.window.location.origin) {
         return;
       }
-      
+
       if (event.data?.type === "OPEN_REQUEST_DETAILS" && event.data?.payload) {
         this.openDetails(event.data.payload);
       } else if (event.data?.type === "OPEN_CHAT" && event.data?.payload) {
@@ -212,19 +215,29 @@ export class AppComponent implements OnInit {
         this.emailForVerification.set(pendingEmail);
         this.view.set("verification");
         this.dataService.clearData();
+        this.lastLoadedUserId = undefined;
       } else if (user) {
         if (user.status === "Active") {
           this.view.set("app");
-          this.dataService.loadInitialData(user);
-          this.pushNotificationService.requestPermission();
+          // Only load data if we haven't loaded it for this user yet
+          if (this.lastLoadedUserId !== user.id) {
+            console.log(`[AppComponent] Loading initial data for user ${user.id}`);
+            this.dataService.loadInitialData(user);
+            this.lastLoadedUserId = user.id;
+            this.pushNotificationService.requestPermission();
+          } else {
+            console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
+          }
         } else if (user.status === "Pending") {
           this.view.set("app");
         } else {
           this.authService.logout();
+          this.lastLoadedUserId = undefined;
         }
       } else {
         this.view.set("landing");
         this.dataService.clearData();
+        this.lastLoadedUserId = undefined;
       }
     });
   }
@@ -236,7 +249,7 @@ export class AppComponent implements OnInit {
   onDeactivate(event: any) {
     this.isRouterOutletActivated = false;
   }
-  
+
   setAdminView(viewId: 'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories') {
     this.currentAdminView.set(viewId);
     // Ensure we're on the dashboard nav
@@ -295,7 +308,7 @@ export class AppComponent implements OnInit {
       role: payload.role,
       passwordLength: payload.password.length,
     });
-    
+
     try {
       console.log("📞 Chamando authService.register()...");
       await this.authService.register(

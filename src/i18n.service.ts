@@ -192,19 +192,19 @@ const allTranslations: Record<Language, Record<string, string>> = {
     title: "Title",
     titlePlaceholder: "Enter service title...",
     selectCategory: "Select a category...",
-  subcategory: "Subcategory",
-  selectSubcategory: "Select a subcategory",
+    subcategory: "Subcategory",
+    selectSubcategory: "Select a subcategory",
     descriptionPlaceholder: "Describe what you need...",
-  dateTime: "Date & Time",
-  preferredDateTime: "Preferred Date & Time",
-  dateTimePlaceholder: "Select preferred date and time",
-  requestedDateTimeHelp: "When would you like this service to be performed?",
-  validFutureDateTime: "Please select a valid future date and time",
-  complement: "Address Complement",
-  complementPlaceholder: "Apartment, floor, reference (optional)",
+    dateTime: "Date & Time",
+    preferredDateTime: "Preferred Date & Time",
+    dateTimePlaceholder: "Select preferred date and time",
+    requestedDateTimeHelp: "When would you like this service to be performed?",
+    validFutureDateTime: "Please select a valid future date and time",
+    complement: "Address Complement",
+    complementPlaceholder: "Apartment, floor, reference (optional)",
     submitting: "Submitting",
     submitRequest: "Submit Request",
-    
+
     // Requester Information
     requesterInformation: "Requester Information",
     clientNamePlaceholder: "Enter client name...",
@@ -213,7 +213,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidPhoneNumber: "Please enter a valid 9-digit phone number",
     invalidNIF: "Please enter a valid 9-digit NIF",
     clientNameMinLength: "Client name must be at least 3 characters",
-    
+
     // Priority
     priorityNormal: "Normal",
     priorityUrgent: "Urgent",
@@ -399,6 +399,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     updatePassword: "Update Password",
     updatingPassword: "Updating...",
     backToCodeVerification: "Back to Code Verification",
+    setNewPassword: "Set New Password",
+    passwordsDoNotMatch: "Passwords do not match",
+    passwordSetSuccess: "Password set successfully! Redirecting...",
+    unexpectedPasswordError: "Unexpected error setting password",
+    invalidOrExpiredLink: "Invalid or expired link",
+    invalidOrUsedLink: "Invalid or used link",
+    unableToSetPassword: "Unable to set password",
     emailPlaceholder: "Enter your email address",
     or: "or",
     ok: "OK",
@@ -598,7 +605,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     errorAnalyzingRequest: "Error analyzing request. Please try again.",
     enterClarificationRequest: "Enter your clarification request:",
     clarificationRequestSent: "Clarification request sent for '{title}'",
-    
+
     // Direct Assignment Action
     directAssign: "Direct to Professional",
     directAssignmentTitle: "Direct Service Request to Professional",
@@ -724,7 +731,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     landingCtaQuote: "Request a Quote",
     landingCtaServices: "Explore Our Services",
-  
+
     landingStatsYears: "Years of Experience",
     landingStatsProjects: "Projects Completed",
     landingStatsSatisfaction: "Customer Satisfaction",
@@ -979,7 +986,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     complementPlaceholder: "Apartamento, andar, referência (opcional)",
     submitting: "Enviando",
     submitRequest: "Enviar Solicitação",
-    
+
     // Informações do Solicitante
     requesterInformation: "Informações do Solicitante",
     clientNamePlaceholder: "Digite o nome do cliente...",
@@ -988,7 +995,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidPhoneNumber: "Por favor, insira um número de telefone válido (9 dígitos)",
     invalidNIF: "Por favor, insira um NIF válido (9 dígitos)",
     clientNameMinLength: "O nome do cliente deve ter pelo menos 3 caracteres",
-    
+
     // Prioridade
     priorityNormal: "Normal",
     priorityUrgent: "Urgente",
@@ -1113,7 +1120,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     executionDateProposed: "Data de execução proposta para solicitação #{id}",
     executionDateApproved: "Data de execução aprovada para solicitação #{id}",
     executionDateRejected: "Data de execução rejeitada para solicitação #{id}",
-    
+
     // Direct Assignment Action
     directAssign: "Direcionar para Profissional",
     directAssignmentTitle: "Direcionar Solicitação de Serviço para Profissional",
@@ -1199,18 +1206,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     newPasswordDescription: "Escolha uma senha forte para sua conta.",
     newPasswordPlaceholder: "Digite sua nova senha",
     confirmPassword: "Confirmar Senha",
-    confirmPasswordPlaceholder: "Confirme sua nova senha",
-    passwordRequirements: "Mínimo 6 caracteres",
-    passwordStrength: "Força da Senha",
-    updatePassword: "Atualizar Senha",
-    updatingPassword: "Atualizando...",
-    backToCodeVerification: "Voltar à Verificação do Código",
-    emailPlaceholder: "Digite seu endereço de e-mail",
-    or: "ou",
-    ok: "OK",
-    landingAboutTitle: "Quem Somos",
-    landingAboutText1: "A Natan Construtora atua no mercado da construção civil há mais de 20 anos, com foco em qualidade, inovação e respeito aos prazos. Nossa missão é construir com qualidade, responsabilidade e propósito, entregando obras que superem expectativas e transformem sonhos em realidade, com compromisso com prazos, segurança e excelência técnica.",
-    landingAboutText2: "Nossa visão é ser referência na construção civil, reconhecida pela inovação, confiabilidade e impacto positivo nas comunidades onde atuamos, tornando-se a primeira escolha de clientes e parceiros.",
     landingServicesTitle: "Nossos Serviços",
     landingServicesProjects: "Projetos",
     landingServicesProjects1: "Casas, condomínios e edifícios",
@@ -1516,15 +1511,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     ascending: "Crescente",
     descending: "Decrescente",
     clickToSort: "Clique para ordenar",
- 
+
     landingCtaQuote: "Solicitar Orçamento",
     landingCtaServices: "Ver Serviços",
-  
+
     landingStatsYears: "Anos de Experiência",
     landingStatsProjects: "Projetos Realizados",
     landingStatsSatisfaction: "Satisfação do Cliente",
-    
-    
+
+
     landingDifferential1Title: "Qualidade Garantida",
     landingDifferential1Text: "Materiais de primeira linha e mão de obra especializada",
     landingDifferential2Title: "Prazos Cumpridos",
@@ -1533,11 +1528,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingDifferential3Text: "Atendimento personalizado do início ao fim",
     landingDifferential4Title: "Inovação Constante",
     landingDifferential4Text: "Técnicas modernas e soluções sustentáveis",
-    
+
     landingContactsInfo: "Entre em Contacto",
-    
+
     landingSocialMedia: "Siga-nos",
-    
+
     landingQuoteFormTitle: "Solicite um Orçamento",
     landingFormName: "Nome",
     landingFormNamePlaceholder: "O seu nome completo",
@@ -1550,9 +1545,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFormMessage: "Mensagem",
     landingFormMessagePlaceholder: "Descreva o seu projeto...",
     landingFormSubmit: "Enviar Pedido",
-    
+
     landingWhatsAppMessage: "Olá! Gostaria de solicitar um orçamento.",
-    
+
     landingFooterTagline: "Construindo sonhos há mais de 20 anos",
     landingFooterPrivacy: "Política de Privacidade",
     landingFooterTerms: "Termos de Uso",

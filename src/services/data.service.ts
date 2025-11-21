@@ -1,4 +1,5 @@
 ﻿import { inject, Injectable, signal } from "@angular/core";
+
 import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
 import { I18nService } from "../i18n.service";
 import {
@@ -22,6 +23,47 @@ import { SupabaseService } from "./supabase.service";
   providedIn: "root",
 })
 export class DataService {
+  /**
+   * Cria uma notificação de esclarecimento para todos os stakeholders do pedido
+   */
+  private async createClarificationNotification(
+    serviceRequestId: number,
+    type: string,
+    title: string,
+    message: string
+  ) {
+    // Buscar dados do pedido para obter IDs de cliente e profissional
+    const { data: request, error } = await this.supabase.client
+      .from("service_requests")
+      .select("client_id, professional_id")
+      .eq("id", serviceRequestId)
+      .single();
+    if (error || !request) {
+      console.error("Erro ao buscar dados do pedido para notificação de esclarecimento:", error);
+      return;
+    }
+    // Notificar cliente, profissional e todos admins
+    const userIds: number[] = [];
+    if (request.client_id) userIds.push(request.client_id);
+    if (request.professional_id) userIds.push(request.professional_id);
+    // Notificar todos admins
+    const admins = this.users().filter(u => u.role === "admin");
+    admins.forEach(admin => userIds.push(admin.id));
+    // Enviar notificação aprimorada para cada usuário
+    for (const userId of userIds) {
+      await this.notificationService.createEnhancedNotification(
+        userId,
+        type as any,
+        title,
+        message,
+        {
+          serviceRequestId: serviceRequestId,
+          actionRequired: false,
+          priority: "medium"
+        }
+      );
+    }
+  }
   /** Consulta tabela codigos_postais e retorna dados do endere├ºo */
   async getPostalCodeInfo(postalCode: string): Promise<{
     localidade: string;
@@ -342,10 +384,6 @@ export class DataService {
       .from("users")
       .select("*");
     if (error) {
-      console.log(
-        "Error fetching users from Supabase, keeping sample data:",
-        error.message
-      );
       this.notificationService.addNotification(
         "Using sample data - Error fetching users: " + error.message
       );
@@ -365,10 +403,7 @@ export class DataService {
           );
         });
       }
-      console.log("Loaded users from Supabase:", data.length);
       this.users.set(data as User[]);
-    } else {
-      console.log("No users found in Supabase, keeping sample data");
     }
   }
 
@@ -475,18 +510,13 @@ export class DataService {
           d.average_time_minutes === undefined ? null : d.average_time_minutes,
         price: d.price === undefined ? null : d.price,
       }));
-      // Debugging info: quantidade carregada e amostra de tipos
       try {
-        console.debug(
-          `[DataService] fetchSubcategories loaded ${normalized.length} items`
-        );
         if (normalized.length > 0) {
           const sample = normalized.slice(0, 5).map((s) => ({
             id: s.id,
             category_id_type: typeof s.category_id,
             category_id_value: s.category_id,
           }));
-          console.debug("[DataService] subcategories sample types:", sample);
         }
       } catch (e) {
         console.error("[DataService] Error logging subcategories debug info:", e);
@@ -1348,67 +1378,30 @@ export class DataService {
    * Deletar um esclarecimento (apenas o pr├│prio usu├írio)
    */
   async deleteClarification(clarificationId: number, serviceRequestId: number) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    }
+
     const { error } = await this.supabase.client
       .from("service_clarifications")
       .delete()
-      .eq("id", clarificationId);
+      .eq("id", clarificationId)
+      .eq("user_id", currentUser.id);
 
     if (error) {
-      console.error("Error deleting clarification:", error);
       this.notificationService.addNotification(
-        "Erro ao deletar esclarecimento: " + error.message
+        "Erro ao remover esclarecimento: " + error.message
       );
       throw error;
     }
-    
+
     this.notificationService.addNotification(
-      "Esclarecimento deletado com sucesso!"
+      "Esclarecimento removido com sucesso!"
     );
 
     // Recarregar esclarecimentos
     await this.fetchServiceClarifications(serviceRequestId);
-  }
-
-  /**
-   * Criar notifica├º├úo para esclarecimentos
-   */
-  private async createClarificationNotification(
-    serviceRequestId: number,
-    type: "clarification_requested" | "clarification_provided",
-    title: string,
-    message: string
-  ) {
-    try {
-      // Buscar participantes da solicita├º├úo (cliente e profissional)
-      const serviceRequest = this.getServiceRequestById(serviceRequestId);
-      if (!serviceRequest) return;
-
-      const currentUser = this.authService.appUser();
-      if (!currentUser) return;
-
-      // Criar notifica├º├Áes para outros participantes
-      const participants = [serviceRequest.client_id];
-      if (serviceRequest.professional_id) {
-        participants.push(serviceRequest.professional_id);
-      }
-
-      // Filtrar para n├úo notificar o pr├│prio usu├írio
-      const recipientIds = participants.filter((id) => id !== currentUser.id);
-
-      for (const userId of recipientIds) {
-        await this.supabase.client.from("enhanced_notifications").insert({
-          user_id: userId,
-          type: type,
-          title: title,
-          message: message,
-          service_request_id: serviceRequestId,
-          action_required: true,
-          priority: "medium",
-        });
-      }
-    } catch (error) {
-      console.error("Error creating clarification notification:", error);
-    }
   }
 
   /**
