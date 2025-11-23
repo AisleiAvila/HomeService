@@ -71,11 +71,12 @@ app.post('/api/send-email', async (req, res) => {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes.' });
   }
   try {
-    // Gera link de confirmação com token
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    // Sempre use o domínio Vercel para o link de confirmação
+    const baseUrl = 'https://home-service-nu.vercel.app';
+    // O campo 'to' é o e-mail do usuário
     const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
-    // Adiciona link ao corpo do e-mail (apenas uma vez)
-    const htmlWithLink = `${html}<br><br><a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>Se preferir, copie e cole este link no navegador: ${confirmLink}`;
+    // Corpo do e-mail com apenas o link correto e instrução clara
+    const htmlWithLink = `<p>Olá,</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no botão abaixo:</p><br><a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>Ou copie e cole este link no navegador:<br><span style='word-break:break-all;'>${confirmLink}</span>`;
     await sgMail.send({
       to,
       from: FROM_EMAIL,
