@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { WorkflowService } from '../../services/workflow.service';
 import { I18nService } from '../../i18n.service';
 import type { EmailOtpType } from '@supabase/gotrue-js';
 import { CommonModule } from '@angular/common';
@@ -79,6 +80,7 @@ export class ConfirmEmailComponent implements OnInit {
   private readonly notification = inject(NotificationService);
   public readonly i18n = inject(I18nService);
   private readonly fb = inject(FormBuilder);
+  private readonly workflow = inject(WorkflowService);
 
   form = this.fb.group({
     password: ['', [Validators.required, Validators.minLength(6)]],
@@ -92,6 +94,28 @@ export class ConfirmEmailComponent implements OnInit {
   showConfirmPassword = false;
 
   ngOnInit() {
+    // Confirmação customizada de e-mail
+    const snapshot = this.route.snapshot;
+    let token = snapshot.queryParamMap.get('token');
+    let email = snapshot.queryParamMap.get('email');
+
+    // Se não vier por query, tenta pelo fragment
+    if ((!token || !email) && snapshot.fragment) {
+      const params = new URLSearchParams(snapshot.fragment);
+      token = params.get('access_token') || token;
+      email = params.get('email') || email;
+    }
+
+    if (token && email) {
+      this.workflow.confirmProfessionalEmail(email, token).then((confirmed) => {
+        if (!confirmed) {
+          this.error = this.i18n.translate('email_confirmation_failed') || 'Falha ao confirmar e-mail.';
+        }
+      });
+    } else {
+      this.error = this.i18n.translate('invalidOrExpiredLink') || 'Link inválido ou expirado.';
+    }
+
     // Check for existing session
     this.supabase.client.auth.getSession().then(({ data }) => {
       if (data?.session) {

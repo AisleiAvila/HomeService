@@ -837,4 +837,32 @@ export class WorkflowService {
     const statusActions = actionMap[request.status];
     return statusActions?.[userRole] || [];
   }
+
+  /**
+   * Confirma o e-mail de um profissional usando o endpoint customizado
+   * @param email Email do profissional
+   * @param token Token de confirmação
+   */
+  async confirmProfessionalEmail(email: string, token: string): Promise<boolean> {
+    try {
+      const success = await this.authService.confirmEmailCustom(email, token);
+      if (success) {
+        this.notificationService.addNotification(
+          this.i18n.translate ? this.i18n.translate('email_confirmed_successfully') : 'E-mail confirmado com sucesso!'
+        );
+        return true;
+      } else {
+        this.notificationService.addNotification(
+          this.i18n.translate ? this.i18n.translate('email_confirmation_failed') : 'Falha ao confirmar e-mail.'
+        );
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Erro ao confirmar e-mail:', error);
+      this.notificationService.addNotification(
+        this.i18n.translate ? this.i18n.translate('email_confirmation_failed') : 'Falha ao confirmar e-mail.'
+      );
+      return false;
+    }
+  }
 }

@@ -10,18 +10,13 @@ export interface Professional {
 
 @Injectable({ providedIn: 'root' })
 export class ProfessionalService {
-  loading = signal(false);
-  error = signal<string | null>(null);
-
-  async registerProfessional(professional: Professional): Promise<boolean> {
-    this.loading.set(true);
-    this.error.set(null);
-    try {
-      // 1. Cria profissional no Supabase
+    /**
+     * Verifica se o e-mail já existe na tabela users via fetch
+     */
+    async emailExists(email: string): Promise<boolean> {
       const supabaseUrl = environment.supabaseRestUrl;
       const supabaseKey = environment.supabaseAnonKey;
-      // Verifica se e-mail já existe
-      const checkRes = await fetch(`${supabaseUrl}/users?select=email&email=eq.${professional.email}`, {
+      const checkRes = await fetch(`${supabaseUrl}/users?select=email&email=eq.${email}`, {
         method: 'GET',
         headers: {
           'apikey': supabaseKey,
@@ -33,11 +28,34 @@ export class ProfessionalService {
       });
       if (checkRes.ok) {
         const existsArr = await checkRes.json();
-        if (Array.isArray(existsArr) && existsArr.length > 0) {
-          this.error.set('E-mail já cadastrado.');
-          this.loading.set(false);
-          return false;
+        return Array.isArray(existsArr) && existsArr.length > 0;
+      } else {
+        let errText = await checkRes.text();
+        let errJson;
+        try {
+          errJson = JSON.parse(errText);
+        } catch {
+          errJson = { message: errText };
         }
+        console.error('Erro Supabase GET:', errJson);
+        return false;
+      }
+    }
+  loading = signal(false);
+  error = signal<string | null>(null);
+
+  async registerProfessional(professional: Professional): Promise<boolean> {
+    this.loading.set(true);
+    this.error.set(null);
+    try {
+      // 1. Cria profissional no Supabase
+      const supabaseUrl = environment.supabaseRestUrl;
+      const supabaseKey = environment.supabaseAnonKey;
+      // Verifica se e-mail já existe via fetch centralizado
+      if (await this.emailExists(professional.email)) {
+        this.error.set('E-mail já cadastrado.');
+        this.loading.set(false);
+        return false;
       }
 
       // Cria profissional no Supabase

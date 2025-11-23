@@ -20,6 +20,8 @@ import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 
+import { environment } from "../environments/environment";
+
 @Injectable({
   providedIn: "root",
 })
@@ -28,10 +30,25 @@ export class DataService {
        * Atualiza dados extras do profissional após registro (specialties, phone)
        */
       async updateProfessionalExtras(email: string, specialties: ServiceCategory[], phone: string): Promise<void> {
-        await this.supabase.client
-          .from("users")
-          .update({ specialties, phone })
-          .eq("email", email);
+        // Usar fetch puro para atualizar dados do profissional por e-mail
+        const { supabaseRestUrl, supabaseAnonKey } = environment;
+        const res = await fetch(`${supabaseRestUrl}/users?email=eq.${email}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'accept-profile': 'public'
+          },
+          body: JSON.stringify({ specialties, phone })
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          this.notificationService.addNotification(
+            `Erro ao atualizar profissional: ${errText}`
+          );
+        }
       }
     /**
      * Adiciona profissional ao Supabase

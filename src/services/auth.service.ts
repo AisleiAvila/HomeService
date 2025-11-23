@@ -4,10 +4,35 @@ import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { AuthError, AuthResponse } from "@supabase/supabase-js";
 
+import { environment } from "../environments/environment";
+
 @Injectable({
   providedIn: "root",
 })
 export class AuthService {
+    /**
+     * Confirma o e-mail do profissional via endpoint customizado
+     */
+    async confirmEmailCustom(email: string, token: string): Promise<boolean> {
+      try {
+        const res = await fetch("http://localhost:4001/api/confirm-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, token })
+        });
+        const result = await res.json();
+        if (result.success) {
+          this.notificationService.addNotification("E-mail confirmado com sucesso!");
+          return true;
+        } else {
+          this.notificationService.addNotification(result.message || "Falha ao confirmar e-mail.");
+          return false;
+        }
+      } catch (e) {
+        this.notificationService.addNotification("Erro ao conectar ao servidor de confirmação.");
+        return false;
+      }
+    }
   /**
    * Recarrega o perfil do usuário autenticado (público)
    */
@@ -238,46 +263,83 @@ export class AuthService {
       return;
     }
 
-    // Verificar se já existe um usuário com este e-mail na nossa tabela
+    // Verificar se já existe um usuário com este e-mail na nossa tabela via fetch puro
     console.log("🔍 Verificando se e-mail já existe na base de dados...");
-    const { data: existingUser } = await this.supabase.client
-      .from("users")
-      .select("email")
-      .eq("email", email)
-      .single();
-
-    if (existingUser) {
-      console.log("⚠️ E-mail já existe na tabela users");
-      this.notificationService.addNotification(
-        "E-mail já cadastrado. Tente fazer login ou use outro e-mail."
-      );
-      return;
-    }
-
-    // Novo fluxo: usa signUp para disparar e-mail de confirmação padrão do Supabase
-    console.log("📧 Enviando e-mail de confirmação via signUp...");
-    const { error } = await this.supabase.client.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
-          role,
-        },
-      },
+    // Usar variáveis de ambiente diretamente
+    const supabaseUrl = environment.supabaseRestUrl;
+    const supabaseKey = environment.supabaseAnonKey;
+    const checkRes = await fetch(`${supabaseUrl}/users?select=email&email=eq.${email}`, {
+      method: 'GET',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'accept-profile': 'public'
+      }
     });
+    if (checkRes.ok) {
+      const existsArr = await checkRes.json();
+      if (Array.isArray(existsArr) && existsArr.length > 0) {
+        console.log("⚠️ E-mail já existe na tabela users");
+        this.notificationService.addNotification(
+          "E-mail já cadastrado. Tente fazer login ou use outro e-mail."
+        );
+        return;
+      }
+    } else {
+      let errText = await checkRes.text();
+      let errJson;
+      try {
+        errJson = JSON.parse(errText);
+      } catch {
+        errJson = { message: errText };
+      }
+      console.error('Erro Supabase GET:', errJson);
+    }
 
-    if (error) {
-      console.error("❌ Erro ao cadastrar usuário:", error);
-      this.handleAuthError(error, "signing up");
+    // Novo fluxo: cadastro direto na tabela users e envio de e-mail customizado
+    // Gerar um token de confirmação simples (pode ser JWT, UUID, ou string aleatória)
+    const confirmationToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    // Inserir profissional na tabela users
+    const insertData = {
+      name,
+      email,
+      role,
+      status: role === "professional" ? "Pending" : "Active",
+      avatar_url: `https://i.pravatar.cc/150?u=${email}`,
+      email_verified: false,
+      confirmation_token: confirmationToken,
+    };
+    const { error: insertError } = await this.supabase.client
+      .from("users")
+      .insert(insertData);
+    if (insertError) {
+      console.error("❌ Erro ao criar registro na tabela users:", insertError);
+      this.notificationService.addNotification("Erro ao cadastrar profissional. Tente novamente.");
       return;
     }
 
-    // Mensagem de sucesso
-    console.log("✅ E-MAIL DE CONFIRMAÇÃO ENVIADO COM SUCESSO!");
-    this.notificationService.addNotification(
-      "✅ Cadastro realizado! Um e-mail de confirmação foi enviado para o profissional. Verifique a caixa de entrada e spam."
-    );
+    // Enviar e-mail de confirmação customizado
+    const confirmUrl = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}&token=${confirmationToken}`;
+    try {
+      await fetch("http://localhost:4001/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: "Confirmação de cadastro - HomeService",
+          html: `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmUrl}'>Confirmar e-mail</a></p>`
+        })
+      });
+      this.notificationService.addNotification(
+        "✅ Cadastro realizado! Um e-mail de confirmação foi enviado para o profissional. Verifique a caixa de entrada e spam."
+      );
+    } catch (e) {
+      console.error("❌ Erro ao enviar e-mail de confirmação:", e);
+      this.notificationService.addNotification("Cadastro realizado, mas falha ao enviar e-mail de confirmação.");
+    }
   }
 
   async verifyOtp(email: string, token: string): Promise<AuthResponse> {
