@@ -787,6 +787,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     allSpecialties: "All Specialties",
     searchSpeciality: "Search Specialty...",
     manageAllProfessionalsDesc : "View and manage all registered professionals in the system",
+    totalRecords: "Total Records",
   },
   pt: {
     // General
@@ -1578,6 +1579,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     allSpecialties: "Todas as Especialidades",
     searchSpeciality: "Pesquisar especialidade...",
     manageAllProfessionalsDesc: "Visualize e gerencie todos os profissionais cadastrados no sistema",
+    totalRecords: "Total de Registros",
 
   },
 };

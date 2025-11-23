@@ -180,11 +180,16 @@
                     }
                 </tbody>
             </table>
-            <!-- Paginação -->
-            <div class="flex justify-center items-center gap-2 py-4">
-                <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
-                <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
-                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+            <!-- Rodapé destacado com total de registros e paginação -->
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-indigo-50 border-t border-indigo-200">
+                <div class="text-xs font-bold text-indigo-700 px-6 py-2">
+                    {{ 'totalRecords' | i18n }}: {{ filteredProfessionals().length }}
+                </div>
+                <div class="flex items-center gap-2">
+                    <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
+                    <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+                    <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+                </div>
             </div>
         }
     </div>
