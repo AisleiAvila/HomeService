@@ -166,7 +166,6 @@ export class ProfessionalsManagementComponent implements OnInit {
         this.newProfessionalEmail.set("");
         this.newProfessionalSpecialties.set([]);
         this.showAddProfessionalForm.set(false);
-        this.showFeedback('Formulário limpo', 'info');
     }
 
     toggleNewProfessionalSpecialty(category: ServiceCategory, event: any) {
