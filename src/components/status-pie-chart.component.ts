@@ -4,8 +4,10 @@ import {
   input,
   computed,
   effect,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { I18nService } from "../i18n.service";
 
 @Component({
   selector: "app-status-pie-chart",
@@ -41,6 +43,8 @@ import { CommonModule } from "@angular/common";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusPieChartComponent {
+  private readonly i18n = inject(I18nService);
+
   constructor() {
     // Log para depuração do valor do título
     effect(() => {
@@ -101,14 +105,12 @@ export class StatusPieChartComponent {
       ctx.beginPath();
       ctx.arc(110, 110, 100, 0, 2 * Math.PI);
       ctx.closePath();
-      ctx.fillStyle = "#d1d5db"; // gray-300
-      ctx.fill();
-      // Mensagem central
       ctx.font = "bold 18px sans-serif";
       ctx.fillStyle = "#6b7280"; // gray-500
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Sem dados", 110, 110);
+      const noDataText = this.i18n.translate("noDataAvailable") || "Sem dados";
+      ctx.fillText(noDataText, 110, 110);
       return;
     }
     let startAngle = 0;

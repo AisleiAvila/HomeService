@@ -1,0 +1,54 @@
+<div>
+  <!-- Feedback visual -->
+  @if(feedbackMessage) {
+    <div class="mb-4">
+      <div class="feedback-box"
+        [ngClass]="{
+          'bg-green-100 text-green-800': feedbackType === 'success',
+          'bg-red-100 text-red-800': feedbackType === 'error'
+        }">
+        {{ feedbackMessage | i18n }}
+      </div>
+    </div>
+  }
+  <h4 class="text-lg font-medium mb-2">
+    {{ "editProfessional" | i18n }}
+  </h4>
+  <div class="space-y-4">
+    <input type="text" [ngModel]="name" (ngModelChange)="nameChange.emit($event)"
+      [placeholder]="'name' | i18n" aria-label="{{ 'name' | i18n }}" class="form-input" />
+    @if(nameError) {
+      <div class="form-error">{{ nameError | i18n }}</div>
+    }
+    <input type="email" [ngModel]="email" (ngModelChange)="emailChange.emit($event)"
+      [placeholder]="'email' | i18n" aria-label="{{ 'email' | i18n }}" class="form-input" />
+    @if(emailError) {
+      <div class="form-error">{{ emailError | i18n }}</div>
+    }
+    <fieldset>
+      <legend class="form-label">
+        {{ "specialties" | i18n }}
+      </legend>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+        @for(cat of allCategories; track cat.id) {
+        <div>
+          <input type="checkbox" [id]="'edit-pro-' + cat.id"
+            (change)="onSpecialtyToggle(cat, $event)" aria-label="{{ cat.name | i18n }}" /><label [for]="'edit-pro-' + cat.id"
+            class="ml-2">{{ cat.name | i18n }}</label>
+        </div>
+        }
+      </div>
+      @if(specialtiesError) {
+        <div class="form-error">{{ specialtiesError | i18n }}</div>
+      }
+    </fieldset>
+    <div class="form-actions">
+      <button (click)="cancelEdit.emit()" class="btn-cancel">
+        {{ "cancel" | i18n }}
+      </button>
+      <button (click)="validateAndUpdate()" class="btn-save">
+        {{ "save" | i18n }}
+      </button>
+    </div>
+  </div>
+</div>

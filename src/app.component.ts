@@ -24,7 +24,6 @@ import {
 } from "./models/maintenance.models";
 
 // Components
-import { AdminDashboardComponent } from "./components/admin-dashboard/admin-dashboard.component";
 import { ChatComponent } from "./components/chat/chat.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
@@ -66,7 +65,6 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
     VerificationComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    AdminDashboardComponent,
     DashboardComponent,
     ScheduleComponent,
     SearchComponent,
@@ -97,45 +95,7 @@ export class AppComponent implements OnInit {
   isRouterOutletActivated = false;
 
   // Admin navigation views
-  adminViews = computed(() => [
-    {
-      id: "overview" as const,
-      label: this.i18n.translate("overview"),
-      icon: "fas fa-tachometer-alt",
-    },
-    {
-      id: "requests" as const,
-      label: this.i18n.translate("requests"),
-      icon: "fas fa-list",
-    },
-    {
-      id: "approvals" as const,
-      label: this.i18n.translate("approvals"),
-      icon: "fas fa-user-check",
-    },
-    {
-      id: "finances" as const,
-      label: this.i18n.translate("finances"),
-      icon: "fas fa-chart-line",
-    },
-    {
-      id: "professionals" as const,
-      label: this.i18n.translate("professionals"),
-      icon: "fas fa-users",
-    },
-    {
-      id: "clients" as const,
-      label: this.i18n.translate("clients"),
-      icon: "fas fa-user-friends",
-    },
-    {
-      id: "categories" as const,
-      label: this.i18n.translate("categories"),
-      icon: "fas fa-tags",
-    },
-  ]);
 
-  currentAdminView = signal<'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories'>('overview');
 
   // Modal State
   isSidebarOpen = signal(false);
@@ -222,7 +182,7 @@ export class AppComponent implements OnInit {
           // Only load data if we haven't loaded it for this user yet
           if (this.lastLoadedUserId !== user.id) {
             console.log(`[AppComponent] Loading initial data for user ${user.id}`);
-            this.dataService.loadInitialData(user);
+            this.dataService.loadInitialData();
             this.lastLoadedUserId = user.id;
             this.pushNotificationService.requestPermission();
           } else {
@@ -250,13 +210,7 @@ export class AppComponent implements OnInit {
     this.isRouterOutletActivated = false;
   }
 
-  setAdminView(viewId: 'overview' | 'requests' | 'approvals' | 'finances' | 'professionals' | 'clients' | 'categories') {
-    this.currentAdminView.set(viewId);
-    // Ensure we're on the dashboard nav
-    if (this.currentNav() !== 'dashboard') {
-      this.navigate('dashboard');
-    }
-  }
+
 
   showLogin() {
     this.view.set("login");
@@ -272,6 +226,9 @@ export class AppComponent implements OnInit {
       this.router.navigate(['/create-service-request']);
     } else if (nav === 'admin-create-service-request') {
       this.router.navigate(['/admin-create-service-request']);
+    } else if (nav === 'dashboard' && this.currentUser()?.role === 'admin') {
+      this.router.navigate(['/admin']);
+      this.currentNav.set(nav);
     } else {
       this.router.navigate(['/']);
       this.currentNav.set(nav);
@@ -469,7 +426,7 @@ export class AppComponent implements OnInit {
         this.notificationService.addNotification(
           `Payment for request #${request.id} processed.`
         );
-        await this.dataService.loadInitialData(this.currentUser());
+        await this.dataService.loadInitialData();
         this.closeModal();
       })
       .catch((error) => {
@@ -487,7 +444,7 @@ export class AppComponent implements OnInit {
   handleRefreshRequest() {
     const user = this.currentUser();
     if (user) {
-      this.dataService.loadInitialData(user);
+      this.dataService.loadInitialData();
     }
   }
 

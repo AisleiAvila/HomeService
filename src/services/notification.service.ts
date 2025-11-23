@@ -51,6 +51,14 @@ export class NotificationService {
     }, 15000);
   }
 
+  showSuccess(message: string) {
+    this.addNotification(message);
+  }
+
+  showError(message: string) {
+    this.addNotification(message);
+  }
+
   markAsRead(notificationId: number) {
     this.notifications.update((notifications) =>
       notifications.map((n) =>

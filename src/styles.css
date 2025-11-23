@@ -1,3 +1,31 @@
+/* Utilitários para formulários de profissionais */
+.form-label {
+  @apply text-sm font-medium mb-1;
+}
+.form-input {
+  @apply w-full p-2 border rounded-md;
+}
+.form-error {
+  @apply text-xs text-red-600 mt-1;
+}
+.form-actions {
+  @apply flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2;
+}
+.btn-base {
+  @apply px-4 py-2 text-sm rounded-md;
+}
+.btn-cancel {
+  @apply btn-base bg-gray-200;
+}
+.btn-add {
+  @apply btn-base text-white bg-green-600;
+}
+.btn-save {
+  @apply btn-base text-white bg-blue-600;
+}
+.feedback-box {
+  @apply px-4 py-2 rounded-md text-sm font-medium;
+}
 .fc .fc-toolbar.fc-header-toolbar {
   display: flex !important;
   flex-wrap: wrap !important;

@@ -1,0 +1,167 @@
+<div class="bg-white rounded-lg shadow-md">
+        <!-- Toast de feedback visual -->
+        @if(feedbackMessage()) {
+            <div class="fixed top-4 right-4 z-50">
+                <div class="px-4 py-2 rounded-md shadow-lg text-sm font-medium transition-all duration-300"
+                    [ngClass]="{
+                        'bg-green-600 text-white': feedbackType() === 'success',
+                        'bg-red-600 text-white': feedbackType() === 'error',
+                        'bg-blue-600 text-white': feedbackType() === 'info'
+                    }">
+                    <i *ngIf="feedbackType() === 'success'" class="fas fa-check-circle mr-2"></i>
+                    <i *ngIf="feedbackType() === 'error'" class="fas fa-times-circle mr-2"></i>
+                    <i *ngIf="feedbackType() === 'info'" class="fas fa-info-circle mr-2"></i>
+                    {{ feedbackMessage() | i18n }}
+                </div>
+            </div>
+        }
+    <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h3 class="text-xl font-semibold">
+            {{ "manageProfessionals" | i18n }}
+        </h3>
+        <button (click)="toggleAddProfessionalForm()"
+            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+            <i class="fas fa-plus mr-2"></i>{{ "addProfessional" | i18n }}
+        </button>
+    </div>
+    <div class="p-4 border-b bg-gray-50" *ngIf="showAddProfessionalForm() && !editingProfessional()">
+        <app-professional-form
+            [allCategories]="allCategories"
+            [name]="newProfessionalName()"
+            [email]="newProfessionalEmail()"
+            [specialties]="newProfessionalSpecialties() || []"
+            [feedbackMessage]="feedbackMessage()"
+            [feedbackType]="feedbackType()"
+            (nameChange)="newProfessionalName.set($event)"
+            (emailChange)="newProfessionalEmail.set($event)"
+            (specialtiesChange)="newProfessionalSpecialties.set($event)"
+            (add)="addProfessional()"
+            (cancelAdd)="resetNewProfessionalForm()"
+        ></app-professional-form>
+    </div>
+
+    <!-- Formulário de edição -->
+    <div class="p-4 border-b bg-gray-50" *ngIf="editingProfessional()">
+        <app-professional-edit-form
+            [allCategories]="allCategories"
+            [name]="editingProfessionalName()"
+            [email]="editingProfessionalEmail()"
+            [specialties]="editingProfessionalSpecialties()"
+            [feedbackMessage]="feedbackMessage()"
+            [feedbackType]="feedbackType()"
+            (nameChange)="editingProfessionalName.set($event)"
+            (emailChange)="editingProfessionalEmail.set($event)"
+            (specialtiesChange)="editingProfessionalSpecialties.set($event)"
+            (update)="updateProfessional()"
+            (cancelEdit)="editingProfessional.set(null)"
+        ></app-professional-edit-form>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block overflow-x-auto mobile-safe" *ngIf="!showAddProfessionalForm() && !editingProfessional()">
+        @if (isLoadingProfessionals()) {
+            <div class="flex justify-center items-center py-8">
+                <span class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-500 border-t-transparent"></span>
+                <span class="ml-2">{{ 'loading' | i18n }}</span>
+            </div>
+        }
+        @else if(professionals().length === 0) {
+            <div class="py-8 text-center text-gray-500 text-sm">
+                {{ 'noProfessionalsFound' | i18n }}
+            </div>
+        }
+        @else {
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                            {{ "name" | i18n }}
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                            {{ "email" | i18n }}
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                            {{ "specialties" | i18n }}
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                            {{ "action" | i18n }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @for(pro of professionals(); track pro.id) {
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {{ pro.name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {{ pro.email }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {{ pro.specialties?.join(", ") }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <button (click)="startEditProfessional(pro)"
+                                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                                title="{{ 'edit' | i18n }}" aria-label="{{ 'edit' | i18n }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden p-4 space-y-4" *ngIf="!showAddProfessionalForm() && !editingProfessional()">
+        @for(pro of professionals(); track pro.id) {
+            <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+                <!-- Header with name and edit button -->
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center flex-1">
+                        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-user-tie text-indigo-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-sm font-semibold text-gray-900">
+                                {{ pro.name }}
+                            </h4>
+                            <p class="text-xs text-gray-500">
+                                {{ "professional" | i18n }}
+                            </p>
+                        </div>
+                    </div>
+                    <button (click)="startEditProfessional(pro)"
+                        class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                        title="{{ 'edit' | i18n }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+                <!-- Contact info -->
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
+                        <span class="text-gray-900">{{ pro.email }}</span>
+                    </div>
+                </div>
+                <!-- Specialties -->
+                @if(pro.specialties && pro.specialties.length > 0) {
+                    <div>
+                            <p class="text-xs font-medium text-gray-600 mb-2">
+                                {{ "specialties" | i18n }}:
+                            </p>
+                        <div class="flex flex-wrap gap-1">
+                            @for(specialty of pro.specialties; track specialty) {
+                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                    {{ specialty | i18n }}
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+<!-- Fim do componente, duplicações e resíduos removidos -->

@@ -5,8 +5,10 @@ import {
   computed,
   effect,
   AfterViewInit,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { I18nService } from "../i18n.service";
 
 @Component({
   selector: "app-temporal-evolution-chart",
@@ -51,6 +53,8 @@ import { CommonModule } from "@angular/common";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TemporalEvolutionChartComponent implements AfterViewInit {
+  private readonly i18n = inject(I18nService);
+
   constructor() {
     effect(() => {
       console.log("[TemporalChart] Título recebido:", this.title());
@@ -124,7 +128,8 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
       ctx.fillStyle = "#6b7280";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Sem dados", canvas.width / 2, canvas.height / 2);
+      const noDataText = this.i18n.translate("noDataAvailable") || "Sem dados";
+      ctx.fillText(noDataText, 110, 110);
       return;
     }
 

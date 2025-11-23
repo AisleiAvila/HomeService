@@ -1,0 +1,165 @@
+@if(financialStats(); as stats) {
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h4 class="text-sm font-medium text-gray-500">
+            {{ "completedServices" | i18n }}
+        </h4>
+        <p class="text-2xl font-bold">{{ stats.completedServices }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h4 class="text-sm font-medium text-gray-500">
+            {{ "totalRevenue" | i18n }}
+        </h4>
+        <p class="text-2xl font-bold text-green-600">
+            {{ formatCost(stats.totalRevenue) }}
+        </p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h4 class="text-sm font-medium text-gray-500">
+            {{ "totalTax" | i18n }}
+        </h4>
+        <p class="text-2xl font-bold">{{ formatCost(stats.totalTax) }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h4 class="text-sm font-medium text-gray-500">
+            {{ "outstandingAmount" | i18n }}
+        </h4>
+        <p class="text-2xl font-bold text-orange-600">
+            {{ formatCost(stats.outstandingAmount) }}
+        </p>
+    </div>
+</div>
+}
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h3 class="text-xl font-semibold">
+            {{ "financialDetails" | i18n }}
+        </h3>
+        <button (click)="exportToCSV()"
+            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
+            <i class="fas fa-file-csv mr-2"></i>{{ "exportToCsv" | i18n }}
+        </button>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "service" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "client" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "professional" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "date" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "payment" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "total" | i18n }}
+                    </th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "action" | i18n }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @for(req of completedRequests(); track req.id) {
+                <tr>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        {{ req.title }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        {{ getClientName(req.client_id) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        {{ getProfessionalName(req.professional_id) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        {{ req.scheduled_date | date }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold"
+                        [class.text-green-600]="req.payment_status === 'Paid'"
+                        [class.text-orange-600]="req.payment_status === 'Unpaid'">
+                        {{ req.payment_status }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-right">
+                        {{ formatCost(req.cost) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
+                        <button (click)="generateInvoice(req)"
+                            class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                            title="{{ 'generateInvoice' | i18n }}">
+                            <i class="fas fa-file-invoice"></i>
+                        </button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden p-4 space-y-4">
+        @for(req of completedRequests(); track req.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+            <!-- Header with service title and payment status -->
+            <div class="flex justify-between items-start">
+                <h4 class="text-sm font-semibold text-gray-900 flex-1 mr-3">
+                    {{ req.title }}
+                </h4>
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0"
+                    [class.bg-green-100]="req.payment_status === 'Paid'"
+                    [class.text-green-800]="req.payment_status === 'Paid'"
+                    [class.bg-orange-100]="req.payment_status === 'Unpaid'"
+                    [class.text-orange-800]="req.payment_status === 'Unpaid'">
+                    {{ req.payment_status }}
+                </span>
+            </div>
+
+            <!-- Service details -->
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "client" | i18n }}:</span>
+                    <span class="text-gray-900">{{
+                        getClientName(req.client_id)
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "professional" | i18n }}:</span>
+                    <span class="text-gray-900">{{
+                        getProfessionalName(req.professional_id)
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "date" | i18n }}:</span>
+                    <span class="text-gray-900">{{
+                        req.scheduled_date | date
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "total" | i18n }}:</span>
+                    <span class="text-gray-900 font-semibold text-lg">{{
+                        formatCost(req.cost)
+                        }}</span>
+                </div>
+            </div>
+
+            <!-- Action -->
+            <div class="pt-3 border-t border-gray-100">
+                <button (click)="generateInvoice(req)"
+                    class="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-file-invoice mr-2"></i>
+                    {{ "generateInvoice" | i18n }}
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,105 @@
+<div class="bg-white rounded-lg shadow-md">
+    <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h3 class="text-xl font-semibold">{{ "manageClients" | i18n }}</h3>
+        <button (click)="toggleAddClientForm()"
+            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+            <i class="fas fa-plus mr-2"></i>{{ "addClient" | i18n }}
+        </button>
+    </div>
+    @if(showAddClientForm()) {
+    <div class="p-4 border-b bg-gray-50">
+        <h4 class="text-lg font-medium mb-2">
+            {{ "addNewClient" | i18n }}
+        </h4>
+        <div class="space-y-4">
+            <input type="text" [ngModel]="newClientName()" (ngModelChange)="newClientName.set($event)"
+                [placeholder]="'name' | i18n" class="w-full p-2 border rounded-md" />
+            <input type="email" [ngModel]="newClientEmail()" (ngModelChange)="newClientEmail.set($event)"
+                [placeholder]="'email' | i18n" class="w-full p-2 border rounded-md" />
+            <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+                <button (click)="resetNewClientForm()" class="px-4 py-2 text-sm rounded-md bg-gray-200">
+                    {{ "cancel" | i18n }}
+                </button>
+                <button (click)="addClient()" class="px-4 py-2 text-sm rounded-md text-white bg-green-600">
+                    {{ "add" | i18n }}
+                </button>
+            </div>
+        </div>
+    </div>
+    }
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "name" | i18n }}
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "email" | i18n }}
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "action" | i18n }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @for(client of clients(); track client.id) {
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {{ client.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        {{ client.email }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button (click)="startEditClient(client)"
+                            class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                            title="{{ 'edit' | i18n }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden p-4 space-y-4">
+        @for(client of clients(); track client.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+            <!-- Header with name and edit button -->
+            <div class="flex justify-between items-start">
+                <div class="flex items-center flex-1">
+                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-indigo-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-semibold text-gray-900">
+                            {{ client.name }}
+                        </h4>
+                        <p class="text-xs text-gray-500">
+                            {{ "client" | i18n }}
+                        </p>
+                    </div>
+                </div>
+                <button (click)="startEditClient(client)"
+                    class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                    title="{{ 'edit' | i18n }}">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+
+            <!-- Contact info -->
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center">
+                    <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
+                    <span class="text-gray-900">{{ client.email }}</span>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>

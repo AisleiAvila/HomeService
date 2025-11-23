@@ -1,0 +1,571 @@
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Título da Seção -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-list-alt mr-3"></i>
+                    {{ "requests" | i18n }}
+                </h2>
+                <p class="text-indigo-100 text-sm mt-1">
+                    {{ "manageAllServiceRequests" | i18n }}
+                </p>
+            </div>
+            <!-- Botão Criar Solicitação -->
+            <button (click)="navigateToCreateRequest()"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-all transform hover:scale-105 shadow-lg">
+                <i class="fas fa-plus"></i>
+                <span>{{ "createServiceRequest" | i18n }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros Avançados e Pesquisa -->
+    <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-gray-50 to-white space-y-4">
+        <!-- Filtros Rápidos -->
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-filter text-indigo-600"></i>
+                <span class="text-sm font-semibold text-gray-800">{{ "quickFilters" | i18n }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @for(quickFilter of quickFilterOptions; track quickFilter.status)
+                {
+                <button (click)="applyQuickFilter(quickFilter.status)" [class]="
+            'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105 ' +
+            (filterStatus() === quickFilter.status
+              ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md'
+              : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600')
+          ">
+                    <i class="fas fa-circle text-xs mr-2"
+                        [class]="filterStatus() === quickFilter.status ? 'text-white' : 'text-gray-400'"></i>
+                    {{ quickFilter.label | i18n }}
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- Filtros Avançados -->
+        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="fas fa-sliders-h text-indigo-600"></i>
+                <span class="text-sm font-semibold text-gray-800">{{ "advancedFilters" | i18n }}</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <!-- Filtro de Status (Dropdown) -->
+                <div>
+                    <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-tags text-indigo-500 mr-1 text-xs"></i>
+                        {{ "status" | i18n }}
+                    </label>
+                    <select id="filterStatus" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                        <option value="">{{ "all" | i18n }}</option>
+                        @for(status of statusOptions(); track status.value) {
+                        <option [value]="status.value">{{ status.label }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Filtro por Distrito -->
+                <div>
+                    <label for="filterDistrict" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt text-indigo-500 mr-1 text-xs"></i>
+                        {{ "district" | i18n }}
+                    </label>
+                    <select id="filterDistrict" [ngModel]="filterDistrict()"
+                        (ngModelChange)="filterDistrict.set($event)"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                        <option value="">{{ "all" | i18n }}</option>
+                        @for(district of districtOptions; track district) {
+                        <option [value]="district">{{ district }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Filtro por Profissional -->
+                <div>
+                    <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-user-tie text-indigo-500 mr-1 text-xs"></i>
+                        {{ "professional" | i18n }}
+                    </label>
+                    <select id="filterProfessional" [ngModel]="filterProfessional()"
+                        (ngModelChange)="filterProfessional.set($event)"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                        <option value="">{{ "all" | i18n }}</option>
+                        @for(prof of professionalOptions(); track prof.id) {
+                        <option [value]="prof.id">{{ prof.name }}</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Filtro por Período - Data Inicial -->
+                <div>
+                    <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-calendar text-indigo-500 mr-1 text-xs"></i>
+                        {{ "startDate" | i18n }}
+                    </label>
+                    <input type="date" id="filterStartDate" [ngModel]="filterStartDate()"
+                        (ngModelChange)="filterStartDate.set($event)"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                </div>
+
+                <!-- Filtro por Período - Data Final -->
+                <div>
+                    <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-calendar-check text-indigo-500 mr-1 text-xs"></i>
+                        {{ "endDate" | i18n }}
+                    </label>
+                    <input type="date" id="filterEndDate" [ngModel]="filterEndDate()"
+                        (ngModelChange)="filterEndDate.set($event)"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                </div>
+            </div>
+
+            <!-- Barra de Pesquisa e Botão Limpar -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <div class="flex-1">
+                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-search text-indigo-500 mr-1 text-xs"></i>
+                        {{ "search" | i18n }}
+                    </label>
+                    <input type="text" id="searchInput" [ngModel]="searchTerm()"
+                        (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchPlaceholder' | i18n }}"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                </div>
+                <div class="flex items-end">
+                    <button (click)="clearFilters()"
+                        class="px-6 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 border border-gray-300">
+                        <i class="fas fa-times-circle"></i>
+                        {{ "clearFilters" | i18n }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicadores de Filtros Ativos -->
+        @if (activeFilters().length > 0) {
+        <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-200 mt-3">
+            <span class="text-sm font-medium text-gray-600">{{ "activeFilters" | i18n }}:</span>
+            @for(filter of activeFilters(); track filter.type) {
+            <span
+                class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                {{ filter.label | i18n }}: {{ filter.value }}
+                <button (click)="removeFilter(filter.type)"
+                    class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-teal-600 hover:bg-teal-200 hover:text-teal-500">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </span>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                        [attr.aria-sort]="sortBy() === 'category' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                        scope="col">
+                        <button type="button"
+                            class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                            (click)="sortByColumn('category')"
+                            [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
+                            [attr.title]="('clickToSort' | i18n) + ': ' + ('service' | i18n)">
+                            <div class="flex items-center justify-between">
+                                <span>{{ "service" | i18n }}</span>
+                                @if (sortBy() === 'category') {
+                                @if (sortOrder() === 'asc') {
+                                <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                                } @else {
+                                <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                                }
+                                } @else {
+                                <i class="fas fa-sort text-gray-400 ml-1"></i>
+                                }
+                            </div>
+                        </button>
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                        [attr.aria-sort]="sortBy() === 'client' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                        scope="col">
+                        <button type="button"
+                            class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                            (click)="sortByColumn('client')"
+                            [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('client' | i18n)"
+                            [attr.title]="('clickToSort' | i18n) + ': ' + ('client' | i18n)">
+                            <div class="flex items-center justify-between">
+                                <span>{{ "client" | i18n }}</span>
+                                @if (sortBy() === 'client') {
+                                @if (sortOrder() === 'asc') {
+                                <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                                } @else {
+                                <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                                }
+                                } @else {
+                                <i class="fas fa-sort text-gray-400 ml-1"></i>
+                                }
+                            </div>
+                        </button>
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                        [attr.aria-sort]="sortBy() === 'professional' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                        scope="col">
+                        <button type="button"
+                            class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                            (click)="sortByColumn('professional')"
+                            [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('professional' | i18n)"
+                            [attr.title]="('clickToSort' | i18n) + ': ' + ('professional' | i18n)">
+                            <div class="flex items-center justify-between">
+                                <span>{{ "professional" | i18n }}</span>
+                                @if (sortBy() === 'professional') {
+                                @if (sortOrder() === 'asc') {
+                                <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                                } @else {
+                                <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                                }
+                                } @else {
+                                <i class="fas fa-sort text-gray-400 ml-1"></i>
+                                }
+                            </div>
+                        </button>
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                        [attr.aria-sort]="sortBy() === 'status' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                        scope="col">
+                        <button type="button"
+                            class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded px-2 -mx-2"
+                            (click)="sortByColumn('status')"
+                            [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
+                            [attr.title]="('clickToSort' | i18n) + ': ' + ('status' | i18n)">
+                            <div class="flex items-center justify-between">
+                                <span>{{ "status" | i18n }}</span>
+                                @if (sortBy() === 'status') {
+                                @if (sortOrder() === 'asc') {
+                                <i class="fas fa-sort-up text-indigo-600 ml-1"></i>
+                                } @else {
+                                <i class="fas fa-sort-down text-indigo-600 ml-1"></i>
+                                }
+                                } @else {
+                                <i class="fas fa-sort text-gray-400 ml-1"></i>
+                                }
+                            </div>
+                        </button>
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "cost" | i18n }}
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "actions" | i18n }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @for(req of filteredPaginatedRequests(); track req.id) {
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ req.title }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ getClientName(req.client_id) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ getProfessionalName(req.professional_id) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span [class]="statusClass(req.status)">{{
+                            req.status
+                            }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex items-center gap-2">
+                            <!-- Ação Principal -->
+                            @if (req.status === 'Solicitado') {
+                            <button (click)="analyzeRequest(req)"
+                                class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                                [title]="'analyzeRequest' | i18n">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            } @else if (req.status === 'Em análise') {
+                            <button (click)="selectRequestForQuote(req)"
+                                class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                                [title]="'sendQuote' | i18n">
+                                <i class="fas fa-calculator"></i>
+                            </button>
+                            } @else if (needsProfessionalAssignment(req)) {
+                            <button (click)="selectRequestForAssignment(req)"
+                                class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                                [title]="req.status === 'Agendado' && !req.professional_id ? ('assignProfessionalToScheduled' | i18n) : ('assign' | i18n)">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                            } @else if (req.status === 'Pending' || req.status ===
+                            'Quoted') {
+                            <button (click)="selectRequestForQuote(req)"
+                                class="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
+                                [title]="req.status === 'Quoted' ? ('viewQuote' | i18n) : ('provideQuote' | i18n)">
+                                <i class="fas fa-calculator"></i>
+                            </button>
+                            }
+
+                            <!-- Botão de Direcionamento Direto -->
+                            @if (req.status !== 'Aguardando confirmação do profissional') {
+                            <button (click)="openDirectAssignmentModal(req)"
+                                class="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors"
+                                [title]="'directAssign' | i18n">
+                                <i class="fas fa-user-clock"></i>
+                            </button>
+                            }
+
+                            <!-- Menu Dropdown para Ações Secundárias -->
+                            <div class="relative" #actionsMenu>
+                                <button (click)="toggleActionsMenu(req.id)"
+                                    class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+
+                                <!-- Painel do Dropdown -->
+                                @if (isActionsMenuOpen(req.id)) {
+                                <div
+                                    class="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                    <div class="py-1" role="menu" aria-orientation="vertical">
+                                        <!-- Ações sempre disponíveis -->
+                                        <a href="#" (click)="viewRequestDetails(req); (false)"
+                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            role="menuitem">
+                                            <i class="fas fa-eye w-5 mr-2"></i>
+                                            {{ "viewDetails" | i18n }}
+                                        </a>
+                                        <a href="#" (click)="openChat(req); (false)"
+                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            role="menuitem">
+                                            <i class="fas fa-comments w-5 mr-2"></i>
+                                            {{ "chat" | i18n }}
+                                        </a>
+
+                                        <!-- Ações condicionais -->
+                                        @if (req.status === 'Solicitado' || req.status ===
+                                        'Em análise' || req.status === 'Orçamento aprovado')
+                                        {
+                                        <a href="#" (click)="
+                        requestClarificationFromClient(req); (false)
+                      " class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                            <i class="fas fa-question-circle w-5 mr-2"></i>
+                                            {{ "requestClarification" | i18n }}
+                                        </a>
+                                        }
+                                    </div>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden p-4 space-y-4">
+        @for(req of filteredPaginatedRequests(); track req.id) {
+        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+            <!-- Header with title and status -->
+            <div class="flex justify-between items-start">
+                <h4 class="text-sm font-semibold text-gray-900 flex-1 mr-3">
+                    {{ req.title }}
+                </h4>
+                <span [class]="statusClass(req.status)" class="flex-shrink-0 text-xs">
+                    {{ req.status }}
+                </span>
+            </div>
+
+            <!-- Client and Professional info -->
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "client" | i18n }}:</span>
+                    <span class="text-gray-900">{{
+                        getClientName(req.client_id)
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "professional" | i18n }}:</span>
+                    <span class="text-gray-900">{{
+                        getProfessionalName(req.professional_id)
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">{{ "cost" | i18n }}:</span>
+                    <span class="text-gray-900 font-semibold">
+                        {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-3 border-t border-gray-100">
+                <div class="flex flex-wrap gap-2">
+                    @if(req.status === 'Pending' || req.status === 'Quoted') {
+                    <button (click)="selectRequestForQuote(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        {{
+                        req.status === "Quoted"
+                        ? ("viewQuote" | i18n)
+                        : ("provideQuote" | i18n)
+                        }}
+                    </button>
+                    } @if(req.status === 'Solicitado') {
+                    <button (click)="analyzeRequest(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-search mr-2"></i>
+                        {{ "analyzeRequest" | i18n }}
+                    </button>
+                    <button (click)="requestClarificationFromClient(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-question-circle mr-2"></i>
+                        {{ "requestClarification" | i18n }}
+                    </button>
+                    } @if(req.status === 'Em análise') {
+                    <button (click)="selectRequestForQuote(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        {{ "sendQuote" | i18n }}
+                    </button>
+                    <button (click)="requestClarificationFromClient(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-question-circle mr-2"></i>
+                        {{ "requestClarification" | i18n }}
+                    </button>
+                    } @if(needsProfessionalAssignment(req)) {
+                    <button (click)="selectRequestForAssignment(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        {{
+                        req.status === "Agendado" && !req.professional_id
+                        ? "assignProfessionalToScheduled"
+                        : ("assign" | i18n)
+                        }}
+                    </button>
+                    @if(req.status === 'Orçamento aprovado') {
+                    <button (click)="requestClarificationFromClient(req)"
+                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-question-circle mr-2"></i>
+                        {{ "requestClarification" | i18n }}
+                    </button>
+                    } }
+
+                    <!-- Botão de Direcionamento Direto (sempre disponível para admins) -->
+                    @if (req.status !== 'Aguardando confirmação do profissional') {
+                    <div class="w-full mt-2">
+                        <button (click)="openDirectAssignmentModal(req)"
+                            class="w-full px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                            <i class="fas fa-user-clock mr-2"></i>
+                            {{ "directAssign" | i18n }}
+                        </button>
+                    </div>
+                    }
+
+                    <!-- Always Available Actions Row -->
+                    <div class="flex w-full gap-2 mt-2">
+                        <button (click)="viewRequestDetails(req)"
+                            class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors duration-200 flex items-center justify-center">
+                            <i class="fas fa-eye mr-2"></i>
+                            {{ "viewDetails" | i18n }}
+                        </button>
+                        <button (click)="openChat(req)"
+                            class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center justify-center">
+                            <i class="fas fa-comments mr-2"></i>
+                            {{ "chat" | i18n }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Pagination Controls -->
+    @if(filteredRequests().length > 0) {
+    <div
+        class="bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 space-y-3 sm:space-y-0">
+        <!-- Items per page selector -->
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
+            <select [value]="itemsPerPage()" (change)="setItemsPerPage(+$event.target.value)"
+                class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <!-- Pagination info (hidden on mobile) -->
+        <div class="hidden sm:block">
+            <p class="text-sm text-gray-700">
+                {{ "showing" | i18n }}
+                <span class="font-medium">{{
+                    (currentPage() - 1) * itemsPerPage() + 1
+                    }}</span>
+                {{ "to" | i18n }}
+                <span class="font-medium">{{
+                    Math.min(currentPage() * itemsPerPage(), filteredRequests().length)
+                    }}</span>
+                {{ "of" | i18n }}
+                <span class="font-medium">{{ filteredRequests().length }}</span>
+                {{ "results" | i18n }}
+            </p>
+        </div>
+
+        <!-- Pagination buttons -->
+        <div class="flex justify-center sm:justify-end">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <!-- Previous button -->
+                <button (click)="previousPage()" [disabled]="currentPage() === 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                    <span class="sr-only">Previous</span>
+                </button>
+
+                <!-- Page numbers (simplified for mobile) -->
+                <div class="hidden sm:flex">
+                    @for(page of pageNumbers; track page) { @if(page === -1) {
+                    <!-- Ellipsis -->
+                    <span
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                        ...
+                    </span>
+                    } @else {
+                    <button (click)="goToPage(page)" [class]="
+              page === currentPage()
+                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600'
+                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+            ">
+                        {{ page }}
+                    </button>
+                    } }
+                </div>
+
+                <!-- Mobile page indicator -->
+                <div
+                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    {{ currentPage() }} / {{ totalPages() }}
+                </div>
+
+                <!-- Next button -->
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="sr-only">Next</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+    }
+</div>

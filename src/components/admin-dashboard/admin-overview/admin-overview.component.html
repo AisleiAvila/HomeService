@@ -1,0 +1,76 @@
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+    @for(stat of stats(); track stat.label) {
+    <div (click)="handleCardClick(stat.id)" (keydown.enter)="handleCardClick(stat.id)"
+        (keydown.space)="handleCardClick(stat.id); $event.preventDefault()" role="button" tabindex="0"
+        [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsLastMonth' | i18n)"
+        class="bg-white rounded-xl shadow-sm p-6 flex items-center justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer border border-gray-100 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        <div
+            class="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-150">
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">
+                {{ stat.label }}
+            </p>
+            <p class="text-2xl font-bold text-gray-800">
+                {{ stat.value }}
+            </p>
+            <div class="flex items-center mt-2">
+                <span [class]="'text-xs font-medium ' + stat.trendColor">
+                    <i class="fas" [class.fa-arrow-up]="stat.trend.includes('+')"
+                        [class.fa-arrow-down]="stat.trend.includes('-')"></i>
+                    {{ stat.trend }}
+                </span>
+                <span class="text-xs text-gray-400 ml-1">{{
+                    "vsLastMonth" | i18n
+                    }}</span>
+            </div>
+        </div>
+        <div [class]="'p-4 rounded-full ' + stat.bgColor + ' shadow-inner'">
+            <i [class]="stat.icon + ' text-xl'"></i>
+        </div>
+        @if(stat.badge) {
+        <span
+            class="absolute top-2 right-2 px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
+            {{ stat.badge }}
+        </span>
+        }
+    </div>
+    }
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div
+        class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+            <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>
+            {{ "requestsByStatus" | i18n }}
+        </h3>
+        <div class="h-64 flex items-center justify-center">
+            <app-status-pie-chart [data]="statusPieChartData()" [title]="'requestsByStatus' | i18n" />
+        </div>
+    </div>
+    <div
+        class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+            <i class="fas fa-chart-bar text-indigo-500 mr-2"></i>
+            {{ "requestsByCategory" | i18n }}
+        </h3>
+        <div class="h-64 flex items-center justify-center">
+            <app-category-bar-chart [data]="ordersByCategory()" [title]="'requestsByCategory' | i18n" />
+        </div>
+    </div>
+</div>
+
+<!-- Temporal Evolution Chart -->
+<div
+    class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 mb-8">
+    <h3 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
+        {{ "requestsEvolution" | i18n }}
+    </h3>
+    <div class="h-80">
+        <app-temporal-evolution-chart [data]="temporalData()" [title]="'requestsEvolution' | i18n" />
+    </div>
+</div>

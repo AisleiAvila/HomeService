@@ -16,13 +16,8 @@
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
       </div>
-      <app-login
-        #loginComponent
-        (loggedIn)="handleLogin($event)"
-        (switchToRegister)="showRegister()"
-        (switchToLanding)="showLanding()"
-        (forgotPassword)="handleForgotPassword($event)"
-      />
+      <app-login #loginComponent (loggedIn)="handleLogin($event)" (switchToRegister)="showRegister()"
+        (switchToLanding)="showLanding()" (forgotPassword)="handleForgotPassword($event)" />
     </div>
   </ng-container>
 
@@ -32,22 +27,15 @@
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
       </div>
-      <app-register
-        (registered)="handleRegister($event)"
-        (switchToLogin)="showLogin()"
-        (switchToLanding)="showLanding()"
-      />
+      <app-register (registered)="handleRegister($event)" (switchToLogin)="showLogin()"
+        (switchToLanding)="showLanding()" />
     </div>
   </ng-container>
 
   <!-- Verification -->
   <ng-container *ngSwitchCase="'verification'">
-    <app-verification
-      [email]="emailForVerification()"
-      (verified)="handleVerification($event)"
-      (resendCode)="handleResendVerification()"
-      (backToLanding)="handleBackToLanding()"
-    />
+    <app-verification [email]="emailForVerification()" (verified)="handleVerification($event)"
+      (resendCode)="handleResendVerification()" (backToLanding)="handleBackToLanding()" />
   </ng-container>
 
   <!-- Forgot password -->
@@ -56,213 +44,108 @@
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
       </div>
-      <app-forgot-password
-        [initialEmail]="emailForPasswordReset()"
-        (codeRequested)="handleForgotPasswordCodeRequested($event)"
-        (backToLogin)="showLogin()"
-      />
+      <app-forgot-password [initialEmail]="emailForPasswordReset()"
+        (codeRequested)="handleForgotPasswordCodeRequested($event)" (backToLogin)="showLogin()" />
     </div>
   </ng-container>
 
   <!-- Reset password -->
   <ng-container *ngSwitchCase="'reset-password'">
-    <app-reset-password
-      [initialEmail]="emailForPasswordReset()"
-      (passwordResetComplete)="handlePasswordResetComplete()"
-    />
+    <app-reset-password [initialEmail]="emailForPasswordReset()"
+      (passwordResetComplete)="handlePasswordResetComplete()" />
   </ng-container>
 
   <!-- App -->
   <ng-container *ngSwitchCase="'app'">
-    <div
-      class="flex h-screen bg-gray-100 text-gray-800 overflow-hidden mobile-safe"
-    >
+    <div class="flex h-screen bg-gray-100 text-gray-800 overflow-hidden mobile-safe">
       <!-- Sidebar (desktop) -->
       <aside
         class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
-        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'"
-        aria-label="Menu lateral de navegação"
-      >
+        [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'" aria-label="Menu lateral de navegação">
         <div class="h-16 flex items-center px-4 border-b border-gray-200">
-          <img
-            src="src/assets/logo-new.png"
-            alt="HomeService"
-            class="h-8 w-auto"
-          />
+          <img src="src/assets/logo-new.png" alt="HomeService" class="h-8 w-auto" />
         </div>
-  <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
-          <button
-            *ngFor="let item of navItems()"
-            (click)="navigate(item.id)"
-            [class]="
+        <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
+          <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
               currentNav() === item.id
                 ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
                 : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
-            "
-            [ngClass]="{ 'justify-center': isSidebarCollapsed() }"
-          >
+            " [ngClass]="{ 'justify-center': isSidebarCollapsed() }">
             <i [class]="item.icon"></i>
-            <span
-              class="transition-all"
-              [class.hidden]="isSidebarCollapsed()"
-              >{{ item.labelKey | i18n }}</span
-            >
+            <span class="transition-all" [class.hidden]="isSidebarCollapsed()">{{ item.labelKey | i18n }}</span>
           </button>
         </nav>
         <!-- Bloco de perfil do usuário -->
-        <div
-          class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100"
-        >
-          <img
-            [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'"
-            alt="Avatar do usuário"
-            class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
-          />
-          <span
-            *ngIf="!isSidebarCollapsed()"
-            class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]"
-            >{{ currentUser()?.name }}</span
-          >
-          <span
-            *ngIf="!isSidebarCollapsed()"
-            class="text-xs text-gray-500 text-center"
-            >{{ currentUser()?.role | i18n }}</span
-          >
+        <div class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100">
+          <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
+            class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
+          <span *ngIf="!isSidebarCollapsed()"
+            class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
+            }}</span>
+          <span *ngIf="!isSidebarCollapsed()" class="text-xs text-gray-500 text-center">{{ currentUser()?.role | i18n
+            }}</span>
         </div>
       </aside>
 
       <!-- Main column -->
       <div class="flex-1 flex flex-col overflow-hidden min-w-0">
-        <header
-          class="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10 flex-shrink-0 min-h-[60px]"
-        >
+        <header class="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10 flex-shrink-0 min-h-[60px]">
           <div class="flex items-center gap-2">
-            <button
-              class="p-2 rounded-md border border-gray-200"
-              (click)="toggleSidebar()"
-              [attr.title]="
+            <button class="p-2 rounded-md border border-gray-200" (click)="toggleSidebar()" [attr.title]="
                 isMobile()
                   ? ('menu' | i18n)
                   : isSidebarCollapsed()
                   ? ('expand' | i18n)
                   : ('collapse' | i18n)
-              "
-              [attr.aria-expanded]="
+              " [attr.aria-expanded]="
                 isMobile() ? isSidebarOpen() : !isSidebarCollapsed()
-              "
-            >
+              ">
               <i class="fa-solid fa-bars"></i>
             </button>
             <span class="hidden md:inline font-semibold">HomeService</span>
           </div>
           <div class="flex items-center gap-2">
-            <button
-              class="relative p-2 rounded-md hover:bg-gray-50"
-              (click)="openNotificationCenter()"
-              title="{{ 'notifications' | i18n }}"
-            >
+            <button class="relative p-2 rounded-md hover:bg-gray-50" (click)="openNotificationCenter()"
+              title="{{ 'notifications' | i18n }}">
               <i class="fa-solid fa-bell"></i>
-              <span
-                *ngIf="hasUnreadNotifications()"
-                class="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500"
-              ></span>
+              <span *ngIf="hasUnreadNotifications()"
+                class="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500"></span>
             </button>
             <app-language-switcher [theme]="'dark'" />
-            <button
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
-              (click)="handleLogout()"
-            >
+            <button class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
+              (click)="handleLogout()">
               <i class="fa-solid fa-right-from-bracket"></i>
               <span class="hidden sm:inline">{{ "logout" | i18n }}</span>
             </button>
           </div>
         </header>
-        
-        <!-- Admin Navigation Tabs (only visible for admin users) -->
-        <div *ngIf="currentUser()?.role === 'admin'" class="flex-shrink-0 border-b-2 border-gray-200 bg-white shadow-sm">
-          <!-- Mobile Dropdown Menu (visible only on very small screens) -->
-          <div class="block sm:hidden px-4 py-3">
-            <select
-              [value]="currentAdminView()"
-              (change)="setAdminView($any($event.target).value)"
-              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              @for (view of adminViews(); track view.id) {
-              <option [value]="view.id">
-                {{ view.label }}
-              </option>
-              }
-            </select>
-          </div>
 
-          <!-- Horizontal Scrollable Menu (visible on small+ screens) -->
-          <nav
-            class="hidden sm:flex overflow-x-auto -mb-px px-4 sm:px-6 scrollbar-hide"
-            aria-label="Navegação de visualizações administrativas"
-          >
-            <div class="flex space-x-4 sm:space-x-6 min-w-max">
-              @for (view of adminViews(); track view.id) {
-              <button
-                (click)="setAdminView(view.id)"
-                [class]="
-                  'whitespace-nowrap py-3 px-3 sm:py-4 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors duration-200 flex-shrink-0 min-w-[80px] sm:min-w-0 ' +
-                  (currentAdminView() === view.id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
-                "
-                class="flex items-center justify-center sm:justify-start"
-              >
-                <i [class]="view.icon + ' mr-0 sm:mr-2'"></i>
-                <span class="hidden sm:inline">{{ view.label }}</span>
-              </button>
-              }
-            </div>
-          </nav>
-        </div>
-        
-        <main
-          class="flex-1 overflow-y-auto overflow-x-hidden min-w-0"
-        >
+
+
+        <main class="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
           <router-outlet (activate)="onActivate($event)" (deactivate)="onDeactivate($event)"></router-outlet>
           <ng-container *ngIf="!isRouterOutletActivated">
             <ng-container [ngSwitch]="currentNav()">
               <ng-container *ngSwitchCase="'dashboard'">
                 <!-- Dashboard do Admin -->
                 <ng-container *ngIf="currentUser()?.role === 'admin'">
-                  <app-admin-dashboard
-                    [viewFromParent]="currentAdminView()"
-                    (viewDetails)="openDetails($event)"
-                    (openChat)="openChat($event)"
-                  />
+                  <!-- Admin Dashboard is now routed -->
                 </ng-container>
                 <!-- Dashboard de Profissional -->
                 <ng-container *ngIf="currentUser()?.role === 'professional'">
-                  <app-dashboard
-                    [user]="currentUser()!"
-                    (viewDetails)="openDetails($event)"
-                    (openChat)="openChat($event)"
-                    (payNow)="handlePayment($event)"
-                    (scheduleRequest)="openScheduler($event)"
-                    (provideClarification)="openClarificationModal($event)"
-                  />
+                  <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)" (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
                 </ng-container>
-                 <!-- Dashboard do Cliente -->
+                <!-- Dashboard do Cliente -->
                 <ng-container *ngIf="currentUser()?.role === 'client'">
-                  <app-dashboard
-                    [user]="currentUser()!"
-                    (viewDetails)="openDetails($event)"
-                    (openChat)="openChat($event)"
-                    (payNow)="handlePayment($event)"
-                    (scheduleRequest)="openScheduler($event)"
-                    (provideClarification)="openClarificationModal($event)"
-                  />
+                  <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
+                    (openChat)="openChat($event)" (payNow)="handlePayment($event)"
+                    (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
                 </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'schedule'">
-                <app-schedule
-                  [user]="currentUser()!"
-                  (viewDetails)="openDetails($event)"
-                />
+                <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
               </ng-container>
               <ng-container *ngSwitchCase="'search'">
                 <app-search [user]="currentUser()!" />
@@ -272,44 +155,27 @@
               </ng-container>
               <ng-container *ngSwitchCase="'details'">
                 <ng-container *ngIf="selectedRequest()">
-                  <app-service-request-details
-                    [request]="selectedRequest()!"
-                    [currentUser]="currentUser()!"
-                    (close)="goBackFromDetails()"
-                    (openChat)="openChat($event)"
-                    (approveQuote)="handleApproveQuote($event)"
-                    (rejectQuote)="handleRejectQuote($event)"
-                    (scheduleRequest)="openScheduler($event)"
-                    (payNow)="handlePayment($event)"
-                    (refreshRequest)="handleRefreshRequest()"
-                  />
+                  <app-service-request-details [request]="selectedRequest()!" [currentUser]="currentUser()!"
+                    (close)="goBackFromDetails()" (openChat)="openChat($event)"
+                    (approveQuote)="handleApproveQuote($event)" (rejectQuote)="handleRejectQuote($event)"
+                    (scheduleRequest)="openScheduler($event)" (payNow)="handlePayment($event)"
+                    (refreshRequest)="handleRefreshRequest()" />
                 </ng-container>
               </ng-container>
             </ng-container>
             <!-- Modal de confirmação de deleção de categoria -->
             <ng-container *ngIf="categoryManagement?.showDeleteModal()">
-              <app-modal
-                [isVisible]="true"
-                [title]="'delete' | i18n"
-                [message]="
+              <app-modal [isVisible]="true" [title]="'delete' | i18n" [message]="
                   i18n.translate('confirmDeleteCategory', {
                     category: categoryManagement?.categoryToDelete()?.name || ''
                   })
-                "
-                (closed)="categoryManagement?.cancelDeleteCategory()"
-              >
-                <button
-                  type="button"
-                  class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2"
-                  (click)="categoryManagement?.confirmDeleteCategory()"
-                >
+                " (closed)="categoryManagement?.cancelDeleteCategory()">
+                <button type="button" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 mr-2"
+                  (click)="categoryManagement?.confirmDeleteCategory()">
                   {{ "delete" | i18n }}
                 </button>
-                <button
-                  type="button"
-                  class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
-                  (click)="categoryManagement?.cancelDeleteCategory()"
-                >
+                <button type="button" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+                  (click)="categoryManagement?.cancelDeleteCategory()">
                   {{ "cancel" | i18n }}
                 </button>
               </app-modal>
@@ -320,34 +186,22 @@
 
       <!-- Sidebar (mobile off-canvas) -->
       <div class="md:hidden" *ngIf="isSidebarOpen()">
-        <div
-          class="fixed inset-0 bg-black/40 z-40"
-          (click)="toggleSidebar()"
-          (keydown.enter)="toggleSidebar()"
-          aria-label="Fechar menu lateral"
-        ></div>
-        <aside
-          class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
-          aria-label="Menu lateral de navegação (mobile)"
-        >
-          <div
-            class="h-16 flex items-center px-4 border-b border-gray-200 justify-between"
-          >
+        <div class="fixed inset-0 bg-black/40 z-40" (click)="toggleSidebar()" (keydown.enter)="toggleSidebar()"
+          aria-label="Fechar menu lateral"></div>
+        <aside class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
+          aria-label="Menu lateral de navegação (mobile)">
+          <div class="h-16 flex items-center px-4 border-b border-gray-200 justify-between">
             <img src="assets/logo-new.png" alt="HomeService" class="h-8 w-auto" />
             <button class="p-2" (click)="toggleSidebar()">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral (mobile)">
-            <button
-              *ngFor="let item of navItems()"
-              (click)="navigate(item.id)"
-              [class]="
+            <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
                 currentNav() === item.id
                   ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
                   : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
-              "
-            >
+              ">
               <i [class]="item.icon"></i>
               <span>{{ item.labelKey | i18n }}</span>
             </button>
@@ -356,28 +210,20 @@
           <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
             <button
               class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-              (click)="openNewRequestForm(); toggleSidebar()"
-            >
+              (click)="openNewRequestForm(); toggleSidebar()">
               <i class="fa-solid fa-plus"></i>
               <span>{{ "createServiceRequest" | i18n }}</span>
             </button>
           </div>
           <!-- Bloco de perfil do usuário (mobile) -->
-          <div
-            class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100"
-          >
-            <img
-              [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'"
-              alt="Avatar do usuário"
-              class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm"
-            />
-            <span
-              class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]"
-              >{{ currentUser()?.name }}</span
-            >
+          <div class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100">
+            <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
+              class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
+            <span class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
+              }}</span>
             <span class="text-xs text-gray-500 text-center">{{
               currentUser()?.role | i18n
-            }}</span>
+              }}</span>
           </div>
         </aside>
       </div>
@@ -385,39 +231,28 @@
 
     <!-- Modals Layer (somente no modo app) -->
     <ng-container *ngIf="isNotificationCenterOpen()">
-  <div class="modal-backdrop-right" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar centro de notificações">
-        <app-notification-center
-          (close)="closeModal()"
-          (click)="$event.stopPropagation()"
-          (keydown.enter)="$event.stopPropagation(); closeModal()"
-          aria-label="Centro de notificações"
-        />
+      <div class="modal-backdrop-right" (click)="closeModal()" (keydown.enter)="closeModal()"
+        aria-label="Fechar centro de notificações">
+        <app-notification-center (close)="closeModal()" (click)="$event.stopPropagation()"
+          (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Centro de notificações" />
       </div>
     </ng-container>
     <ng-container *ngIf="isChatOpen() && selectedRequest()">
-  <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de chat">
-        <div
-          class="modal-content max-w-2xl h-3/4"
-          (click)="$event.stopPropagation()"
-          (keydown.enter)="$event.stopPropagation(); closeModal()"
-          aria-label="Conteúdo do chat"
-        >
-          <app-chat
-            [currentUser]="currentUser()!"
-            [serviceRequest]="selectedRequest()!"
-            (close)="closeModal()"
-          />
+      <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
+        aria-label="Fechar modal de chat">
+        <div class="modal-content max-w-2xl h-3/4" (click)="$event.stopPropagation()"
+          (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Conteúdo do chat">
+          <app-chat [currentUser]="currentUser()!" [serviceRequest]="selectedRequest()!" (close)="closeModal()" />
         </div>
       </div>
     </ng-container>
     <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
-  <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" aria-label="Fechar modal de agendamento">
-  <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Conteúdo do agendamento">
-          <app-scheduler
-            [serviceRequest]="selectedRequest()!"
-            (close)="closeModal()"
-            (appointmentConfirmed)="handleScheduleConfirmed($event)"
-          />
+      <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
+        aria-label="Fechar modal de agendamento">
+        <div class="modal-content" (click)="$event.stopPropagation()"
+          (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Conteúdo do agendamento">
+          <app-scheduler [serviceRequest]="selectedRequest()!" (close)="closeModal()"
+            (appointmentConfirmed)="handleScheduleConfirmed($event)" />
         </div>
       </div>
     </ng-container>

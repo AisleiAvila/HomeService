@@ -5,8 +5,10 @@ import {
   computed,
   effect,
   AfterViewInit,
+  inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { I18nService } from "@/src/i18n.service";
 
 @Component({
   selector: "app-category-bar-chart",
@@ -42,6 +44,8 @@ import { CommonModule } from "@angular/common";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryBarChartComponent implements AfterViewInit {
+  // Injeção do serviço de i18n
+  readonly i18n = inject(I18nService);
   constructor() {
     // Log para depuração do valor do título
     effect(() => {
@@ -82,11 +86,9 @@ export class CategoryBarChartComponent implements AfterViewInit {
   }
 
   renderBarChart() {
-    const canvas = document.querySelector(
-      "canvas#barCanvas"
-    ) as HTMLCanvasElement;
-    if (!canvas) {
-      console.warn("[BarChart] Canvas não encontrado");
+    const canvas = document.querySelector("canvas#barCanvas");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      console.warn("[BarChart] Canvas não encontrado ou tipo inválido");
       return;
     }
     const ctx = canvas.getContext("2d");
@@ -106,7 +108,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
       ctx.fillStyle = "#6b7280"; // gray-500
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("Sem dados", canvas.width / 2, canvas.height / 2);
+      const i18nText = this.i18n.translate("noDataAvailable") || "Sem dados";
+      ctx.fillText(i18nText, canvas.width / 2, canvas.height / 2);
       return;
     }
 
@@ -118,7 +121,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const xStart = 30;
 
     // Draw bars
-    data.forEach((item, index) => {
+    let index = 0;
+    for (const item of data) {
       const barHeight = (item.value / maxValue) * chartHeight;
       const x = xStart + index * barWidth;
       const y = canvas.height - 30 - barHeight;
@@ -142,7 +146,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.fillText(item.label, x + actualBarWidth / 2, canvas.height - 25);
-    });
+      index++;
+    }
 
     // Draw Y-axis
     ctx.strokeStyle = "#d1d5db"; // gray-300

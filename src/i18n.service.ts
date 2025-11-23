@@ -780,6 +780,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     serviceRequestDescription: "Create a new service request on behalf of a client",
     number: "Number",
     requesterInfo: "Requester Information",
+    requestsByStatus: "Requests by Status",
+    requestsByCategory: "Requests by Category",
+    requestsEvolution: "Requests Evolution",
   },
   pt: {
     // General
@@ -1564,6 +1567,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     serviceRequestDescription: "Crie e gerencie solicitações de serviço em nome dos clientes.",
     number: "Número",
     requesterInfo: "Informações do Solicitante",
+    requestsByStatus: "Solicitações por Status",
+    requestsByCategory: "Solicitações por Categoria",
+    requestsEvolution: "Evolução das Solicitações",
 
   },
 };
