@@ -15,6 +15,9 @@ export class ProfessionalFormComponent {
   @Input() name = "";
   @Input() email = "";
   @Input() specialties: ServiceCategory[] = [];
+  @Input() phone = "";
+  phoneError: string | null = null;
+  @Output() phoneChange = new EventEmitter<string>();
   nameError: string | null = null;
   emailError: string | null = null;
   specialtiesError: string | null = null;
@@ -50,6 +53,13 @@ export class ProfessionalFormComponent {
       valid = false;
     } else {
       this.emailError = null;
+    }
+    // Validação telefone Portugal: 9 dígitos, pode aceitar 999999999 ou 99999-9999
+    if (!this.phone || !/^([9][0-9]{8}|[9][0-9]{4}-[0-9]{4})$/.test(this.phone)) {
+      this.phoneError = 'phoneInvalid';
+      valid = false;
+    } else {
+      this.phoneError = null;
     }
     if (!this.specialties || this.specialties.length === 0) {
       this.specialtiesError = 'specialtyRequired';

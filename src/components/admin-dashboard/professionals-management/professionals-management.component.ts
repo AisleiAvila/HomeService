@@ -141,6 +141,7 @@ export class ProfessionalsManagementComponent implements OnInit {
     newProfessionalEmail = signal("");
 
     newProfessionalSpecialties = signal<ServiceCategory[]>([]);
+    newProfessionalPhone = signal("");
 
     // Signals para erros do formulário de adição
     newProfessionalNameError = signal<string | null>(null);
@@ -180,14 +181,59 @@ export class ProfessionalsManagementComponent implements OnInit {
     }
 
     addProfessional() {
-        // Implement add professional logic
-        console.log("Add professional:", {
-            name: this.newProfessionalName(),
-            email: this.newProfessionalEmail(),
-            specialties: this.newProfessionalSpecialties(),
-        });
-        this.showFeedback('Profissional adicionado com sucesso', 'success');
-        this.resetNewProfessionalForm();
+        // Implementa lógica de persistência no Supabase
+        const name = this.newProfessionalName();
+        const email = this.newProfessionalEmail();
+        const specialties = this.newProfessionalSpecialties();
+        const phone = this.newProfessionalPhone();
+
+        // Validação extra (defensiva)
+        if (!name || !email || specialties.length === 0 || !phone) {
+            this.showFeedback('Preencha todos os campos obrigatórios', 'error');
+            return;
+        }
+
+        // Cria objeto User para persistência
+        const newUser: Partial<User> = {
+            name,
+            email,
+            role: "professional",
+            status: "Pending",
+            specialties,
+            phone,
+        };
+
+        // Usa método público do DataService para inserir usuário
+        this.dataService.addProfessional(newUser)
+            .then((result) => {
+                if (result === true) {
+                    // Atualiza signal local com todos campos obrigatórios
+                    this.dataService.users.update((users) => [
+                        ...users,
+                        {
+                            id: Date.now(),
+                            auth_id: "",
+                            avatar_url: "",
+                            name,
+                            email,
+                            role: "professional",
+                            status: "Pending",
+                            specialties,
+                            phone,
+                            email_verified: false,
+                            address: undefined,
+                            phone_verified: false,
+                            sms_code: undefined,
+                            sms_code_expires_at: undefined,
+                            receive_sms_notifications: false,
+                        },
+                    ]);
+                    this.showFeedback('Profissional adicionado com sucesso', 'success');
+                    this.resetNewProfessionalForm();
+                } else {
+                    this.showFeedback('Erro ao adicionar profissional', 'error');
+                }
+            });
     }
 
     startEditProfessional(pro: User) {

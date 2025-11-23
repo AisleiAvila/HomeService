@@ -24,6 +24,21 @@ import { SupabaseService } from "./supabase.service";
   providedIn: "root",
 })
 export class DataService {
+    /**
+     * Adiciona profissional ao Supabase
+     */
+    async addProfessional(newUser: Partial<User>): Promise<boolean> {
+      const { error } = await this.supabase.client
+        .from("users")
+        .insert([newUser]);
+      if (error) {
+        this.notificationService.addNotification(
+          "Erro ao adicionar profissional: " + error.message
+        );
+        return false;
+      }
+      return true;
+    }
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
   public readonly authService = inject(AuthService);

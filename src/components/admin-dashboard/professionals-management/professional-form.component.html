@@ -25,6 +25,11 @@
     @if(emailError) {
       <div class="form-error">{{ emailError | i18n }}</div>
     }
+    <input type="text" [ngModel]="phone" (ngModelChange)="phoneChange.emit($event)"
+      [placeholder]="'phone' | i18n" aria-label="{{ 'phone' | i18n }}" class="form-input" maxlength="10" pattern="[0-9]{5}-[0-9]{4}|[0-9]{9}" />
+    @if(phoneError) {
+      <div class="form-error">{{ phoneError | i18n }}</div>
+    }
     <fieldset>
       <legend class="form-label">
         {{ "specialties" | i18n }}

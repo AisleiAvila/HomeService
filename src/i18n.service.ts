@@ -788,6 +788,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     searchSpeciality: "Search Specialty...",
     manageAllProfessionalsDesc : "View and manage all registered professionals in the system",
     totalRecords: "Total Records",
+    nameRequired: "Name is required",
+    emailInvalid: "Please enter a valid email address",
+    phoneInvalid: "Please enter a valid phone number",
+    specialtyRequired: "At least one specialty is required",
   },
   pt: {
     // General
@@ -1580,6 +1584,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     searchSpeciality: "Pesquisar especialidade...",
     manageAllProfessionalsDesc: "Visualize e gerencie todos os profissionais cadastrados no sistema",
     totalRecords: "Total de Registros",
+    nameRequired: "O nome é obrigatório",
+    emailInvalid: "Por favor, insira um email válido",
+    phoneInvalid: "Por favor, insira um número de telefone válido",
+    specialtyRequired: "Por favor, selecione pelo menos uma especialidade",
 
   },
 };

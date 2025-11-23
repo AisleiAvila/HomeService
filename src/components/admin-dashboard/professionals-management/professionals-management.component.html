@@ -82,17 +82,19 @@
     </div>
     <div class="p-4 border-b bg-gray-50" *ngIf="showAddProfessionalForm() && !editingProfessional()">
         <app-professional-form
-            [allCategories]="allCategories"
+            [allCategories]="allCategories()"
             [name]="newProfessionalName()"
             [email]="newProfessionalEmail()"
             [specialties]="newProfessionalSpecialties() || []"
             [feedbackMessage]="feedbackMessage()"
             [feedbackType]="feedbackType()"
-            (nameChange)="newProfessionalName.set($event)"
-            (emailChange)="newProfessionalEmail.set($event)"
-            (specialtiesChange)="newProfessionalSpecialties.set($event)"
-            (add)="addProfessional()"
-            (cancelAdd)="resetNewProfessionalForm()"
+                [phone]="newProfessionalPhone()"
+                (nameChange)="newProfessionalName.set($event)"
+                (emailChange)="newProfessionalEmail.set($event)"
+                (specialtiesChange)="newProfessionalSpecialties.set($event)"
+                (phoneChange)="newProfessionalPhone.set($event)"
+                (add)="addProfessional()"
+                (cancelAdd)="resetNewProfessionalForm()"
         ></app-professional-form>
     </div>
 
