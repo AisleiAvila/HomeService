@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal, effect } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal, effect, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ServiceCategory, User } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -15,7 +15,7 @@ import { ProfessionalEditFormComponent } from "./professional-edit-form.componen
     templateUrl: "./professionals-management.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfessionalsManagementComponent {
+export class ProfessionalsManagementComponent implements OnInit {
                 // Ordenação
                 sortColumn = signal<'name' | 'email' | 'specialties'>('name');
                 sortDirection = signal<'asc' | 'desc'>('asc');
@@ -37,8 +37,8 @@ export class ProfessionalsManagementComponent {
                 });
             }
 
-            async ngOnInit() {
-                await this.dataService.fetchUsers();
+            ngOnInit(): void {
+                this.dataService.fetchUsers();
             }
         // Paginação: total de páginas
         totalPages = computed(() => {

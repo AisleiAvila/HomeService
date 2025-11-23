@@ -161,11 +161,14 @@ export class DataService {
       }));
       try {
         if (normalized.length > 0) {
-          const sample = normalized.slice(0, 5).map((s) => ({
-            id: s.id,
-            category_id_type: typeof s.category_id,
-            category_id_value: s.category_id,
-          }));
+          // Debug info for first 5 normalized subcategories (removed unused assignment)
+          // normalized.slice(0, 5).forEach((s) => {
+          //   console.debug({
+          //     id: s.id,
+          //     category_id_type: typeof s.category_id,
+          //     category_id_value: s.category_id,
+          //   });
+          // });
         }
       } catch (e) {
         console.error("[DataService] Error logging subcategories debug info:", e);

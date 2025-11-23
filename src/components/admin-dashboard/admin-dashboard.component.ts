@@ -1,8 +1,7 @@
 
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { Router, RouterModule, RouterLink, RouterLinkActive } from "@angular/router";
-import { I18nPipe } from "../../pipes/i18n.pipe";
+import { Router, RouterLink, RouterLinkActive, RouterModule } from "@angular/router";
 import { I18nService } from "../../i18n.service";
 
 @Component({
