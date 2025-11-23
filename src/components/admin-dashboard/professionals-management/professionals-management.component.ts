@@ -38,7 +38,7 @@ export class ProfessionalsManagementComponent implements OnInit {
             }
 
             ngOnInit(): void {
-                this.dataService.fetchUsers();
+                this.dataService.loadInitialData();
             }
         // Paginação: total de páginas
         totalPages = computed(() => {
@@ -133,7 +133,7 @@ export class ProfessionalsManagementComponent implements OnInit {
         );
     });
 
-    allCategories = this.dataService.categories();
+    allCategories = computed(() => this.dataService.categories());
 
     // Add Professional Form
     showAddProfessionalForm = signal(false);

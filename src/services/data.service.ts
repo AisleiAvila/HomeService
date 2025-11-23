@@ -87,7 +87,7 @@ export class DataService {
     }
   }
 
-  private async fetchCategories() {
+  async fetchCategories() {
     const { data, error } = await this.supabase.client
       .from("service_categories")
       .select(`

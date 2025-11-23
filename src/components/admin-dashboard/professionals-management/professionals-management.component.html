@@ -52,9 +52,9 @@
                     </label>
                     <select id="filterSpecialtySelect" [ngModel]="filterSpecialty()" (ngModelChange)="filterSpecialty.set($event)"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
-                        <option value="">{{ 'allSpecialties' | i18n }}</option>
-                        @for(cat of allCategories; track cat.id) {
-                            <option [value]="cat.name">{{ cat.name | i18n }}</option>
+                        <option [ngValue]="''">{{ 'allSpecialties' | i18n }}</option>
+                        @for(cat of allCategories(); track cat.id) {
+                            <option [ngValue]="cat.name">{{ cat.name }}</option>
                         }
                     </select>
                 </div>

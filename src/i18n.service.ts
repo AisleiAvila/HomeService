@@ -786,6 +786,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     searchNameEmailSpecialty: "Search by name, email, or specialty...",
     allSpecialties: "All Specialties",
     searchSpeciality: "Search Specialty...",
+    manageAllProfessionalsDesc : "View and manage all registered professionals in the system",
   },
   pt: {
     // General
@@ -1576,6 +1577,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     searchNameEmailSpecialty: "Pesquisar por nome, email ou especialidade",
     allSpecialties: "Todas as Especialidades",
     searchSpeciality: "Pesquisar especialidade...",
+    manageAllProfessionalsDesc: "Visualize e gerencie todos os profissionais cadastrados no sistema",
 
   },
 };
