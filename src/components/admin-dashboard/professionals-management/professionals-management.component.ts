@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal, effect } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ServiceCategory, User } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -16,31 +16,93 @@ import { ProfessionalEditFormComponent } from "./professional-edit-form.componen
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfessionalsManagementComponent {
-            // Paginação
-            pageSize = 10;
-            currentPage = signal(1);
+                // Ordenação
+                sortColumn = signal<'name' | 'email' | 'specialties'>('name');
+                sortDirection = signal<'asc' | 'desc'>('asc');
 
-            paginatedProfessionals = computed(() => {
-                const all = this.professionals();
-                const start = (this.currentPage() - 1) * this.pageSize;
-                return all.slice(start, start + this.pageSize);
-            });
-
-            totalPages = computed(() => {
-                return Math.ceil(this.professionals().length / this.pageSize) || 1;
-            });
-
-            nextPage() {
-                if (this.currentPage() < this.totalPages()) {
-                    this.currentPage.set(this.currentPage() + 1);
+                setSort(column: 'name' | 'email' | 'specialties') {
+                    if (this.sortColumn() === column) {
+                        this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+                    } else {
+                        this.sortColumn.set(column);
+                        this.sortDirection.set('asc');
+                    }
                 }
+            constructor() {
+                // Sempre que busca ou filtro mudam, volta para página 1
+                effect(() => {
+                    this.searchTerm();
+                    this.filterSpecialty();
+                    this.currentPage.set(1);
+                });
             }
 
-            prevPage() {
-                if (this.currentPage() > 1) {
-                    this.currentPage.set(this.currentPage() - 1);
-                }
+            async ngOnInit() {
+                await this.dataService.fetchUsers();
             }
+        // Paginação: total de páginas
+        totalPages = computed(() => {
+            const total = this.filteredProfessionals().length;
+            return Math.max(1, Math.ceil(total / this.pageSize));
+        });
+
+        prevPage() {
+            if (this.currentPage() > 1) {
+                this.currentPage.set(this.currentPage() - 1);
+            }
+        }
+
+        nextPage() {
+            if (this.currentPage() < this.totalPages()) {
+                this.currentPage.set(this.currentPage() + 1);
+            }
+        }
+    // Busca e filtro
+    public searchTerm = signal("");
+    public filterSpecialty = signal<string>("");
+
+    filteredProfessionals = computed(() => {
+        const term = this.searchTerm().toLowerCase();
+        const specialty = this.filterSpecialty();
+        const sortCol = this.sortColumn();
+        const sortDir = this.sortDirection();
+        let arr = this.professionals().filter((pro) => {
+            const matchesName = pro.name?.toLowerCase().includes(term);
+            const matchesEmail = pro.email?.toLowerCase().includes(term);
+            const specialtiesArr = pro.specialties?.map(s => typeof s === 'string' ? s : s.name) || [];
+            const matchesSpecialty = !specialty || specialtiesArr.includes(specialty);
+            const matchesSearch = !term || matchesName || matchesEmail || specialtiesArr.some(s => s?.toLowerCase().includes(term));
+            return matchesSearch && matchesSpecialty;
+        });
+        arr = arr.slice(); // Defensive copy
+        arr.sort((a, b) => {
+            let aVal, bVal;
+            if (sortCol === 'name') {
+                aVal = a.name?.toLowerCase() || '';
+                bVal = b.name?.toLowerCase() || '';
+            } else if (sortCol === 'email') {
+                aVal = a.email?.toLowerCase() || '';
+                bVal = b.email?.toLowerCase() || '';
+            } else if (sortCol === 'specialties') {
+                aVal = (a.specialties?.map(s => typeof s === 'string' ? s : s.name).join(', ') || '').toLowerCase();
+                bVal = (b.specialties?.map(s => typeof s === 'string' ? s : s.name).join(', ') || '').toLowerCase();
+            }
+            if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return arr;
+    });
+
+    // Paginação
+    pageSize = 10;
+    currentPage = signal(1);
+
+    paginatedProfessionals = computed(() => {
+        const all = this.filteredProfessionals();
+        const start = (this.currentPage() - 1) * this.pageSize;
+        return all.slice(start, start + this.pageSize);
+    });
         // trackBy para profissionais
         trackByProfessional(index: number, pro: User) {
             return pro.id;
@@ -67,7 +129,7 @@ export class ProfessionalsManagementComponent {
     isLoadingProfessionals = signal(false);
     professionals = computed(() => {
         return this.dataService.users().filter(
-            (u) => u.role === "professional" && u.status === "Active"
+            (u) => u.role === "professional"
         );
     });
 
@@ -103,7 +165,6 @@ export class ProfessionalsManagementComponent {
         this.newProfessionalEmail.set("");
         this.newProfessionalSpecialties.set([]);
         this.showAddProfessionalForm.set(false);
-        this.editingProfessional.set(null);
         this.showFeedback('Formulário limpo', 'info');
     }
 
@@ -130,11 +191,17 @@ export class ProfessionalsManagementComponent {
     }
 
     startEditProfessional(pro: User) {
+        // Ao iniciar edição, garantir que o formulário de adição não seja exibido
         this.showAddProfessionalForm.set(false);
         this.editingProfessional.set(pro);
         this.editingProfessionalName.set(pro.name);
         this.editingProfessionalEmail.set(pro.email);
         // Logic to set specialties would go here
+    }
+
+    cancelEditProfessional() {
+        this.editingProfessional.set(null);
+        // Não reexibe o formulário de adição automaticamente
     }
 
     updateProfessional() {
@@ -148,6 +215,6 @@ export class ProfessionalsManagementComponent {
         });
         this.showFeedback('Profissional atualizado com sucesso', 'success');
         this.editingProfessional.set(null);
-        this.showAddProfessionalForm.set(false);
+        // Não reexibe o formulário de adição automaticamente
     }
 }

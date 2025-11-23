@@ -16,9 +16,20 @@
             </div>
         }
     <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h3 class="text-xl font-semibold">
-            {{ "manageProfessionals" | i18n }}
-        </h3>
+        <div class="flex flex-col gap-2 w-full sm:w-auto">
+            <h3 class="text-xl font-semibold">
+                {{ "manageProfessionals" | i18n }}
+            </h3>
+            <div class="flex flex-col sm:flex-row gap-2 mt-2">
+                <input type="text" class="form-input w-full sm:w-48" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchSpeciality' | i18n }}" aria-label="{{ 'search' | i18n }}" />
+                <select class="form-input w-full sm:w-48" [ngModel]="filterSpecialty()" (ngModelChange)="filterSpecialty.set($event)">
+                    <option value="">{{ 'allSpecialties' | i18n }}</option>
+                    @for(cat of allCategories; track cat.id) {
+                        <option [value]="cat.name">{{ cat.name | i18n }}</option>
+                    }
+                </select>
+            </div>
+        </div>
         <button (click)="toggleAddProfessionalForm()"
             class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
             <i class="fas fa-plus mr-2"></i>{{ "addProfessional" | i18n }}
@@ -41,7 +52,7 @@
     </div>
 
     <!-- Formulário de edição -->
-    <div class="p-4 border-b bg-gray-50" *ngIf="editingProfessional()">
+    <div class="p-4 border-b bg-gray-50" *ngIf="editingProfessional() && !showAddProfessionalForm()">
         <app-professional-edit-form
             [allCategories]="allCategories"
             [name]="editingProfessionalName()"
@@ -53,7 +64,7 @@
             (emailChange)="editingProfessionalEmail.set($event)"
             (specialtiesChange)="editingProfessionalSpecialties.set($event)"
             (update)="updateProfessional()"
-            (cancelEdit)="editingProfessional.set(null)"
+            (cancelEdit)="cancelEditProfessional()"
         ></app-professional-edit-form>
     </div>
 
@@ -65,7 +76,7 @@
                 <span class="ml-2">{{ 'loading' | i18n }}</span>
             </div>
         }
-        @else if(professionals().length === 0) {
+        @else if(paginatedProfessionals().length === 0) {
             <div class="py-8 text-center text-gray-500 text-sm">
                 {{ 'noProfessionalsFound' | i18n }}
             </div>
@@ -74,14 +85,23 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('name')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
                             {{ "name" | i18n }}
+                            <span *ngIf="sortColumn() === 'name'">
+                                <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                            </span>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('email')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
                             {{ "email" | i18n }}
+                            <span *ngIf="sortColumn() === 'email'">
+                                <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                            </span>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('specialties')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('specialties')">
                             {{ "specialties" | i18n }}
+                            <span *ngIf="sortColumn() === 'specialties'">
+                                <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                            </span>
                         </th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                             {{ "action" | i18n }}
@@ -89,34 +109,44 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @for(pro of professionals(); track pro.id) {
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            {{ pro.name }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            {{ pro.email }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            {{ pro.specialties?.join(", ") }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <button (click)="startEditProfessional(pro)"
-                                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
-                                title="{{ 'edit' | i18n }}" aria-label="{{ 'edit' | i18n }}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @for (pro of paginatedProfessionals(); track pro.id) {
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                {{ pro.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {{ pro.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if(pro.specialties && pro.specialties.length > 0) {
+                                    @for(s of pro.specialties; track typeof s === 'string' ? s : s.name) {
+                                        <span>{{ typeof s === 'string' ? s : s.name }}</span>@if(!$last){<span>, </span>}
+                                    }
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <button (click)="startEditProfessional(pro)"
+                                    class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                                    title="{{ 'edit' | i18n }}" aria-label="{{ 'edit' | i18n }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
+            <!-- Paginação -->
+            <div class="flex justify-center items-center gap-2 py-4">
+                <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
+                <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+            </div>
         }
     </div>
 
     <!-- Mobile Card View -->
     <div class="lg:hidden p-4 space-y-4" *ngIf="!showAddProfessionalForm() && !editingProfessional()">
-        @for(pro of professionals(); track pro.id) {
+        @for(pro of paginatedProfessionals(); track pro.id) {
             <div class="border border-gray-200 rounded-lg p-4 space-y-3">
                 <!-- Header with name and edit button -->
                 <div class="flex justify-between items-start">
@@ -163,5 +193,11 @@
                 }
             </div>
         }
+        <!-- Paginação -->
+        <div class="flex justify-center items-center gap-2 py-4">
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
+            <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+        </div>
 
 <!-- Fim do componente, duplicações e resíduos removidos -->

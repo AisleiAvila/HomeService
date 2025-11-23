@@ -1067,7 +1067,7 @@ export class DataService {
     }));
   }
 
-  private async fetchUsers() {
+  async fetchUsers() {
     const { data, error } = await this.supabase.client
       .from("users")
       .select("*")

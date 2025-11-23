@@ -783,6 +783,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestsByStatus: "Requests by Status",
     requestsByCategory: "Requests by Category",
     requestsEvolution: "Requests Evolution",
+    searchNameEmailSpecialty: "Search by name, email, or specialty...",
+    allSpecialties: "All Specialties",
+    searchSpeciality: "Search Specialty...",
   },
   pt: {
     // General
@@ -1570,6 +1573,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestsByStatus: "Solicitações por Status",
     requestsByCategory: "Solicitações por Categoria",
     requestsEvolution: "Evolução das Solicitações",
+    searchNameEmailSpecialty: "Pesquisar por nome, email ou especialidade",
+    allSpecialties: "Todas as Especialidades",
+    searchSpeciality: "Pesquisar especialidade...",
 
   },
 };
