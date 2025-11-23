@@ -180,7 +180,7 @@ export class ProfessionalsManagementComponent implements OnInit {
     }
 
     addProfessional() {
-        // Implementa lógica de persistência no Supabase
+        // Novo fluxo: cria profissional via AuthService para garantir envio de e-mail
         const name = this.newProfessionalName();
         const email = this.newProfessionalEmail();
         const specialties = this.newProfessionalSpecialties();
@@ -192,46 +192,41 @@ export class ProfessionalsManagementComponent implements OnInit {
             return;
         }
 
-        // Cria objeto User para persistência
-        const newUser: Partial<User> = {
-            name,
-            email,
-            role: "professional",
-            status: "Pending",
-            specialties,
-            phone,
-        };
+        // Gera senha temporária segura para o profissional
+        const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
 
-        // Usa método público do DataService para inserir usuário
-        this.dataService.addProfessional(newUser)
-            .then((result) => {
-                if (result === true) {
-                    // Atualiza signal local com todos campos obrigatórios
-                    this.dataService.users.update((users) => [
-                        ...users,
-                        {
-                            id: Date.now(),
-                            auth_id: "",
-                            avatar_url: "",
-                            name,
-                            email,
-                            role: "professional",
-                            status: "Pending",
-                            specialties,
-                            phone,
-                            email_verified: false,
-                            address: undefined,
-                            phone_verified: false,
-                            sms_code: undefined,
-                            sms_code_expires_at: undefined,
-                            receive_sms_notifications: false,
-                        },
-                    ]);
-                    this.showFeedback('Profissional adicionado com sucesso', 'success');
+        // Chama AuthService.register para criar usuário no Supabase Auth
+        this.dataService.authService.register(name, email, tempPassword, "professional")
+            .then(async () => {
+                // Após registro, salva dados extras na tabela users
+                await this.dataService.updateProfessionalExtras(email, specialties, phone);
+
+                    // Envia e-mail de confirmação via endpoint customizado
+                    fetch("http://localhost:4001/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        to: email,
+                        subject: "Confirmação de cadastro - HomeService",
+                        html: `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}'>Confirmar e-mail</a></p>`
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showFeedback('Profissional cadastrado! E-mail de confirmação enviado.', 'success');
+                    } else {
+                        this.showFeedback('Profissional cadastrado, mas falha ao enviar e-mail.', 'error');
+                    }
                     this.resetNewProfessionalForm();
-                } else {
-                    this.showFeedback('Erro ao adicionar profissional', 'error');
-                }
+                })
+                .catch(() => {
+                    this.showFeedback('Profissional cadastrado, mas erro ao enviar e-mail.', 'error');
+                    this.resetNewProfessionalForm();
+                });
+            })
+            .catch((err) => {
+                this.showFeedback('Erro ao cadastrar profissional: ' + (err?.message || err), 'error');
             });
     }
 

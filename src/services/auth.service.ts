@@ -254,77 +254,29 @@ export class AuthService {
       return;
     }
 
-    // SOLUÇÃO ALTERNATIVA: Usar signInWithOtp que sempre envia email
-    console.log("📧 Enviando código de verificação via OTP...");
-    const { error: otpError } = await this.supabase.client.auth.signInWithOtp({
+    // Novo fluxo: usa signUp para disparar e-mail de confirmação padrão do Supabase
+    console.log("📧 Enviando e-mail de confirmação via signUp...");
+    const { error } = await this.supabase.client.auth.signUp({
       email,
+      password,
       options: {
-        shouldCreateUser: true,
         data: {
           name,
           role,
-          password, // Guardar temporariamente nos metadados
         },
       },
     });
 
-    if (otpError) {
-      console.error("❌ Erro ao enviar OTP:", otpError);
-
-      // Tratamento específico para diferentes tipos de erro
-      if (otpError.message.includes("User already registered")) {
-        this.notificationService.addNotification(
-          "E-mail já cadastrado. Tente fazer login ou use outro e-mail."
-        );
-      } else if (otpError.message.includes("invalid format")) {
-        this.notificationService.addNotification(
-          "Formato de e-mail inválido. Use o formato: usuario@email.com"
-        );
-      } else if (otpError.message.includes("email address")) {
-        this.notificationService.addNotification(
-          "E-mail inválido. Verifique se digitou corretamente."
-        );
-      } else if (otpError.message.includes("rate limit")) {
-        this.notificationService.addNotification(
-          "Muitas tentativas. Aguarde alguns minutos e tente novamente."
-        );
-      } else {
-        this.handleAuthError(otpError, "sending verification code");
-      }
+    if (error) {
+      console.error("❌ Erro ao cadastrar usuário:", error);
+      this.handleAuthError(error, "signing up");
       return;
     }
 
-    console.log("✅ Código de verificação enviado com sucesso!");
-
-    // Guardar dados do usuário temporariamente para criar perfil após verificação
-    const tempUserData = {
-      name,
-      email,
-      password,
-      role,
-      timestamp: Date.now(),
-    };
-
-    // Armazenar no localStorage temporariamente (será limpo após verificação)
-    localStorage.setItem("tempUserData", JSON.stringify(tempUserData));
-
-    // Definir e-mail pendente de confirmação
-    console.log("📧 Definindo e-mail pendente de confirmação:", email);
-    this.pendingEmailConfirmation.set(email);
-
-    // SEMPRE fazer logout para garantir que o usuário vá para tela de verificação
-    console.log("🔒 Fazendo logout obrigatório para tela de verificação");
-    await this.supabase.client.auth.signOut();
-
-    // Mensagem de sucesso bem visível
-    console.log("✅ ========================================");
-    console.log("✅ E-MAIL DE VERIFICAÇÃO ENVIADO COM SUCESSO!");
-    console.log("✅ Destinatário:", email);
-    console.log("✅ Tipo de cadastro:", role === "professional" ? "Profissional" : "Cliente");
-    console.log("✅ ========================================");
-    
+    // Mensagem de sucesso
+    console.log("✅ E-MAIL DE CONFIRMAÇÃO ENVIADO COM SUCESSO!");
     this.notificationService.addNotification(
-      "✅ Cadastro realizado! Um código de verificação foi enviado para seu e-mail. Verifique sua caixa de entrada e pasta de spam."
+      "✅ Cadastro realizado! Um e-mail de confirmação foi enviado para o profissional. Verifique a caixa de entrada e spam."
     );
   }
 
@@ -950,75 +902,90 @@ export class AuthService {
 
   private async ensureUserProfile(user: any, tempUserData: any): Promise<void> {
     console.log("[DEBUG] ensureUserProfile chamado para:", { user, tempUserData });
-    // Verificar se perfil já existe
+
     const { data: existingProfile, error: fetchError } = await this.supabase.client
       .from("users")
       .select("*")
       .eq("auth_id", user.id)
       .single();
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error("[DEBUG] Erro inesperado ao buscar perfil:", fetchError);
-    }
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      // Erro inesperado ao buscar perfil
-      console.error("❌ Erro ao buscar perfil:", fetchError);
-      this.notificationService.addNotification("Erro ao buscar perfil do usuário: " + (fetchError.message || fetchError.code));
+    if (this.isUnexpectedFetchError(fetchError)) {
+      this.handleFetchProfileError(fetchError);
       return;
     }
 
     if (existingProfile) {
-      console.log("📝 Perfil já existe, atualizando email_verified...");
-      const { error: updateError } = await this.supabase.client
-        .from("users")
-        .update({ email_verified: true })
-        .eq("auth_id", user.id);
-      if (updateError) {
-        console.error("❌ Erro ao atualizar email_verified:", updateError);
-        this.notificationService.addNotification("Erro ao atualizar verificação de email do perfil: " + (updateError.message || updateError.code));
-      } else {
-        console.log("✅ email_verified atualizado com sucesso");
-      }
+      await this.updateEmailVerified(user.id);
     } else {
-      console.log("📝 Criando perfil para usuário confirmado via link...");
-      const insertData = {
-        auth_id: user.id,
-        name: tempUserData?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Novo Usuário',
-        email: user.email,
-        role: tempUserData?.role || 'client',
-        status: tempUserData?.role === "professional" ? "Pending" : "Active",
-        avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
-        email_verified: true,
-      };
-      console.log("🔎 Dados para insert de perfil:", insertData);
-      // Monta query SQL para debug
-      const insertSQL = `INSERT INTO users (auth_id, name, email, role, status, avatar_url, email_verified) VALUES (
-        '${insertData.auth_id}',
-        '${insertData.name.replaceAll("'", "''")}',
-        '${insertData.email}',
-        '${insertData.role}',
-        '${insertData.status}',
-        '${insertData.avatar_url}',
-        ${insertData.email_verified ? 'TRUE' : 'FALSE'}
-      );`;
-      console.log("📝 Query SQL de insert:", insertSQL);
-      const { data: insertResult, error: insertError } = await this.supabase.client
-        .from("users")
-        .insert(insertData)
-        .select();
-      console.log("🟢 Resultado do insert:", { insertResult, insertError });
-      if (insertError) {
-        console.error("❌ Erro ao criar perfil:", insertError, "Payload:", insertData);
-        this.notificationService.addNotification(
-          "Erro ao criar perfil do usuário: " + (insertError.message || insertError.code) +
-          (insertError.details ? "\n" + insertError.details : "")
-        );
-      } else {
-        console.log("✅ Perfil criado com sucesso", insertResult);
-        this.notificationService.addNotification("Perfil criado com sucesso!");
-      }
+      await this.createProfileForConfirmedUser(user, tempUserData);
     }
+  }
+
+  private isUnexpectedFetchError(fetchError: any): boolean {
+    return fetchError && fetchError.code !== 'PGRST116';
+  }
+
+  private handleFetchProfileError(fetchError: any): void {
+    console.error("[DEBUG] Erro inesperado ao buscar perfil:", fetchError);
+    console.error("❌ Erro ao buscar perfil:", fetchError);
+    this.notificationService.addNotification("Erro ao buscar perfil do usuário: " + (fetchError.message || fetchError.code));
+  }
+
+  private async updateEmailVerified(authId: string): Promise<void> {
+    console.log("📝 Perfil já existe, atualizando email_verified...");
+    const { error: updateError } = await this.supabase.client
+      .from("users")
+      .update({ email_verified: true })
+      .eq("auth_id", authId);
+    if (updateError) {
+      console.error("❌ Erro ao atualizar email_verified:", updateError);
+      this.notificationService.addNotification("Erro ao atualizar verificação de email do perfil: " + (updateError.message || updateError.code));
+    } else {
+      console.log("✅ email_verified atualizado com sucesso");
+    }
+  }
+
+  private async createProfileForConfirmedUser(user: any, tempUserData: any): Promise<void> {
+    console.log("📝 Criando perfil para usuário confirmado via link...");
+    const insertData = {
+      auth_id: user.id,
+      name: tempUserData?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Novo Usuário',
+      email: user.email,
+      role: tempUserData?.role || 'client',
+      status: tempUserData?.role === "professional" ? "Pending" : "Active",
+      avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
+      email_verified: true,
+    };
+    console.log("🔎 Dados para insert de perfil:", insertData);
+    const insertSQL = `INSERT INTO users (auth_id, name, email, role, status, avatar_url, email_verified) VALUES (
+      '${insertData.auth_id}',
+      '${insertData.name.replaceAll("'", "''")}',
+      '${insertData.email}',
+      '${insertData.role}',
+      '${insertData.status}',
+      '${insertData.avatar_url}',
+      ${insertData.email_verified ? 'TRUE' : 'FALSE'}
+    );`;
+    console.log("📝 Query SQL de insert:", insertSQL);
+    const { data: insertResult, error: insertError } = await this.supabase.client
+      .from("users")
+      .insert(insertData)
+      .select();
+    console.log("🟢 Resultado do insert:", { insertResult, insertError });
+    if (insertError) {
+      this.handleInsertProfileError(insertError, insertData);
+    } else {
+      console.log("✅ Perfil criado com sucesso", insertResult);
+      this.notificationService.addNotification("Perfil criado com sucesso!");
+    }
+  }
+
+  private handleInsertProfileError(insertError: any, insertData: any): void {
+    console.error("❌ Erro ao criar perfil:", insertError, "Payload:", insertData);
+    this.notificationService.addNotification(
+      "Erro ao criar perfil do usuário: " + (insertError.message || insertError.code) +
+      (insertError.details ? "\n" + insertError.details : "")
+    );
   }
 
   private async setPasswordIfAvailable(tempUserData: any): Promise<void> {

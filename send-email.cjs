@@ -1,3 +1,6 @@
+// ...existing code...
+
+// ...existing code...
 // send-email.cjs
 // Endpoint Node.js/Express para envio de e-mail via SendGrid
 // Instale as dependências: npm install express @sendgrid/mail cors
@@ -17,8 +20,8 @@ const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL;
 
 // Log para depuração: mostra início e tamanho da chave usada
-console.log('SENDGRID_API_KEY usada:', SENDGRID_API_KEY?.substring(0, 10), '... tamanho:', SENDGRID_API_KEY?.length);
-console.log('FROM_EMAIL usado:', FROM_EMAIL);
+console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
+console.log('FROM_EMAIL:', process.env.FROM_EMAIL);
 
 // Diagnóstico: logar variáveis de ambiente (parcialmente mascarado)
 if (SENDGRID_API_KEY) {
@@ -37,7 +40,8 @@ sgMail.setApiKey(SENDGRID_API_KEY);
 // CORS explícito para frontend Angular local e Vercel (função para múltiplos domínios)
 const allowedOrigins = new Set([
   'http://localhost:4200',
-  'https://home-service-nu.vercel.app'
+  'https://home-service-nu.vercel.app',
+  'http://localhost:4001/api/send-email'
 ]);
 app.use(cors({
   origin: function (origin, callback) {
@@ -60,14 +64,16 @@ app.post('/api/send-email', async (req, res) => {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes.' });
   }
   try {
-    // Garante que não está em modo sandbox
-    // sgMail.setSubstitutionWrappers('{{', '}}'); // não obrigatório
-    // Não ativa sandbox mode
+    // Gera link de confirmação
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}`;
+    // Adiciona link ao corpo do e-mail
+    const htmlWithLink = `${html}<br><br><a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>Ou copie e cole este link no navegador: ${confirmLink}`;
     await sgMail.send({
       to,
       from: FROM_EMAIL,
       subject,
-      html,
+      html: htmlWithLink,
     });
     res.json({ success: true });
   } catch (error) {

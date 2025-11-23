@@ -55,7 +55,7 @@ export class ProfessionalFormComponent {
       this.emailError = null;
     }
     // Validação telefone Portugal: 9 dígitos, pode aceitar 999999999 ou 99999-9999
-    if (!this.phone || !/^([9][0-9]{8}|[9][0-9]{4}-[0-9]{4})$/.test(this.phone)) {
+    if (!this.phone || !/^(9\d{8}|9\d{4}-\d{4})$/.test(this.phone)) {
       this.phoneError = 'phoneInvalid';
       valid = false;
     } else {

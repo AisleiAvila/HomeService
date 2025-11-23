@@ -24,6 +24,15 @@ import { SupabaseService } from "./supabase.service";
   providedIn: "root",
 })
 export class DataService {
+      /**
+       * Atualiza dados extras do profissional após registro (specialties, phone)
+       */
+      async updateProfessionalExtras(email: string, specialties: ServiceCategory[], phone: string): Promise<void> {
+        await this.supabase.client
+          .from("users")
+          .update({ specialties, phone })
+          .eq("email", email);
+      }
     /**
      * Adiciona profissional ao Supabase
      */
