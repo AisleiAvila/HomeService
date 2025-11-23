@@ -37,27 +37,6 @@
 
     <!-- Filtros rápidos e avançados -->
     <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-gray-50 to-white space-y-4" *ngIf="!showAddProfessionalForm()">
-        <!-- Filtros rápidos -->
-        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-            <div class="flex items-center gap-2 mb-3">
-                <i class="fas fa-filter text-indigo-600"></i>
-                <span class="text-sm font-semibold text-gray-800">{{ "quickFilters" | i18n }}</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                <button (click)="filterSpecialty.set('')"
-                    [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105 ' + (filterSpecialty() === '' ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600')">
-                    <i class="fas fa-circle text-xs mr-2" [class]="filterSpecialty() === '' ? 'text-white' : 'text-gray-400'"></i>
-                    {{ 'allSpecialties' | i18n }}
-                </button>
-                @for(cat of allCategories; track cat.id) {
-                    <button (click)="filterSpecialty.set(cat.name)"
-                        [class]="'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105 ' + (filterSpecialty() === cat.name ? 'bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-400 hover:text-indigo-600')">
-                        <i class="fas fa-circle text-xs mr-2" [class]="filterSpecialty() === cat.name ? 'text-white' : 'text-gray-400'"></i>
-                        {{ cat.name | i18n }}
-                    </button>
-                }
-            </div>
-        </div>
 
         <!-- Filtros avançados -->
         <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
