@@ -29,6 +29,7 @@ export class AuthService {
           return false;
         }
       } catch (e) {
+        console.error("Erro ao conectar ao servidor de confirmação:", e);
         this.notificationService.addNotification("Erro ao conectar ao servidor de confirmação.");
         return false;
       }

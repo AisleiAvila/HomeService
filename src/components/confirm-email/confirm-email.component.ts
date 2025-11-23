@@ -162,32 +162,14 @@ export class ConfirmEmailComponent implements OnInit {
     const password = this.form.get('password')?.value;
 
     try {
-      // Check if we have a session
       const { data: { session } } = await this.supabase.client.auth.getSession();
 
       if (session) {
-        // User is authenticated, just update password
-        const { error: updateError } = await this.supabase.client.auth.updateUser({
-          password: password!
-        });
-        if (updateError) throw updateError;
+        await this.updatePassword(password);
       } else {
-        // No session, try to verify OTP
         const { token, type, email } = this.getTokenParams();
-
         if (token && email) {
-          const { error: verifyError } = await this.supabase.client.auth.verifyOtp({
-            email,
-            token,
-            type: type as EmailOtpType
-          });
-          if (verifyError) throw verifyError;
-
-          // After verify, update password
-          const { error: updateError } = await this.supabase.client.auth.updateUser({
-            password: password!
-          });
-          if (updateError) throw updateError;
+          await this.verifyOtpAndUpdatePassword(email, token, type, password);
         } else {
           this.error = this.i18n.translate('invalidOrExpiredLink');
           this.loading = false;
@@ -207,5 +189,23 @@ export class ConfirmEmailComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  private async updatePassword(password: string) {
+    const { error: updateError } = await this.supabase.client.auth.updateUser({
+      password
+    });
+    if (updateError) throw updateError;
+  }
+
+  private async verifyOtpAndUpdatePassword(email: string, token: string, type: EmailOtpType, password: string) {
+    const { error: verifyError } = await this.supabase.client.auth.verifyOtp({
+      email,
+      token,
+      type
+    });
+    if (verifyError) throw verifyError;
+
+    await this.updatePassword(password);
   }
 }

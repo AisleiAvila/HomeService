@@ -195,20 +195,26 @@ export class ProfessionalsManagementComponent implements OnInit {
         // Gera senha temporária segura para o profissional
         const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
 
+        // Gera token único para confirmação
+        const token = crypto.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
+        const confirmLink = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}&token=${token}`;
+        const html = `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmLink}'>Confirmar e-mail</a></p>`;
+
         // Chama AuthService.register para criar usuário no Supabase Auth
         this.dataService.authService.register(name, email, tempPassword, "professional")
             .then(async () => {
                 // Após registro, salva dados extras na tabela users
                 await this.dataService.updateProfessionalExtras(email, specialties, phone);
 
-                    // Envia e-mail de confirmação via endpoint customizado
-                    fetch("http://localhost:4001/api/send-email", {
+                // Envia e-mail de confirmação via endpoint customizado
+                fetch("http://localhost:4001/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         to: email,
                         subject: "Confirmação de cadastro - HomeService",
-                        html: `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}'>Confirmar e-mail</a></p>`
+                        html,
+                        token
                     })
                 })
                 .then(res => res.json())

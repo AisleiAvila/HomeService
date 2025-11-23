@@ -58,17 +58,24 @@ app.use(cors({
 app.use(express.json());
 
 app.post('/api/send-email', async (req, res) => {
+  console.log('Headers recebidos: ', req.headers);
+  console.log('Query recebida: ', req.query)
   console.log('Corpo recebido:', req.body);
-  const { to, subject, html } = req.body;
-  if (!to || !subject || !html) {
+  console.log('Detalhe dos parâmetros recebidos:');
+  console.log('to:', req.body.to, typeof req.body.to);
+  console.log('subject:', req.body.subject, typeof req.body.subject);
+  console.log('html:', req.body.html, typeof req.body.html);
+  console.log('token:', req.body.token, typeof req.body.token);
+  const { to, subject, html, token } = req.body;
+  if (!to || !subject || !html || !token) {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes.' });
   }
   try {
-    // Gera link de confirmação
+    // Gera link de confirmação com token
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
-    const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}`;
-    // Adiciona link ao corpo do e-mail
-    const htmlWithLink = `${html}<br><br><a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>Ou copie e cole este link no navegador: ${confirmLink}`;
+    const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
+    // Adiciona link ao corpo do e-mail (apenas uma vez)
+    const htmlWithLink = `${html}<br><br><a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>Se preferir, copie e cole este link no navegador: ${confirmLink}`;
     await sgMail.send({
       to,
       from: FROM_EMAIL,

@@ -58,7 +58,15 @@ export class ProfessionalService {
         return false;
       }
 
-      // Cria profissional no Supabase
+      // 1. Gera token único para confirmação (exemplo: UUID)
+      const token = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
+      console.log('Token de confirmação gerado: ', token);
+
+      // 2. Monta o link e o HTML usando o token recém-gerado
+      const confirmLink = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(professional.email)}&token=${token}`;
+      const html = `<p>Olá ${professional.name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmLink}'>Confirmar e-mail</a></p>`;
+
+      // 3. Cria profissional no Supabase incluindo o token
       const res = await fetch(`${supabaseUrl}/users`, {
         method: 'POST',
         headers: {
@@ -75,6 +83,7 @@ export class ProfessionalService {
           specialty: professional.specialty,
           role: 'professional',
           status: 'Pending',
+          confirmation_token: token
         })
       });
       if (!res.ok) {
@@ -90,27 +99,30 @@ export class ProfessionalService {
         this.loading.set(false);
         return false;
       }
-      // 2. Dispara e-mail de confirmação
-      const emailRes = await fetch('http://localhost:4001/api/send-email', {
+
+      // 4. Dispara e-mail de confirmação
+      console.log('Enviando e-mail de confirmação:', {
+        to: professional.email,
+        subject: 'Confirmação de cadastro - HomeService',
+        html,
+        token
+      });
+      await fetch('http://localhost:4001/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: professional.email,
-          subject: 'Confirme seu cadastro no HomeService',
-          html: `<p>Olá ${professional.name},</p><p>Para ativar seu cadastro, clique no botão abaixo:</p>`
+          subject: 'Confirmação de cadastro - HomeService',
+          html,
+          token
         })
       });
-      if (!emailRes.ok) {
-        const err = await emailRes.json();
-        console.error('Erro envio e-mail:', err);
-        this.error.set('Cadastro realizado, mas falha ao enviar e-mail.');
-        this.loading.set(false);
-        return false;
-      }
+
       this.loading.set(false);
       return true;
-    } catch (err: any) {
-      this.error.set(err?.message || 'Erro inesperado.');
+    } catch (error) {
+      console.error('Erro ao registrar profissional:', error);
+      this.error.set('Erro inesperado ao registrar profissional.');
       this.loading.set(false);
       return false;
     }

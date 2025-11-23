@@ -155,6 +155,15 @@ export class AppComponent implements OnInit {
   private lastLoadedUserId: number | undefined = undefined;
 
   constructor() {
+    // Detecta link de confirmação de e-mail e redireciona para redefinição de senha
+    const urlParams = new URLSearchParams(globalThis.window.location.search);
+    const token = urlParams.get('token') || urlParams.get('access_token');
+    const email = urlParams.get('email');
+    if (token && email) {
+      this.emailForPasswordReset.set(email);
+      this.view.set('reset-password');
+    }
+
     globalThis.window.addEventListener("message", (event) => {
       if (event.origin !== globalThis.window.location.origin) {
         return;
@@ -180,13 +189,13 @@ export class AppComponent implements OnInit {
         if (user.status === "Active") {
           this.view.set("app");
           // Only load data if we haven't loaded it for this user yet
-          if (this.lastLoadedUserId !== user.id) {
+          if (this.lastLoadedUserId === user.id) {
+            console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
+          } else {
             console.log(`[AppComponent] Loading initial data for user ${user.id}`);
             this.dataService.loadInitialData();
             this.lastLoadedUserId = user.id;
             this.pushNotificationService.requestPermission();
-          } else {
-            console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
           }
         } else if (user.status === "Pending") {
           this.view.set("app");
