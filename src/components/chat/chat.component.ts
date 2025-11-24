@@ -1,23 +1,22 @@
+import { CommonModule } from "@angular/common";
 import {
-  Component,
   ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
   input,
   output,
-  inject,
-  computed,
   viewChild,
-  ElementRef,
-  effect,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import {
-  User,
   ServiceRequest,
-  ChatMessage,
+  User
 } from "../../models/maintenance.models";
-import { DataService } from "../../services/data.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { DataService } from "../../services/data.service";
 
 @Component({
   selector: "app-chat",
@@ -85,7 +84,7 @@ export class ChatComponent {
   private scrollToBottom(): void {
     try {
       if (this.chatContainer()) {
-        const container = this.chatContainer()!.nativeElement;
+        const container = this.chatContainer().nativeElement;
         container.scrollTop = container.scrollHeight;
       }
     } catch (err) {

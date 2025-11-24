@@ -247,24 +247,74 @@ export class AppComponent implements OnInit {
 
   async handleLogin(payload: LoginPayload) {
     try {
-      const response = await this.authService.login(
-        payload.email,
-        payload.password
-      );
+      const response = await this.authService.login(payload.email, payload.password);
       if (response.error) {
-        if (this.loginComponent)
-          this.loginComponent.setError(response.error.message);
-      } else if (this.loginComponent) {
-        this.loginComponent.clearError();
+        this.setLoginError(response.error.message);
+        return;
       }
+      this.clearLoginError();
+      await this.checkTemporaryPassword(payload);
     } catch (error) {
-      console.error('Error during login:', error);
-      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('login_error');
-      if (this.loginComponent) {
-        this.loginComponent.setError(errorMessage);
-      }
-      this.notificationService.addNotification(errorMessage);
+      this.handleLoginError(error);
     }
+  }
+
+  private setLoginError(message: string) {
+    if (this.loginComponent) {
+      this.loginComponent.setError(message);
+    }
+    this.notificationService.addNotification(message);
+  }
+
+  private clearLoginError() {
+    if (this.loginComponent) {
+      this.loginComponent.clearError();
+    }
+  }
+
+  private async checkTemporaryPassword(payload: LoginPayload) {
+    const supabaseUrl = (globalThis as any).env?.SUPABASE_REST_URL
+      || (globalThis as any).SUPABASE_REST_URL
+      || (globalThis as any).environment?.supabaseRestUrl
+      || (globalThis as any).environment?.SUPABASE_REST_URL
+      || (globalThis as any).SUPABASE_URL
+      || (globalThis as any).VITE_SUPABASE_REST_URL
+      || '';
+    const supabaseKey = (globalThis as any).env?.SUPABASE_ANON_KEY
+      || (globalThis as any).SUPABASE_ANON_KEY
+      || (globalThis as any).environment?.supabaseAnonKey
+      || (globalThis as any).environment?.SUPABASE_ANON_KEY
+      || (globalThis as any).SUPABASE_KEY
+      || (globalThis as any).VITE_SUPABASE_ANON_KEY
+      || '';
+    const userRes = await fetch(
+      `${supabaseUrl}/users?select=password,email&email=eq.${payload.email}`,
+      {
+        method: 'GET',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'accept-profile': 'public'
+        }
+      }
+    );
+    if (!userRes.ok) return;
+    const userArr = await userRes.json();
+    if (!Array.isArray(userArr) || userArr.length === 0) return;
+    const user = userArr[0];
+    if (user.password && payload.password === user.password) {
+      this.emailForPasswordReset.set(payload.email);
+      this.view.set('reset-password');
+      this.notificationService.addNotification('Por favor, defina uma nova senha para continuar.');
+    }
+  }
+
+  private handleLoginError(error: unknown) {
+    console.error('Error during login:', error);
+    const errorMessage = error instanceof Error ? error.message : this.i18n.translate('login_error');
+    this.setLoginError(errorMessage);
   }
 
   async handleRegister(payload: RegisterPayload) {

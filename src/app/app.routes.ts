@@ -11,6 +11,10 @@ export const routes: Routes = [
     component: EmailConfirmationComponent,
   },
   {
+    path: 'reset-password',
+    loadComponent: () => import('../components/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+  },
+  {
     path: 'create-service-request',
     component: CreateServiceRequestComponent,
   },

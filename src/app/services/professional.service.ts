@@ -62,11 +62,21 @@ export class ProfessionalService {
       const token = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
       console.log('Token de confirmação gerado: ', token);
 
-      // 2. Monta o link e o HTML usando o token recém-gerado
-      const confirmLink = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(professional.email)}&token=${token}`;
-      const html = `<p>Olá ${professional.name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmLink}'>Confirmar e-mail</a></p>`;
+      // 2. Gera senha temporária
+      const tempPassword = Math.random().toString(36).slice(-8);
+      console.log('Senha temporária gerada:', tempPassword);
 
-      // 3. Cria profissional no Supabase incluindo o token
+      // 3. Monta o link e o HTML usando o token recém-gerado
+      const confirmLink = `https://home-service-nu.vercel.app/confirmar-email?email=${encodeURIComponent(professional.email)}&token=${token}`;
+      const html = `<p>Olá ${professional.name},</p>
+        <p>Seu cadastro como profissional foi realizado com sucesso.<br>
+        Use a senha temporária abaixo para acessar o sistema pela primeira vez:<br>
+        <b>${tempPassword}</b></p>
+        <p>Antes de acessar, confirme seu e-mail clicando no link abaixo:</p>
+        <p><a href='${confirmLink}'>Confirmar e-mail</a></p>
+        <p>Após o primeiro login, você será redirecionado para definir uma nova senha.</p>`;
+
+      // 4. Cria profissional no Supabase incluindo o token e senha temporária
       const res = await fetch(`${supabaseUrl}/users`, {
         method: 'POST',
         headers: {
@@ -83,7 +93,8 @@ export class ProfessionalService {
           specialty: professional.specialty,
           role: 'professional',
           status: 'Pending',
-          confirmation_token: token
+          confirmation_token: token,
+          password: tempPassword
         })
       });
       if (!res.ok) {
@@ -114,7 +125,8 @@ export class ProfessionalService {
           to: professional.email,
           subject: 'Confirmação de cadastro - HomeService',
           html,
-          token
+          token,
+          tempPassword
         })
       });
 
