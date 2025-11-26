@@ -247,13 +247,13 @@ export class AppComponent implements OnInit {
 
   async handleLogin(payload: LoginPayload) {
     try {
-      const response = await this.authService.login(payload.email, payload.password);
-      if (response.error) {
-        this.setLoginError(response.error.message);
+      const user = await this.authService.loginCustom(payload.email, payload.password);
+      if (!user) {
+        this.setLoginError('Credenciais inválidas ou erro de autenticação.');
         return;
       }
       this.clearLoginError();
-      await this.checkTemporaryPassword(payload);
+      // Se desejar, pode adicionar lógica para redirecionar após login bem-sucedido
     } catch (error) {
       this.handleLoginError(error);
     }

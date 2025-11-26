@@ -33,12 +33,15 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Cadastro de usuário
 app.post('/api/register', async (req, res) => {
-  const { name, email, phone, specialty } = req.body;
+  const { name, email, phone, specialty, password } = req.body;
   if (!email) return res.status(400).json({ error: 'Email obrigatório.' });
+  if (!password) return res.status(400).json({ error: 'Senha obrigatória.' });
 
-  // 1. Gera senha temporária
-  const tempPassword = Math.random().toString(36).slice(-8);
+  // Usa a senha enviada pelo frontend
+  const tempPassword = password;
   const hash = crypto.createHash('sha256').update(tempPassword).digest('hex');
+  console.log(`[Cadastro] Senha temporária recebida do frontend: ${tempPassword}`);
+  console.log(`[Cadastro] Hash SHA-256 salvo: ${hash}`);
 
   try {
     const { error } = await supabase

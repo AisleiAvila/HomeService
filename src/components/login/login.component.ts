@@ -9,6 +9,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../i18n.service";
+import { AuthService } from "../../services/auth.service";
 
 export interface LoginPayload {
   email: string;
@@ -154,7 +155,8 @@ export interface LoginPayload {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
-  loggedIn = output<LoginPayload>();
+  // Removido: loggedIn = output<LoginPayload>();
+  private readonly authService = inject(AuthService);
   switchToRegister = output<void>();
   switchToLanding = output<void>();
   forgotPassword = output<string>();
@@ -168,16 +170,23 @@ export class LoginComponent {
   readonly i18n = inject(I18nService);
 
   login() {
-    console.log("Logging in with", this.email(), this.password());
-
-    // Limpar mensagens de erro anteriores
     this.errorMessage.set(null);
     this.isLoading.set(true);
-
-    this.loggedIn.emit({
-      email: this.email(),
-      password: this.password(),
-    });
+    this.authService.loginCustom(this.email(), this.password())
+      .then((user) => {
+        if (!user) {
+          this.setError('Credenciais inválidas ou erro de autenticação.');
+        } else {
+          this.clearError();
+          // Redirecionamento pode ser feito via AppComponent ou Router
+        }
+      })
+      .catch(() => {
+        this.setError('Erro ao conectar ao servidor de autenticação.');
+      })
+      .finally(() => {
+        this.isLoading.set(false);
+      });
   }
 
   setError(message: string) {

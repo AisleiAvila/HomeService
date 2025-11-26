@@ -10,9 +10,34 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class AuthService {
-    /**
-     * Confirma o e-mail do profissional via endpoint customizado
-     */
+      private readonly notificationService = inject(NotificationService);
+    private readonly supabase = inject(SupabaseService);
+    private readonly supabaseUser = this.supabase.currentUser;
+    readonly appUser = signal<User | null>(null);
+    readonly pendingEmailConfirmation = signal<string | null>(null);
+  /**
+   * Login customizado via backend próprio
+   */
+  async loginCustom(email: string, password: string): Promise<User | null> {
+    try {
+      const res = await fetch('http://localhost:4002/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await res.json();
+      if (res.ok && result.success && result.user) {
+        this.appUser.set(result.user);
+        return result.user;
+      } else {
+        this.notificationService.addNotification(result.error || 'Credenciais inválidas');
+        return null;
+      }
+    } catch (err) {
+      this.notificationService.addNotification('Erro ao conectar ao servidor de login.');
+      return null;
+    }
+  }
     async confirmEmailCustom(email: string, token: string): Promise<boolean> {
       try {
         const res = await fetch("http://localhost:4001/api/confirm-email", {
@@ -80,16 +105,7 @@ export class AuthService {
       this.appUser.set(null);
     }
   }
-  private readonly supabase = inject(SupabaseService);
-  private readonly notificationService = inject(NotificationService);
 
-  private readonly supabaseUser = this.supabase.currentUser;
-
-  // The application's user profile, fetched from the 'users' table.
-  readonly appUser = signal<User | null>(null);
-
-  // Indica se há um usuário que precisa confirmar e-mail
-  readonly pendingEmailConfirmation = signal<string | null>(null);
 
   constructor() {
     effect(async () => {
