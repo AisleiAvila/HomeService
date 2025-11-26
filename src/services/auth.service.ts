@@ -34,6 +34,7 @@ export class AuthService {
         return null;
       }
     } catch (err) {
+      console.error("Erro ao conectar ao servidor de login:", err);
       this.notificationService.addNotification('Erro ao conectar ao servidor de login.');
       return null;
     }
@@ -460,7 +461,7 @@ export class AuthService {
     }
   }
 
-  private async setUserPassword(password: string | undefined): Promise<void> {
+  async setUserPassword(password: string | undefined): Promise<void> {
     if (!password) return;
 
     console.log("🔑 Definindo senha do usuário...");

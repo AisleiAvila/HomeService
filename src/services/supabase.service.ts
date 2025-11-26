@@ -12,17 +12,14 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class SupabaseService {
-  private supabase: SupabaseClient;
-  private _currentUser = signal<User | null>(null);
+  private readonly supabase: SupabaseClient;
+  private readonly _currentUser = signal<User | null>(null);
 
   constructor() {
     this.supabase = createClient(
       environment.supabaseUrl.toString().trim(),
       environment.supabaseAnonKey
     );
-
-    // Inicializar com usuário atual se existir
-    this.initializeCurrentUser();
 
     // Listen for auth changes
     this.client.auth.onAuthStateChange(async (event, session) => {
@@ -45,7 +42,7 @@ export class SupabaseService {
           console.log("📧 Processando confirmação via link...");
 
           // Emitir evento para AuthService processar
-          window.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("emailConfirmedViaLink", {
               detail: { user: session.user, tempData: tempUserData },
             })
@@ -140,4 +137,5 @@ export class SupabaseService {
     const { error } = await this.supabase.auth.signOut();
     return { error };
   }
+
 }

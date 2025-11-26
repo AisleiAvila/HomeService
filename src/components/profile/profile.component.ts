@@ -74,6 +74,14 @@ export class ProfileComponent implements OnDestroy {
   // Signal para modal de SMS
   showSmsModal = signal(false);
 
+  // Estado para troca de senha
+  currentPassword: string = "";
+  newPassword: string = "";
+  confirmNewPassword: string = "";
+  isChangingPassword: boolean = false;
+  passwordChangeError: string = "";
+  passwordChangeSuccess: string = "";
+
   allCategories = this.dataService.categories;
   private cameraStream: MediaStream | null = null;
 
@@ -621,6 +629,42 @@ export class ProfileComponent implements OnDestroy {
       const msg = this.i18n.translate("smsCodeInvalid");
       this.lastNotification.set(msg);
       this.notificationService.addNotification(msg);
+    }
+  }
+
+  async changePassword() {
+    this.passwordChangeError = "";
+    this.passwordChangeSuccess = "";
+    if (!this.currentPassword || !this.newPassword || !this.confirmNewPassword) {
+      this.passwordChangeError = this.i18n.translate("fillAllPasswordFields");
+      return;
+    }
+    if (this.newPassword.length < 6) {
+      this.passwordChangeError = this.i18n.translate("passwordTooShort");
+      return;
+    }
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.passwordChangeError = this.i18n.translate("passwordsDoNotMatch");
+      return;
+    }
+    this.isChangingPassword = true;
+    try {
+      // Verifica se há sessão ativa
+      const sessionInfo = await this.authService.hasActiveSession();
+      if (!sessionInfo.hasSession) {
+        this.passwordChangeError = this.i18n.translate("sessionExpiredLoginAgain");
+        this.isChangingPassword = false;
+        return;
+      }
+      await this.authService.setUserPassword(this.newPassword);
+      this.passwordChangeSuccess = this.i18n.translate("passwordChangedSuccessfully");
+      this.currentPassword = "";
+      this.newPassword = "";
+      this.confirmNewPassword = "";
+    } catch (err: any) {
+      this.passwordChangeError = this.i18n.translate("errorChangingPassword") + (err?.message ? ": " + err.message : "");
+    } finally {
+      this.isChangingPassword = false;
     }
   }
 

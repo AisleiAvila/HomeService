@@ -1,8 +1,8 @@
 import { Injectable, inject } from "@angular/core";
-import { SupabaseService } from "./supabase.service";
+import { Payment } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
-import { ServiceRequest, Payment } from "../models/maintenance.models";
+import { SupabaseService } from "./supabase.service";
 
 @Injectable({
   providedIn: "root",
@@ -97,10 +97,11 @@ export class PaymentService {
       }
 
       // 5. Notificar stakeholders
-      await this.notifyPaymentProcessed(
-        serviceRequestId,
-        paymentResult.success
-      );
+      if (paymentResult.success) {
+        await this.notifyPaymentSuccess(serviceRequestId);
+      } else {
+        await this.notifyPaymentFailure(serviceRequestId);
+      }
 
       return updatedPayment;
     } catch (error) {
@@ -114,7 +115,7 @@ export class PaymentService {
    */
   async releaseFunds(paymentId: number): Promise<void> {
     const currentUser = this.authService.appUser();
-    if (!currentUser || currentUser.role !== "admin") {
+    if (currentUser?.role !== "admin") {
       throw new Error("Only admin can release funds");
     }
 
@@ -220,7 +221,7 @@ export class PaymentService {
       disputed_payments: 0,
     };
 
-    data.forEach((payment: any) => {
+    for (const payment of data as any[]) {
       stats.total_revenue += payment.amount || 0;
       stats.platform_fees += payment.platform_fee || 0;
       stats.professional_earnings += payment.professional_amount || 0;
@@ -238,7 +239,7 @@ export class PaymentService {
           stats.disputed_payments++;
           break;
       }
-    });
+    }
 
     return stats;
   }
@@ -252,7 +253,7 @@ export class PaymentService {
     reason?: string
   ): Promise<void> {
     const currentUser = this.authService.appUser();
-    if (!currentUser || currentUser.role !== "admin") {
+    if (currentUser?.role !== "admin") {
       throw new Error("Only admin can process refunds");
     }
 
@@ -395,7 +396,7 @@ export class PaymentService {
             success: true,
             transactionId: `txn_${Date.now()}_${Math.random()
               .toString(36)
-              .substr(2, 9)}`,
+              .substring(2, 11)}`,
           });
         } else {
           resolve({
@@ -414,7 +415,6 @@ export class PaymentService {
     );
 
     // Em produção, usar API do gateway para transferir fundos
-    return Promise.resolve();
   }
 
   private async processRefundWithGateway(
@@ -430,37 +430,31 @@ export class PaymentService {
     );
 
     // Em produção, usar API do gateway para processar reembolso
-    return Promise.resolve();
+  }
+  private async notifyPaymentSuccess(serviceRequestId: number): Promise<void> {
+    await this.notificationService.notifyServiceRequestStakeholders(
+      serviceRequestId,
+      "payment_completed",
+      "Pagamento Processado",
+      "O pagamento foi processado com sucesso.",
+      ["professional", "admin"],
+      { priority: "medium" }
+    );
   }
 
-  private async notifyPaymentProcessed(
-    serviceRequestId: number,
-    success: boolean
-  ): Promise<void> {
-    if (success) {
-      await this.notificationService.notifyServiceRequestStakeholders(
-        serviceRequestId,
-        "payment_completed",
-        "Pagamento Processado",
-        "O pagamento foi processado com sucesso.",
-        ["professional", "admin"],
-        { priority: "medium" }
-      );
-    } else {
-      await this.notificationService.notifyServiceRequestStakeholders(
-        serviceRequestId,
-        "payment_due",
-        "Falha no Pagamento",
-        "Houve um problema no processamento do pagamento. Tente novamente.",
-        ["client"],
-        {
-          actionRequired: true,
-          priority: "high",
-        }
-      );
-    }
+  private async notifyPaymentFailure(serviceRequestId: number): Promise<void> {
+    await this.notificationService.notifyServiceRequestStakeholders(
+      serviceRequestId,
+      "payment_due",
+      "Falha no Pagamento",
+      "Houve um problema no processamento do pagamento. Tente novamente.",
+      ["client"],
+      {
+        actionRequired: true,
+        priority: "high",
+      }
+    );
   }
-
   private async notifyFundsReleased(serviceRequestId: number): Promise<void> {
     await this.notificationService.notifyServiceRequestStakeholders(
       serviceRequestId,

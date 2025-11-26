@@ -174,11 +174,11 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.authService.loginCustom(this.email(), this.password())
       .then((user) => {
-        if (!user) {
-          this.setError('Credenciais inválidas ou erro de autenticação.');
-        } else {
+        if (user) {
           this.clearError();
           // Redirecionamento pode ser feito via AppComponent ou Router
+        } else {
+          this.setError('Credenciais inválidas ou erro de autenticação.');
         }
       })
       .catch(() => {

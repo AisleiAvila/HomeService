@@ -792,6 +792,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailInvalid: "Please enter a valid email address",
     phoneInvalid: "Please enter a valid phone number",
     specialtyRequired: "At least one specialty is required",
+    contactPreferences: "Contact Preferences",
+    phoneNumber: "Phone Number",
+    receiveSmsNotifications: "Receive SMS Notifications",
+    sendVerificationCode: "Send Verification Code",
   },
   pt: {
     // General
@@ -1588,6 +1592,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailInvalid: "Por favor, insira um email válido",
     phoneInvalid: "Por favor, insira um número de telefone válido",
     specialtyRequired: "Por favor, selecione pelo menos uma especialidade",
+    contactPreferences: "Preferências de Contato",
+    phoneNumber: "Número de Telefone",
+    receiveSmsNotifications: "Receber notificações por SMS",
+    sendVerificationCode: "Enviar Código de Verificação",
 
   },
 };
