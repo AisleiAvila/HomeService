@@ -29,6 +29,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.3",
     "rxjs": "^7.8.2",
     "tippy.js": "^6.3.7"
   },
@@ -45,6 +47,6 @@
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
-    "start": "concurrently \"ng serve --port 4200\" \"nodemon send-email.cjs\""
+    "start": "concurrently \"ng serve --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\""
   }
 }

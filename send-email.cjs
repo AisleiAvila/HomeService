@@ -41,7 +41,8 @@ sgMail.setApiKey(SENDGRID_API_KEY);
 const allowedOrigins = new Set([
   'http://localhost:4200',
   'https://home-service-nu.vercel.app',
-  'http://localhost:4001/api/send-email'
+  'http://localhost:4001/api/send-email',
+  'http://localhost:4002'
 ]);
 app.use(cors({
   origin: function (origin, callback) {
@@ -58,7 +59,6 @@ app.use(cors({
 app.use(express.json());
 
 app.post('/api/send-email', async (req, res) => {
-  console.log('Headers recebidos: ', req.headers);
   console.log('Query recebida: ', req.query)
   console.log('Corpo recebido:', req.body);
   console.log('Detalhe dos parâmetros recebidos:');

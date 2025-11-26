@@ -1,9 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-app.use(bodyParser.json());
+// Permitir requisições do frontend (ajuste a origem conforme necessário)
+app.use(cors({
+  origin: [
+    'http://localhost:4200',
+    'http://localhost:4002',
+    'http://127.0.0.1:4200',
+    'https://home-service-nu.vercel.app'
+  ],
+  credentials: true
+}));app.use(bodyParser.json());
 
 // Configure com suas variáveis reais
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';

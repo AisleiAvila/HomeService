@@ -18,7 +18,7 @@ $DatabaseName = "postgres"
 $Username = "postgres"
 $Host = $SupabaseUrl.Replace("https://", "").Replace(".supabase.co", "")
 $Port = 5432
-
+$Host = ($SupabaseUrl -replace "https://", "") -replace ".supabase.co.*", ""
 # Arquivos SQL
 $SqlFiles = @(
     "01_create_tables_portugal_addresses.sql",

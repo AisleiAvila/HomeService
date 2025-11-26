@@ -7,6 +7,7 @@ import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
 import { ProfessionalFormComponent } from "./professional-form.component";
 import { ProfessionalEditFormComponent } from "./professional-edit-form.component";
+import { ProfessionalService } from "@/src/app/services/professional.service";
 
 @Component({
     selector: "app-professionals-management",
@@ -112,8 +113,10 @@ export class ProfessionalsManagementComponent implements OnInit {
         trackBySpecialty(index: number, specialty: string) {
             return specialty;
         }
+
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
+    private readonly professionalService = inject(ProfessionalService);
 
     // Feedback visual para toast/modal
     feedbackMessage = signal<string | null>(null);
@@ -180,7 +183,7 @@ export class ProfessionalsManagementComponent implements OnInit {
     }
 
     addProfessional() {
-        // Novo fluxo: cria profissional via AuthService para garantir envio de e-mail
+        // Novo fluxo: cria profissional via ProfessionalService para garantir geração e log da senha
         const name = this.newProfessionalName();
         const email = this.newProfessionalEmail();
         const specialties = this.newProfessionalSpecialties();
@@ -192,48 +195,23 @@ export class ProfessionalsManagementComponent implements OnInit {
             return;
         }
 
-        // Gera senha temporária segura para o profissional
-        const tempPassword = Math.random().toString(36).slice(-10) + "A1!";
-
-        // Gera token único para confirmação
-        const token = crypto.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
-        const confirmLink = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}&token=${token}`;
-        const html = `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmLink}'>Confirmar e-mail</a></p>`;
-
-        // Chama AuthService.register para criar usuário no Supabase Auth
-        this.dataService.authService.register(name, email, tempPassword, "professional")
-            .then(async () => {
-                // Após registro, salva dados extras na tabela users
-                await this.dataService.updateProfessionalExtras(email, specialties, phone);
-
-                // Envia e-mail de confirmação via endpoint customizado
-                fetch("http://localhost:4001/api/send-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        to: email,
-                        subject: "Confirmação de cadastro - HomeService",
-                        html,
-                        token
-                    })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        this.showFeedback('Profissional cadastrado! E-mail de confirmação enviado.', 'success');
-                    } else {
-                        this.showFeedback('Profissional cadastrado, mas falha ao enviar e-mail.', 'error');
-                    }
-                    this.resetNewProfessionalForm();
-                })
-                .catch(() => {
-                    this.showFeedback('Profissional cadastrado, mas erro ao enviar e-mail.', 'error');
-                    this.resetNewProfessionalForm();
-                });
-            })
-            .catch((err) => {
-                this.showFeedback('Erro ao cadastrar profissional: ' + (err?.message || err), 'error');
-            });
+        // Chama ProfessionalService.registerProfessional usando a instância injetada
+        this.professionalService.registerProfessional({
+            name,
+            email,
+            phone,
+            specialty: specialties.map(s => typeof s === 'string' ? s : s.name).join(', ')
+        }).then((success: boolean) => {
+            if (success) {
+                this.showFeedback('Profissional cadastrado! E-mail de confirmação enviado.', 'success');
+            } else {
+                this.showFeedback('Erro ao cadastrar profissional.', 'error');
+            }
+            this.resetNewProfessionalForm();
+        }).catch((err: any) => {
+            this.showFeedback('Erro ao cadastrar profissional: ' + (err?.message || err), 'error');
+            this.resetNewProfessionalForm();
+        });
     }
 
     startEditProfessional(pro: User) {

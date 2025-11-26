@@ -48,23 +48,13 @@ export class ProfessionalService {
     this.loading.set(true);
     this.error.set(null);
     try {
-      // 1. Cria profissional no Supabase
-      const supabaseUrl = environment.supabaseRestUrl;
-      const supabaseKey = environment.supabaseAnonKey;
-      // Verifica se e-mail já existe via fetch centralizado
-      if (await this.emailExists(professional.email)) {
-        this.error.set('E-mail já cadastrado.');
-        this.loading.set(false);
-        return false;
-      }
-
-      // 1. Gera token único para confirmação (exemplo: UUID)
+      // 1. Gera token único para confirmação
       const token = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
       console.log('Token de confirmação gerado: ', token);
 
       // 2. Gera senha temporária
       const tempPassword = Math.random().toString(36).slice(-8);
-      console.log('Senha temporária gerada:', tempPassword);
+      console.log('**************Senha temporária gerada:', tempPassword);
 
       // 3. Monta o link e o HTML usando o token recém-gerado
       const confirmLink = `https://home-service-nu.vercel.app/confirmar-email?email=${encodeURIComponent(professional.email)}&token=${token}`;
@@ -76,16 +66,10 @@ export class ProfessionalService {
         <p><a href='${confirmLink}'>Confirmar e-mail</a></p>
         <p>Após o primeiro login, você será redirecionado para definir uma nova senha.</p>`;
 
-      // 4. Cria profissional no Supabase incluindo o token e senha temporária
-      const res = await fetch(`${supabaseUrl}/users`, {
+      // 4. Cria profissional via backend customizado
+      const res = await fetch('http://localhost:4002/api/register', {
         method: 'POST',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-          'accept-profile': 'public'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: professional.name,
           email: professional.email,
@@ -105,18 +89,19 @@ export class ProfessionalService {
         } catch {
           errJson = { message: errText };
         }
-        console.error('Erro Supabase:', errJson);
+        console.error('Erro backend customizado:', errJson);
         this.error.set(errJson?.message || errText || 'Erro ao criar profissional.');
         this.loading.set(false);
         return false;
       }
 
-      // 4. Dispara e-mail de confirmação
+      // 5. Dispara e-mail de confirmação
       console.log('Enviando e-mail de confirmação:', {
         to: professional.email,
         subject: 'Confirmação de cadastro - HomeService',
         html,
-        token
+        token,
+        tempPassword
       });
       await fetch('http://localhost:4001/api/send-email', {
         method: 'POST',
@@ -126,7 +111,7 @@ export class ProfessionalService {
           subject: 'Confirmação de cadastro - HomeService',
           html,
           token,
-          tempPassword
+          tempPassword: tempPassword || ''
         })
       });
 
