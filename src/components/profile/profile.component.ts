@@ -1,3 +1,4 @@
+import { firstValueFrom } from "rxjs";
 import {
   Component,
   ChangeDetectionStrategy,
@@ -171,7 +172,7 @@ export class ProfileComponent implements OnDestroy {
     if (
       this.user().role === "professional" &&
       JSON.stringify(this.specialties()) !==
-        JSON.stringify(originalUser.specialties || [])
+      JSON.stringify(originalUser.specialties || [])
     ) {
       updatedUserData.specialties = this.specialties();
       hasChanges = true;
@@ -516,7 +517,7 @@ export class ProfileComponent implements OnDestroy {
     const specialtiesChanged =
       this.user().role === "professional" &&
       JSON.stringify(this.specialties()) !==
-        JSON.stringify(originalUser.specialties || []);
+      JSON.stringify(originalUser.specialties || []);
     const smsPrefChanged =
       this.receiveSmsNotifications() !==
       (originalUser.receive_sms_notifications ?? false);
@@ -567,9 +568,8 @@ export class ProfileComponent implements OnDestroy {
     try {
       const userId = this.user().id;
       const phoneWithId = `${userId}|${this.phone()}`;
-      const response: any = await this.smsVerificationService
-        .sendVerification(phoneWithId)
-        .toPromise();
+      const response: any = await firstValueFrom(this.smsVerificationService
+        .sendVerification(phoneWithId));
       if (response.sent) {
         this.smsSent = true;
         this.smsValid = null;
@@ -597,9 +597,8 @@ export class ProfileComponent implements OnDestroy {
       const userId = this.user().id;
       const phoneWithId = `${userId}|${this.phone()}`;
       console.log("Telefone (id|telefone):", phoneWithId);
-      const response: any = await this.smsVerificationService
-        .validateCode(phoneWithId, this.smsCode)
-        .toPromise();
+      const response: any = await firstValueFrom(this.smsVerificationService
+        .validateCode(phoneWithId, this.smsCode));
       console.log("SMS verification response:", response);
       if (response.valid && response.update) {
         this.smsValid = true;

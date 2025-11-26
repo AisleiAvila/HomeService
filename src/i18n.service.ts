@@ -786,7 +786,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     searchNameEmailSpecialty: "Search by name, email, or specialty...",
     allSpecialties: "All Specialties",
     searchSpeciality: "Search Specialty...",
-    manageAllProfessionalsDesc : "View and manage all registered professionals in the system",
+    manageAllProfessionalsDesc: "View and manage all registered professionals in the system",
     totalRecords: "Total Records",
     nameRequired: "Name is required",
     emailInvalid: "Please enter a valid email address",
@@ -796,6 +796,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     phoneNumber: "Phone Number",
     receiveSmsNotifications: "Receive SMS Notifications",
     sendVerificationCode: "Send Verification Code",
+    changePassword: "Change Password",
+    currentPassword: "Current Password",
+    currentPasswordPlaceholder: "Enter your current password.",
+    validateCode: "Validate Code",
+    smsCodeLabel: "SMS Code",
+    smsCodePlaceholder: "Enter the code sent to your phone.",
+    personalData: "Personal Data",
+
   },
   pt: {
     // General
@@ -1596,6 +1604,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     phoneNumber: "Número de Telefone",
     receiveSmsNotifications: "Receber notificações por SMS",
     sendVerificationCode: "Enviar Código de Verificação",
+    changePassword: "Alterar Senha",
+    currentPassword: "Senha Atual",
+    currentPasswordPlaceholder: "Entre com sua senha atual.",
+    validateCode: "Validar Código",
+    smsCodeLabel: "Código SMS",
+    smsCodePlaceholder: "Entre com o código enviado para o seu telefone.",
+    personalData: "Dados Pessoais",
+    updatePassword: "Atualizar Senha",
+    confirmPasswordPlaceholder: "Entre com sua senha novamente.",
+
 
   },
 };
