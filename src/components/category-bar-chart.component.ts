@@ -60,7 +60,14 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
   chartData = computed(() => {
     const d = this.data();
-    const l = this.labels();
+    const providedLabels = this.labels();
+    
+    // Verificação de segurança: retornar array vazio se data não existir
+    if (!d) {
+      console.warn('[BarChart] Data undefined:', { data: d });
+      return [];
+    }
+    
     const colors = [
       "#2563eb", // blue-600
       "#059669", // emerald-600
@@ -75,7 +82,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     ];
     let i = 0;
     return Object.entries(d).map(([category, value]) => ({
-      label: l[category] || category,
+      label: providedLabels?.[category] || this.i18n.translate(category) || category,
       value,
       color: colors[i++ % colors.length],
     }));

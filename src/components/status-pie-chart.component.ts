@@ -58,7 +58,14 @@ export class StatusPieChartComponent {
 
   chartData = computed(() => {
     const d = this.data();
-    const l = this.labels();
+    const providedLabels = this.labels();
+    
+    // Verificação de segurança: retornar array vazio se data não existir
+    if (!d) {
+      console.warn('[PieChart] Data undefined:', { data: d });
+      return [];
+    }
+    
     const colors = [
       "#2563eb",
       "#059669",
@@ -73,7 +80,7 @@ export class StatusPieChartComponent {
     ];
     let i = 0;
     return Object.entries(d).map(([status, value]) => ({
-      label: l[status] || status,
+      label: providedLabels?.[status] || this.i18n.translate(status) || status,
       value,
       color: colors[i++ % colors.length],
     }));

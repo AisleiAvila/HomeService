@@ -812,6 +812,17 @@ const allTranslations: Record<Language, Record<string, string>> = {
     personalData: "Personal Data",
     passwordChangedSuccessfully: "Password changed successfully.",
 
+    // Service Categories (Portuguese names to English)
+    Canalizador: "Plumber",
+    Eletricista: "Electrician",
+    Pintor: "Painter",
+    Carpinteiro: "Carpenter",
+    Pedreiro: "Mason",
+    Jardineiro: "Gardener",
+    Limpeza: "Cleaning",
+    "Ar Condicionado": "Air Conditioning",
+    Eletrodomésticos: "Appliances",
+    Vidraceiro: "Glazier",
   },
   pt: {
     // General
@@ -1630,7 +1641,17 @@ const allTranslations: Record<Language, Record<string, string>> = {
     confirmPasswordPlaceholder: "Entre com sua senha novamente.",
     passwordChangedSuccessfully: "Senha alterada com sucesso!",
 
-
+    // Service Categories (Portuguese names)
+    Canalizador: "Canalizador",
+    Eletricista: "Eletricista",
+    Pintor: "Pintor",
+    Carpinteiro: "Carpinteiro",
+    Pedreiro: "Pedreiro",
+    Jardineiro: "Jardineiro",
+    Limpeza: "Limpeza",
+    "Ar Condicionado": "Ar Condicionado",
+    Eletrodomésticos: "Eletrodomésticos",
+    Vidraceiro: "Vidraceiro",
   },
 };
 
