@@ -1,6 +1,6 @@
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { User, UserRole } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -31,11 +31,10 @@ export class UsersManagementComponent {
     filterStatus = signal<"all" | "Active" | "Inactive" | "Pending" | "Rejected">("all");
 
     // Paginação
+    pageSize = 10;
     currentPage = signal(1);
-    itemsPerPage = signal(10);
-    readonly itemsPerPageOptions = [10, 25, 50, 100];
 
-    // Lista filtrada e paginada
+    // Lista filtrada
     filteredClients = computed(() => {
         let users = this.dataService.users()
             .filter((u) => u.role === "client" || u.role === "admin");
@@ -66,13 +65,13 @@ export class UsersManagementComponent {
 
     // Total de páginas
     totalPages = computed(() => 
-        Math.ceil(this.filteredClients().length / this.itemsPerPage())
+        Math.ceil(this.filteredClients().length / this.pageSize)
     );
 
     // Usuários da página atual
     clients = computed(() => {
-        const start = (this.currentPage() - 1) * this.itemsPerPage();
-        const end = start + this.itemsPerPage();
+        const start = (this.currentPage() - 1) * this.pageSize;
+        const end = start + this.pageSize;
         return this.filteredClients().slice(start, end);
     });
 
@@ -84,6 +83,18 @@ export class UsersManagementComponent {
     totalInactive = computed(() => 
         this.filteredClients().filter(u => u.status === "Inactive").length
     );
+
+    // Effect para resetar página quando filtros mudarem
+    constructor() {
+        effect(() => {
+            // Observa mudanças nos filtros
+            this.searchTerm();
+            this.filterRole();
+            this.filterStatus();
+            // Reseta para a primeira página
+            this.currentPage.set(1);
+        });
+    }
 
     // Available roles for user management (client e admin)
     readonly availableRoles: UserRole[] = ["client", "admin"];
@@ -367,27 +378,16 @@ export class UsersManagementComponent {
     }
 
     // Pagination
-    goToPage(page: number) {
-        if (page >= 1 && page <= this.totalPages()) {
-            this.currentPage.set(page);
-        }
-    }
-
     nextPage() {
         if (this.currentPage() < this.totalPages()) {
             this.currentPage.update(p => p + 1);
         }
     }
 
-    previousPage() {
+    prevPage() {
         if (this.currentPage() > 1) {
             this.currentPage.update(p => p - 1);
         }
-    }
-
-    changeItemsPerPage(items: number) {
-        this.itemsPerPage.set(items);
-        this.currentPage.set(1); // Reset para primeira página
     }
 
     // Filtros
@@ -396,31 +396,5 @@ export class UsersManagementComponent {
         this.filterRole.set("all");
         this.filterStatus.set("all");
         this.currentPage.set(1);
-    }
-
-    // Helper para gerar array de páginas
-    getPageNumbers(): number[] {
-        const total = this.totalPages();
-        const current = this.currentPage();
-        const delta = 2; // Páginas antes e depois da atual
-        const pages: number[] = [];
-
-        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-            pages.push(i);
-        }
-
-        if (current - delta > 2) {
-            pages.unshift(-1); // Representa "..."
-        }
-        if (current + delta < total - 1) {
-            pages.push(-1); // Representa "..."
-        }
-
-        pages.unshift(1);
-        if (total > 1) {
-            pages.push(total);
-        }
-
-        return pages;
     }
 }

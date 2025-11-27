@@ -212,6 +212,26 @@
                 }
             </tbody>
         </table>
+        
+        <!-- Paginação Desktop -->
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-indigo-50 border-t border-indigo-200">
+            <div class="text-xs font-bold text-indigo-700 px-6 py-2">
+                {{ 'totalRecords' | i18n }}: {{ filteredClients().length }}
+            </div>
+            <div class="flex items-center gap-2">
+                <button (click)="prevPage()" 
+                    [disabled]="currentPage() === 1" 
+                    class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                    &lt;
+                </button>
+                <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+                <button (click)="nextPage()" 
+                    [disabled]="currentPage() === totalPages()" 
+                    class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                    &gt;
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Mobile Card View -->
@@ -292,6 +312,21 @@
             </div>
         </div>
         }
+        
+        <!-- Paginação Mobile -->
+        <div class="flex justify-center items-center gap-2 py-4">
+            <button (click)="prevPage()" 
+                [disabled]="currentPage() === 1" 
+                class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                &lt;
+            </button>
+            <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button (click)="nextPage()" 
+                [disabled]="currentPage() === totalPages()" 
+                class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                &gt;
+            </button>
+        </div>
     </div>
 </div>
 
@@ -472,65 +507,6 @@
             <button (click)="reactivateClient()" 
                 class="px-4 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700">
                 {{ 'activate' | i18n }}
-            </button>
-        </div>
-    </div>
-</div>
-}
-
-<!-- Pagination -->
-@if(totalPages() > 1) {
-<div class="p-4 border-t bg-gray-50">
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-        <!-- Items per page -->
-        <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-700">{{ 'itemsPerPage' | i18n }}:</span>
-            <select [ngModel]="itemsPerPage()" 
-                (ngModelChange)="changeItemsPerPage($event)"
-                class="p-1 border border-gray-300 rounded-md text-sm">
-                @for(option of itemsPerPageOptions; track option) {
-                <option [value]="option">{{ option }}</option>
-                }
-            </select>
-        </div>
-
-        <!-- Page info -->
-        <div class="text-sm text-gray-700">
-            {{ 'showing' | i18n }} {{ (currentPage() - 1) * itemsPerPage() + 1 }} 
-            {{ 'to' | i18n }} {{ Math.min(currentPage() * itemsPerPage(), totalUsers()) }} 
-            {{ 'of' | i18n }} {{ totalUsers() }} {{ 'results' | i18n }}
-        </div>
-
-        <!-- Pagination controls -->
-        <div class="flex items-center space-x-1">
-            <!-- Previous button -->
-            <button (click)="previousPage()" 
-                [disabled]="currentPage() === 1"
-                class="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-
-            <!-- Page numbers -->
-            @for(page of getPageNumbers(); track page) {
-                @if(page === -1) {
-                <span class="px-2 text-gray-500">...</span>
-                } @else {
-                <button (click)="goToPage(page)"
-                    [ngClass]="{
-                        'bg-indigo-600 text-white': page === currentPage(),
-                        'border border-gray-300 hover:bg-gray-100': page !== currentPage()
-                    }"
-                    class="px-3 py-1 rounded-md text-sm min-w-[2.5rem]">
-                    {{ page }}
-                </button>
-                }
-            }
-
-            <!-- Next button -->
-            <button (click)="nextPage()" 
-                [disabled]="currentPage() === totalPages()"
-                class="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
-                <i class="fas fa-chevron-right"></i>
             </button>
         </div>
     </div>
