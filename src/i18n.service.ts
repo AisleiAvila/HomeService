@@ -14,6 +14,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     role: "Role",
     client: "Client",
     professional: "Professional",
+    admin: "Administrator",
     register: "Register",
     login: "Login",
     logout: "Logout",
@@ -21,7 +22,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     schedule: "Schedule",
     search: "Search",
     profile: "Profile",
-    admin: "Admin",
     language: "Language",
     english: "English",
     portuguese: "Português",
@@ -543,7 +543,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     finances: "Finances",
     professionals: "Professionals",
     categories: "Categories",
-    clients: "Clients",
+    clients: "Users",
     financialDetails: "Financial Details",
     date: "Date",
     payment: "Payment",
@@ -626,9 +626,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Error requesting clarification. Please try again.",
 
     // Client Management
-    manageClients: "Manage Clients",
+    manageClients: "Manage Users",
     clientManagementDescription:
-      "View and manage all registered clients in the system",
+      "View and manage all registered users in the system",
     services: "Services",
     totalSpent: "Total Spent",
     lastService: "Last Service",
@@ -648,6 +648,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalServices: "Total Services",
     activate: "Activate",
     deactivate: "Deactivate",
+    addClient: "Add User",
+    addNewClient: "Add New User",
+    editClient: "Edit User",
+    profileType: "Profile Type",
+    errorAddingClient: "Error adding client",
+    errorUpdatingClient: "Error updating client",
 
     // Service Request Details - Additional translations
     professionalResponses: "Professional Responses",
@@ -816,6 +822,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     role: "Função",
     client: "Cliente",
     professional: "Profissional",
+    admin: "Administrador",
     register: "Registrar",
     login: "Login",
     logout: "Sair",
@@ -823,7 +830,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     schedule: "Agenda",
     search: "Buscar",
     profile: "Perfil",
-    admin: "Admin",
     language: "Idioma",
     english: "English",
     portuguese: "Português",
@@ -1364,7 +1370,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     finances: "Finanças",
     professionals: "Profissionais",
     categories: "Categorias",
-    clients: "Clientes",
+    clients: "Usuários",
     financialDetails: "Detalhes Financeiros",
     date: "Data",
     payment: "Pagamento",
@@ -1430,9 +1436,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Erro ao solicitar esclarecimentos. Tente novamente.",
 
     // Client Management
-    manageClients: "Gerenciar Clientes",
+    manageClients: "Gerenciar Usuários",
     clientManagementDescription:
-      "Visualizar e gerenciar todos os clientes cadastrados no sistema",
+      "Visualizar e gerenciar todos os usuários cadastrados no sistema",
     services: "Serviços",
     totalSpent: "Total Gasto",
     lastService: "Último Serviço",
@@ -1453,6 +1459,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalServices: "Total de Serviços",
     activate: "Ativar",
     deactivate: "Desativar",
+    addClient: "Adicionar Usuário",
+    addNewClient: "Adicionar Novo Usuário",
+    editClient: "Editar Usuário",
+    profileType: "Tipo de Perfil",
+    errorAddingClient: "Erro ao adicionar cliente",
+    errorUpdatingClient: "Erro ao atualizar cliente",
 
     // Service Request Details - Additional translations
     professionalResponses: "Respostas dos Profissionais",
