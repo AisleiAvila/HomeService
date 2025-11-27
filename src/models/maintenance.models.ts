@@ -1,5 +1,5 @@
 export type UserRole = "client" | "professional" | "admin";
-export type UserStatus = "Pending" | "Active" | "Rejected";
+export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 export type ServiceStatus =
   | "Solicitado"
   | "Em análise"

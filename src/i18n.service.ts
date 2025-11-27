@@ -655,7 +655,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     errorAddingClient: "Error adding user",
     errorUpdatingClient: "Error updating user",
     errorDeletingClient: "Error deactivating user",
+    errorReactivatingClient: "Error activating user",
     areYouSureDeactivate: "Are you sure you want to deactivate",
+    areYouSureActivate: "Are you sure you want to activate",
+    confirmActivateClient: "Confirm User Activation",
+    emailAlreadyExists: "This email is already registered",
+    searchNameEmail: "Search by name or email",
+    totalUsers: "Total Users",
     temporaryPassword: "Temporary password",
 
     // Service Request Details - Additional translations
@@ -1481,7 +1487,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     errorAddingClient: "Erro ao adicionar usuário",
     errorUpdatingClient: "Erro ao atualizar usuário",
     errorDeletingClient: "Erro ao desativar usuário",
+    errorReactivatingClient: "Erro ao ativar usuário",
     areYouSureDeactivate: "Tem certeza que deseja desativar",
+    areYouSureActivate: "Tem certeza que deseja ativar",
+    confirmActivateClient: "Confirmar Ativação de Usuário",
+    emailAlreadyExists: "Este email já está cadastrado",
+    searchNameEmail: "Pesquisar por nome ou email",
+    totalUsers: "Total de Usuários",
     temporaryPassword: "Senha temporária",
 
     // Service Request Details - Additional translations

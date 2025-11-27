@@ -22,9 +22,67 @@ export class UsersManagementComponent {
     private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
 
-    // Mostra apenas clientes e administradores (exclui profissionais)
-    clients = computed(() => 
-        this.dataService.users().filter((u) => u.role === "client" || u.role === "admin")
+    // Helper para usar no template
+    readonly Math = Math;
+
+    // Filtros e Busca
+    searchTerm = signal("");
+    filterRole = signal<UserRole | "all">("all");
+    filterStatus = signal<"all" | "Active" | "Inactive" | "Pending" | "Rejected">("all");
+
+    // Paginação
+    currentPage = signal(1);
+    itemsPerPage = signal(10);
+    readonly itemsPerPageOptions = [10, 25, 50, 100];
+
+    // Lista filtrada e paginada
+    filteredClients = computed(() => {
+        let users = this.dataService.users()
+            .filter((u) => u.role === "client" || u.role === "admin");
+
+        // Aplicar busca
+        const search = this.searchTerm().toLowerCase();
+        if (search) {
+            users = users.filter(u => 
+                u.name.toLowerCase().includes(search) ||
+                u.email.toLowerCase().includes(search)
+            );
+        }
+
+        // Aplicar filtro de role
+        const role = this.filterRole();
+        if (role !== "all") {
+            users = users.filter(u => u.role === role);
+        }
+
+        // Aplicar filtro de status
+        const status = this.filterStatus();
+        if (status !== "all") {
+            users = users.filter(u => u.status === status);
+        }
+
+        return users;
+    });
+
+    // Total de páginas
+    totalPages = computed(() => 
+        Math.ceil(this.filteredClients().length / this.itemsPerPage())
+    );
+
+    // Usuários da página atual
+    clients = computed(() => {
+        const start = (this.currentPage() - 1) * this.itemsPerPage();
+        const end = start + this.itemsPerPage();
+        return this.filteredClients().slice(start, end);
+    });
+
+    // Estatisticas
+    totalUsers = computed(() => this.filteredClients().length);
+    totalActive = computed(() => 
+        this.filteredClients().filter(u => u.status === "Active").length
+    );
+    totalInactive = computed(() => 
+        this.filteredClients().filter(u => u.status === "Inactive").length
     );
 
     // Available roles for user management (client e admin)
@@ -48,6 +106,9 @@ export class UsersManagementComponent {
     // Delete Client
     deletingClient = signal<User | null>(null);
 
+    // Reactivate Client
+    reactivatingClient = signal<User | null>(null);
+
     toggleAddClientForm() {
         this.showAddClientForm.update((v) => !v);
     }
@@ -67,6 +128,17 @@ export class UsersManagementComponent {
         if (!name || !email || !role) {
             this.notificationService.addNotification(
                 this.i18n.translate("fillRequiredFields")
+            );
+            return;
+        }
+
+        // Validação de email duplicado
+        const emailExists = this.dataService.users().some(u => 
+            u.email.toLowerCase() === email.toLowerCase()
+        );
+        if (emailExists) {
+            this.notificationService.addNotification(
+                this.i18n.translate("emailAlreadyExists")
             );
             return;
         }
@@ -256,5 +328,99 @@ export class UsersManagementComponent {
 
     cancelDelete() {
         this.deletingClient.set(null);
+    }
+
+    // Reactivate Client
+    confirmReactivateClient(client: User) {
+        this.reactivatingClient.set(client);
+    }
+
+    async reactivateClient() {
+        const client = this.reactivatingClient();
+        if (!client) return;
+
+        try {
+            const { error } = await this.supabase.client
+                .from("users")
+                .update({ status: "Active" })
+                .eq("id", client.id);
+
+            if (error) {
+                throw error;
+            }
+
+            this.notificationService.addNotification(
+                this.i18n.translate("clientActivated", { name: client.name })
+            );
+            await this.dataService.fetchUsers();
+            this.cancelReactivate();
+        } catch (error) {
+            console.error("Error reactivating client:", error);
+            this.notificationService.addNotification(
+                this.i18n.translate("errorReactivatingClient")
+            );
+        }
+    }
+
+    cancelReactivate() {
+        this.reactivatingClient.set(null);
+    }
+
+    // Pagination
+    goToPage(page: number) {
+        if (page >= 1 && page <= this.totalPages()) {
+            this.currentPage.set(page);
+        }
+    }
+
+    nextPage() {
+        if (this.currentPage() < this.totalPages()) {
+            this.currentPage.update(p => p + 1);
+        }
+    }
+
+    previousPage() {
+        if (this.currentPage() > 1) {
+            this.currentPage.update(p => p - 1);
+        }
+    }
+
+    changeItemsPerPage(items: number) {
+        this.itemsPerPage.set(items);
+        this.currentPage.set(1); // Reset para primeira página
+    }
+
+    // Filtros
+    clearFilters() {
+        this.searchTerm.set("");
+        this.filterRole.set("all");
+        this.filterStatus.set("all");
+        this.currentPage.set(1);
+    }
+
+    // Helper para gerar array de páginas
+    getPageNumbers(): number[] {
+        const total = this.totalPages();
+        const current = this.currentPage();
+        const delta = 2; // Páginas antes e depois da atual
+        const pages: number[] = [];
+
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+            pages.push(i);
+        }
+
+        if (current - delta > 2) {
+            pages.unshift(-1); // Representa "..."
+        }
+        if (current + delta < total - 1) {
+            pages.push(-1); // Representa "..."
+        }
+
+        pages.unshift(1);
+        if (total > 1) {
+            pages.push(total);
+        }
+
+        return pages;
     }
 }

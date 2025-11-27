@@ -1,10 +1,100 @@
 <div class="bg-white rounded-lg shadow-md">
+    <!-- Header com título e botão adicionar -->
     <div class="p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h3 class="text-xl font-semibold">{{ "manageClients" | i18n }}</h3>
         <button (click)="toggleAddClientForm()"
             class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
             <i class="fas fa-plus mr-2"></i>{{ "addClient" | i18n }}
         </button>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="p-4 border-b bg-gray-50">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">{{ 'totalUsers' | i18n }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ totalUsers() }}</p>
+                    </div>
+                    <i class="fas fa-users text-indigo-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">{{ 'active' | i18n }}</p>
+                        <p class="text-2xl font-bold text-green-600">{{ totalActive() }}</p>
+                    </div>
+                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">{{ 'inactive' | i18n }}</p>
+                        <p class="text-2xl font-bold text-gray-600">{{ totalInactive() }}</p>
+                    </div>
+                    <i class="fas fa-ban text-gray-500 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="p-4 border-b bg-gray-50">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Busca -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
+                </label>
+                <input type="text" 
+                    [ngModel]="searchTerm()" 
+                    (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
+                    [placeholder]="'searchNameEmail' | i18n"
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+
+            <!-- Filtro Role -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-user-tag mr-1"></i>{{ 'profileType' | i18n }}
+                </label>
+                <select [ngModel]="filterRole()" 
+                    (ngModelChange)="filterRole.set($event); currentPage.set(1)"
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="all">{{ 'all' | i18n }}</option>
+                    <option value="client">{{ 'client' | i18n }}</option>
+                    <option value="admin">{{ 'admin' | i18n }}</option>
+                </select>
+            </div>
+
+            <!-- Filtro Status -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    <i class="fas fa-filter mr-1"></i>{{ 'status' | i18n }}
+                </label>
+                <select [ngModel]="filterStatus()" 
+                    (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="all">{{ 'all' | i18n }}</option>
+                    <option value="Active">{{ 'active' | i18n }}</option>
+                    <option value="Inactive">{{ 'inactive' | i18n }}</option>
+                    <option value="Pending">{{ 'pending' | i18n }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Botão Limpar Filtros -->
+        @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all') {
+        <div class="mt-3">
+            <button (click)="clearFilters()"
+                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                <i class="fas fa-times-circle mr-1"></i>{{ 'clearFilters' | i18n }}
+            </button>
+        </div>
+        }
     </div>
     @if(showAddClientForm()) {
     <div class="p-4 border-b bg-gray-50">
@@ -54,6 +144,9 @@
                         {{ "profileType" | i18n }}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "status" | i18n }}
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "action" | i18n }}
                     </th>
                 </tr>
@@ -78,6 +171,17 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 py-1 text-xs rounded-full" 
+                            [ngClass]="{
+                                'bg-green-100 text-green-800': client.status === 'Active',
+                                'bg-gray-100 text-gray-800': client.status === 'Inactive',
+                                'bg-yellow-100 text-yellow-800': client.status === 'Pending',
+                                'bg-red-100 text-red-800': client.status === 'Rejected'
+                            }">
+                            {{ client.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex items-center space-x-2">
                             <button (click)="viewClientDetails(client)"
                                 class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
@@ -89,11 +193,19 @@
                                 title="{{ 'edit' | i18n }}">
                                 <i class="fas fa-edit"></i>
                             </button>
+                            @if(client.status === 'Inactive') {
+                            <button (click)="confirmReactivateClient(client)"
+                                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                                title="{{ 'activate' | i18n }}">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                            } @else {
                             <button (click)="confirmDeleteClient(client)"
                                 class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
-                                title="{{ 'delete' | i18n }}">
-                                <i class="fas fa-trash"></i>
+                                title="{{ 'deactivate' | i18n }}">
+                                <i class="fas fa-ban"></i>
                             </button>
+                            }
                         </div>
                     </td>
                 </tr>
@@ -132,11 +244,19 @@
                         title="{{ 'edit' | i18n }}">
                         <i class="fas fa-edit text-sm"></i>
                     </button>
+                    @if(client.status === 'Inactive') {
+                    <button (click)="confirmReactivateClient(client)"
+                        class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                        title="{{ 'activate' | i18n }}">
+                        <i class="fas fa-check-circle text-sm"></i>
+                    </button>
+                    } @else {
                     <button (click)="confirmDeleteClient(client)"
                         class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
-                        title="{{ 'delete' | i18n }}">
-                        <i class="fas fa-trash text-sm"></i>
+                        title="{{ 'deactivate' | i18n }}">
+                        <i class="fas fa-ban text-sm"></i>
                     </button>
+                    }
                 </div>
             </div>
 
@@ -155,6 +275,18 @@
                             'bg-red-100 text-red-800': client.role === 'admin'
                         }">
                         {{ getRoleLabel(client.role) }}
+                    </span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-circle-dot text-gray-400 w-4 mr-2"></i>
+                    <span class="px-2 py-1 text-xs rounded-full" 
+                        [ngClass]="{
+                            'bg-green-100 text-green-800': client.status === 'Active',
+                            'bg-gray-100 text-gray-800': client.status === 'Inactive',
+                            'bg-yellow-100 text-yellow-800': client.status === 'Pending',
+                            'bg-red-100 text-red-800': client.status === 'Rejected'
+                        }">
+                        {{ client.status }}
                     </span>
                 </div>
             </div>
@@ -311,6 +443,94 @@
             <button (click)="deleteClient()" 
                 class="px-4 py-2 text-sm rounded-md text-white bg-red-600 hover:bg-red-700">
                 {{ 'deactivate' | i18n }}
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Reactivate Confirmation Modal -->
+@if(reactivatingClient()) {
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div class="flex items-center mb-4">
+            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+            <h3 class="ml-4 text-xl font-semibold text-gray-900">{{ 'confirmActivateClient' | i18n }}</h3>
+        </div>
+        
+        <p class="text-gray-600 mb-6">
+            {{ 'areYouSureActivate' | i18n }} <strong>{{ reactivatingClient()!.name }}</strong>?
+        </p>
+
+        <div class="flex justify-end space-x-3">
+            <button (click)="cancelReactivate()" 
+                class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
+                {{ 'cancel' | i18n }}
+            </button>
+            <button (click)="reactivateClient()" 
+                class="px-4 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700">
+                {{ 'activate' | i18n }}
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Pagination -->
+@if(totalPages() > 1) {
+<div class="p-4 border-t bg-gray-50">
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <!-- Items per page -->
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">{{ 'itemsPerPage' | i18n }}:</span>
+            <select [ngModel]="itemsPerPage()" 
+                (ngModelChange)="changeItemsPerPage($event)"
+                class="p-1 border border-gray-300 rounded-md text-sm">
+                @for(option of itemsPerPageOptions; track option) {
+                <option [value]="option">{{ option }}</option>
+                }
+            </select>
+        </div>
+
+        <!-- Page info -->
+        <div class="text-sm text-gray-700">
+            {{ 'showing' | i18n }} {{ (currentPage() - 1) * itemsPerPage() + 1 }} 
+            {{ 'to' | i18n }} {{ Math.min(currentPage() * itemsPerPage(), totalUsers()) }} 
+            {{ 'of' | i18n }} {{ totalUsers() }} {{ 'results' | i18n }}
+        </div>
+
+        <!-- Pagination controls -->
+        <div class="flex items-center space-x-1">
+            <!-- Previous button -->
+            <button (click)="previousPage()" 
+                [disabled]="currentPage() === 1"
+                class="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <!-- Page numbers -->
+            @for(page of getPageNumbers(); track page) {
+                @if(page === -1) {
+                <span class="px-2 text-gray-500">...</span>
+                } @else {
+                <button (click)="goToPage(page)"
+                    [ngClass]="{
+                        'bg-indigo-600 text-white': page === currentPage(),
+                        'border border-gray-300 hover:bg-gray-100': page !== currentPage()
+                    }"
+                    class="px-3 py-1 rounded-md text-sm min-w-[2.5rem]">
+                    {{ page }}
+                </button>
+                }
+            }
+
+            <!-- Next button -->
+            <button (click)="nextPage()" 
+                [disabled]="currentPage() === totalPages()"
+                class="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100">
+                <i class="fas fa-chevron-right"></i>
             </button>
         </div>
     </div>
