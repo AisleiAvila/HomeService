@@ -134,17 +134,41 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                        tabindex="0" 
+                        (click)="setSort('name')" 
+                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
                         {{ "name" | i18n }}
+                        <span *ngIf="sortColumn() === 'name'">
+                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                        </span>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                        tabindex="0" 
+                        (click)="setSort('email')" 
+                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
                         {{ "email" | i18n }}
+                        <span *ngIf="sortColumn() === 'email'">
+                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                        </span>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                        tabindex="0" 
+                        (click)="setSort('role')" 
+                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('role')">
                         {{ "profileType" | i18n }}
+                        <span *ngIf="sortColumn() === 'role'">
+                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                        </span>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                        tabindex="0" 
+                        (click)="setSort('status')" 
+                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('status')">
                         {{ "status" | i18n }}
+                        <span *ngIf="sortColumn() === 'status'">
+                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                        </span>
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "action" | i18n }}

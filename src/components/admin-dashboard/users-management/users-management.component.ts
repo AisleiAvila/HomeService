@@ -30,6 +30,19 @@ export class UsersManagementComponent {
     filterRole = signal<UserRole | "all">("all");
     filterStatus = signal<"all" | "Active" | "Inactive" | "Pending" | "Rejected">("all");
 
+    // Ordenação
+    sortColumn = signal<'name' | 'email' | 'role' | 'status'>('name');
+    sortDirection = signal<'asc' | 'desc'>('asc');
+
+    setSort(column: 'name' | 'email' | 'role' | 'status') {
+        if (this.sortColumn() === column) {
+            this.sortDirection.set(this.sortDirection() === 'asc' ? 'desc' : 'asc');
+        } else {
+            this.sortColumn.set(column);
+            this.sortDirection.set('asc');
+        }
+    }
+
     // Paginação
     pageSize = 10;
     currentPage = signal(1);
@@ -60,6 +73,32 @@ export class UsersManagementComponent {
             users = users.filter(u => u.status === status);
         }
 
+        // Aplicar ordenação
+        const sortCol = this.sortColumn();
+        const sortDir = this.sortDirection();
+        users = users.slice(); // Defensive copy
+        users.sort((a, b) => {
+            let aVal: string, bVal: string;
+            if (sortCol === 'name') {
+                aVal = a.name?.toLowerCase() || '';
+                bVal = b.name?.toLowerCase() || '';
+            } else if (sortCol === 'email') {
+                aVal = a.email?.toLowerCase() || '';
+                bVal = b.email?.toLowerCase() || '';
+            } else if (sortCol === 'role') {
+                aVal = a.role?.toLowerCase() || '';
+                bVal = b.role?.toLowerCase() || '';
+            } else if (sortCol === 'status') {
+                aVal = a.status?.toLowerCase() || '';
+                bVal = b.status?.toLowerCase() || '';
+            } else {
+                return 0;
+            }
+            if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+            return 0;
+        });
+
         return users;
     });
 
@@ -87,10 +126,12 @@ export class UsersManagementComponent {
     // Effect para resetar página quando filtros mudarem
     constructor() {
         effect(() => {
-            // Observa mudanças nos filtros
+            // Observa mudanças nos filtros e ordenação
             this.searchTerm();
             this.filterRole();
             this.filterStatus();
+            this.sortColumn();
+            this.sortDirection();
             // Reseta para a primeira página
             this.currentPage.set(1);
         });
