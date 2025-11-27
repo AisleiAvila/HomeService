@@ -652,8 +652,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     addNewClient: "Add New User",
     editClient: "Edit User",
     profileType: "Profile Type",
-    errorAddingClient: "Error adding client",
-    errorUpdatingClient: "Error updating client",
+    errorAddingClient: "Error adding user",
+    errorUpdatingClient: "Error updating user",
+    temporaryPassword: "Temporary password",
 
     // Service Request Details - Additional translations
     professionalResponses: "Professional Responses",
@@ -1463,8 +1464,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     addNewClient: "Adicionar Novo Usuário",
     editClient: "Editar Usuário",
     profileType: "Tipo de Perfil",
-    errorAddingClient: "Erro ao adicionar cliente",
-    errorUpdatingClient: "Erro ao atualizar cliente",
+    errorAddingClient: "Erro ao adicionar usuário",
+    errorUpdatingClient: "Erro ao atualizar usuário",
+    temporaryPassword: "Senha temporária",
 
     // Service Request Details - Additional translations
     professionalResponses: "Respostas dos Profissionais",

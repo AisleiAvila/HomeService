@@ -65,29 +65,86 @@ export class UsersManagementComponent {
         }
 
         try {
-            // Create new user in database
-            const newUser: Partial<User> = {
-                name,
-                email,
-                role,
-                status: "Active",
-                avatar_url: "",
-                auth_id: "", // Will be set by Supabase
-            };
+            // 1. Gera token único para confirmação
+            const token = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now();
+            console.log('Token de confirmação gerado: ', token);
 
-            const success = await this.dataService.addProfessional(newUser);
-            
-            if (success) {
+            // 2. Gera senha temporária
+            const tempPassword = Math.random().toString(36).slice(-8);
+            console.log('**************Senha temporária gerada:', tempPassword);
+
+            // 3. Monta o link e o HTML usando o token recém-gerado
+            const confirmLink = `https://home-service-nu.vercel.app/confirmar-email?email=${encodeURIComponent(email)}&token=${token}`;
+            const html = `<p>Olá ${name},</p>
+                <p>Seu cadastro como ${role === 'admin' ? 'administrador' : 'usuário'} foi realizado com sucesso.<br>
+                Use a senha temporária abaixo para acessar o sistema pela primeira vez:<br>
+                <b>${tempPassword}</b></p>
+                <p>Antes de acessar, confirme seu e-mail clicando no link abaixo:</p>
+                <p><a href='${confirmLink}'>Confirmar e-mail</a></p>
+                <p>Após o primeiro login, você será redirecionado para definir uma nova senha.</p>`;
+
+            // 4. Cria usuário via backend customizado
+            const res = await fetch('http://localhost:4002/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    phone: '', // Administradores não precisam de telefone
+                    specialty: '', // Administradores não têm especialidade
+                    role,
+                    status: 'Active', // Administradores já são ativados
+                    confirmation_token: token,
+                    password: tempPassword
+                })
+            });
+
+            if (!res.ok) {
+                let errText = await res.text();
+                let errJson;
+                try {
+                    errJson = JSON.parse(errText);
+                } catch {
+                    errJson = { message: errText };
+                }
+                console.error('Erro backend customizado:', errJson);
                 this.notificationService.addNotification(
-                    this.i18n.translate("professionalAdded", { name })
+                    this.i18n.translate("errorAddingClient") + `: ${errJson?.message || errText}`
                 );
-                await this.dataService.fetchUsers();
-                this.resetNewClientForm();
+                return;
             }
-        } catch (error) {
-            console.error("Error adding client:", error);
+
+            // 5. Dispara e-mail de confirmação
+            console.log('Enviando e-mail de confirmação:', {
+                to: email,
+                subject: 'Confirmação de cadastro - HomeService',
+                html,
+                token,
+                tempPassword
+            });
+
+            await fetch('http://localhost:4001/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: email,
+                    subject: 'Confirmação de cadastro - HomeService',
+                    html,
+                    token,
+                    tempPassword: tempPassword || ''
+                })
+            });
+
             this.notificationService.addNotification(
-                this.i18n.translate("errorAddingClient")
+                this.i18n.translate("professionalAdded", { name }) + `. ${this.i18n.translate("temporaryPassword")}: ${tempPassword}`
+            );
+            
+            await this.dataService.fetchUsers();
+            this.resetNewClientForm();
+        } catch (error: any) {
+            console.error("Error adding user:", error);
+            this.notificationService.addNotification(
+                this.i18n.translate("errorAddingClient") + `: ${error.message || error}`
             );
         }
     }
