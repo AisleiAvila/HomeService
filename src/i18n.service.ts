@@ -810,6 +810,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeLabel: "SMS Code",
     smsCodePlaceholder: "Enter the code sent to your phone.",
     personalData: "Personal Data",
+    passwordChangedSuccessfully: "Password changed successfully.",
 
   },
   pt: {
@@ -1627,6 +1628,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     personalData: "Dados Pessoais",
     updatePassword: "Atualizar Senha",
     confirmPasswordPlaceholder: "Entre com sua senha novamente.",
+    passwordChangedSuccessfully: "Senha alterada com sucesso!",
 
 
   },

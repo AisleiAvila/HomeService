@@ -25,7 +25,7 @@ export class ChangePasswordComponent {
     private readonly auth = inject(AuthService);
     private readonly i18n = inject(I18nService);
 
-    @Output() close = new EventEmitter<void>();
+    @Output() closeModal = new EventEmitter<void>();
 
     async changePassword() {
         this.errorMsg.set('');
@@ -53,7 +53,7 @@ export class ChangePasswordComponent {
             
             // Fechar o modal após 2 segundos
             setTimeout(() => {
-                this.closeModal();
+                this.onCloseModal();
             }, 2000);
         } catch (e: any) {
             console.error('Erro ao alterar senha:', e);
@@ -64,7 +64,7 @@ export class ChangePasswordComponent {
         }
     }
 
-    closeModal() {
-        this.close.emit();
+    onCloseModal() {
+        this.closeModal.emit();
     }
 }
