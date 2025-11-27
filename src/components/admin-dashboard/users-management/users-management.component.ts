@@ -22,12 +22,13 @@ export class UsersManagementComponent {
     private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
 
-    clients = computed(() =>
-        this.dataService.users().filter((u) => u.role === "client")
+    // Mostra apenas clientes e administradores (exclui profissionais)
+    clients = computed(() => 
+        this.dataService.users().filter((u) => u.role === "client" || u.role === "admin")
     );
 
-    // Available roles for client registration
-    readonly availableRoles: UserRole[] = ["admin"];
+    // Available roles for user management (client e admin)
+    readonly availableRoles: UserRole[] = ["client", "admin"];
 
     // Add Client Form
     showAddClientForm = signal(false);
@@ -40,6 +41,12 @@ export class UsersManagementComponent {
     editingClientName = signal("");
     editingClientEmail = signal("");
     editingClientRole = signal<UserRole>("client");
+
+    // View Details
+    viewingClient = signal<User | null>(null);
+
+    // Delete Client
+    deletingClient = signal<User | null>(null);
 
     toggleAddClientForm() {
         this.showAddClientForm.update((v) => !v);
@@ -203,5 +210,51 @@ export class UsersManagementComponent {
 
     getRoleLabel(role: UserRole): string {
         return this.i18n.translate(role);
+    }
+
+    // View Details
+    viewClientDetails(client: User) {
+        this.viewingClient.set(client);
+    }
+
+    closeDetails() {
+        this.viewingClient.set(null);
+    }
+
+    // Delete Client (Soft Delete)
+    confirmDeleteClient(client: User) {
+        this.deletingClient.set(client);
+    }
+
+    async deleteClient() {
+        const client = this.deletingClient();
+        if (!client) return;
+
+        try {
+            // Exclusão lógica: atualiza status para 'Inactive'
+            const { error } = await this.supabase.client
+                .from("users")
+                .update({ status: "Inactive" })
+                .eq("id", client.id);
+
+            if (error) {
+                throw error;
+            }
+
+            this.notificationService.addNotification(
+                this.i18n.translate("clientDeactivated", { name: client.name })
+            );
+            await this.dataService.fetchUsers();
+            this.cancelDelete();
+        } catch (error) {
+            console.error("Error deleting client:", error);
+            this.notificationService.addNotification(
+                this.i18n.translate("errorDeletingClient")
+            );
+        }
+    }
+
+    cancelDelete() {
+        this.deletingClient.set(null);
     }
 }

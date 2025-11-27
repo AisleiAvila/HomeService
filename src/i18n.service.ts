@@ -654,6 +654,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     profileType: "Profile Type",
     errorAddingClient: "Error adding user",
     errorUpdatingClient: "Error updating user",
+    errorDeletingClient: "Error deactivating user",
+    areYouSureDeactivate: "Are you sure you want to deactivate",
     temporaryPassword: "Temporary password",
 
     // Service Request Details - Additional translations
@@ -1478,6 +1480,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     profileType: "Tipo de Perfil",
     errorAddingClient: "Erro ao adicionar usuário",
     errorUpdatingClient: "Erro ao atualizar usuário",
+    errorDeletingClient: "Erro ao desativar usuário",
+    areYouSureDeactivate: "Tem certeza que deseja desativar",
     temporaryPassword: "Senha temporária",
 
     // Service Request Details - Additional translations
