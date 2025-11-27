@@ -46,10 +46,10 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Busca -->
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-1">
                     <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
                 </label>
-                <input type="text" 
+                <input id="searchInput" type="text" 
                     [ngModel]="searchTerm()" 
                     (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
                     [placeholder]="'searchNameEmail' | i18n"
@@ -58,10 +58,10 @@
 
             <!-- Filtro Role -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="filterRole" class="block text-sm font-medium text-gray-700 mb-1">
                     <i class="fas fa-user-tag mr-1"></i>{{ 'profileType' | i18n }}
                 </label>
-                <select [ngModel]="filterRole()" 
+                <select id="filterRole" [ngModel]="filterRole()" 
                     (ngModelChange)="filterRole.set($event); currentPage.set(1)"
                     class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="all">{{ 'all' | i18n }}</option>
@@ -72,10 +72,10 @@
 
             <!-- Filtro Status -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="filterStatus" class="block text-sm font-medium text-gray-700 mb-1">
                     <i class="fas fa-filter mr-1"></i>{{ 'status' | i18n }}
                 </label>
-                <select [ngModel]="filterStatus()" 
+                <select id="filterStatus" [ngModel]="filterStatus()" 
                     (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
                     class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="all">{{ 'all' | i18n }}</option>
@@ -400,7 +400,7 @@
             <!-- Details Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">{{ 'profileType' | i18n }}</label>
+                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'profileType' | i18n }}</div>
                     <span class="px-3 py-1 text-sm rounded-full inline-block" 
                         [ngClass]="{
                             'bg-blue-100 text-blue-800': viewingClient()!.role === 'client',
@@ -412,7 +412,7 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">{{ 'status' | i18n }}</label>
+                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'status' | i18n }}</div>
                     <span class="px-3 py-1 text-sm rounded-full inline-block"
                         [ngClass]="{
                             'bg-green-100 text-green-800': viewingClient()!.status === 'Active',
@@ -425,14 +425,14 @@
 
                 @if(viewingClient()!.phone) {
                 <div>
-                    <label class="block text-sm font-medium text-gray-500 mb-1">{{ 'phone' | i18n }}</label>
+                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'phone' | i18n }}</div>
                     <p class="text-gray-900">{{ viewingClient()!.phone }}</p>
                 </div>
                 }
 
                 @if(viewingClient()!.specialties && viewingClient()!.specialties.length > 0) {
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-500 mb-1">{{ 'specialties' | i18n }}</label>
+                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'specialties' | i18n }}</div>
                     <div class="flex flex-wrap gap-2">
                         @for(specialty of viewingClient()!.specialties; track specialty) {
                         <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
