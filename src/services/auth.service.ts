@@ -471,8 +471,47 @@ export class AuthService {
 
     if (passwordError) {
       console.error("❌ Erro ao definir senha:", passwordError);
+      throw passwordError;
     } else {
       console.log("✅ Senha definida com sucesso");
+    }
+  }
+
+  /**
+   * Altera a senha do usuário autenticado
+   * Usa o sistema de autenticação customizado
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    console.log("🔑 Alterando senha do usuário...");
+    
+    try {
+      const user = this.appUser();
+      
+      if (!user) {
+        throw new Error("Usuário não autenticado. Por favor, faça login novamente.");
+      }
+
+      const response = await fetch('http://localhost:4002/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Erro ao alterar senha');
+      }
+
+      console.log("✅ Senha alterada com sucesso");
+      this.notificationService.addNotification("Senha alterada com sucesso!");
+    } catch (error: any) {
+      console.error("❌ Erro ao alterar senha:", error);
+      throw error;
     }
   }
 

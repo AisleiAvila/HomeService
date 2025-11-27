@@ -24,12 +24,13 @@ import { AuthService } from "../../services/auth.service";
 import { NotificationService } from "../../services/notification.service";
 import { I18nService } from "../../i18n.service";
 import { DataService } from "../../services/data.service";
+import { ChangePasswordComponent } from '../../components/change-password/change-password.component';
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-profile",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [CommonModule, FormsModule, I18nPipe, ChangePasswordComponent],
   templateUrl: "./profile.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -74,14 +75,9 @@ export class ProfileComponent implements OnDestroy {
   smsValid: boolean | null = null;
   // Signal para modal de SMS
   showSmsModal = signal(false);
+  // Controle da exibição do modal de alteração de senha
+  readonly showChangePassword = signal(false);
 
-  // Estado para troca de senha
-  currentPassword: string = "";
-  newPassword: string = "";
-  confirmNewPassword: string = "";
-  isChangingPassword: boolean = false;
-  passwordChangeError: string = "";
-  passwordChangeSuccess: string = "";
 
   allCategories = this.dataService.categories;
   private cameraStream: MediaStream | null = null;
@@ -631,41 +627,7 @@ export class ProfileComponent implements OnDestroy {
     }
   }
 
-  async changePassword() {
-    this.passwordChangeError = "";
-    this.passwordChangeSuccess = "";
-    if (!this.currentPassword || !this.newPassword || !this.confirmNewPassword) {
-      this.passwordChangeError = this.i18n.translate("fillAllPasswordFields");
-      return;
-    }
-    if (this.newPassword.length < 6) {
-      this.passwordChangeError = this.i18n.translate("passwordTooShort");
-      return;
-    }
-    if (this.newPassword !== this.confirmNewPassword) {
-      this.passwordChangeError = this.i18n.translate("passwordsDoNotMatch");
-      return;
-    }
-    this.isChangingPassword = true;
-    try {
-      // Verifica se há sessão ativa
-      const sessionInfo = await this.authService.hasActiveSession();
-      if (!sessionInfo.hasSession) {
-        this.passwordChangeError = this.i18n.translate("sessionExpiredLoginAgain");
-        this.isChangingPassword = false;
-        return;
-      }
-      await this.authService.setUserPassword(this.newPassword);
-      this.passwordChangeSuccess = this.i18n.translate("passwordChangedSuccessfully");
-      this.currentPassword = "";
-      this.newPassword = "";
-      this.confirmNewPassword = "";
-    } catch (err: any) {
-      this.passwordChangeError = this.i18n.translate("errorChangingPassword") + (err?.message ? ": " + err.message : "");
-    } finally {
-      this.isChangingPassword = false;
-    }
-  }
+
 
   private showToast(message: string, type: "success" | "error" = "success") {
     this.saveToastMessage.set(message);

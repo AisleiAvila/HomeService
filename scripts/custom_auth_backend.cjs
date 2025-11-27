@@ -99,6 +99,51 @@ app.post('/api/login', async (req, res) => {
   res.json({ success: true, user: data });
 });
 
+// Alteração de senha
+app.post('/api/change-password', async (req, res) => {
+  const { userId, currentPassword, newPassword } = req.body;
+  
+  if (!userId || !currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres.' });
+  }
+
+  try {
+    // Verificar senha atual
+    const currentHash = crypto.createHash('sha256').update(currentPassword).digest('hex');
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .eq('password_hash', currentHash)
+      .single();
+
+    if (fetchError || !user) {
+      return res.status(401).json({ error: 'Senha atual incorreta.' });
+    }
+
+    // Atualizar para nova senha
+    const newHash = crypto.createHash('sha256').update(newPassword).digest('hex');
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password_hash: newHash })
+      .eq('id', userId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    console.log(`[Alteração de senha] Senha alterada com sucesso para usuário ${userId}`);
+    res.json({ success: true, message: 'Senha alterada com sucesso.' });
+  } catch (err) {
+    console.error('[Alteração de senha] Erro:', err);
+    res.status(500).json({ error: 'Erro ao alterar senha.' });
+  }
+});
+
 app.listen(4002, () => {
   console.log('Custom Auth backend rodando na porta 4002');
 });
