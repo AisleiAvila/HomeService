@@ -604,9 +604,9 @@ export class ProfileComponent implements OnDestroy {
           this.i18n.translate("smsCodeValid")
         );
         // Recarrega perfil do usuário após validação
-        const authId = this.user().auth_id;
-        if (authId) {
-          await this.authService.refreshAppUser(authId);
+        const userId = this.user().id;
+        if (userId) {
+          await this.authService.refreshAppUser(userId.toString());
         }
       } else if (response.error === "expired") {
         this.smsValid = null;

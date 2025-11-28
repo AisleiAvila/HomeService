@@ -63,21 +63,21 @@ export class AuthService {
   /**
    * Recarrega o perfil do usuário autenticado (público)
    */
-  async refreshAppUser(authId: string): Promise<void> {
-    await this.fetchAppUser(authId, false);
+  async refreshAppUser(userId: string): Promise<void> {
+    await this.fetchAppUser(userId, false);
   }
 
   /**
    * Busca o perfil do usuário autenticado na tabela 'users'
-   * @param authId ID do usuário no Supabase Auth
+   * @param userId ID do usuário na tabela users
    * @param isAutomatic Indica se a chamada é automática (ex: via effect)
    */
-  private async fetchAppUser(authId: string, isAutomatic: boolean): Promise<void> {
+  private async fetchAppUser(userId: string, isAutomatic: boolean): Promise<void> {
     try {
       const { data: user, error } = await this.supabase.client
         .from("users")
         .select("*")
-        .eq("auth_id", authId)
+        .eq("id", userId)
         .single();
 
       if (error) {
@@ -87,14 +87,14 @@ export class AuthService {
       }
 
       if (!user) {
-        console.warn("⚠️ Nenhum perfil encontrado para o usuário:", authId);
+        console.warn("⚠️ Nenhum perfil encontrado para o usuário:", userId);
         this.appUser.set(null);
         return;
       }
 
       // Se o email não estiver verificado, tratar fluxo de confirmação
       if (!user.email_verified) {
-        await this.handleUnverifiedEmail(user, authId, isAutomatic);
+        await this.handleUnverifiedEmail(user, userId, isAutomatic);
         return;
       }
 
@@ -146,7 +146,7 @@ export class AuthService {
     const { error: updateError } = await this.supabase.client
       .from("users")
       .update({ email_verified: true })
-      .eq("auth_id", userId);
+      .eq("id", userId);
 
     if (updateError) {
       console.error("❌ Erro ao atualizar email_verified:", updateError);
@@ -217,7 +217,7 @@ export class AuthService {
         const { data: userData, error: userError } = await this.supabase.client
           .from("users")
           .select("email_verified")
-          .eq("auth_id", response.data.user.id)
+          .eq("id", response.data.user.id)
           .single();
 
         if (userError) {
@@ -411,7 +411,6 @@ export class AuthService {
 
   private async insertOrUpdateUserProfile(authId: string, tempUserData: any): Promise<void> {
     const insertData = {
-      auth_id: authId,
       name: tempUserData.name,
       email: tempUserData.email,
       role: tempUserData.role,
@@ -451,7 +450,7 @@ export class AuthService {
         status: tempUserData.role === "professional" ? "Pending" : "Active",
         email_verified: true,
       })
-      .eq("auth_id", authId);
+      .eq("id", authId);
 
     if (updateError) {
       console.error("❌ Erro no update:", updateError);
@@ -573,7 +572,7 @@ export class AuthService {
       // Verificar se o usuário existe na tabela users
       const { data: existingUser } = await this.supabase.client
         .from("users")
-        .select("email, auth_id")
+        .select("email")
         .eq("email", email)
         .single();
 
@@ -797,7 +796,7 @@ export class AuthService {
     const { error } = await this.supabase.client
       .from("users")
       .update({ email_verified: true })
-      .eq("auth_id", authId);
+      .eq("id", authId);
 
     if (error) {
       console.error("❌ Erro ao marcar email como verificado:", error);
@@ -926,7 +925,7 @@ export class AuthService {
 
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      // Usar auth_id do Supabase para RLS compliance
+      // Usar user.id para organização de arquivos
       const filePath = `${supabaseUser.id}/${fileName}`;
 
       console.log(`📤 Uploading avatar: ${fileName} to path: ${filePath}`);
@@ -1025,7 +1024,7 @@ export class AuthService {
     const { data: existingProfile, error: fetchError } = await this.supabase.client
       .from("users")
       .select("*")
-      .eq("auth_id", user.id)
+      .eq("id", user.id)
       .single();
 
     if (this.isUnexpectedFetchError(fetchError)) {
@@ -1055,7 +1054,7 @@ export class AuthService {
     const { error: updateError } = await this.supabase.client
       .from("users")
       .update({ email_verified: true })
-      .eq("auth_id", authId);
+      .eq("id", authId);
     if (updateError) {
       console.error("❌ Erro ao atualizar email_verified:", updateError);
       this.notificationService.addNotification("Erro ao atualizar verificação de email do perfil: " + (updateError.message || updateError.code));
@@ -1067,7 +1066,6 @@ export class AuthService {
   private async createProfileForConfirmedUser(user: any, tempUserData: any): Promise<void> {
     console.log("📝 Criando perfil para usuário confirmado via link...");
     const insertData = {
-      auth_id: user.id,
       name: tempUserData?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Novo Usuário',
       email: user.email,
       role: tempUserData?.role || 'client',
@@ -1076,8 +1074,7 @@ export class AuthService {
       email_verified: true,
     };
     console.log("🔎 Dados para insert de perfil:", insertData);
-    const insertSQL = `INSERT INTO users (auth_id, name, email, role, status, avatar_url, email_verified) VALUES (
-      '${insertData.auth_id}',
+    const insertSQL = `INSERT INTO users (name, email, role, status, avatar_url, email_verified) VALUES (
       '${insertData.name.replaceAll("'", "''")}',
       '${insertData.email}',
       '${insertData.role}',

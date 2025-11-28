@@ -33,18 +33,11 @@ async function checkUserStatus() {
       console.log("   Role:", users[0].role);
       console.log("   Status:", users[0].status);
       console.log("   Email Verificado:", users[0].email_verified);
-      console.log("   Auth ID:", users[0].auth_id);
       console.log("\n");
 
-      // Verificar no auth
-      if (users[0].auth_id) {
-        console.log("🔐 Tentando verificar status no Supabase Auth...");
-        console.log("⚠️  Nota: Não é possível verificar detalhes do auth com anon key");
-        console.log("   Para ver detalhes completos, acesse:");
-        console.log(
-          "   https://supabase.com/dashboard/project/uqrvenlkquheajuveggv/auth/users"
-        );
-      }
+      console.log("ℹ️  Informação:");
+      console.log("   A aplicação não usa mais Supabase Auth");
+      console.log("   Autenticação é gerenciada pelo backend customizado");
     } else {
       console.log("❌ Usuário não encontrado na tabela 'users'");
       console.log("⚠️  Isso significa que o OTP foi enviado mas o perfil");

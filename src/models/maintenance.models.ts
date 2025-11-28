@@ -164,7 +164,6 @@ export interface Address {
 
 export interface User {
   id: number;
-  auth_id: string; // From Supabase Auth
   name: string;
   email: string;
   role: UserRole;
@@ -184,7 +183,6 @@ export interface ServiceRequest {
   id: number;
   client_id: number | null;
   professional_id: number | null;
-  professional_auth_id?: string | null; // UUID from Supabase Auth
   title: string;
   description: string;
   category_id: number; // FK para service_categories
@@ -309,7 +307,6 @@ export interface ChatMessage {
   id: number;
   request_id: number;
   sender_id: number;
-  sender_auth_id?: string; // UUID from Supabase Auth
   text: string;
   timestamp: string; // ISO string
   sender_name?: string; // Denormalized

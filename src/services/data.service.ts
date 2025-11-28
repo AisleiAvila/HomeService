@@ -676,7 +676,6 @@ export class DataService {
     const newMessage = {
       request_id: requestId,
       sender_id: senderId,
-      sender_auth_id: currentUser.auth_id,
       text: text,
       timestamp: new Date().toISOString(),
     };
