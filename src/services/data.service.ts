@@ -350,6 +350,50 @@ export class DataService {
     return this.serviceRequests().find((r) => r.id === id);
   }
 
+  /**
+   * Direciona uma solicitação de serviço diretamente para um profissional
+   * e agenda a data de execução
+   */
+  async directAssignServiceRequest(
+    requestId: number,
+    professionalId: number,
+    executionDate: string
+  ): Promise<void> {
+    const currentUser = this.authService.appUser();
+    if (!currentUser || currentUser.role !== 'admin') {
+      throw new Error("Only administrators can directly assign service requests");
+    }
+
+    const { StatusService } = await import("../services/status.service");
+
+    const { error } = await this.supabase.client
+      .from("service_requests")
+      .update({
+        professional_id: professionalId,
+        execution_date: executionDate,
+        status: statusServiceToServiceStatus[StatusService.Scheduled],
+      })
+      .eq("id", requestId);
+
+    if (error) {
+      console.error("❌ [directAssignServiceRequest] Error:", error);
+      this.notificationService.addNotification(
+        "Error assigning professional: " + error.message
+      );
+      throw error;
+    }
+
+    console.log("✅ [directAssignServiceRequest] Successfully assigned professional");
+    this.notificationService.addNotification(
+      "Professional assigned successfully!"
+    );
+
+    // Reload service requests
+    if (currentUser) {
+      await this.fetchServiceRequests(currentUser);
+    }
+  }
+
   async updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
     // Get current request to track status changes
     const currentRequest = this.getServiceRequestById(id);

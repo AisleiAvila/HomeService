@@ -1,6 +1,6 @@
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal, ElementRef, ViewChildren, QueryList } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, signal, ElementRef, ViewChildren, QueryList, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { ServiceRequest, User } from "../../../models/maintenance.models";
@@ -40,6 +40,13 @@ export class ServiceRequestsComponent {
     // UI State
     openActionsMenuId = signal<number | null>(null);
     @ViewChildren("actionsMenu") actionsMenus!: QueryList<ElementRef>;
+    showDirectAssignmentModal = signal(false);
+    requestToAssign = signal<ServiceRequest | null>(null);
+    selectedProfessionalId = signal<string>("");
+    selectedExecutionDate = signal<string>("");
+
+    // Outputs
+    openDirectAssignment = output<ServiceRequest>();
 
     // Options
     quickFilterOptions = [
@@ -265,7 +272,45 @@ export class ServiceRequestsComponent {
     selectRequestForQuote(req: ServiceRequest) { console.log('Quote', req); }
     needsProfessionalAssignment(req: ServiceRequest): boolean { return false; } // Placeholder
     selectRequestForAssignment(req: ServiceRequest) { console.log('Assign', req); }
-    openDirectAssignmentModal(req: ServiceRequest) { console.log('Direct Assign', req); }
+    openDirectAssignmentModal(req: ServiceRequest) { 
+        console.log('Direct Assign', req); 
+        this.requestToAssign.set(req);
+        this.selectedProfessionalId.set("");
+        this.selectedExecutionDate.set("");
+        this.showDirectAssignmentModal.set(true);
+    }
+    closeDirectAssignmentModal() {
+        this.showDirectAssignmentModal.set(false);
+        this.requestToAssign.set(null);
+        this.selectedProfessionalId.set("");
+        this.selectedExecutionDate.set("");
+    }
+    async confirmDirectAssignment() {
+        const request = this.requestToAssign();
+        const professionalId = this.selectedProfessionalId();
+        const executionDate = this.selectedExecutionDate();
+
+        if (!request || !professionalId || !executionDate) {
+            alert(this.i18n.translate('pleaseSelectProfessionalAndDate'));
+            return;
+        }
+
+        try {
+            await this.dataService.directAssignServiceRequest(
+                request.id,
+                parseInt(professionalId),
+                executionDate
+            );
+            this.closeDirectAssignmentModal();
+            const professionalName = this.getProfessionalName(parseInt(professionalId));
+            alert(this.i18n.translate('directAssignmentSuccess')
+                .replace('{id}', request.id.toString())
+                .replace('{professional}', professionalName));
+        } catch (error) {
+            console.error('Error assigning professional:', error);
+            alert(this.i18n.translate('directAssignmentError'));
+        }
+    }
     toggleActionsMenu(reqId: number) {
         this.openActionsMenuId.update(id => id === reqId ? null : reqId);
     }

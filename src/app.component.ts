@@ -105,6 +105,7 @@ export class AppComponent implements OnInit {
   isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
+  showDirectAssignmentModal = signal(false);
 
   selectedRequest = signal<ServiceRequest | null>(null);
 
