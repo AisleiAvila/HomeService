@@ -118,8 +118,8 @@
                             }
                           </div>
                           <div class="flex items-center gap-4 mt-1 ml-5 text-xs text-gray-500">
-                            @if(sub.average_time) {
-                              <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time }} min</span>
+                            @if(sub.average_time_minutes) {
+                              <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time_minutes }} min</span>
                             }
                             @if(sub.price) {
                               <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>
@@ -250,8 +250,8 @@
                           }
                         </div>
                         <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                          @if(sub.average_time) {
-                            <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time }} min</span>
+                          @if(sub.average_time_minutes) {
+                            <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time_minutes }} min</span>
                           }
                           @if(sub.price) {
                             <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>

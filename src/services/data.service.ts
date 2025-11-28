@@ -158,6 +158,23 @@ export class DataService {
     } else if (data && data.length > 0) {
       console.log('Categories with subcategories loaded:', data);
       this.categories.set(data as ServiceCategory[]);
+      
+      // Extrair e popular signal de subcategorias
+      const allSubs: ServiceSubcategoryExtended[] = [];
+      for (const cat of data) {
+        if (cat.subcategories && Array.isArray(cat.subcategories)) {
+          for (const sub of cat.subcategories) {
+            allSubs.push({
+              ...sub,
+              category_id: typeof sub.category_id === 'string' 
+                ? Number.parseInt(sub.category_id, 10) 
+                : sub.category_id || cat.id
+            } as ServiceSubcategoryExtended);
+          }
+        }
+      }
+      console.log('Total subcategories extracted:', allSubs.length);
+      this.subcategories.set(allSubs);
     } else {
       console.log("No categories found in Supabase, keeping sample data");
     }
@@ -1144,6 +1161,7 @@ export class DataService {
         this.fetchUsers(),
         this.fetchServiceRequests(user),
         this.fetchCategories(),
+        this.fetchSubcategories(), // Carregar subcategorias separadamente também
       ]);
     }
   }
