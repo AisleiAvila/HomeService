@@ -19,6 +19,7 @@ import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
+import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
 
 import { environment } from "../environments/environment";
 
@@ -69,6 +70,7 @@ export class DataService {
   private readonly notificationService = inject(NotificationService);
   public readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  private readonly addressDatabase = inject(PortugalAddressDatabaseService);
 
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
@@ -249,7 +251,6 @@ export class DataService {
     const { StatusService } = await import("../services/status.service");
     const newRequestData: any = {
       client_id: currentUser.id,
-      client_auth_id: currentUser.auth_id,
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,
@@ -262,16 +263,23 @@ export class DataService {
       status: statusServiceToServiceStatus[StatusService.Requested],
       payment_status: "Unpaid",
     };
+    
+    console.log("📤 [addServiceRequest] Dados a serem inseridos:", newRequestData);
+    console.log("🔐 [addServiceRequest] Session do Supabase:", await this.supabase.client.auth.getSession());
+    
     const { error } = await this.supabase.client
       .from("service_requests")
       .insert(newRequestData);
 
     if (error) {
+      console.error("❌ [addServiceRequest] Erro ao inserir:", error);
       this.notificationService.addNotification(
         "Error creating service request: " + error.message
       );
       throw error;
     }
+
+    console.log("✅ [addServiceRequest] Solicitação criada com sucesso!");
 
     this.notificationService.addNotification(
       "Service request created successfully!"
@@ -302,7 +310,6 @@ export class DataService {
       payment_status: "Unpaid" as const,
       created_by_admin: true,
       client_id: null,
-      client_auth_id: null,
       // Campos do solicitante
       requester_name: payload.requester_name,
       requester_phone: payload.requester_phone,
@@ -1276,12 +1283,28 @@ export class DataService {
   }
 
   async getPostalCodeInfo(postalCode: string) {
-    // Mock implementation or external API call
-    // For now, returning a mock response to satisfy the build
-    return {
-      concelho: "Lisboa",
-      freguesia: "Misericórdia",
-      distrito: "Lisboa"
-    };
+    console.log("🔍 [DataService] getPostalCodeInfo chamado para:", postalCode);
+    
+    try {
+      const result = await this.addressDatabase.validateCodigoPostal(postalCode);
+      console.log("📊 [DataService] Resultado da validação:", result);
+      
+      if (result.valid && result.endereco) {
+        console.log("✅ [DataService] Retornando endereço válido:", result.endereco);
+        return {
+          localidade: result.endereco.localidade,
+          concelho: result.endereco.concelho,
+          distrito: result.endereco.distrito,
+          freguesia: result.endereco.designacao_postal,
+          arteria_completa: result.endereco.arteria || ""
+        };
+      } else {
+        console.warn("⚠️ [DataService] Código postal não encontrado");
+        return null;
+      }
+    } catch (error) {
+      console.error("❌ [DataService] Erro ao buscar código postal:", error);
+      return null;
+    }
   }
 }

@@ -129,7 +129,21 @@ export class PortugalAddressDatabaseService {
         .select("*", { count: "exact", head: true });
 
       console.log("📊 [DATABASE] Total de registros na tabela:", count);
-      console.log("📊 [DATABASE] Erro de contagem:", countError);
+      if (countError) {
+        console.error("📊 [DATABASE] Erro de contagem:", countError);
+      }
+
+      // Teste específico: buscar o código 4535-172 diretamente
+      if (normalizado === "4535-172") {
+        console.log("🧪 [DATABASE] TESTE ESPECÍFICO: Buscando 4535-172 diretamente");
+        const { data: testData, error: testError } = await this.supabase.client
+          .from("codigos_postais")
+          .select("*")
+          .eq("codigo_postal_completo", "4535-172");
+        
+        console.log("🧪 [DATABASE] Resultado do teste direto:", testData);
+        console.log("🧪 [DATABASE] Erro do teste direto:", testError);
+      }
 
       // Buscar o código postal na base de dados
       console.log("🔍 [DATABASE] Buscando endereço na base de dados...");
@@ -204,6 +218,7 @@ export class PortugalAddressDatabaseService {
    */
   private async fetchCodigoPostalData(normalizado: string): Promise<CodigoPostal | null> {
     console.log("💾 [DATABASE] Executando query no Supabase...");
+    console.log("💾 [DATABASE] Código normalizado a buscar:", normalizado);
 
     const { data, error } = await this.supabase.client
       .from("codigos_postais")
@@ -218,6 +233,27 @@ export class PortugalAddressDatabaseService {
     if (error) {
       if (error.code === "PGRST116") {
         console.warn("❌ [DATABASE] Nenhum registro encontrado (PGRST116)");
+        console.warn("💡 [DATABASE] Tentando buscar com formato alternativo...");
+        
+        // Tentar buscar usando num_cod_postal e ext_cod_postal como fallback
+        const parts = normalizado.split('-');
+        if (parts.length === 2) {
+          const { data: altData, error: altError } = await this.supabase.client
+            .from("codigos_postais")
+            .select("*")
+            .eq("num_cod_postal", parts[0])
+            .eq("ext_cod_postal", parts[1])
+            .limit(1)
+            .single();
+          
+          console.log("📊 [DATABASE] Resposta alternativa - data:", altData);
+          console.log("📊 [DATABASE] Resposta alternativa - error:", altError);
+          
+          if (altData) {
+            return altData;
+          }
+        }
+        
         return null;
       }
       console.error("❌ [DATABASE] Erro ao buscar endereço:", error);
@@ -408,16 +444,21 @@ export class PortugalAddressDatabaseService {
     searchText: string,
     limit: number = 10
   ): Promise<CodigoPostal[]> {
+    console.log("🔍 [DATABASE] Buscando códigos postais com texto:", searchText);
+    
     const { data, error } = await this.supabase.client
       .from("codigos_postais")
       .select("*")
       .like("codigo_postal_completo", `${searchText}%`)
       .limit(limit);
 
+    console.log("📊 [DATABASE] Resultados da busca:", data?.length || 0);
+
     if (error) {
       console.error("Erro ao buscar sugestões de código postal:", error);
       throw error;
     }
+    
     return data || [];
   }
 
