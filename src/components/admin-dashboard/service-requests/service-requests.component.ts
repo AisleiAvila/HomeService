@@ -1,13 +1,14 @@
 
+import { StatusService } from "@/src/services/status.service";
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal, ElementRef, ViewChildren, QueryList, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, QueryList, ViewChildren, computed, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { ServiceRequest, User } from "../../../models/maintenance.models";
-import { I18nPipe } from "../../../pipes/i18n.pipe";
-import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
-import { StatusService } from "@/src/services/status.service";
+import { ServiceRequest } from "../../../models/maintenance.models";
+import { I18nPipe } from "../../../pipes/i18n.pipe";
+import { AuthService } from "../../../services/auth.service";
+import { DataService } from "../../../services/data.service";
 
 @Component({
     selector: "app-service-requests",
@@ -20,6 +21,10 @@ export class ServiceRequestsComponent {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
+    private readonly authService = inject(AuthService);
+
+    // Current user
+    currentUser = this.authService.appUser;
 
     // Signals for filters
     filterStatus = signal<string>("");
@@ -298,11 +303,11 @@ export class ServiceRequestsComponent {
         try {
             await this.dataService.directAssignServiceRequest(
                 request.id,
-                parseInt(professionalId),
+                Number.parseInt(professionalId),
                 executionDate
             );
             this.closeDirectAssignmentModal();
-            const professionalName = this.getProfessionalName(parseInt(professionalId));
+            const professionalName = this.getProfessionalName(Number.parseInt(professionalId));
             alert(this.i18n.translate('directAssignmentSuccess')
                 .replace('{id}', request.id.toString())
                 .replace('{professional}', professionalName));

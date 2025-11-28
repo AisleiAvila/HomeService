@@ -149,37 +149,56 @@ export class DataService {
       .order("name");
 
     if (error) {
-      console.log(
-        "Error fetching categories from Supabase, keeping sample data:",
-        error.message
-      );
-      this.notificationService.addNotification(
-        "Using sample data - Error fetching categories: " + error.message
-      );
-      // Keep default categories if fetch fails
-    } else if (data && data.length > 0) {
-      console.log('Categories with subcategories loaded:', data);
-      this.categories.set(data as ServiceCategory[]);
-      
-      // Extrair e popular signal de subcategorias
-      const allSubs: ServiceSubcategoryExtended[] = [];
-      for (const cat of data) {
-        if (cat.subcategories && Array.isArray(cat.subcategories)) {
-          for (const sub of cat.subcategories) {
-            allSubs.push({
-              ...sub,
-              category_id: typeof sub.category_id === 'string' 
-                ? Number.parseInt(sub.category_id, 10) 
-                : sub.category_id || cat.id
-            } as ServiceSubcategoryExtended);
-          }
-        }
-      }
-      console.log('Total subcategories extracted:', allSubs.length);
-      this.subcategories.set(allSubs);
+      this.handleFetchCategoriesError(error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      this.processCategoriesData(data);
     } else {
       console.log("No categories found in Supabase, keeping sample data");
     }
+  }
+
+  private handleFetchCategoriesError(error: any) {
+    console.log(
+      "Error fetching categories from Supabase, keeping sample data:",
+      error.message
+    );
+    this.notificationService.addNotification(
+      "Using sample data - Error fetching categories: " + error.message
+    );
+  }
+
+  private processCategoriesData(data: any[]) {
+    console.log('Categories with subcategories loaded:', data);
+    this.categories.set(data as ServiceCategory[]);
+    
+    const allSubs = this.extractSubcategories(data);
+    console.log('Total subcategories extracted:', allSubs.length);
+    this.subcategories.set(allSubs);
+  }
+
+  private extractSubcategories(categories: any[]): ServiceSubcategoryExtended[] {
+    const allSubs: ServiceSubcategoryExtended[] = [];
+    
+    for (const cat of categories) {
+      if (cat.subcategories && Array.isArray(cat.subcategories)) {
+        const normalizedSubs = this.normalizeSubcategories(cat.subcategories, cat.id);
+        allSubs.push(...normalizedSubs);
+      }
+    }
+    
+    return allSubs;
+  }
+
+  private normalizeSubcategories(subcategories: any[], categoryId: number): ServiceSubcategoryExtended[] {
+    return subcategories.map(sub => ({
+      ...sub,
+      category_id: typeof sub.category_id === 'string' 
+        ? Number.parseInt(sub.category_id, 10) 
+        : sub.category_id || categoryId
+    } as ServiceSubcategoryExtended));
   }
 
   private async fetchSubcategories() {
@@ -360,7 +379,7 @@ export class DataService {
     executionDate: string
   ): Promise<void> {
     const currentUser = this.authService.appUser();
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (currentUser?.role !== 'admin') {
       throw new Error("Only administrators can directly assign service requests");
     }
 
