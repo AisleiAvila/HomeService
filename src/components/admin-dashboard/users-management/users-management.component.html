@@ -142,6 +142,16 @@
             </div>
             
             <div>
+                <label for="newClientPhone" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ "phone" | i18n }} <span class="text-red-500">*</span>
+                </label>
+                <input id="newClientPhone" type="tel" [ngModel]="newClientPhone()" (ngModelChange)="newClientPhone.set($event)"
+                    [placeholder]="'+351 96000-3323' | i18n" 
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                <p class="text-xs text-gray-500 mt-1">{{ 'phoneFormatPortugal' | i18n }}</p>
+            </div>
+            
+            <div>
                 <label for="newClientRole" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ "profileType" | i18n }}
                 </label>

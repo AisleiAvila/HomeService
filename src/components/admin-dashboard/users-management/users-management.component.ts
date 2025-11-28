@@ -144,6 +144,7 @@ export class UsersManagementComponent {
     showAddClientForm = signal(false);
     newClientName = signal("");
     newClientEmail = signal("");
+    newClientPhone = signal("");
     newClientRole = signal<UserRole>("client");
 
     // Edit Client
@@ -168,6 +169,7 @@ export class UsersManagementComponent {
     resetNewClientForm() {
         this.newClientName.set("");
         this.newClientEmail.set("");
+        this.newClientPhone.set("");
         this.newClientRole.set("client");
         this.showAddClientForm.set(false);
     }
@@ -175,11 +177,23 @@ export class UsersManagementComponent {
     async addClient() {
         const name = this.newClientName();
         const email = this.newClientEmail();
+        const phone = this.newClientPhone();
         const role = this.newClientRole();
 
-        if (!name || !email || !role) {
+        if (!name || !email || !phone || !role) {
             this.notificationService.addNotification(
                 this.i18n.translate("fillRequiredFields")
+            );
+            return;
+        }
+
+        // Validação do formato do telefone português (+351 seguido de 9 dígitos)
+        // Remove espaços, hífens e outros caracteres não numéricos (exceto +)
+        const cleanPhone = phone.replace(/[\s-]/g, '');
+        const phoneRegex = /^\+?351?9[1236]\d{7}$/;
+        if (!phoneRegex.test(cleanPhone)) {
+            this.notificationService.addNotification(
+                this.i18n.translate("phoneInvalidPortugal")
             );
             return;
         }
@@ -221,7 +235,7 @@ export class UsersManagementComponent {
                 body: JSON.stringify({
                     name,
                     email,
-                    phone: '', // Administradores não precisam de telefone
+                    phone: cleanPhone.startsWith('+351') ? cleanPhone : cleanPhone.startsWith('351') ? `+${cleanPhone}` : `+351${cleanPhone}`,
                     specialty: '', // Administradores não têm especialidade
                     role,
                     status: 'Active', // Administradores já são ativados

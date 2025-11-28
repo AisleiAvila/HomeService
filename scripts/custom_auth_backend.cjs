@@ -33,7 +33,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Cadastro de usuário
 app.post('/api/register', async (req, res) => {
-  const { name, email, phone, specialty, password } = req.body;
+  const { name, email, phone, specialty, password, role, status } = req.body;
   if (!email) return res.status(400).json({ error: 'Email obrigatório.' });
   if (!password) return res.status(400).json({ error: 'Senha obrigatória.' });
 
@@ -42,6 +42,8 @@ app.post('/api/register', async (req, res) => {
   const hash = crypto.createHash('sha256').update(tempPassword).digest('hex');
   console.log(`[Cadastro] Senha temporária recebida do frontend: ${tempPassword}`);
   console.log(`[Cadastro] Hash SHA-256 salvo: ${hash}`);
+  console.log(`[Cadastro] Role recebido: ${role || 'professional'}`);
+  console.log(`[Cadastro] Status recebido: ${status || 'Pending'}`);
 
   try {
     const { error } = await supabase
@@ -52,16 +54,17 @@ app.post('/api/register', async (req, res) => {
         password_hash: hash,
         phone,
         specialty,
-        role: 'professional',
-        status: 'Pending'
+        role: role || 'professional',
+        status: status || 'Pending'
       });
     if (error) throw error;
 
     // 2. Envia e-mail com a senha temporária
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const subject = 'Confirmação de cadastro - HomeService';
+    const userRoleLabel = role === 'admin' ? 'administrador' : role === 'client' ? 'cliente' : 'profissional';
     const html = `<p>Olá ${name},</p>
-      <p>Seu cadastro como profissional foi realizado com sucesso.<br>
+      <p>Seu cadastro como ${userRoleLabel} foi realizado com sucesso.<br>
       <b>Sua senha temporária para o primeiro acesso é:</b><br>
       <span style='font-size:1.2em;color:#1e293b;background:#f1f5f9;padding:4px 12px;border-radius:6px;'>${tempPassword}</span></p>
       <p>Por favor, acesse o sistema e altere sua senha após o primeiro login.</p>`;
