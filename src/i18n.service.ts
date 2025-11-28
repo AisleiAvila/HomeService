@@ -821,6 +821,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeLabel: "SMS Code",
     smsCodePlaceholder: "Enter the code sent to your phone.",
     personalData: "Personal Data",
+    security: "Security",
     passwordChangedSuccessfully: "Password changed successfully.",
 
     // Service Categories (Portuguese names to English)
@@ -1659,6 +1660,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     smsCodeLabel: "Código SMS",
     smsCodePlaceholder: "Entre com o código enviado para o seu telefone.",
     personalData: "Dados Pessoais",
+    security: "Segurança",
     updatePassword: "Atualizar Senha",
     confirmPasswordPlaceholder: "Entre com sua senha novamente.",
     passwordChangedSuccessfully: "Senha alterada com sucesso!",
