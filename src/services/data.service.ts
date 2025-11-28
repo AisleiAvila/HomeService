@@ -370,7 +370,9 @@ export class DataService {
       .from("service_requests")
       .update({
         professional_id: professionalId,
-        execution_date: executionDate,
+        scheduled_start_datetime: executionDate,
+        proposed_execution_date: executionDate,
+        execution_date_approval: 'approved',
         status: statusServiceToServiceStatus[StatusService.Scheduled],
       })
       .eq("id", requestId);
