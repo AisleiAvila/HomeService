@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Utilitários para formulários de profissionais */
 .form-label {
   font-size: 0.875rem; /* text-sm */

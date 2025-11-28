@@ -18,11 +18,6 @@ registerLocaleData(localeEn);
 registerLocaleData(localePt);
 registerLocaleData(localeDE); // Germany locale for Euro support
 
-// Add Tailwind CSS (temporary CDN solution for development)
-const tailwindScript = document.createElement("script");
-tailwindScript.src = "https://cdn.tailwindcss.com";
-document.head.appendChild(tailwindScript);
-
 try {
   await bootstrapApplication(AppComponent, {
     providers: [

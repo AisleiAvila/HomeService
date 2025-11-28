@@ -55,6 +55,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
             <button
               (click)="closeDetails.emit()"
               class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="{{ 'backToList' | i18n }}"
             >
               <i class="fas fa-arrow-left text-lg"></i>
             </button>
@@ -69,12 +70,9 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
               </p>
             </div>
           </div>
-          <!-- ...restante do template... -->
         </div>
       </div>
     </div>
-    <!-- ...restante do template... -->
-    }
 
     <!-- Conteúdo Principal -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -87,59 +85,124 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
           ></app-workflow-timeline>
         </div>
 
-        <!-- Professional Responses -->
-        @if (request().professional_responses &&
-        request().professional_responses.length > 0) {
+        <!-- Professional Responses / Orçamentos -->
+        @if (professionalQuotes().length > 0) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            {{ "professionalResponses" | i18n }}
+            {{ "professionalQuotes" | i18n }}
+            <span class="text-sm font-normal text-gray-500 ml-2">
+              ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('quote' | i18n) : ('quotes' | i18n) }})
+            </span>
           </h3>
           <div class="space-y-4">
-            @for (response of request().professional_responses; track
-            response.professional_id) {
-            <div class="border border-gray-200 rounded-lg p-4">
-              <div
-                class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3"
-              >
-                <h4 class="font-medium text-gray-800 mb-2 sm:mb-0">
-                  {{ response.professional_name || ("professional" | i18n) }}
-                </h4>
-                <span
-                  [class]="getResponseStatusClass(response.response_status)"
-                >
-                  {{ response.response_status || "pending" | i18n }}
-                </span>
+            @for (quote of professionalQuotes(); track quote.professional_id) {
+            <div 
+              class="border rounded-lg p-4 transition-all"
+              [class.border-green-500]="quote.isSelected"
+              [class.bg-green-50]="quote.isSelected"
+              [class.border-gray-200]="!quote.isSelected"
+            >
+              <!-- Cabeçalho do orçamento -->
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
+                <div class="flex items-center space-x-3 mb-2 sm:mb-0">
+                  @if (quote.professional_avatar_url) {
+                  <img 
+                    [src]="quote.professional_avatar_url" 
+                    [alt]="quote.professional_name"
+                    class="w-10 h-10 rounded-full object-cover"
+                  >
+                  } @else {
+                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-user text-blue-600"></i>
+                  </div>
+                  }
+                  <div>
+                    <h4 class="font-medium text-gray-800">
+                      {{ quote.professional_name || ("professional" | i18n) }}
+                    </h4>
+                    @if (quote.professional_rating) {
+                    <div class="flex items-center mt-1">
+                      <i class="fas fa-star text-yellow-400 text-xs"></i>
+                      <span class="text-xs text-gray-600 ml-1">{{ quote.professional_rating.toFixed(1) }}</span>
+                    </div>
+                    }
+                  </div>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                  @if (quote.isSelected) {
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    {{ "selected" | i18n }}
+                  </span>
+                  }
+                  @if (quote.isLowest && quote.hasQuote) {
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <i class="fas fa-award mr-1"></i>
+                    {{ "lowestQuote" | i18n }}
+                  </span>
+                  }
+                  <span [class]="getResponseStatusClass(quote.response_status)">
+                    {{ quote.response_status | i18n }}
+                  </span>
+                </div>
               </div>
-              @if (response.quote_amount) {
-              <p class="text-lg font-semibold text-green-600 mb-2">
-                €{{ response.quote_amount | number : "1.2-2" }}
-              </p>
-              } @if (response.quote_notes) {
-              <p class="text-sm text-gray-600 mb-2">
-                {{ response.quote_notes }}
-              </p>
-              } @if (response.estimated_duration_hours) {
-              <p class="text-sm text-gray-500 mb-3">
-                {{ "estimatedDuration" | i18n }}:
-                {{ response.estimated_duration_hours }}h
-              </p>
+
+              <!-- Valor e detalhes do orçamento -->
+              @if (quote.hasQuote) {
+              <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-baseline justify-between mb-2">
+                  <span class="text-sm text-gray-600">{{ "quoteValue" | i18n }}:</span>
+                  <p class="text-2xl font-bold text-green-600">
+                    €{{ quote.quote_amount | number : "1.2-2" }}
+                  </p>
+                </div>
+                
+                @if (quote.estimated_duration_hours) {
+                <div class="flex items-center text-sm text-gray-600 mt-2">
+                  <i class="fas fa-clock mr-2"></i>
+                  <span>{{ "estimatedDuration" | i18n }}: {{ quote.estimated_duration_hours }}h</span>
+                </div>
+                }
+
+                @if (quote.quote_notes) {
+                <div class="mt-3 pt-3 border-t border-gray-200">
+                  <p class="text-sm font-medium text-gray-700 mb-1">{{ "notes" | i18n }}:</p>
+                  <p class="text-sm text-gray-600">{{ quote.quote_notes }}</p>
+                </div>
+                }
+
+                @if (quote.responded_at) {
+                <div class="mt-2 text-xs text-gray-500">
+                  <i class="fas fa-calendar-alt mr-1"></i>
+                  {{ "respondedAt" | i18n }}: {{ quote.responded_at | date : "short" }}
+                </div>
+                }
+              </div>
+              } @else {
+              <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                  <i class="fas fa-clock mr-2"></i>
+                  {{ "awaitingQuote" | i18n }}
+                </p>
+              </div>
               }
 
-              <!-- Accept/Reject Quote Buttons for Admin -->
-              @if ( currentUser().role === "admin" &&
-              response.response_status === "responded" &&
-              request().status === "Orçamento enviado" ) {
-              <div class="flex flex-col sm:flex-row gap-2 mt-3">
+              <!-- Botões de ação para admin -->
+              @if (currentUser().role === "admin" && quote.response_status === "responded" && !quote.isSelected) {
+              <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200">
                 <button
-                  (click)="approveQuote.emit(request())"
+                  (click)="selectSpecificProfessional(quote.professional_id)"
                   class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
                 >
-                  {{ "approveQuote" | i18n }}
+                  <i class="fas fa-check mr-2"></i>
+                  {{ "selectProfessional" | i18n }}
                 </button>
                 <button
                   (click)="rejectQuote.emit(request())"
                   class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
                 >
+                  <i class="fas fa-times mr-2"></i>
                   {{ "rejectQuote" | i18n }}
                 </button>
               </div>
@@ -281,6 +344,67 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
         </div>
         }
 
+        <!-- Photos Gallery -->
+        @if (hasPhotos()) {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            {{ "photos" | i18n }}
+            <span class="text-sm font-normal text-gray-500 ml-2">
+              ({{ request().photos!.length }})
+            </span>
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+            @for (photo of request().photos; track photo; let idx = $index) {
+            <div 
+              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all cursor-pointer group"
+              (click)="openPhotoModal(photo)"
+            >
+              <img 
+                [src]="photo" 
+                [alt]="'photoOf' | i18n : { number: idx + 1 }"
+                class="w-full h-full object-cover"
+                loading="lazy"
+              >
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+                <i class="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Attachments -->
+        @if (hasAttachments()) {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+            {{ "attachments" | i18n }}
+            <span class="text-sm font-normal text-gray-500 ml-2">
+              ({{ request().attachments!.length }})
+            </span>
+          </h3>
+          <div class="space-y-2">
+            @for (attachment of request().attachments; track attachment; let idx = $index) {
+            <a 
+              [href]="attachment"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-500 transition-colors"
+            >
+              <i class="fas fa-file-alt text-gray-400 text-xl mr-3"></i>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-gray-900">
+                  {{ "attachment" | i18n }} {{ idx + 1 }}
+                </p>
+                <p class="text-xs text-gray-500">{{ "clickToView" | i18n }}</p>
+              </div>
+              <i class="fas fa-external-link-alt text-gray-400"></i>
+            </a>
+            }
+          </div>
+        </div>
+        }
+
         <!-- Time Control (for professionals) -->
         @if ( currentUser().role === "professional" && request().professional_id
         === currentUser().id && (request().status === "Em execução" ||
@@ -339,6 +463,31 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
       </div>
       }
     </div>
+    }
+
+    <!-- Photo Modal -->
+    @if (showPhotoModal()) {
+    <div 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+      (click)="closePhotoModal()"
+    >
+      <button
+        (click)="closePhotoModal()"
+        class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl z-10"
+        aria-label="{{ 'close' | i18n }}"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+      
+      <div class="max-w-6xl max-h-full" (click)="$event.stopPropagation()">
+        <img 
+          [src]="selectedPhoto()"
+          [alt]="'photo' | i18n"
+          class="max-w-full max-h-[90vh] object-contain rounded-lg"
+        >
+      </div>
+    </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -353,6 +502,8 @@ export class ServiceRequestDetailsComponent {
 
   // Signals para UI state
   showMobileActions = signal(false);
+  showPhotoModal = signal(false);
+  selectedPhoto = signal<string | null>(null);
 
   // Verifica se há dados de endereço (aninhado ou campos planos)
   hasAddress = computed(() => {
@@ -378,6 +529,39 @@ export class ServiceRequestDetailsComponent {
     return [p.postalCode, p.locality].filter(Boolean).join(" ");
   });
   addressLine3 = computed(() => this.addressParts().district);
+
+  // Organiza e enriquece respostas de profissionais
+  professionalQuotes = computed(() => {
+    const req = this.request();
+    const responses = req.professional_responses || [];
+    
+    if (responses.length === 0) return [];
+
+    // Encontra o menor orçamento
+    const amounts = responses
+      .map(r => r.quote_amount)
+      .filter((amt): amt is number => amt !== null && amt !== undefined);
+    const lowestAmount = amounts.length > 0 ? Math.min(...amounts) : null;
+
+    return responses.map(r => ({
+      ...r,
+      isSelected: r.professional_id === req.professional_id,
+      isLowest: lowestAmount !== null && r.quote_amount === lowestAmount && r.quote_amount !== null,
+      hasQuote: r.quote_amount !== null && r.quote_amount > 0,
+    }));
+  });
+
+  // Verifica se há fotos anexadas
+  hasPhotos = computed(() => {
+    const photos = this.request().photos;
+    return photos && photos.length > 0;
+  });
+
+  // Verifica se há anexos
+  hasAttachments = computed(() => {
+    const attachments = this.request().attachments;
+    return attachments && attachments.length > 0;
+  });
 
   // Outputs para eventos
   @Output() closeDetails = new EventEmitter<void>();
@@ -613,5 +797,24 @@ export class ServiceRequestDetailsComponent {
         throw error;
       }
     }
+  }
+
+  // Métodos para gerenciamento de fotos
+  openPhotoModal(photoUrl: string): void {
+    this.selectedPhoto.set(photoUrl);
+    this.showPhotoModal.set(true);
+  }
+
+  closePhotoModal(): void {
+    this.showPhotoModal.set(false);
+    this.selectedPhoto.set(null);
+  }
+
+  // Método para selecionar profissional específico
+  selectSpecificProfessional(professionalId: number): void {
+    this.selectProfessional.emit({
+      request: this.request(),
+      professionalId: professionalId.toString(),
+    });
   }
 }

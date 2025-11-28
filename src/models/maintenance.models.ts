@@ -102,6 +102,19 @@ export type NotificationType =
 export type ProfessionalResponse = "accepted" | "rejected" | null;
 export type DateApproval = "approved" | "rejected" | null;
 
+// Interface para respostas de profissionais
+export interface ProfessionalQuoteResponse {
+  professional_id: number;
+  professional_name: string;
+  quote_amount: number | null;
+  quote_notes?: string | null;
+  estimated_duration_hours?: number | null;
+  response_status: 'pending' | 'responded' | 'accepted' | 'rejected';
+  responded_at?: string | null;
+  professional_avatar_url?: string;
+  professional_rating?: number;
+}
+
 // Novos tipos para controle de agendamento
 export type SchedulingStatus =
   | "Awaiting Schedule"
@@ -265,6 +278,10 @@ export interface ServiceRequest {
   requester_phone?: string | null;
   requester_contact_consent?: boolean;
 
+  // Anexos e Mídia
+  photos?: string[] | null; // URLs de fotos anexadas
+  attachments?: string[] | null; // URLs de documentos anexados
+
   // Detalhes da Localização do Serviço
   address_floor?: string | null; // Ex: "3º Esquerdo"
   location_access_notes?: string | null; // Ex: "Escadas", "Elevador"
@@ -283,6 +300,9 @@ export interface ServiceRequest {
   service_value?: number | null;
   service_deadline?: string | null;
   created_by_admin?: boolean;
+
+  // Respostas de profissionais
+  professional_responses?: ProfessionalQuoteResponse[] | null;
 }
 
 export interface ChatMessage {

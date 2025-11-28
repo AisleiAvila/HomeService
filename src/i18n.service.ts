@@ -248,6 +248,23 @@ const allTranslations: Record<Language, Record<string, string>> = {
     addAnswer: "Add Answer",
     answerTitle: "Answer Title",
     answerTitlePlaceholder: "Brief summary of your answer...",
+    
+    // Service Request Details - Photos and Quotes
+    photos: "Photos",
+    photo: "Photo",
+    photoOf: "Photo {number}",
+    attachments: "Attachments",
+    attachment: "Attachment",
+    clickToView: "Click to view",
+    professionalQuotes: "Professional Quotes",
+    quotes: "quotes",
+    selected: "Selected",
+    lowestQuote: "Lowest Quote",
+    quoteValue: "Quote Value",
+    notes: "Notes",
+    respondedAt: "Responded at",
+    backToList: "Back to List",
+    close: "Close",
     answerContent: "Answer Details",
     answerContentPlaceholder: "Provide your detailed answer...",
     noClarificationsYet: "No clarifications yet",
@@ -458,7 +475,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     assignedProfessional: "Assigned Professional",
     professionalId: "Professional ID",
     requestId: "Request ID",
-    close: "Close",
 
     // Calendar specific terms
     month: "Month",
@@ -563,7 +579,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     add: "Add",
     // Quote and Assignment
     quoteFor: "Quote for",
-    quoteValue: "Quote Value",
     submit: "Submit",
     assignProfessionalToScheduled: "Assign Professional to Scheduled Service",
     selectProfessionalFor: "Select a professional for",
@@ -1121,6 +1136,23 @@ const allTranslations: Record<Language, Record<string, string>> = {
     notSpecified: "Não Especificado",
     selectOption: "Selecione uma opção",
     specialist: "Especialista",
+    
+    // Service Request Details - Photos and Quotes
+    photos: "Fotos",
+    photo: "Foto",
+    photoOf: "Foto {number}",
+    attachments: "Anexos",
+    attachment: "Anexo",
+    clickToView: "Clique para visualizar",
+    professionalQuotes: "Orçamentos de Profissionais",
+    quotes: "orçamentos",
+    selected: "Selecionado",
+    lowestQuote: "Menor Orçamento",
+    quoteValue: "Valor do Orçamento",
+    notes: "Observações",
+    respondedAt: "Respondido em",
+    backToList: "Voltar à Lista",
+    close: "Fechar",
     noProfessionalsAvailable:
       "Nenhum profissional disponível para esta categoria",
     scheduledDate: "Data Agendada",
@@ -1317,7 +1349,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     assignedProfessional: "Profissional Designado",
     professionalId: "ID do Profissional",
     requestId: "ID da Solicitação",
-    close: "Fechar",
 
     // Calendar specific terms
     month: "Mês",
@@ -1425,7 +1456,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Quote and Assignment
     quoteFor: "Orçamento para",
-    quoteValue: "Valor do Orçamento",
     submit: "Enviar",
     editProfessional: "Editar Profissional",
 
