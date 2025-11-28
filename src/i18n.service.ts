@@ -37,6 +37,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Push notifications are blocked. Please enable them in your browser settings.",
     noDataToExport: "No financial data to export.",
     reportExported: "Financial report exported successfully.",
+    financialReports: "Financial Reports",
+    manageFinancialReportsAndRevenue: "Manage financial reports and revenue",
     confirmRejectRegistration:
       "Are you sure you want to reject this registration?",
     confirmDeleteCategory:
@@ -128,6 +130,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     exportToCsv: "Export to CSV",
     addProfessional: "Add Professional",
     serviceCategories: "Service Categories",
+    manageCategoriesAndSubcategories: "Manage service categories and subcategories",
     totalSubcategories: "Total Subcategories",
     subcategories: "Subcategories",
     subcategoriesOf: "Subcategories of {category}",
@@ -174,6 +177,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     service: "Service",
     cost: "Cost",
     pendingRegistrations: "Pending Registrations",
+    managePendingProfessionalRegistrations: "Manage pending professional registrations",
     phone: "Phone",
     noPendingRegistrations: "No pending registrations",
     completedServices: "Completed Services",
@@ -875,6 +879,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "As notificações push estão bloqueadas. Por favor, habilite-as nas configurações do seu navegador.",
     noDataToExport: "Nenhum dado financeiro para exportar.",
     reportExported: "Relatório financeiro exportado com sucesso.",
+    financialReports: "Relatórios Financeiros",
+    manageFinancialReportsAndRevenue: "Gerencie relatórios financeiros e receitas",
     confirmRejectRegistration:
       "Tem certeza de que deseja rejeitar este registro?",
     confirmDeleteCategory:
@@ -967,6 +973,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     exportToCsv: "Exportar para CSV",
     addProfessional: "Adicionar Profissional",
     serviceCategories: "Categorias de Serviço",
+    manageCategoriesAndSubcategories: "Gerencie categorias e subcategorias de serviços",
     totalSubcategories: "Total de Subcategorias",
     subcategories: "Subcategorias",
     subcategoriesOf: "Subcategorias de {category}",
@@ -1014,6 +1021,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     service: "Serviço",
     cost: "Custo",
     pendingRegistrations: "Registros Pendentes",
+    managePendingProfessionalRegistrations: "Gerencie registros pendentes de profissionais",
     phone: "Telefone",
     noPendingRegistrations: "Nenhum registro pendente",
     completedServices: "Serviços Concluídos",
