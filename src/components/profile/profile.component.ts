@@ -61,6 +61,7 @@ export class ProfileComponent implements OnDestroy {
 
   // UI state
   isEditing = signal(false);
+  isEditingName = signal(false);
   isCameraOpen = signal(false);
   initialUserState: User | null = null;
 
