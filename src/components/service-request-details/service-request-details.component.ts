@@ -7,9 +7,11 @@ import {
   computed,
   inject,
   signal,
+  OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   ServiceRequest,
   User,
@@ -23,6 +25,7 @@ import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timelin
 import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
 import { NotificationService } from "../../services/notification.service";
 import { DataService } from "../../services/data.service";
+import { AuthService } from "../../services/auth.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
 
 @Component({
@@ -488,14 +491,54 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestDetailsComponent {
+export class ServiceRequestDetailsComponent implements OnInit {
   @Output() businessRuleError = new EventEmitter<string>();
-  request = input.required<ServiceRequest>();
-  currentUser = input.required<User>();
+  
+  // Input opcional - usado quando o componente é chamado diretamente (via parent)
+  protected requestInput = input<ServiceRequest | undefined>(undefined);
+  protected currentUserInput = input<User | undefined>(undefined);
 
   // Injeção de serviços
   private readonly dataService = inject(DataService);
+  private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+
+  // Signal para request carregado via rota
+  private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
+  private readonly loadedUser = signal<User | undefined>(undefined);
+
+  // Request e User efetivos usados em todo o template
+  request = computed(() => this.requestInput() || this.loadedRequest());
+  currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
+
+  ngOnInit() {
+    // Se não há request via input, buscar pelo ID da rota
+    if (!this.requestInput()) {
+      this.route.params.subscribe(params => {
+        const id = params['id'];
+        if (id) {
+          const requests = this.dataService.serviceRequests();
+          const foundRequest = requests.find(r => r.id === Number.parseInt(id));
+          if (foundRequest) {
+            this.loadedRequest.set(foundRequest);
+          } else {
+            console.error('Request não encontrado:', id);
+            this.router.navigate(['/admin/requests']);
+          }
+        }
+      });
+    }
+
+    // Se não há user via input, usar o user autenticado
+    if (!this.currentUserInput()) {
+      const user = this.authService.appUser();
+      if (user) {
+        this.loadedUser.set(user);
+      }
+    }
+  }
 
   // Signals para UI state
   showMobileActions = signal(false);

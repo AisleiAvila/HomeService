@@ -30,6 +30,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', loadComponent: () => import('../components/admin-dashboard/admin-overview/admin-overview.component').then(m => m.AdminOverviewComponent) },
       { path: 'requests', loadComponent: () => import('../components/admin-dashboard/service-requests/service-requests.component').then(m => m.ServiceRequestsComponent) },
+      { path: 'request-details/:id', loadComponent: () => import('../components/service-request-details/service-request-details.component').then(m => m.ServiceRequestDetailsComponent) },
       { path: 'approvals', loadComponent: () => import('../components/admin-dashboard/pending-approvals/pending-approvals.component').then(m => m.PendingApprovalsComponent) },
       { path: 'finances', loadComponent: () => import('../components/admin-dashboard/financial-reports/financial-reports.component').then(m => m.FinancialReportsComponent) },
       { path: 'professionals', loadComponent: () => import('../components/admin-dashboard/professionals-management/professionals-management.component').then(m => m.ProfessionalsManagementComponent) },

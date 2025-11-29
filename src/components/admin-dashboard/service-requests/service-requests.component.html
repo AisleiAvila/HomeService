@@ -337,13 +337,13 @@
                                     class="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                                     <div class="py-1" role="menu" aria-orientation="vertical">
                                         <!-- Ações sempre disponíveis -->
-                                        <a href="#" (click)="viewRequestDetails(req); (false)"
+                                        <a href="#" (click)="handleViewDetails(req); $event.preventDefault()"
                                             class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             role="menuitem">
                                             <i class="fas fa-eye w-5 mr-2"></i>
                                             {{ "viewDetails" | i18n }}
                                         </a>
-                                        <a href="#" (click)="openChat(req); (false)"
+                                        <a href="#" (click)="handleOpenChat(req); $event.preventDefault()"
                                             class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             role="menuitem">
                                             <i class="fas fa-comments w-5 mr-2"></i>
@@ -354,9 +354,9 @@
                                         @if (req.status === 'Solicitado' || req.status ===
                                         'Em análise' || req.status === 'Orçamento aprovado')
                                         {
-                                        <a href="#" (click)="
-                        requestClarificationFromClient(req); (false)
-                      " class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">
+                                        <a href="#" (click)="handleRequestClarification(req); $event.preventDefault()"
+                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            role="menuitem">
                                             <i class="fas fa-question-circle w-5 mr-2"></i>
                                             {{ "requestClarification" | i18n }}
                                         </a>
@@ -428,7 +428,7 @@
                         <i class="fas fa-search mr-2"></i>
                         {{ "analyzeRequest" | i18n }}
                     </button>
-                    <button (click)="requestClarificationFromClient(req)"
+                    <button (click)="handleRequestClarification(req)"
                         class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-question-circle mr-2"></i>
                         {{ "requestClarification" | i18n }}
@@ -439,7 +439,7 @@
                         <i class="fas fa-calculator mr-2"></i>
                         {{ "sendQuote" | i18n }}
                     </button>
-                    <button (click)="requestClarificationFromClient(req)"
+                    <button (click)="handleRequestClarification(req)"
                         class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-question-circle mr-2"></i>
                         {{ "requestClarification" | i18n }}
@@ -455,12 +455,13 @@
                         }}
                     </button>
                     @if(req.status === 'Orçamento aprovado') {
-                    <button (click)="requestClarificationFromClient(req)"
+                    <button (click)="handleRequestClarification(req)"
                         class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-question-circle mr-2"></i>
                         {{ "requestClarification" | i18n }}
                     </button>
-                    } }
+                    }
+                    }
 
                     <!-- Botão de Direcionamento Direto - Apenas para Admin -->
                     @if (currentUser() && currentUser()!.role !== 'professional' && req.status !== 'Aguardando confirmação do profissional') {
@@ -475,12 +476,12 @@
 
                     <!-- Always Available Actions Row -->
                     <div class="flex w-full gap-2 mt-2">
-                        <button (click)="viewRequestDetails(req)"
+                        <button (click)="handleViewDetails(req)"
                             class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-eye mr-2"></i>
                             {{ "viewDetails" | i18n }}
                         </button>
-                        <button (click)="openChat(req)"
+                        <button (click)="handleOpenChat(req)"
                             class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-comments mr-2"></i>
                             {{ "chat" | i18n }}

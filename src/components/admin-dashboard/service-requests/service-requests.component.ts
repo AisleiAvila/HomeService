@@ -52,6 +52,9 @@ export class ServiceRequestsComponent {
 
     // Outputs
     openDirectAssignment = output<ServiceRequest>();
+    viewDetails = output<ServiceRequest>();
+    openChat = output<ServiceRequest>();
+    requestClarification = output<ServiceRequest>();
 
     // Options
     quickFilterOptions = [
@@ -320,7 +323,18 @@ export class ServiceRequestsComponent {
         this.openActionsMenuId.update(id => id === reqId ? null : reqId);
     }
     isActionsMenuOpen(reqId: number): boolean { return this.openActionsMenuId() === reqId; }
-    viewRequestDetails(req: ServiceRequest) { console.log('View', req); }
-    openChat(req: ServiceRequest) { console.log('Chat', req); }
-    requestClarificationFromClient(req: ServiceRequest) { console.log('Clarify', req); }
+    handleViewDetails(req: ServiceRequest) { 
+        console.log('View', req); 
+        this.viewDetails.emit(req);
+        // Navegar para a página de detalhes
+        this.router.navigate(['/admin/request-details', req.id]);
+    }
+    handleOpenChat(req: ServiceRequest) { 
+        console.log('Chat', req); 
+        this.openChat.emit(req);
+    }
+    handleRequestClarification(req: ServiceRequest) { 
+        console.log('Clarify', req); 
+        this.requestClarification.emit(req);
+    }
 }
