@@ -1,19 +1,19 @@
+import { CommonModule } from "@angular/common";
 import {
-  Component,
   ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
   input,
   output,
   signal,
-  inject,
-  computed,
-  effect,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { ServiceRequest, ServiceClarification, User } from "../../models/maintenance.models";
-import { DataService } from "../../services/data.service";
-import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../i18n.service";
+import { ServiceRequest, User } from "../../models/maintenance.models";
+import { I18nPipe } from "../../pipes/i18n.pipe";
+import { DataService } from "../../services/data.service";
 
 @Component({
   selector: "app-service-clarifications",

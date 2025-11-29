@@ -3,6 +3,7 @@ import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
+import { StatusAuditService } from "./status-audit.service";
 import {
   ServiceRequest,
   ServiceStatus,
@@ -28,6 +29,7 @@ export class WorkflowServiceSimplified {
   private readonly notificationService = inject(NotificationService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  private readonly auditService = inject(StatusAuditService);
 
   /**
    * Mapeamento de transições válidas
@@ -122,7 +124,7 @@ export class WorkflowServiceSimplified {
   ): Promise<ServiceRequest | null> {
     try {
       const admin = await this.getCurrentUser();
-      if (!admin || admin.role !== "admin") {
+      if (admin?.role !== "admin") {
         throw new Error("Apenas administradores podem criar solicitações");
       }
 
@@ -141,6 +143,14 @@ export class WorkflowServiceSimplified {
         .single();
 
       if (error) throw error;
+
+      // Auditoria: Log da criação (null → Solicitado)
+      await this.auditService.logStatusChange(
+        data.id,
+        null,
+        "Solicitado" as const,
+        "Solicitação criada pelo administrador"
+      );
 
       this.notificationService.showSuccess(
         this.i18n.translate("serviceRequestCreated")
@@ -169,6 +179,17 @@ export class WorkflowServiceSimplified {
     adminId: number
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Atribuído")) {
+        throw new Error(`Não é possível atribuir a partir do status ${previousStatus}`);
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -180,8 +201,24 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log da atribuição (Solicitado → Atribuído)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Atribuído" as const,
+        `Profissional ID ${professionalId} atribuído pelo admin`
+      );
+
       // Atualizar status para aguardando confirmação
       await this.updateStatus(requestId, "Aguardando Confirmação", adminId);
+
+      // Auditoria: Log da mudança automática (Atribuído → Aguardando Confirmação)
+      await this.auditService.logStatusChange(
+        requestId,
+        "Atribuído" as const,
+        "Aguardando Confirmação" as const,
+        "Notificação enviada ao profissional (transição automática)"
+      );
 
       // Notificar profissional
       await this.notifyProfessional(
@@ -214,30 +251,40 @@ export class WorkflowServiceSimplified {
     notes?: string
   ): Promise<boolean> {
     try {
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
       const newStatus: ServiceStatus = accept ? "Aceito" : "Recusado";
+
+      if (!this.canTransition(previousStatus, newStatus)) {
+        throw new Error(`Não é possível mudar de ${previousStatus} para ${newStatus}`);
+      }
+
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser || !this.canPerformTransition(previousStatus, newStatus, currentUser.role)) {
+        throw new Error("Usuário não tem permissão para esta transição");
+      }
 
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
           status: newStatus,
-          admin_notes: notes
-            ? `Resposta do profissional: ${notes}`
-            : undefined,
+          admin_notes: notes ? `Resposta do profissional: ${notes}` : undefined,
         })
         .eq("id", requestId)
         .eq("professional_id", professionalId);
 
       if (error) throw error;
 
-      // Notificar admin
-      const request = await this.getRequest(requestId);
-      if (request?.created_by_admin_id) {
-        await this.notifyAdmin(
-          request.created_by_admin_id,
-          accept ? "serviceAccepted" : "serviceRejected",
-          `Profissional ${accept ? "aceitou" : "recusou"} a solicitação #${requestId}`
-        );
-      }
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        newStatus,
+        this.buildAuditMessage(accept, notes)
+      );
+
+      await this.notifyAssignmentResponse(request, accept, requestId);
 
       this.notificationService.showSuccess(
         this.i18n.translate(accept ? "serviceAccepted" : "serviceRejected")
@@ -250,6 +297,25 @@ export class WorkflowServiceSimplified {
         this.i18n.translate("errorRespondingToAssignment")
       );
       return false;
+    }
+  }
+
+  private buildAuditMessage(accept: boolean, notes?: string): string {
+    const base = accept ? "Profissional aceitou a solicitação" : "Profissional recusou a solicitação";
+    return notes ? `${base}: ${notes}` : base;
+  }
+
+  private async notifyAssignmentResponse(
+    request: ServiceRequest,
+    accept: boolean,
+    requestId: number
+  ): Promise<void> {
+    if (request.created_by_admin_id) {
+      await this.notifyAdmin(
+        request.created_by_admin_id,
+        accept ? "serviceAccepted" : "serviceRejected",
+        `Profissional ${accept ? "aceitou" : "recusou"} a solicitação #${requestId}`
+      );
     }
   }
 
@@ -267,6 +333,29 @@ export class WorkflowServiceSimplified {
     estimatedDuration?: number
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Data Definida")) {
+        throw new Error(`Não é possível definir data a partir do status ${previousStatus}`);
+      }
+
+      // Validar permissão
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser || !this.canPerformTransition(previousStatus, "Data Definida", currentUser.role)) {
+        throw new Error("Usuário não tem permissão para definir data");
+      }
+
+      // Validar que a data não é no passado
+      const scheduledDateTime = new Date(scheduledDate);
+      if (scheduledDateTime < new Date()) {
+        throw new Error("A data agendada não pode ser no passado");
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -279,9 +368,17 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log do agendamento (Aceito → Data Definida)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Data Definida" as const,
+        "Data agendada para " + new Date(scheduledDate).toLocaleString('pt-PT') + (estimatedDuration ? " (duração estimada: " + estimatedDuration + " min)" : ""),
+        { scheduled_date: scheduledDate, estimated_duration: estimatedDuration }
+      );
+
       // Notificar admin
-      const request = await this.getRequest(requestId);
-      if (request?.created_by_admin_id) {
+      if (request.created_by_admin_id) {
         await this.notifyAdmin(
           request.created_by_admin_id,
           "dateScheduled",
@@ -315,6 +412,37 @@ export class WorkflowServiceSimplified {
     professionalId: number
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Em Progresso")) {
+        throw new Error(`Não é possível iniciar a partir do status ${previousStatus}`);
+      }
+
+      // Validar permissão
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser || !this.canPerformTransition(previousStatus, "Em Progresso", currentUser.role)) {
+        throw new Error("Usuário não tem permissão para iniciar execução");
+      }
+
+      // Validar que não está iniciando antes da data agendada
+      if (request.scheduled_start_datetime) {
+        const scheduledDate = new Date(request.scheduled_start_datetime);
+        const now = new Date();
+        // Permitir iniciar até 30 minutos antes da data agendada
+        const thirtyMinutesBefore = new Date(scheduledDate.getTime() - 30 * 60 * 1000);
+        
+        if (now < thirtyMinutesBefore) {
+          throw new Error(
+            `Não é possível iniciar antes da data agendada (${scheduledDate.toLocaleString('pt-PT')}). Pode iniciar até 30 minutos antes.`
+          );
+        }
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -327,6 +455,15 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log do início (Data Definida → Em Progresso)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Em Progresso" as const,
+        "Profissional iniciou a execução do serviço",
+        { actual_start: new Date().toISOString() }
+      );
+
       this.notificationService.showSuccess(
         this.i18n.translate("serviceStarted")
       );
@@ -335,7 +472,7 @@ export class WorkflowServiceSimplified {
     } catch (error) {
       console.error("Erro ao iniciar execução:", error);
       this.notificationService.showError(
-        this.i18n.translate("errorStartingService")
+        error instanceof Error ? error.message : this.i18n.translate("errorStartingService")
       );
       return false;
     }
@@ -350,6 +487,37 @@ export class WorkflowServiceSimplified {
     notes?: string
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Aguardando Finalização")) {
+        throw new Error(`Não é possível concluir a partir do status ${previousStatus}`);
+      }
+
+      // Validar permissão
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser || !this.canPerformTransition(previousStatus, "Aguardando Finalização", currentUser.role)) {
+        throw new Error("Usuário não tem permissão para concluir execução");
+      }
+
+      // Validar tempo mínimo de execução (opcional, mas recomendado)
+      if (request.started_at && request.estimated_duration_minutes) {
+        const startTime = new Date(request.started_at);
+        const now = new Date();
+        const actualDuration = (now.getTime() - startTime.getTime()) / (1000 * 60); // em minutos
+        const minimumDuration = request.estimated_duration_minutes * 0.5; // 50% do tempo estimado
+
+        if (actualDuration < minimumDuration) {
+          console.warn(
+            `Serviço concluído em ${actualDuration.toFixed(1)} minutos, abaixo do mínimo esperado de ${minimumDuration.toFixed(1)} minutos`
+          );
+        }
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -365,9 +533,17 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log da conclusão (Em Progresso → Aguardando Finalização)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Aguardando Finalização" as const,
+        notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução",
+        { actual_end: new Date().toISOString(), notes }
+      );
+
       // Notificar admin
-      const request = await this.getRequest(requestId);
-      if (request?.created_by_admin_id) {
+      if (request.created_by_admin_id) {
         await this.notifyAdmin(
           request.created_by_admin_id,
           "serviceCompleted",
@@ -383,7 +559,7 @@ export class WorkflowServiceSimplified {
     } catch (error) {
       console.error("Erro ao concluir execução:", error);
       this.notificationService.showError(
-        this.i18n.translate("errorCompletingService")
+        error instanceof Error ? error.message : this.i18n.translate("errorCompletingService")
       );
       return false;
     }
@@ -406,6 +582,23 @@ export class WorkflowServiceSimplified {
     }
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Pagamento Feito")) {
+        throw new Error(`Não é possível registrar pagamento a partir do status ${previousStatus}`);
+      }
+
+      // Validar permissão (apenas admin)
+      const currentUser = await this.getCurrentUser();
+      if (currentUser?.role !== "admin") {
+        throw new Error("Apenas administradores podem registrar pagamentos");
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -420,9 +613,25 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log do pagamento (Aguardando Finalização → Pagamento Feito)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Pagamento Feito" as const,
+        "Pagamento registrado: " +
+        paymentData.amount +
+        "€ via " +
+        paymentData.method +
+        (paymentData.notes ? " - " + paymentData.notes : ""),
+        { 
+          payment_amount: paymentData.amount, 
+          payment_method: paymentData.method,
+          payment_notes: paymentData.notes 
+        }
+      );
+
       // Notificar profissional
-      const request = await this.getRequest(requestId);
-      if (request?.professional_id) {
+      if (request.professional_id) {
         await this.notifyProfessional(
           request.professional_id,
           "paymentRegistered",
@@ -438,7 +647,7 @@ export class WorkflowServiceSimplified {
     } catch (error) {
       console.error("Erro ao registrar pagamento:", error);
       this.notificationService.showError(
-        this.i18n.translate("errorRegisteringPayment")
+        error instanceof Error ? error.message : this.i18n.translate("errorRegisteringPayment")
       );
       return false;
     }
@@ -453,6 +662,23 @@ export class WorkflowServiceSimplified {
     adminNotes?: string
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Concluído")) {
+        throw new Error(`Não é possível finalizar a partir do status ${previousStatus}`);
+      }
+
+      // Validar permissão (apenas admin)
+      const currentUser = await this.getCurrentUser();
+      if (currentUser?.role !== "admin") {
+        throw new Error("Apenas administradores podem finalizar serviços");
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
@@ -465,6 +691,15 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Auditoria: Log da finalização (Pagamento Feito → Concluído)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Concluído" as const,
+        "Serviço finalizado pelo administrador" + (adminNotes ? ": " + adminNotes : ""),
+        { finalized_at: new Date().toISOString(), admin_notes: adminNotes }
+      );
+
       this.notificationService.showSuccess(
         this.i18n.translate("serviceFinalized")
       );
@@ -473,7 +708,7 @@ export class WorkflowServiceSimplified {
     } catch (error) {
       console.error("Erro ao finalizar serviço:", error);
       this.notificationService.showError(
-        this.i18n.translate("errorFinalizingService")
+        error instanceof Error ? error.message : this.i18n.translate("errorFinalizingService")
       );
       return false;
     }
@@ -492,15 +727,40 @@ export class WorkflowServiceSimplified {
     reason?: string
   ): Promise<boolean> {
     try {
+      // Buscar status atual antes da mudança
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const previousStatus = request.status;
+
+      // Validar transição
+      if (!this.canTransition(previousStatus, "Cancelado")) {
+        throw new Error(`Não é possível cancelar a partir do status ${previousStatus}`);
+      }
+
+      // Motivo obrigatório para cancelamentos
+      if (!reason) {
+        throw new Error("É obrigatório fornecer um motivo para cancelamento");
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
           status: "Cancelado",
-          admin_notes: reason ? `Cancelado: ${reason}` : "Cancelado",
+          admin_notes: `Cancelado: ${reason}`,
         })
         .eq("id", requestId);
 
       if (error) throw error;
+
+      // Auditoria: Log do cancelamento (qualquer status → Cancelado)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Cancelado" as const,
+        reason,
+        { cancelled_at: new Date().toISOString() }
+      );
 
       this.notificationService.showSuccess(
         this.i18n.translate("serviceCancelled")
@@ -510,7 +770,7 @@ export class WorkflowServiceSimplified {
     } catch (error) {
       console.error("Erro ao cancelar solicitação:", error);
       this.notificationService.showError(
-        this.i18n.translate("errorCancellingService")
+        error instanceof Error ? error.message : this.i18n.translate("errorCancellingService")
       );
       return false;
     }
@@ -558,7 +818,6 @@ export class WorkflowServiceSimplified {
     message: string
   ): Promise<void> {
     // Implementar notificação via NotificationService
-    // TODO: Adicionar lógica de notificação real
     console.log(`Notificando profissional ${professionalId}: ${message}`);
   }
 
@@ -568,7 +827,6 @@ export class WorkflowServiceSimplified {
     message: string
   ): Promise<void> {
     // Implementar notificação via NotificationService
-    // TODO: Adicionar lógica de notificação real
     console.log(`Notificando admin ${adminId}: ${message}`);
   }
 
@@ -590,7 +848,7 @@ export class WorkflowServiceSimplified {
       "Cancelado": "Serviço cancelado",
     };
 
-    return descriptions[status as ServiceStatus] || status;
+    return descriptions[status] || status;
   }
 
   /**

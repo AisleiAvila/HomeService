@@ -124,19 +124,16 @@ export class StatusMigrationUtil {
    * StatusMigrationUtil.migrateStatus("Solicitado")      // → "Solicitado" (já é novo)
    * ```
    */
-  static migrateStatus(oldStatus: ServiceStatus): ServiceStatus {
+  static migrateStatus(oldStatus: string): ServiceStatus {
     // Se já é um status novo, retorna direto
     if (this.isNewStatus(oldStatus)) {
       return oldStatus;
     }
-    
     // Busca no mapa de conversão
     const newStatus = this.migrationMap[oldStatus];
-    
     if (newStatus) {
       return newStatus;
     }
-    
     // Fallback: status desconhecido
     console.error(
       `[StatusMigrationUtil] Status desconhecido: "${oldStatus}". ` +
@@ -162,7 +159,7 @@ export class StatusMigrationUtil {
    * // → ["Solicitado", "Data Definida", "Concluído"]
    * ```
    */
-  static migrateMultiple(statuses: ServiceStatus[]): ServiceStatus[] {
+  static migrateMultiple(statuses: string[]): ServiceStatus[] {
     return statuses.map(status => this.migrateStatus(status));
   }
   
@@ -179,7 +176,7 @@ export class StatusMigrationUtil {
    * StatusMigrationUtil.isNewStatus("Agendado")       // → false
    * ```
    */
-  static isNewStatus(status: ServiceStatus): status is ServiceStatus {
+  static isNewStatus(status: string): status is ServiceStatus {
     return this.newStatuses.includes(status as ServiceStatus);
   }
   
@@ -195,7 +192,7 @@ export class StatusMigrationUtil {
    * StatusMigrationUtil.isDeprecatedStatus("Solicitado")  // → false
    * ```
    */
-  static isDeprecatedStatus(status: ServiceStatus): boolean {
+  static isDeprecatedStatus(status: string): boolean {
     return !this.isNewStatus(status);
   }
   
@@ -212,15 +209,13 @@ export class StatusMigrationUtil {
    * // → ["Em análise", "Aguardando esclarecimentos", "Buscando profissional", ...]
    * ```
    */
-  static getOldStatusesFor(newStatus: ServiceStatus): string[] {
+  static getOldStatusesFor(newStatus: string): string[] {
     const oldStatuses: string[] = [];
-    
     for (const [oldStatus, mappedStatus] of Object.entries(this.migrationMap)) {
       if (mappedStatus === newStatus) {
         oldStatuses.push(oldStatus);
       }
     }
-    
     return oldStatuses;
   }
   
@@ -247,7 +242,7 @@ export class StatusMigrationUtil {
    * // }
    * ```
    */
-  static getMigrationReport(statuses: ServiceStatus[]): {
+  static getMigrationReport(statuses: string[]): {
     total: number;
     alreadyNew: number;
     needsMigration: number;
@@ -259,12 +254,10 @@ export class StatusMigrationUtil {
       needsMigration: 0,
       byNewStatus: {} as Record<ServiceStatus, number>,
     };
-    
     // Inicializar contadores
     for (const status of this.newStatuses) {
       report.byNewStatus[status] = 0;
     }
-    
     // Contar cada status
     for (const status of statuses) {
       if (this.isNewStatus(status)) {
@@ -272,11 +265,9 @@ export class StatusMigrationUtil {
       } else {
         report.needsMigration++;
       }
-      
       const newStatus = this.migrateStatus(status);
       report.byNewStatus[newStatus]++;
     }
-    
     return report;
   }
   
@@ -293,9 +284,8 @@ export class StatusMigrationUtil {
    * StatusMigrationUtil.isValidStatus("InvalidStatus") // → false
    * ```
    */
-  static isValidStatus(status: string): status is ServiceStatus {
-    return this.isNewStatus(status as ServiceStatus) || 
-           status in this.migrationMap;
+  static isValidStatus(status: string): boolean {
+    return this.isNewStatus(status) || status in this.migrationMap;
   }
   
   /**
@@ -330,11 +320,10 @@ export class StatusMigrationUtil {
    * // → "Status 'Em análise' (deprecated) migrado para 'Solicitado' (novo sistema)"
    * ```
    */
-  static getMigrationDescription(oldStatus: ServiceStatus): string {
+  static getMigrationDescription(oldStatus: string): string {
     if (this.isNewStatus(oldStatus)) {
       return `Status '${oldStatus}' já pertence ao novo sistema (11 status)`;
     }
-    
     const newStatus = this.migrateStatus(oldStatus);
     return `Status '${oldStatus}' (deprecated) migrado para '${newStatus}' (novo sistema)`;
   }

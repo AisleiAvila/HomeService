@@ -13,6 +13,7 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
+import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
@@ -124,11 +125,19 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Atualizar status para Aguardando Finalização
-      await this.dataService.updateServiceRequest(request.id, {
-        status: "Aguardando Finalização",
-      });
-      this.selectedRequest.set(null);
+      const currentUser = this.user();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem concluir serviços");
+      }
+
+      const success = await this.workflowService.completeExecution(
+        request.id,
+        currentUser.id
+      );
+
+      if (success) {
+        this.selectedRequest.set(null);
+      }
     } catch (error: any) {
       console.error("Erro ao finalizar serviço:", error);
       this.showBusinessError.set(true);
@@ -149,12 +158,19 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Iniciar serviço
-      await this.dataService.updateServiceRequest(request.id, {
-        status: "Em Progresso",
-      });
-      // Atualização ocorrerá via sinais/realtime; opcionalmente podemos fechar detalhes
-      this.selectedRequest.set(null);
+      const currentUser = this.user();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem iniciar serviços");
+      }
+
+      const success = await this.workflowService.startExecution(
+        request.id,
+        currentUser.id
+      );
+
+      if (success) {
+        this.selectedRequest.set(null);
+      }
     } catch (error: any) {
       // Impedir início antes da data agendada
       if (
@@ -191,6 +207,7 @@ export class DashboardComponent implements OnInit {
   readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
+  private readonly workflowService = inject(WorkflowServiceSimplified);
 
   // Método para navegar para criação de solicitação
   navigateToCreateRequest(): void {

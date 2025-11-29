@@ -26,6 +26,7 @@ import { ServiceClarificationsComponent } from "../service-clarifications/servic
 import { NotificationService } from "../../services/notification.service";
 import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
+import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
 
 @Component({
@@ -504,12 +505,13 @@ export class ServiceRequestDetailsComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly workflowService = inject(WorkflowServiceSimplified);
 
   // Signal para request carregado via rota
   private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
   private readonly loadedUser = signal<User | undefined>(undefined);
 
-  // Request e User efetivos usados em todo o template
+  // Request e User efetivos usados no template
   request = computed(() => this.requestInput() || this.loadedRequest());
   currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
 
@@ -775,13 +777,19 @@ export class ServiceRequestDetailsComponent implements OnInit {
 
   private async handleStartService(): Promise<void> {
     try {
-      await this.dataService.updateServiceRequest(this.request().id, {
-        status: "Em Progresso",
-      });
-      this.notificationService.addNotification(
-        "Serviço iniciado com sucesso!"
+      const currentUser = this.currentUser();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem iniciar serviços");
+      }
+
+      const success = await this.workflowService.startExecution(
+        this.request().id,
+        currentUser.id
       );
-      this.refreshRequest.emit();
+
+      if (success) {
+        this.refreshRequest.emit();
+      }
     } catch (error: any) {
       if (
         error instanceof Error &&
@@ -791,6 +799,7 @@ export class ServiceRequestDetailsComponent implements OnInit {
           "Não é permitido iniciar o serviço antes da data agendada!"
         );
       } else {
+        console.error("Erro ao iniciar serviço:", error);
         throw error;
       }
     }
@@ -798,13 +807,19 @@ export class ServiceRequestDetailsComponent implements OnInit {
 
   private async handleCompleteService(): Promise<void> {
     try {
-      await this.dataService.updateServiceRequest(this.request().id, {
-        status: "Aguardando Finalização",
-      });
-      this.notificationService.addNotification(
-        "Serviço marcado como concluído!"
+      const currentUser = this.currentUser();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem concluir serviços");
+      }
+
+      const success = await this.workflowService.completeExecution(
+        this.request().id,
+        currentUser.id
       );
-      this.refreshRequest.emit();
+
+      if (success) {
+        this.refreshRequest.emit();
+      }
     } catch (error: any) {
       if (
         error instanceof Error &&
@@ -814,6 +829,7 @@ export class ServiceRequestDetailsComponent implements OnInit {
           "Não é permitido concluir o serviço antes do tempo mínimo!"
         );
       } else {
+        console.error("Erro ao concluir serviço:", error);
         throw error;
       }
     }

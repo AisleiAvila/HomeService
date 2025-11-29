@@ -189,7 +189,7 @@ export class UsersManagementComponent {
 
         // Validação do formato do telefone português (+351 seguido de 9 dígitos)
         // Remove espaços, hífens e outros caracteres não numéricos (exceto +)
-        const cleanPhone = phone.replace(/[\s-]/g, '');
+        const cleanPhone = phone.replaceAll(/[\s-]/g, '');
         const phoneRegex = /^\+?351?9[1236]\d{7}$/;
         if (!phoneRegex.test(cleanPhone)) {
             this.notificationService.addNotification(
@@ -229,13 +229,23 @@ export class UsersManagementComponent {
                 <p>Após o primeiro login, você será redirecionado para definir uma nova senha.</p>`;
 
             // 4. Cria usuário via backend customizado
+            // Extrai o telefone formatado para Portugal
+            let formattedPhone: string;
+            if (cleanPhone.startsWith('+351')) {
+                formattedPhone = cleanPhone;
+            } else if (cleanPhone.startsWith('351')) {
+                formattedPhone = `+${cleanPhone}`;
+            } else {
+                formattedPhone = `+351${cleanPhone}`;
+            }
+
             const res = await fetch('http://localhost:4002/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name,
                     email,
-                    phone: cleanPhone.startsWith('+351') ? cleanPhone : cleanPhone.startsWith('351') ? `+${cleanPhone}` : `+351${cleanPhone}`,
+                    phone: formattedPhone,
                     specialty: '', // Administradores não têm especialidade
                     role,
                     status: 'Active', // Administradores já são ativados

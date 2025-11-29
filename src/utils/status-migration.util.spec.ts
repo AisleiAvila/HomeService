@@ -1,5 +1,5 @@
+import { ServiceStatus } from "../models/maintenance.models";
 import { StatusMigrationUtil } from "./status-migration.util";
-import { ServiceStatus, ServiceStatusNew } from "@/src/models/maintenance.models";
 
 describe("StatusMigrationUtil", () => {
   
@@ -56,16 +56,14 @@ describe("StatusMigrationUtil", () => {
   describe("migrateMultiple", () => {
     
     it("deve migrar array de status corretamente", () => {
-      const oldStatuses: ServiceStatus[] = [
+      const oldStatuses: string[] = [
         "Em análise",
         "Agendado",
         "Em execução",
         "Finalizado",
         "Solicitado", // já novo
       ];
-      
       const result = StatusMigrationUtil.migrateMultiple(oldStatuses);
-      
       expect(result).toEqual([
         "Solicitado",
         "Data Definida",
@@ -151,7 +149,7 @@ describe("StatusMigrationUtil", () => {
   describe("getMigrationReport", () => {
     
     it("deve gerar relatório correto de migração", () => {
-      const statuses: ServiceStatus[] = [
+      const statuses: string[] = [
         "Em análise",        // deprecated → Solicitado
         "Em análise",        // deprecated → Solicitado
         "Solicitado",        // já novo
@@ -159,7 +157,6 @@ describe("StatusMigrationUtil", () => {
         "Em execução",       // deprecated → Em Progresso
         "Finalizado",        // deprecated → Concluído
       ];
-      
       const report = StatusMigrationUtil.getMigrationReport(statuses);
       
       expect(report.total).toBe(6);
@@ -180,12 +177,11 @@ describe("StatusMigrationUtil", () => {
     });
     
     it("deve contar corretamente quando todos são novos", () => {
-      const statuses: ServiceStatus[] = [
+      const statuses: string[] = [
         "Solicitado",
         "Em Progresso",
         "Concluído",
       ];
-      
       const report = StatusMigrationUtil.getMigrationReport(statuses);
       
       expect(report.total).toBe(3);
@@ -292,7 +288,7 @@ describe("StatusMigrationUtil", () => {
   describe("Cenários de Integração", () => {
     
     it("deve processar lote completo de status mistos", () => {
-      const mixedStatuses: ServiceStatus[] = [
+      const mixedStatuses: string[] = [
         "Em análise",              // deprecated
         "Solicitado",              // novo
         "Orçamento enviado",       // deprecated
@@ -300,7 +296,6 @@ describe("StatusMigrationUtil", () => {
         "Agendado",                // deprecated
         "Concluído",               // novo
       ];
-      
       const migrated = StatusMigrationUtil.migrateMultiple(mixedStatuses);
       const report = StatusMigrationUtil.getMigrationReport(mixedStatuses);
       
@@ -325,12 +320,11 @@ describe("StatusMigrationUtil", () => {
         "Aguardando aprovação do orçamento",
         "Orçamento rejeitado",
       ];
-      
-      quoteStatuses.forEach(status => {
+      for (const status of quoteStatuses) {
         const migrated = StatusMigrationUtil.migrateStatus(status);
         expect(migrated).toBe("Cancelado");
         expect(StatusMigrationUtil.isDeprecatedStatus(status)).toBe(true);
-      });
+      }
       
       // Exceto "Orçamento aprovado" que assume que foi aceito
       const approved = StatusMigrationUtil.migrateStatus("Orçamento aprovado");

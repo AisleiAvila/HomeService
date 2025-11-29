@@ -1,13 +1,11 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { I18nPipe } from "../../pipes/i18n.pipe";
-import { I18nService } from "../../i18n.service";
-import { 
-  ServiceCategory, 
-  ServiceSubcategory,
-  ServiceSubcategoryExtended 
+import {
+  ServiceCategory,
+  ServiceSubcategoryExtended
 } from "../../models/maintenance.models";
+import { I18nPipe } from "../../pipes/i18n.pipe";
 import { DataService } from "../../services/data.service";
 
 @Component({

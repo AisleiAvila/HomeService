@@ -122,30 +122,39 @@ A aplicação possui um sistema completo de notificações que informa sobre tod
    ```
 
 4. **Build para produção:**
+
    ```bash
    npm run build
    ```
 
 5. **Build para celulares:**
+
    ```bash
    ng build --configuration=production
    ```
 
-6. **Cópia para executar nos celulares:**
+6. **Build para Vercel:**
+
+   ```bash
+   npm run build:vercel
+   ```
+
+7. **Cópia para executar nos celulares:**
+
    ```bash
    npx cap copy
    ```
 
-7. **Cópia para executar nos celulares Android:**
+8. **Cópia para executar nos celulares Android:**
+
    ```bash
    npx cap add android
    ```
 
-8. **Cópia para executar nos celulares Ios:**
+9. **Cópia para executar nos celulares Ios:**
    ```bash
    npx cap add ios
    ```
-
 
 ## 🏗️ Arquitetura Técnica
 
@@ -198,11 +207,14 @@ A aplicação possui um sistema completo de notificações que informa sobre tod
 A aplicação utiliza políticas RLS do Supabase para segurança dos dados:
 
 #### Categorias de Serviço
+
 Se encontrar erro **403 (Forbidden)** ao buscar categorias:
+
 1. Execute o script `sql/service_categories-policies.sql` no SQL Editor do Supabase
 2. Consulte o guia completo em `CORRECAO-ERRO-403-CATEGORIAS.md`
 
 #### Subcategorias de Serviço
+
 - Políticas configuradas em `sql/service_subcategories-policies.sql`
 
 ---

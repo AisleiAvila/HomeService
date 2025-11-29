@@ -65,4 +65,4 @@ async function checkUserStatus() {
   }
 }
 
-checkUserStatus();
+await checkUserStatus();

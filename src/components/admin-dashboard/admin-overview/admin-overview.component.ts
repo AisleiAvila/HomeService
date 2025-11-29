@@ -115,10 +115,10 @@ export class AdminOverviewComponent {
     statusPieChartData = computed(() => {
         const requests = this.dataService.serviceRequests();
         const counts: Record<string, number> = {};
-        requests.forEach(r => {
+        for (const r of requests) {
             const status = r.status || 'Unknown';
             counts[status] = (counts[status] || 0) + 1;
-        });
+        }
         return counts;
     });
 
@@ -127,7 +127,7 @@ export class AdminOverviewComponent {
         const categories = this.dataService.categories();
         const counts: Record<string, number> = {};
 
-        requests.forEach(r => {
+        for (const r of requests) {
             if (r.category_id) {
                 const category = categories.find(c => c.id === r.category_id);
                 const categoryName = category?.name || `Category ${r.category_id}`;
@@ -135,7 +135,7 @@ export class AdminOverviewComponent {
             } else {
                 counts['Unknown'] = (counts['Unknown'] || 0) + 1;
             }
-        });
+        }
         return counts;
     });
 
@@ -143,20 +143,20 @@ export class AdminOverviewComponent {
         const requests = this.dataService.serviceRequests();
         const counts: Record<string, number> = {};
 
-        requests.forEach(r => {
+        for (const r of requests) {
             if (r.created_at) {
                 const date = new Date(r.created_at).toISOString().split('T')[0];
                 counts[date] = (counts[date] || 0) + 1;
             }
-        });
+        }
 
         // Sort by date to ensure proper chronological order in charts
         const sortedCounts: Record<string, number> = {};
-        Object.keys(counts)
-            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-            .forEach(date => {
-                sortedCounts[date] = counts[date];
-            });
+        const sortedDates = Object.keys(counts)
+            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        for (const date of sortedDates) {
+            sortedCounts[date] = counts[date];
+        }
 
         return sortedCounts;
     });
@@ -165,7 +165,7 @@ export class AdminOverviewComponent {
      * Validates and returns a safe cost value
      */
     private validateCost(cost: number | undefined | null): number {
-        return (cost != null && !isNaN(cost)) ? cost : 0;
+        return (cost != null && !Number.isNaN(cost)) ? cost : 0;
     }
 
     formatCost(cost: number): string {

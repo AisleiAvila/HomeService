@@ -14,24 +14,7 @@ import {
   User,
   UserStatus
 } from "../models/maintenance.models";
-import { StatusService } from "../services/status.service";
 import { AuthService } from "./auth.service";
-
-// Mapeamento temporário para compatibilidade com código legado
-// TODO: Refatorar data.service para usar novo sistema de workflow simplificado
-const statusServiceToServiceStatus = {
-  [StatusService.Requested]: "Solicitado" as const,
-  [StatusService.SearchingProfessional]: "Solicitado" as const,
-  [StatusService.AwaitingProfessionalConfirmation]: "Aguardando Confirmação" as const,
-  [StatusService.Scheduled]: "Data Definida" as const,
-  [StatusService.InProgress]: "Em Progresso" as const,
-  [StatusService.CompletedAwaitingApproval]: "Aguardando Finalização" as const,
-  [StatusService.Completed]: "Concluído" as const,
-  [StatusService.Cancelled]: "Cancelado" as const,
-  [StatusService.DateProposedByAdmin]: "Data Definida" as const,
-  [StatusService.DateApprovedByClient]: "Data Definida" as const,
-  [StatusService.DateRejectedByClient]: "Recusado" as const,
-};
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
@@ -294,7 +277,7 @@ export class DataService {
       state: payload.address.state,
       zip_code: payload.address.zip_code,
       requested_datetime: requestedDateTime, // Campo principal
-      status: statusServiceToServiceStatus[StatusService.Requested],
+      status: "Solicitado",
       payment_status: "Unpaid",
     };
     
@@ -332,15 +315,13 @@ export class DataService {
       throw new Error("Only admins can create admin service requests");
     }
 
-    const { StatusService } = await import("../services/status.service");
-
     // Mapeamento completo do payload para o objeto do banco de dados
     const newRequestData = {
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,
       subcategory_id: payload.subcategory_id,
-      status: statusServiceToServiceStatus[StatusService.SearchingProfessional],
+      status: "Solicitado",
       payment_status: "Unpaid" as const,
       created_by_admin: true,
       client_id: null,
@@ -398,8 +379,6 @@ export class DataService {
       throw new Error("Only administrators can directly assign service requests");
     }
 
-    const { StatusService } = await import("../services/status.service");
-
     const { error } = await this.supabase.client
       .from("service_requests")
       .update({
@@ -407,7 +386,7 @@ export class DataService {
         scheduled_start_datetime: executionDate,
         proposed_execution_date: executionDate,
         execution_date_approval: 'approved',
-        status: statusServiceToServiceStatus[StatusService.Scheduled],
+        status: "Data Definida",
       })
       .eq("id", requestId);
 
@@ -477,11 +456,9 @@ export class DataService {
   }
 
   async respondToQuote(requestId: number, approved: boolean) {
-    const status = approved
-      ? StatusService.QuoteApproved
-      : StatusService.QuoteRejected;
+    const status = approved ? "Aceito" : "Recusado";
     await this.updateServiceRequest(requestId, {
-      status: statusServiceToServiceStatus[status],
+      status: status,
     });
     this.notificationService.addNotification(
       `Orçamento do pedido #${requestId} foi ${approved ? "aprovado" : "rejeitado"
@@ -494,10 +471,10 @@ export class DataService {
     professionalId: number,
     scheduledDate: Date
   ) {
-    const updates = {
+    const updates: Partial<ServiceRequest> = {
       professional_id: professionalId,
       scheduled_date: scheduledDate.toISOString(),
-      status: statusServiceToServiceStatus[StatusService.Scheduled],
+      status: "Data Definida" as const,
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
@@ -520,7 +497,7 @@ export class DataService {
       proposed_execution_date: proposedDate.toISOString(),
       proposed_execution_notes: notes || null,
       execution_date_proposed_at: new Date().toISOString(),
-      status: statusServiceToServiceStatus[StatusService.DateProposedByAdmin],
+      status: "Data Definida",
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
@@ -561,13 +538,11 @@ export class DataService {
       execution_date_approval: approved ? "approved" : "rejected",
       execution_date_approved_at: new Date().toISOString(),
       execution_date_rejection_reason: approved ? null : rejectionReason,
-      status: approved
-        ? statusServiceToServiceStatus[StatusService.DateApprovedByClient]
-        : statusServiceToServiceStatus[StatusService.DateRejectedByClient],
+      status: approved ? "Data Definida" : "Recusado",
     };
     if (approved && request?.proposed_execution_date) {
       updates.scheduled_start_datetime = request.proposed_execution_date;
-      updates.status = statusServiceToServiceStatus[StatusService.Scheduled];
+      updates.status = "Data Definida";
     }
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
@@ -762,11 +737,11 @@ export class DataService {
     scheduledStartDateTime: Date,
     estimatedDurationMinutes: number
   ) {
-    const updates = {
+    const updates: Partial<ServiceRequest> = {
       professional_id: professionalId,
       scheduled_start_datetime: scheduledStartDateTime.toISOString(),
       estimated_duration_minutes: estimatedDurationMinutes,
-      status: statusServiceToServiceStatus[StatusService.Scheduled],
+      status: "Data Definida" as const,
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
@@ -775,16 +750,16 @@ export class DataService {
   }
 
   /**
-   * Registra o in├¡cio real do atendimento (usado pelo profissional)
+   * Registra o início real do atendimento (usado pelo profissional)
    */
   async startServiceWork(requestId: number) {
-    const updates = {
+    const updates: Partial<ServiceRequest> = {
       actual_start_datetime: new Date().toISOString(),
-      status: statusServiceToServiceStatus[StatusService.InProgress],
+      status: "Em Progresso" as const,
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Atendimento do servi├ºo #${requestId} foi iniciado.`
+      `Atendimento do serviço #${requestId} foi iniciado.`
     );
   }
 
@@ -792,14 +767,13 @@ export class DataService {
    * Registra o final real do atendimento (usado pelo profissional)
    */
   async finishServiceWork(requestId: number) {
-    const updates = {
+    const updates: Partial<ServiceRequest> = {
       actual_end_datetime: new Date().toISOString(),
-      status:
-        statusServiceToServiceStatus[StatusService.CompletedAwaitingApproval],
+      status: "Aguardando Finalização" as const,
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(
-      `Atendimento do servi├ºo #${requestId} foi finalizado.`
+      `Atendimento do serviço #${requestId} foi finalizado.`
     );
   }
 

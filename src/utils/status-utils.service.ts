@@ -37,10 +37,10 @@ export class StatusUtilsService {
   };
 
   static getColor(status: ServiceStatus): string {
-    return this.colorMap[status as ServiceStatus] || "#6b7280";
+    return this.colorMap[status] || "#6b7280";
   }
 
   static getLabel(status: ServiceStatus, i18n: I18nService): string {
-    return i18n.translate(this.statusMap[status as ServiceStatus] || "statusPending");
+    return i18n.translate(this.statusMap[status] || "statusPending");
   }
 }

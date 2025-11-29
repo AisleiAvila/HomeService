@@ -15,6 +15,7 @@ import { Router, RouterModule } from "@angular/router";
 import { AuthService } from "./services/auth.service";
 import { DataService } from "./services/data.service";
 import { NotificationService } from "./services/notification.service";
+import { WorkflowServiceSimplified } from "./services/workflow-simplified.service";
 import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 
@@ -86,6 +87,7 @@ export class AppComponent implements OnInit {
   readonly dataService = inject(DataService);
   readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
+  private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly pushNotificationService = inject(PushNotificationService);
   private readonly router = inject(Router);
 
@@ -460,21 +462,49 @@ export class AppComponent implements OnInit {
     this.selectedRequest.set(null);
   }
 
-  handleApproveQuote(request: ServiceRequest) {
-    this.dataService.updateServiceRequest(request.id, {
-      status: "Aceito",
-    });
-    this.notificationService.addNotification(
-      `Quote for "${request.title}" approved`
-    );
+  async handleApproveQuote(request: ServiceRequest) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) return;
+
+    // Se é profissional aceitando a atribuição
+    if (currentUser.role === "professional" && request.professional_id === currentUser.id) {
+      await this.workflowService.respondToAssignment(
+        request.id,
+        currentUser.id,
+        true // accept = true
+      );
+    } else {
+      // Fallback para admin ou outros casos
+      await this.dataService.updateServiceRequest(request.id, {
+        status: "Aceito",
+      });
+      this.notificationService.addNotification(
+        `Quote for "${request.title}" approved`
+      );
+    }
     this.closeModal();
   }
 
-  handleRejectQuote(request: ServiceRequest) {
-    this.dataService.updateServiceRequest(request.id, { status: "Cancelado" });
-    this.notificationService.addNotification(
-      `Quote for "${request.title}" rejected`
-    );
+  async handleRejectQuote(request: ServiceRequest) {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) return;
+
+    // Se é profissional recusando a atribuição
+    if (currentUser.role === "professional" && request.professional_id === currentUser.id) {
+      await this.workflowService.respondToAssignment(
+        request.id,
+        currentUser.id,
+        false, // accept = false
+        "Orçamento rejeitado pelo profissional"
+      );
+    } else {
+      // Cancelar para admin ou outros casos
+      await this.workflowService.cancelRequest(
+        request.id,
+        currentUser.id,
+        `Quote for "${request.title}" rejected`
+      );
+    }
     this.closeModal();
   }
 
