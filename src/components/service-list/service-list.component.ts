@@ -16,9 +16,7 @@ import {
 } from "@/src/models/maintenance.models";
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { DataService } from "../../services/data.service";
-import { WorkflowService } from "../../services/workflow.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { BudgetApprovalModalComponent } from "../budget-approval-modal";
 import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
 import { I18nService } from "@/src/i18n.service";
 import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-utils";
@@ -29,7 +27,6 @@ import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-util
   imports: [
     CommonModule,
     I18nPipe,
-    BudgetApprovalModalComponent,
     PaymentModalComponent,
   ],
   templateUrl: "./service-list.component.html",
@@ -68,7 +65,6 @@ export class ServiceListComponent {
   actionLoadingIds = input<number[]>([]);
 
   private readonly dataService = inject(DataService);
-  private readonly workflowService = inject(WorkflowService);
   private readonly i18n = inject(I18nService);
 
   // Expose Math for template use
@@ -211,19 +207,6 @@ export class ServiceListComponent {
   // Computed property to get all users for lookup
   allUsers = this.dataService.users;
 
-  // Check if action is available for a service request
-  isActionAvailable(request: ServiceRequest, action: string): boolean {
-    const currentUser = this.currentUser();
-    if (!currentUser) return false;
-
-    const availableActions = this.workflowService.getAvailableActions(
-      request,
-      currentUser.role
-    );
-
-    return availableActions.includes(action);
-  }
-
   formatAddress(src: ServiceRequest | Address): string {
     return formatPtAddress(src);
   }
@@ -259,14 +242,6 @@ export class ServiceListComponent {
     return (this.actionLoadingIds() || []).includes(requestId);
   }
 
-  showBudgetApprovalModal = signal(false);
-  selectedRequestForBudget = signal<ServiceRequest | null>(null);
-
-  handleApproveQuote(request: ServiceRequest) {
-    this.approveQuote.emit(request);
-    this.showBudgetApprovalModal.set(false);
-  }
-
   handlePayNow(request: ServiceRequest) {
     this.selectedRequestForPayment.set(request);
     this.showPaymentModal.set(true);
@@ -282,19 +257,5 @@ export class ServiceListComponent {
     this.payNow.emit(event.request);
     this.showPaymentModal.set(false);
     this.selectedRequestForPayment.set(null);
-  }
-
-  handleRejectQuote(request: ServiceRequest) {
-    this.rejectQuote.emit(request);
-    this.showBudgetApprovalModal.set(false);
-  }
-
-  openBudgetApprovalModal(request: ServiceRequest) {
-    this.selectedRequestForBudget.set(request);
-    this.showBudgetApprovalModal.set(true);
-  }
-
-  handleCloseBudgetModal() {
-    this.showBudgetApprovalModal.set(false);
   }
 }

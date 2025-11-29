@@ -35,18 +35,19 @@ export class AdminOverviewComponent {
         const professionals = users.filter(u => u.role === 'professional');
         const activeProfessionals = professionals.filter(u => u.status === 'Active');
         const pendingProfessionals = professionals.filter(u => u.status === 'Pending' || !u.email_verified);
-        const clients = users.filter(u => u.role === 'client');
+        // REMOVIDO: Cliente não é mais um papel válido no sistema
+        const clients: any[] = [];
 
         // Calculate financial stats with null safety
         const completed = requests.filter(
-            (r) => (r.status === "Finalizado" || r.status === ("Completed" as any)) && r.cost != null
+            (r) => (r.status === "Concluído" || r.status === ("Completed" as any)) && r.cost != null
         );
         const totalRevenue = completed
             .filter((r) => r.payment_status === "Paid")
             .reduce((sum, r) => sum + (this.validateCost(r.cost)), 0);
 
         // Calculate active services
-        const activeServices = requests.filter(r => r.status !== 'Finalizado' && r.status !== 'Cancelado').length;
+        const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Cancelado').length;
 
         // Calculate trends (simulated for now - will be replaced with real calculation)
         const trends = {

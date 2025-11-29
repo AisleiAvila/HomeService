@@ -144,11 +144,10 @@ export class AppComponent implements OnInit {
         labelKey: "search",
         icon: "fa-solid fa-magnifying-glass",
       },
-      { id: "profile", labelKey: "profile", icon: "fa-solid fa-user" },
+      { id: 'profile', labelKey: 'profile', icon: 'fa-solid fa-user' },
     ];
-    if (this.currentUser()?.role === 'client') {
-      items.push({ id: 'create-service-request', labelKey: 'newServiceRequest', icon: 'fa-solid fa-plus' });
-    }
+    // REMOVIDO: Cliente não é mais um papel válido no sistema
+    // Apenas admin e profissional podem acessar a aplicação
     return items;
   });
 
@@ -463,7 +462,7 @@ export class AppComponent implements OnInit {
 
   handleApproveQuote(request: ServiceRequest) {
     this.dataService.updateServiceRequest(request.id, {
-      status: "Aprovado",
+      status: "Aceito",
     });
     this.notificationService.addNotification(
       `Quote for "${request.title}" approved`

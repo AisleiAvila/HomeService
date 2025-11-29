@@ -33,7 +33,7 @@ export class AlertService {
     const { data: requests, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
-      .not("status", "in", '("Finalizado","Cancelado")');
+      .not("status", "in", '("Concluído","Cancelado")');
 
     if (error) {
       console.error("Error fetching requests for overdue check:", error);
@@ -52,7 +52,7 @@ export class AlertService {
     const { data: requests, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
-      .not("status", "in", '("Finalizado","Cancelado")');
+      .not("status", "in", '("Concluído","Cancelado")');
 
     if (error) {
       console.error("Error fetching requests for deadline warnings:", error);
@@ -82,13 +82,8 @@ export class AlertService {
       work_overdue: 0,
     };
 
-    // Orçamentos aguardando resposta
-    const { count: quoteResponses } = await this.supabase.client
-      .from("service_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "Aguardando aprovação do orçamento");
-
-    stats.quote_responses_needed = quoteResponses || 0;
+    // Sistema de orçamentos removido - sempre retorna 0
+    stats.quote_responses_needed = 0;
 
     // Confirmações de profissional
     const { count: professionalConfirmations } = await this.supabase.client
@@ -128,7 +123,7 @@ export class AlertService {
     const { count: workOverdue } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
-      .eq("status", "Agendado")
+      .eq("status", "Data Definida")
       .lt("scheduled_start_datetime", workDeadline.toISOString())
       .is("actual_start_datetime", null);
 
@@ -153,20 +148,20 @@ export class AlertService {
 
     // Determinar stakeholders baseado no status
     switch (request.status) {
-      case "Aguardando aprovação do orçamento":
-        stakeholders = ["client"];
+      case "Aguardando Confirmação":
+        stakeholders = ["admin"];
         break;
-      case "Profissional selecionado":
+      case "Atribuído":
         stakeholders = ["professional"];
         break;
-      case "Agendado":
+      case "Data Definida":
         stakeholders = ["professional"];
         break;
-      case "Aprovado":
-        stakeholders = ["client"];
+      case "Aceito":
+        stakeholders = ["admin"];
         break;
-      case "Pago":
-        stakeholders = ["client", "professional"];
+      case "Pagamento Feito":
+        stakeholders = ["admin", "professional"];
         break;
       default:
         stakeholders = ["admin"];
@@ -218,52 +213,18 @@ export class AlertService {
     // Determinar status mais crítico
     let mostCriticalStatus: ServiceStatus | null = null;
     const statusPriority: Record<ServiceStatus, number> = {
-      // Status em português
-      "Aguardando aprovação do orçamento": 3,
-      "Profissional selecionado": 2,
-      Agendado: 4,
-      Aprovado: 5,
-      "Em execução": 1,
-      Pago: 1,
-      Solicitado: 1,
-      "Em análise": 1,
-      "Aguardando esclarecimentos": 1,
-      "Orçamento enviado": 1,
-      "Orçamento aprovado": 1,
-      "Orçamento rejeitado": 1,
-      "Aguardando data de execução": 2,
-      "Data proposta pelo administrador": 3,
-      "Aguardando aprovação da data": 3,
-      "Data aprovada": 2,
-      "Data rejeitada": 2,
-      "Buscando profissional": 1,
-      "Aguardando confirmação do profissional": 2,
-      "Concluído - Aguardando aprovação": 1,
-      "Rejeitado": 1,
-      Finalizado: 0,
-      Cancelado: 0,
-      // Status em inglês (prioridade 0)
-      Requested: 0,
-      InAnalysis: 0,
-      AwaitingClarifications: 0,
-      QuoteSent: 0,
-      AwaitingQuoteApproval: 0,
-      QuoteApproved: 0,
-      QuoteRejected: 0,
-      AwaitingExecutionDate: 0,
-      DateProposedByAdmin: 0,
-      AwaitingDateApproval: 0,
-      DateApproved: 0,
-      DateRejected: 0,
-      SearchingProfessional: 0,
-      ProfessionalSelected: 0,
-      AwaitingProfessionalConfirmation: 0,
-      Scheduled: 0,
-      InProgress: 0,
-      CompletedAwaitingApproval: 0,
-      Completed: 0,
-      Cancelled: 0,
-      Paid: 0,
+      // Novos status (11 status simplificados)
+      "Solicitado": 1,
+      "Atribuído": 2,
+      "Aguardando Confirmação": 2,
+      "Aceito": 3,
+      "Recusado": 1,
+      "Data Definida": 3,
+      "Em Progresso": 4,
+      "Aguardando Finalização": 5,
+      "Pagamento Feito": 1,
+      "Concluído": 0,
+      "Cancelado": 0,
     };
 
     let highestPriority = 0;
@@ -320,15 +281,13 @@ export class AlertService {
     const now = new Date();
 
     switch (request.status) {
-      case "Aguardando aprovação do orçamento":
-        return this.checkQuoteResponseOverdue(request, now);
-      case "Profissional selecionado":
+      case "Aguardando Confirmação":
         return this.checkProfessionalResponseOverdue(request, now);
-      case "Agendado":
+      case "Data Definida":
         return this.checkWorkStartOverdue(request, now);
-      case "Aprovado":
+      case "Aceito":
         return this.checkPaymentOverdue(request, now);
-      case "Pago":
+      case "Pagamento Feito":
         return this.checkEvaluationOverdue(request, now);
       default:
         return { isOverdue: false, message: "" };
@@ -439,11 +398,11 @@ export class AlertService {
     const warningHours = 24;
 
     switch (request.status) {
-      case "Aguardando aprovação do orçamento":
+      case "Aguardando Confirmação":
         return this.checkQuoteResponseDeadline(request, now, warningHours);
-      case "Agendado":
+      case "Data Definida":
         return this.checkScheduledStartDeadline(request, now, warningHours);
-      case "Aprovado":
+      case "Aceito":
         return this.checkPaymentDeadline(request, now, warningHours);
       default:
         return null;
@@ -499,7 +458,7 @@ export class AlertService {
       .from("service_requests")
       .select("*")
       .eq("overdue", true)
-      .not("status", "in", '("Finalizado","Cancelado")')
+      .not("status", "in", '("Concluído","Cancelado")')
       .order("updated_at", { ascending: true });
 
     if (error) {
@@ -515,7 +474,7 @@ export class AlertService {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
-      .not("status", "in", '("Finalizado","Cancelado")')
+      .not("status", "in", '("Concluído","Cancelado")')
       .order("updated_at", { ascending: true })
       .limit(20);
 

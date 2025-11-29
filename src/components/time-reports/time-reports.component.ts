@@ -100,7 +100,7 @@ export class TimeReportsComponent {
   });
 
   completedRequests = computed(() => {
-    return this.filteredRequests().filter((r) => r.status === "Finalizado");
+    return this.filteredRequests().filter((r) => r.status === "Concluído"); // Novo sistema: admin finalizou
   });
 
   delayedRequests = computed(() => {

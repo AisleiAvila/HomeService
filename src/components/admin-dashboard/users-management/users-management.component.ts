@@ -47,10 +47,10 @@ export class UsersManagementComponent {
     pageSize = 10;
     currentPage = signal(1);
 
-    // Lista filtrada
+    // Lista filtrada (only professional and admin - client role removed)
     filteredClients = computed(() => {
         let users = this.dataService.users()
-            .filter((u) => u.role === "client" || u.role === "admin");
+            .filter((u) => u.role === "professional" || u.role === "admin");
 
         // Aplicar busca
         const search = this.searchTerm().toLowerCase();
@@ -137,21 +137,21 @@ export class UsersManagementComponent {
         });
     }
 
-    // Available roles for user management (client e admin)
-    readonly availableRoles: UserRole[] = ["client", "admin"];
+    // Available roles for user management (only professional and admin - client role removed)
+    readonly availableRoles: UserRole[] = ["professional", "admin"];
 
     // Add Client Form
     showAddClientForm = signal(false);
     newClientName = signal("");
     newClientEmail = signal("");
     newClientPhone = signal("");
-    newClientRole = signal<UserRole>("client");
+    newClientRole = signal<UserRole>("professional");
 
     // Edit Client
     editingClient = signal<User | null>(null);
     editingClientName = signal("");
     editingClientEmail = signal("");
-    editingClientRole = signal<UserRole>("client");
+    editingClientRole = signal<UserRole>("professional");
 
     // View Details
     viewingClient = signal<User | null>(null);
@@ -170,7 +170,7 @@ export class UsersManagementComponent {
         this.newClientName.set("");
         this.newClientEmail.set("");
         this.newClientPhone.set("");
-        this.newClientRole.set("client");
+        this.newClientRole.set("professional");
         this.showAddClientForm.set(false);
     }
 
@@ -343,7 +343,7 @@ export class UsersManagementComponent {
         this.editingClient.set(null);
         this.editingClientName.set("");
         this.editingClientEmail.set("");
-        this.editingClientRole.set("client");
+        this.editingClientRole.set("professional");
     }
 
     getRoleLabel(role: UserRole): string {

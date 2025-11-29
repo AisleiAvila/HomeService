@@ -62,7 +62,7 @@ app.post('/api/register', async (req, res) => {
     // 2. Envia e-mail com a senha temporária
     const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
     const subject = 'Confirmação de cadastro - HomeService';
-    const userRoleLabel = role === 'admin' ? 'administrador' : role === 'client' ? 'cliente' : 'profissional';
+    const userRoleLabel = role === 'admin' ? 'administrador' : 'profissional'; // Client role removed
     const html = `<p>Olá ${name},</p>
       <p>Seu cadastro como ${userRoleLabel} foi realizado com sucesso.<br>
       <b>Sua senha temporária para o primeiro acesso é:</b><br>

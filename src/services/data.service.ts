@@ -15,8 +15,23 @@ import {
   UserStatus
 } from "../models/maintenance.models";
 import { StatusService } from "../services/status.service";
-import { statusServiceToServiceStatus } from "../utils/status-mapping.util";
 import { AuthService } from "./auth.service";
+
+// Mapeamento temporário para compatibilidade com código legado
+// TODO: Refatorar data.service para usar novo sistema de workflow simplificado
+const statusServiceToServiceStatus = {
+  [StatusService.Requested]: "Solicitado" as const,
+  [StatusService.SearchingProfessional]: "Solicitado" as const,
+  [StatusService.AwaitingProfessionalConfirmation]: "Aguardando Confirmação" as const,
+  [StatusService.Scheduled]: "Data Definida" as const,
+  [StatusService.InProgress]: "Em Progresso" as const,
+  [StatusService.CompletedAwaitingApproval]: "Aguardando Finalização" as const,
+  [StatusService.Completed]: "Concluído" as const,
+  [StatusService.Cancelled]: "Cancelado" as const,
+  [StatusService.DateProposedByAdmin]: "Data Definida" as const,
+  [StatusService.DateApprovedByClient]: "Data Definida" as const,
+  [StatusService.DateRejectedByClient]: "Recusado" as const,
+};
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
@@ -837,7 +852,7 @@ export class DataService {
     const now = new Date();
 
     // Se o servi├ºo est├í conclu├¡do
-    if (request.status === "Finalizado" && request.actual_end_datetime) {
+    if (request.status === "Concluído" && request.actual_end_datetime) {
       return "Completed";
     }
 
@@ -921,7 +936,7 @@ export class DataService {
     return professionals.map((professional) => {
       const services = this.serviceRequests().filter(
         (r) =>
-          r.professional_id === professional.id && r.status === "Finalizado"
+          r.professional_id === professional.id && r.status === "Concluído" // Novo status simplificado
       );
 
       const completedServices = services.length;

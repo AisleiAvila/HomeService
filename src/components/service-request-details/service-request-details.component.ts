@@ -21,8 +21,8 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 import { TimeControlComponent } from "../time-control/time-control.component";
 import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
 import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
-import { WorkflowService } from "../../services/workflow.service";
 import { NotificationService } from "../../services/notification.service";
+import { DataService } from "../../services/data.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
 
 @Component({
@@ -85,13 +85,13 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
           ></app-workflow-timeline>
         </div>
 
-        <!-- Professional Responses / Orçamentos -->
+        <!-- Professional Responses / Respostas dos Profissionais -->
         @if (professionalQuotes().length > 0) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">
-            {{ "professionalQuotes" | i18n }}
+            {{ "professionalResponses" | i18n }}
             <span class="text-sm font-normal text-gray-500 ml-2">
-              ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('quote' | i18n) : ('quotes' | i18n) }})
+              ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('response' | i18n) : ('responses' | i18n) }})
             </span>
           </h3>
           <div class="space-y-4">
@@ -102,7 +102,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
               [class.bg-green-50]="quote.isSelected"
               [class.border-gray-200]="!quote.isSelected"
             >
-              <!-- Cabeçalho do orçamento -->
+              <!-- Cabeçalho da resposta -->
               <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
                 <div class="flex items-center space-x-3 mb-2 sm:mb-0">
                   @if (quote.professional_avatar_url) {
@@ -148,8 +148,8 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 </div>
               </div>
 
-              <!-- Valor e detalhes do orçamento -->
-              @if (quote.hasQuote) {
+              <!-- Valor e detalhes do orçamento - DEPRECATED: Sistema novo não usa orçamentos -->
+              <!-- @if (quote.hasQuote) {
               <div class="mt-3 p-3 bg-gray-50 rounded-lg">
                 <div class="flex items-baseline justify-between mb-2">
                   <span class="text-sm text-gray-600">{{ "quoteValue" | i18n }}:</span>
@@ -179,7 +179,10 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 </div>
                 }
               </div>
-              } @else {
+              } @else { -->
+              
+              <!-- Status de resposta do profissional -->
+              @if (quote.response_status === 'pending' || quote.response_status === 'responded') {
               <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p class="text-sm text-yellow-800">
                   <i class="fas fa-clock mr-2"></i>
@@ -187,9 +190,10 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 </p>
               </div>
               }
+              <!-- } FIM DA SEÇÃO DEPRECATED DE ORÇAMENTOS -->
 
-              <!-- Botões de ação para admin -->
-              @if (currentUser().role === "admin" && quote.response_status === "responded" && !quote.isSelected) {
+              <!-- Botões de ação para admin - SIMPLIFICADO: apenas seleção de profissional -->
+              @if (currentUser().role === "admin" && (quote.response_status === "responded" || quote.response_status === "accepted") && !quote.isSelected) {
               <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200">
                 <button
                   (click)="selectSpecificProfessional(quote.professional_id)"
@@ -197,13 +201,6 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 >
                   <i class="fas fa-check mr-2"></i>
                   {{ "selectProfessional" | i18n }}
-                </button>
-                <button
-                  (click)="rejectQuote.emit(request())"
-                  class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                >
-                  <i class="fas fa-times mr-2"></i>
-                  {{ "rejectQuote" | i18n }}
                 </button>
               </div>
               }
@@ -407,8 +404,8 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
 
         <!-- Time Control (for professionals) -->
         @if ( currentUser().role === "professional" && request().professional_id
-        === currentUser().id && (request().status === "Em execução" ||
-        request().status === "Orçamento aprovado") ) {
+        === currentUser().id && (request().status === "Em Progresso" ||
+        request().status === "Aceito") ) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">
             {{ "timeControl" | i18n }}
@@ -497,7 +494,7 @@ export class ServiceRequestDetailsComponent {
   currentUser = input.required<User>();
 
   // Injeção de serviços
-  private readonly workflowService = inject(WorkflowService);
+  private readonly dataService = inject(DataService);
   private readonly notificationService = inject(NotificationService);
 
   // Signals para UI state
@@ -586,59 +583,39 @@ export class ServiceRequestDetailsComponent {
     console.log("🔍 [Actions Debug] Request status:", req.status);
 
     const allPossibleActions = [
-      // Fase 1: Solicitação e Orçamento
-      {
-        type: "quote",
-        label: "provideQuote",
-        class: "primary",
-        loading: false,
-        condition: user.role === "professional" && req.status === "Solicitado" && !req.professional_id,
-      },
-      // Fase 2: Aprovação de Orçamento (Admin)
-      {
-        type: "approve",
-        label: "approveQuote",
-        class: "primary",
-        loading: false,
-        condition: user.role === "admin" && req.status === "Orçamento enviado",
-      },
-      {
-        type: "reject",
-        label: "rejectQuote",
-        class: "secondary",
-        loading: false,
-        condition: user.role === "admin" && req.status === "Orçamento enviado",
-      },
-      // Fase 3: Agendamento
+      // SISTEMA NOVO: Sem fase de orçamentos
+      // Profissional não fornece mais orçamento, apenas aceita/recusa atribuição
+      
+      // Fase 1: Agendamento (após profissional aceitar)
       {
         type: "schedule",
         label: "scheduleService",
         class: "primary",
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Orçamento aprovado" && !req.scheduled_date,
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Aceito" && !req.scheduled_date,
       },
-      // Fase 4: Execução do Serviço
+      // Fase 2: Execução do Serviço
       {
         type: "start",
         label: "startService",
         class: "primary",
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Agendado",
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Data Definida",
       },
       {
         type: "complete",
         label: "completeService",
         class: "primary",
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Em execução",
+        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Em Progresso",
       },
-      // Fase 5: Pagamento
+      // Fase 3: Pagamento (Admin)
       {
         type: "pay",
         label: "payNow",
         class: "primary",
         loading: false,
-        condition: user.role === "admin" && req.status === "Concluído - Aguardando aprovação" && req.cost && !req.payment_status,
+        condition: user.role === "admin" && req.status === "Aguardando Finalização" && !req.payment_date,
       },
       // Chat sempre disponível para partes envolvidas
       {
@@ -646,7 +623,7 @@ export class ServiceRequestDetailsComponent {
         label: "chat",
         class: "secondary",
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id,
+        condition: (user.role === "admin" || (user.role === "professional" && req.professional_id === user.id)),
       },
     ];
 
@@ -728,15 +705,8 @@ export class ServiceRequestDetailsComponent {
       action.loading = true;
 
       switch (action.type) {
-        case "quote":
-          // Lógica para fornecer orçamento
-          break;
-        case "approve":
-          this.approveQuote.emit(this.request());
-          break;
-        case "reject":
-          this.rejectQuote.emit(this.request());
-          break;
+        // REMOVIDO: case "quote" - Sistema novo não tem orçamentos
+        // REMOVIDO: case "approve"/"reject" - Admin não aprova mais orçamentos
         case "schedule":
           this.scheduleRequest.emit(this.request());
           break;
@@ -745,6 +715,9 @@ export class ServiceRequestDetailsComponent {
           break;
         case "complete":
           await this.handleCompleteService();
+          break;
+        case "pay":
+          this.payNow.emit(this.request());
           break;
         case "chat":
           this.openChat.emit(this.request());
@@ -759,7 +732,9 @@ export class ServiceRequestDetailsComponent {
 
   private async handleStartService(): Promise<void> {
     try {
-      await this.workflowService.startWork(this.request().id);
+      await this.dataService.updateServiceRequest(this.request().id, {
+        status: "Em Progresso",
+      });
       this.notificationService.addNotification(
         "Serviço iniciado com sucesso!"
       );
@@ -780,7 +755,9 @@ export class ServiceRequestDetailsComponent {
 
   private async handleCompleteService(): Promise<void> {
     try {
-      await this.workflowService.completeWork(this.request().id);
+      await this.dataService.updateServiceRequest(this.request().id, {
+        status: "Aguardando Finalização",
+      });
       this.notificationService.addNotification(
         "Serviço marcado como concluído!"
       );

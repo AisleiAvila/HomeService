@@ -136,19 +136,17 @@
                   <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
                     (openChat)="openChat($event)" (payNow)="handlePayment($event)"
                     (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
-                </ng-container>
-                <!-- Dashboard do Cliente -->
-                <ng-container *ngIf="currentUser()?.role === 'client'">
-                  <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
-                    (openChat)="openChat($event)" (payNow)="handlePayment($event)"
-                    (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
-                </ng-container>
+              </ng-container>
               </ng-container>
               <ng-container *ngSwitchCase="'schedule'">
                 <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
               </ng-container>
               <ng-container *ngSwitchCase="'search'">
-                <app-search [user]="currentUser()!" />
+                <app-search 
+                  [user]="currentUser()!" 
+                  (viewDetails)="openDetails($event)"
+                  (openChat)="openChat($event)"
+                />
               </ng-container>
               <ng-container *ngSwitchCase="'profile'">
                 <app-profile [user]="currentUser()!" />

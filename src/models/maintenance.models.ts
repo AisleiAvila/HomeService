@@ -1,51 +1,20 @@
-export type UserRole = "client" | "professional" | "admin";
+export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
+
+// Sistema simplificado: 11 status (removido fluxo de orçamentos e aprovação de cliente)
 export type ServiceStatus =
-  | "Solicitado"
-  | "Em análise"
-  | "Aguardando esclarecimentos"
-  | "Orçamento enviado"
-  | "Aguardando aprovação do orçamento"
-  | "Orçamento aprovado"
-  | "Orçamento rejeitado"
-  | "Aguardando data de execução"
-  | "Data proposta pelo administrador"
-  | "Aguardando aprovação da data"
-  | "Data aprovada"
-  | "Data rejeitada"
-  | "Buscando profissional"
-  | "Profissional selecionado"
-  | "Aguardando confirmação do profissional"
-  | "Agendado"
-  | "Em execução"
-  | "Concluído - Aguardando aprovação"
-  | "Aprovado"
-  | "Rejeitado"
-  | "Pago"
-  | "Finalizado"
-  | "Cancelado"
-  // Inglês
-  | "Requested"
-  | "InAnalysis"
-  | "AwaitingClarifications"
-  | "QuoteSent"
-  | "AwaitingQuoteApproval"
-  | "QuoteApproved"
-  | "QuoteRejected"
-  | "AwaitingExecutionDate"
-  | "DateProposedByAdmin"
-  | "AwaitingDateApproval"
-  | "DateApproved"
-  | "DateRejected"
-  | "SearchingProfessional"
-  | "ProfessionalSelected"
-  | "AwaitingProfessionalConfirmation"
-  | "Scheduled"
-  | "InProgress"
-  | "CompletedAwaitingApproval"
-  | "Completed"
-  | "Cancelled"
-  | "Paid";
+  | "Solicitado"                    // Admin criou a solicitação
+  | "Atribuído"                     // Admin atribuiu a um profissional
+  | "Aguardando Confirmação"        // Profissional foi notificado
+  | "Aceito"                        // Profissional aceitou
+  | "Recusado"                      // Profissional recusou
+  | "Data Definida"                 // Profissional definiu data
+  | "Em Progresso"                  // Serviço em execução
+  | "Aguardando Finalização"        // Profissional concluiu, aguardando admin
+  | "Pagamento Feito"               // Admin registrou pagamento
+  | "Concluído"                     // Admin finalizou
+  | "Cancelado";                    // Cancelado
+
 export type PaymentStatus =
   | "Unpaid"
   | "Paid"
@@ -181,39 +150,77 @@ export interface User {
 
 export interface ServiceRequest {
   id: number;
-  client_id: number | null;
+  
+  // DADOS DO CLIENTE (informativo, não mais FK para users)
+  client_id: number | null; // DEPRECATED - manter por compatibilidade
+  client_name?: string; // Nome do cliente (obrigatório no novo sistema)
+  client_email?: string; // Email do cliente (obrigatório no novo sistema)
+  client_phone?: string; // Telefone do cliente (obrigatório no novo sistema)
+  client_address?: string; // Endereço completo do cliente
+  
+  // DADOS DO PROFISSIONAL
   professional_id: number | null;
+  professional_name?: string; // Denormalized for convenience
+  
+  // DADOS ADMINISTRATIVOS (novos campos)
+  created_by_admin_id?: number; // FK para users (admin que criou)
+  assigned_by_admin_id?: number; // FK para users (admin que atribuiu)
+  paid_by_admin_id?: number; // FK para users (admin que registrou pagamento)
+  finalized_by_admin_id?: number; // FK para users (admin que finalizou)
+  
+  // DADOS DO SERVIÇO
   title: string;
   description: string;
   category_id: number; // FK para service_categories
   category?: ServiceCategory; // Objeto populado via JOIN
   subcategory_id?: number; // FK para service_subcategories
   subcategory?: ServiceSubcategory; // Objeto populado via JOIN
+  
+  // ENDEREÇO DO SERVIÇO
   street: string;
   city: string;
   state: string;
   zip_code: string;
+  
+  // STATUS E PAGAMENTO
   status: ServiceStatus;
   payment_status: PaymentStatus;
+  
+  // DATAS (campos legados - manter por compatibilidade)
   requested_date: string; // ISO string - DEPRECATED: use requested_datetime
   scheduled_date: string | null; // ISO string - DEPRECATED: use scheduled_start_datetime
+  
+  // CUSTO (campo legado)
   cost: number | null;
-  professional_name?: string; // Denormalized for convenience
 
   // Campos existentes para controle de agendamento e tempo
   requested_datetime?: string; // Data e hora solicitada (ISO string)
-  scheduled_start_datetime?: string | null; // Data e hora agendada pelo administrador (ISO string)
-  estimated_duration_minutes?: number | null; // Previsão de duração em minutos (administrador)
+  scheduled_start_datetime?: string | null; // Data e hora agendada pelo profissional (ISO string)
+  estimated_duration_minutes?: number | null; // Previsão de duração em minutos
   actual_start_datetime?: string | null; // Data e hora real de início (profissional)
   actual_end_datetime?: string | null; // Data e hora real do final (profissional)
+  
+  // NOVOS CAMPOS DE PAGAMENTO ADMINISTRATIVO
+  payment_date?: string | null; // Data do pagamento ao profissional
+  payment_amount?: number | null; // Valor pago ao profissional
+  payment_method?: 'Dinheiro' | 'Transferência' | 'PIX' | 'Cheque' | null; // Método de pagamento
+  payment_notes?: string | null; // Observações sobre o pagamento
+  
+  // TIMESTAMPS DE CONTROLE
+  started_at?: string | null; // Data/hora de início da execução
+  completed_at?: string | null; // Data/hora de conclusão pelo profissional
+  finalized_at?: string | null; // Data/hora de finalização pelo admin
+  admin_notes?: string | null; // Notas administrativas internas
 
-  // NOVOS CAMPOS PARA O FLUXO EXPANDIDO
+  // ============================================================================
+  // CAMPOS DEPRECATED (sistema antigo de orçamentos - serão removidos)
+  // ============================================================================
 
-  // FASE 1: ORÇAMENTO
-  quote_amount?: number | null; // Valor do orçamento
-  quote_description?: string | null; // Descrição detalhada do orçamento
-  quote_sent_at?: string | null; // Data envio orçamento
-  quote_approved_at?: string | null; // Data aprovação
+  // FASE 1: ORÇAMENTO (DEPRECATED - remover no futuro)
+  quote_amount?: number | null; // DEPRECATED: Valor do orçamento
+  quote_description?: string | null; // DEPRECATED: Descrição detalhada do orçamento
+  quote_sent_at?: string | null; // DEPRECATED: Data envio orçamento
+  quote_approved_at?: string | null; // DEPRECATED: Data aprovação
   clarifications?: string | null; // Esclarecimentos
   admin_requests?: string | null; // Solicitações do admin
 

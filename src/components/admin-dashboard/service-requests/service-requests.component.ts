@@ -56,9 +56,9 @@ export class ServiceRequestsComponent {
     // Options
     quickFilterOptions = [
         { status: "Solicitado", label: "statusRequested" },
-        { status: "Em análise", label: "statusInAnalysis" },
-        { status: "Agendado", label: "statusScheduled" },
-        { status: "Finalizado", label: "statusCompleted" },
+        { status: "Atribuído", label: "statusAssigned" },
+        { status: "Data Definida", label: "statusScheduled" },
+        { status: "Concluído", label: "statusCompleted" },
     ];
 
     districtOptions = [

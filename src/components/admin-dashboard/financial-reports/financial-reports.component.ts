@@ -20,7 +20,7 @@ export class FinancialReportsComponent {
     completedRequests = computed(() =>
         this.dataService.serviceRequests().filter(
             (r) =>
-                (r.status === "Finalizado" || r.status === ("Completed" as any)) &&
+                (r.status === "Concluído" || r.status === ("Completed" as any)) &&
                 r.cost
         )
     );

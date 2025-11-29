@@ -1,111 +1,46 @@
 import { ServiceStatus } from "@/src/models/maintenance.models";
 import { I18nService } from "@/src/i18n.service";
 
+/**
+ * Utilitários para trabalhar com os novos status simplificados
+ * Sistema sem papel de cliente - 11 status conforme maintenance.models.ts
+ */
 export class StatusUtilsService {
   static readonly colorMap: Record<ServiceStatus, string> = {
-    // Português
-    Solicitado: "#eab308",
-    "Em análise": "#06b6d4",
-    "Aguardando esclarecimentos": "#f59e0b",
-    "Orçamento enviado": "#0ea5e9",
-    "Aguardando aprovação do orçamento": "#6366f1",
-    "Orçamento aprovado": "#22c55e",
-    "Orçamento rejeitado": "#ef4444",
-    "Aguardando data de execução": "#fbbf24",
-    "Data proposta pelo administrador": "#3b82f6",
-    "Aguardando aprovação da data": "#6366f1",
-    "Data aprovada": "#22c55e",
-    "Data rejeitada": "#ef4444",
-    "Buscando profissional": "#a855f7",
-    "Profissional selecionado": "#14b8a6",
-    "Aguardando confirmação do profissional": "#f97316",
-    Agendado: "#3b82f6",
-    "Em execução": "#8b5cf6",
-    "Concluído - Aguardando aprovação": "#84cc16",
-    Aprovado: "#22c55e",
-    Rejeitado: "#ef4444",
-    Pago: "#10b981",
-    Finalizado: "#059669",
-    Cancelado: "#6b7280",
-    // Inglês
-    Requested: "#eab308",
-    InAnalysis: "#06b6d4",
-    AwaitingClarifications: "#f59e0b",
-    QuoteSent: "#0ea5e9",
-    AwaitingQuoteApproval: "#6366f1",
-    QuoteApproved: "#22c55e",
-    QuoteRejected: "#ef4444",
-    AwaitingExecutionDate: "#fbbf24",
-    DateProposedByAdmin: "#3b82f6",
-    AwaitingDateApproval: "#6366f1",
-    DateApproved: "#22c55e",
-    DateRejected: "#ef4444",
-    SearchingProfessional: "#a855f7",
-    ProfessionalSelected: "#14b8a6",
-    AwaitingProfessionalConfirmation: "#f97316",
-    Scheduled: "#3b82f6",
-    InProgress: "#8b5cf6",
-    CompletedAwaitingApproval: "#84cc16",
-    Completed: "#059669",
-    Cancelled: "#6b7280",
-    Paid: "#10b981",
+    // Novos status simplificados (11 status) - conforme ServiceStatus type
+    "Solicitado": "#eab308",
+    "Atribuído": "#14b8a6",
+    "Aguardando Confirmação": "#f97316",
+    "Aceito": "#22c55e",
+    "Recusado": "#ef4444",
+    "Data Definida": "#3b82f6",
+    "Em Progresso": "#8b5cf6",
+    "Aguardando Finalização": "#84cc16",
+    "Pagamento Feito": "#10b981",
+    "Concluído": "#059669",
+    "Cancelado": "#6b7280",
   };
 
   static readonly statusMap: Record<ServiceStatus, string> = {
-    // Português
-    Solicitado: "statusPending",
-    "Em análise": "statusAnalyzing",
-    "Aguardando esclarecimentos": "statusAwaitingClarification",
-    "Orçamento enviado": "statusQuoted",
-    "Aguardando aprovação do orçamento": "statusAwaitingQuoteApproval",
-    "Orçamento aprovado": "statusApproved",
-    "Orçamento rejeitado": "statusQuoteRejected",
-    "Aguardando data de execução": "statusAwaitingExecutionDate",
-    "Data proposta pelo administrador": "statusDateProposedByAdmin",
-    "Aguardando aprovação da data": "statusAwaitingDateApproval",
-    "Data aprovada": "statusDateApproved",
-    "Data rejeitada": "statusDateRejected",
-    "Buscando profissional": "statusSearchingProfessional",
-    "Profissional selecionado": "statusProfessionalSelected",
-    "Aguardando confirmação do profissional":
-      "statusAwaitingProfessionalConfirmation",
-    Agendado: "statusScheduled",
-    "Em execução": "statusInProgress",
-    "Concluído - Aguardando aprovação": "statusCompletedAwaitingApproval",
-    Aprovado: "statusApproved",
-    Rejeitado: "statusRejected",
-    Pago: "statusPaid",
-    Finalizado: "statusCompleted",
-    Cancelado: "statusCancelled",
-    // Inglês
-    Requested: "statusPending",
-    InAnalysis: "statusAnalyzing",
-    AwaitingClarifications: "statusAwaitingClarification",
-    QuoteSent: "statusQuoted",
-    AwaitingQuoteApproval: "statusAwaitingQuoteApproval",
-    QuoteApproved: "statusApproved",
-    QuoteRejected: "statusQuoteRejected",
-    AwaitingExecutionDate: "statusAwaitingExecutionDate",
-    DateProposedByAdmin: "statusDateProposedByAdmin",
-    AwaitingDateApproval: "statusAwaitingDateApproval",
-    DateApproved: "statusDateApproved",
-    DateRejected: "statusDateRejected",
-    SearchingProfessional: "statusSearchingProfessional",
-    ProfessionalSelected: "statusProfessionalSelected",
-    AwaitingProfessionalConfirmation: "statusAwaitingProfessionalConfirmation",
-    Scheduled: "statusScheduled",
-    InProgress: "statusInProgress",
-    CompletedAwaitingApproval: "statusCompletedAwaitingApproval",
-    Completed: "statusCompleted",
-    Cancelled: "statusCancelled",
-    Paid: "statusPaid",
+    // Novos status simplificados (11 status) - conforme ServiceStatus type
+    "Solicitado": "statusRequested",
+    "Atribuído": "statusAssigned",
+    "Aguardando Confirmação": "statusAwaitingConfirmation",
+    "Aceito": "statusAccepted",
+    "Recusado": "statusRejected",
+    "Data Definida": "statusScheduled",
+    "Em Progresso": "statusInProgress",
+    "Aguardando Finalização": "statusAwaitingFinalization",
+    "Pagamento Feito": "statusPaid",
+    "Concluído": "statusCompleted",
+    "Cancelado": "statusCancelled",
   };
 
   static getColor(status: ServiceStatus): string {
-    return this.colorMap[status] || "#6b7280";
+    return this.colorMap[status as ServiceStatus] || "#6b7280";
   }
 
   static getLabel(status: ServiceStatus, i18n: I18nService): string {
-    return i18n.translate(this.statusMap[status] || "statusPending");
+    return i18n.translate(this.statusMap[status as ServiceStatus] || "statusPending");
   }
 }

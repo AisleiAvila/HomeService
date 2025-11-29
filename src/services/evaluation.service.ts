@@ -135,7 +135,7 @@ export class EvaluationService {
     const { count: pendingEvaluations } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
-      .in("status", ["Aprovado pelo cliente", "Pago"])
+      .in("status", ["Concluído", "Pagamento Feito"])
       .eq("mutual_evaluation_completed", false);
 
     // Avaliações recentes

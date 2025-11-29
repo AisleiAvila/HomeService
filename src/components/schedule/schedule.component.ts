@@ -259,10 +259,10 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       }
 
       const pastEventStatuses = new Set<ServiceStatus>([
-        "Finalizado",
-        "Pago",
+        "Concluído",
+        "Pagamento Feito",
         "Cancelado",
-        "Concluído - Aguardando aprovação",
+        "Aguardando Finalização",
       ]);
 
       const scheduledEvents = userRequests

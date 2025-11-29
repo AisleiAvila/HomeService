@@ -1068,7 +1068,7 @@ export class AuthService {
     const insertData = {
       name: tempUserData?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'Novo Usuário',
       email: user.email,
-      role: tempUserData?.role || 'client',
+      role: tempUserData?.role || 'professional', // Client role removed from system
       status: tempUserData?.role === "professional" ? "Pending" : "Active",
       avatar_url: `https://i.pravatar.cc/150?u=${user.id}`,
       email_verified: true,

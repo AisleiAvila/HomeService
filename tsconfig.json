@@ -18,6 +18,7 @@
   },
   "files": ["./index.tsx"],
   "include": ["src/environments/*", "src/**/*"],
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "node_modules"],
   "angularCompilerOptions": {
     "disableTypeScriptVersionCheck": true
   }

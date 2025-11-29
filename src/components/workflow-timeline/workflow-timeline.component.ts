@@ -8,6 +8,7 @@ import {
 import { CommonModule } from "@angular/common";
 import { ServiceRequest, ServiceStatus } from "@/src/models/maintenance.models";
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
+import { StatusMigrationUtil } from "@/src/utils/status-migration.util";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
@@ -15,7 +16,7 @@ interface WorkflowPhase {
   id: number;
   title: string;
   description: string;
-  statuses: ServiceStatus[];
+  statuses: ServiceStatus[]; // Agora usa apenas os 11 status novos
   completed: boolean;
   current: boolean;
   icon: string;
@@ -39,20 +40,17 @@ export class WorkflowTimelineComponent {
   // Computed signals
   phases = computed(() => {
     const request = this.serviceRequest();
-    const currentStatus = request.status;
+    // Migrar status deprecated automaticamente
+    const currentStatus = StatusMigrationUtil.migrateStatus(request.status);
 
     const phases: WorkflowPhase[] = [
       {
         id: 1,
-        title: this.i18n.translate("requestAndQuote"),
-        description: this.i18n.translate("requestAndQuoteDescription"),
+        title: this.i18n.translate("requestCreation"),
+        description: this.i18n.translate("adminCreatesAndAssigns"),
         statuses: [
-          "Solicitado",
-          "Em análise",
-          "Aguardando esclarecimentos",
-          "Orçamento enviado",
-          "Aguardando aprovação do orçamento",
-          "Orçamento rejeitado",
+          "Solicitado",      // Admin criou
+          "Atribuído",       // Admin atribuiu a profissional
         ],
         completed: this.isPhaseCompleted(1, currentStatus),
         current: this.isCurrentPhase(1, currentStatus),
@@ -61,14 +59,13 @@ export class WorkflowTimelineComponent {
       },
       {
         id: 2,
-        title: this.i18n.translate("selectionAndScheduling"),
-        description: this.i18n.translate("selectionAndSchedulingDescription"),
+        title: this.i18n.translate("professionalConfirmation"),
+        description: this.i18n.translate("professionalAcceptsOrRejects"),
         statuses: [
-          "Orçamento aprovado",
-          "Buscando profissional",
-          "Profissional selecionado",
-          "Aguardando confirmação do profissional",
-          "Agendado",
+          "Aguardando Confirmação",  // Notificado
+          "Aceito",                  // Profissional aceitou
+          "Recusado",                // Profissional recusou
+          "Data Definida",           // Profissional agendou
         ],
         completed: this.isPhaseCompleted(2, currentStatus),
         current: this.isCurrentPhase(2, currentStatus),
@@ -78,8 +75,11 @@ export class WorkflowTimelineComponent {
       {
         id: 3,
         title: this.i18n.translate("execution"),
-        description: this.i18n.translate("executionDescription"),
-        statuses: ["Em execução"],
+        description: this.i18n.translate("serviceExecution"),
+        statuses: [
+          "Em Progresso",           // Profissional executando
+          "Aguardando Finalização", // Profissional concluiu
+        ],
         completed: this.isPhaseCompleted(3, currentStatus),
         current: this.isCurrentPhase(3, currentStatus),
         icon: "cog",
@@ -87,15 +87,12 @@ export class WorkflowTimelineComponent {
       },
       {
         id: 4,
-        title: this.i18n.translate("approvalAndPayment"),
-        description: this.i18n.translate("approvalAndPaymentDescription"),
+        title: this.i18n.translate("paymentAndCompletion"),
+        description: this.i18n.translate("adminPaysAndFinalizes"),
         statuses: [
-          "Concluído - Aguardando aprovação",
-          "Aprovado",
-          "Rejeitado",
-          "Pago",
-          "Finalizado",
-          "Cancelado",
+          "Pagamento Feito",  // Admin registrou pagamento
+          "Concluído",        // Admin finalizou
+          "Cancelado",        // Cancelado
         ],
         completed: this.isPhaseCompleted(4, currentStatus),
         current: this.isCurrentPhase(4, currentStatus),
@@ -165,29 +162,24 @@ export class WorkflowTimelineComponent {
       case 1:
         return [
           "Solicitado",
-          "Em análise",
-          "Aguardando esclarecimentos",
-          "Orçamento enviado",
-          "Aguardando aprovação do orçamento",
-          "Orçamento rejeitado",
+          "Atribuído",
         ];
       case 2:
         return [
-          "Orçamento aprovado",
-          "Buscando profissional",
-          "Profissional selecionado",
-          "Aguardando confirmação do profissional",
-          "Agendado",
+          "Aguardando Confirmação",
+          "Aceito",
+          "Recusado",
+          "Data Definida",
         ];
       case 3:
-        return ["Em execução"];
+        return [
+          "Em Progresso",
+          "Aguardando Finalização",
+        ];
       case 4:
         return [
-          "Concluído - Aguardando aprovação",
-          "Aprovado",
-          "Rejeitado",
-          "Pago",
-          "Finalizado",
+          "Pagamento Feito",
+          "Concluído",
           "Cancelado",
         ];
       default:

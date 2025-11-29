@@ -13,7 +13,6 @@ import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { User, ServiceRequest } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
-import { WorkflowService } from "../../services/workflow.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
@@ -31,24 +30,24 @@ export class DashboardComponent implements OnInit {
   // Mapeamento entre status do enum e status dos dados
   private readonly statusMap: Record<string, string> = {
     Requested: "Solicitado",
-    InAnalysis: "Em análise",
+    InAnalysis: "Solicitado",
     AwaitingClarifications: "Aguardando esclarecimentos",
-    QuoteSent: "Orçamento enviado",
-    AwaitingQuoteApproval: "Aguardando aprovação do orçamento",
-    QuoteApproved: "Orçamento aprovado",
-    QuoteRejected: "Orçamento rejeitado",
-    AwaitingExecutionDate: "Aguardando data de execução",
-    DateProposedByAdmin: "Data proposta pelo administrador",
-    AwaitingDateApproval: "Aguardando aprovação da data",
-    DateApprovedByClient: "Data aprovada pelo cliente",
-    DateRejectedByClient: "Data rejeitada pelo cliente",
-    SearchingProfessional: "Buscando profissional",
-    ProfessionalSelected: "Profissional selecionado",
-    AwaitingProfessionalConfirmation: "Aguardando confirmação do profissional",
-    Scheduled: "Agendado",
-    InProgress: "Em execução",
-    CompletedAwaitingApproval: "Concluído - Aguardando aprovação",
-    Completed: "Finalizado",
+    QuoteSent: "Aguardando Confirmação",
+    AwaitingQuoteApproval: "Aguardando Confirmação",
+    QuoteApproved: "Aceito",
+    QuoteRejected: "Recusado",
+    AwaitingExecutionDate: "Aceito",
+    DateProposedByAdmin: "Data Definida",
+    AwaitingDateApproval: "Aguardando Confirmação",
+    DateApprovedByClient: "Data Definida",
+    DateRejectedByClient: "Recusado",
+    SearchingProfessional: "Solicitado",
+    ProfessionalSelected: "Atribuído",
+    AwaitingProfessionalConfirmation: "Aguardando Confirmação",
+    Scheduled: "Data Definida",
+    InProgress: "Em Progresso",
+    CompletedAwaitingApproval: "Aguardando Finalização",
+    Completed: "Concluído",
     Cancelled: "Cancelado",
   };
   // Handler para detalhar solicitação
@@ -125,8 +124,10 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Use WorkflowService para manter histórico e notificações
-      await this.workflowService.completeWork(request.id);
+      // Atualizar status para Aguardando Finalização
+      await this.dataService.updateServiceRequest(request.id, {
+        status: "Aguardando Finalização",
+      });
       this.selectedRequest.set(null);
     } catch (error: any) {
       console.error("Erro ao finalizar serviço:", error);
@@ -148,8 +149,10 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Respeita as regras de negócio centralizadas no WorkflowService
-      await this.workflowService.startWork(request.id);
+      // Iniciar serviço
+      await this.dataService.updateServiceRequest(request.id, {
+        status: "Em Progresso",
+      });
       // Atualização ocorrerá via sinais/realtime; opcionalmente podemos fechar detalhes
       this.selectedRequest.set(null);
     } catch (error: any) {
@@ -186,7 +189,6 @@ export class DashboardComponent implements OnInit {
   public selectedRequest = signal<ServiceRequest | null>(null);
 
   readonly dataService = inject(DataService);
-  private readonly workflowService = inject(WorkflowService);
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
 
@@ -549,9 +551,9 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Atualizar status para "Agendado"
+      // Atualizar status para "Data Definida"
       await this.dataService.updateServiceRequest(request.id, {
-        status: "Agendado",
+        status: "Data Definida",
       });
       
       this.showBusinessError.set(true);
@@ -573,9 +575,9 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Atualizar status para "Buscando profissional" e remover o profissional
+      // Atualizar status para "Solicitado" e remover o profissional
       await this.dataService.updateServiceRequest(request.id, {
-        status: "Buscando profissional",
+        status: "Solicitado",
         professional_id: null,
       });
       

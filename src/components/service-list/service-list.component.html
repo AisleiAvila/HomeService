@@ -217,66 +217,7 @@
               </button>
               }
 
-              <!-- Conditional Actions -->
-              @if(currentUser().role === 'client') { @if(request.status ===
-              'Orçamento enviado') {
-              <button
-                (click)="openBudgetApprovalModal(request)"
-                class="service-list-action-budget-approval"
-                [attr.title]="'validateQuote' | i18n"
-                [attr.aria-label]="'validateQuote' | i18n"
-              >
-                <i class="fas fa-file-invoice-dollar"></i>
-              </button>
-              } @if(request.status === 'Data proposta pelo administrador' ||
-              request.status === 'Aguardando aprovação da data') {
-              <button
-                (click)="!isLoading(request.id) && approveExecutionDate.emit(request)"
-                class="service-list-action-approve-date"
-                title="{{ 'approveExecutionDate' | i18n }}"
-                [disabled]="isLoading(request.id)"
-              >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-calendar-check'"
-                ></i>
-              </button>
-              <button
-                (click)="!isLoading(request.id) && rejectExecutionDate.emit({ request: request, reason: '' })"
-                class="service-list-action-reject-date"
-                title="{{ 'rejectExecutionDate' | i18n }}"
-                [disabled]="isLoading(request.id)"
-              >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-calendar-times'"
-                ></i>
-              </button>
-              } @if(request.status === 'Aguardando esclarecimentos' &&
-              isActionAvailable(request, 'provide_clarification')) {
-              <button
-                (click)="provideClarification.emit(request)"
-                class="service-list-action-clarification"
-                title="{{ 'provideClarification' | i18n }}"
-              >
-                <i class="fas fa-comment-dots"></i>
-              </button>
-              } @if(request.status === 'Approved') {
-              <button
-                (click)="scheduleRequest.emit(request)"
-                class="service-list-action-schedule"
-                title="{{ 'schedule' | i18n }}"
-              >
-                <i class="fas fa-calendar"></i>
-              </button>
-              } @if(request.status === 'Completed' && request.payment_status ===
-              'Unpaid') {
-              <button
-                (click)="handlePayNow(request)"
-                class="service-list-action-pay-now"
-                title="{{ 'payNow' | i18n }}"
-              >
-                <i class="fas fa-credit-card"></i>
-              </button>
-              } }
+              <!-- Client role removed - no client-specific actions in desktop view -->
             </div>
           </td>
         </tr>
@@ -509,84 +450,7 @@
 
         <!-- Actions Section -->
         <div class="border-t border-gray-100 pt-3 sm:pt-4">
-          <!-- Client specific actions -->
-          @if(currentUser().role === 'client') { @if(request.status ===
-          'Quoted') {
-          <div class="service-list-actions mb-3">
-            <button
-              (click)="!isLoading(request.id) && approveQuote.emit(request)"
-              class="service-list-action-approve"
-              [disabled]="isLoading(request.id)"
-            >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ "approve" | i18n }}
-            </button>
-            <button
-              (click)="!isLoading(request.id) && rejectQuote.emit(request)"
-              class="service-list-action-reject"
-              [disabled]="isLoading(request.id)"
-            >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ "reject" | i18n }}
-            </button>
-          </div>
-          } @if(request.status === 'Data proposta pelo administrador' ||
-          request.status === 'Aguardando aprovação da data') {
-          <div class="service-list-actions mb-3">
-            <button
-              (click)="!isLoading(request.id) && approveExecutionDate.emit(request)"
-              class="service-list-action-approve-date"
-              [disabled]="isLoading(request.id)"
-            >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin mr-1 sm:mr-2' : 'fas fa-calendar-check mr-1 sm:mr-2'"
-              ></i>
-              {{ "approveExecutionDate" | i18n }}
-            </button>
-            <button
-              (click)="!isLoading(request.id) && rejectExecutionDate.emit({ request: request, reason: '' })"
-              class="service-list-action-reject-date"
-              [disabled]="isLoading(request.id)"
-            >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin mr-1 sm:mr-2' : 'fas fa-calendar-times mr-1 sm:mr-2'"
-              ></i>
-              {{ "rejectExecutionDate" | i18n }}
-            </button>
-          </div>
-          } @if(request.status === 'Aguardando esclarecimentos' &&
-          isActionAvailable(request, 'provide_clarification')) {
-          <button
-            (click)="provideClarification.emit(request)"
-            class="service-list-action-clarification"
-          >
-            <i class="fas fa-comment-dots mr-1 sm:mr-2"></i>
-            {{ "provideClarification" | i18n }}
-          </button>
-          } @if(request.status === 'Approved') {
-          <button
-            (click)="scheduleRequest.emit(request)"
-            class="service-list-action-schedule"
-          >
-            <i class="fas fa-calendar mr-1 sm:mr-2"></i>
-            {{ "schedule" | i18n }}
-          </button>
-          } @if(request.status === 'Completed' && request.payment_status ===
-          'Unpaid') {
-          <button
-            (click)="payNow.emit(request)"
-            class="service-list-action-schedule"
-          >
-            <i class="fas fa-credit-card mr-1 sm:mr-2"></i>
-            {{ "payNow" | i18n }}
-          </button>
-          } }
+          <!-- Client role removed - no client-specific actions in mobile view -->
 
           <!-- Professional actions (mobile): start/finish -->
           @if(currentUser().role === 'professional') {
@@ -753,17 +617,6 @@
   </div>
   }
 
-  <!-- Modal de Aprovação de Orçamento -->
-  <app-budget-approval-modal
-    *ngIf="showBudgetApprovalModal() && selectedRequestForBudget()"
-    [request]="selectedRequestForBudget()"
-    [user]="currentUser()"
-    [show]="showBudgetApprovalModal()"
-    [loading]="isLoading(selectedRequestForBudget()!.id)"
-    (approve)="handleApproveQuote($event)"
-    (reject)="handleRejectQuote($event)"
-    (close)="handleCloseBudgetModal()"
-  />
   <!-- Modal de Pagamento -->
   <app-payment-modal
     *ngIf="showPaymentModal() && selectedRequestForPayment()"
