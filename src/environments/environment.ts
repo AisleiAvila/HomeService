@@ -5,6 +5,8 @@ export const environment = {
   supabaseUrl: "https://" + "uqrvenlkquheajuveggv.supabase.co",
   apiUrl: "https://your-backend-url.com", // Altere para o endpoint real do backend/Supabase Function
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
+  loginApiUrl: "http://localhost:4002/api/login",
+  confirmEmailApiUrl: "http://localhost:4001/api/confirm-email",
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular

@@ -20,7 +20,7 @@ export class AuthService {
    */
   async loginCustom(email: string, password: string): Promise<User | null> {
     try {
-      const res = await fetch('http://localhost:4002/api/login', {
+      const res = await fetch(`${environment.loginApiUrl}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -39,27 +39,27 @@ export class AuthService {
       return null;
     }
   }
-    async confirmEmailCustom(email: string, token: string): Promise<boolean> {
-      try {
-        const res = await fetch("http://localhost:4001/api/confirm-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, token })
-        });
-        const result = await res.json();
-        if (result.success) {
-          this.notificationService.addNotification("E-mail confirmado com sucesso!");
-          return true;
-        } else {
-          this.notificationService.addNotification(result.message || "Falha ao confirmar e-mail.");
-          return false;
-        }
-      } catch (e) {
-        console.error("Erro ao conectar ao servidor de confirmação:", e);
-        this.notificationService.addNotification("Erro ao conectar ao servidor de confirmação.");
+  async confirmEmailCustom(email: string, token: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${environment.confirmEmailApiUrl}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, token })
+      });
+      const result = await res.json();
+      if (result.success) {
+        this.notificationService.addNotification("E-mail confirmado com sucesso!");
+        return true;
+      } else {
+        this.notificationService.addNotification(result.message || "Falha ao confirmar e-mail.");
         return false;
       }
+    } catch (e) {
+      console.error("Erro ao conectar ao servidor de confirmação:", e);
+      this.notificationService.addNotification("Erro ao conectar ao servidor de confirmação.");
+      return false;
     }
+  }
   /**
    * Recarrega o perfil do usuário autenticado (público)
    */
