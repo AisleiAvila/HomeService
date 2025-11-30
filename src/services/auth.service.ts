@@ -82,29 +82,23 @@ export class AuthService {
       // Buscar perfil pelo email, pois id não é UUID
       const { data: user, error } = await this.supabase.client
         .from("users")
-        .select("*")
+        .select("email, role")
         .eq("email", userId)
         .single();
 
-      if (error) {
+      if (error && error.code !== "PGRST116") {
         console.error("❌ Erro ao buscar perfil do usuário:", error);
         this.appUser.set(null);
         return;
       }
 
       if (!user) {
-        console.warn("⚠️ Nenhum perfil encontrado para o usuário:", userId);
+        this.notificationService.addNotification("Perfil não encontrado para o usuário. Verifique se o cadastro está correto.");
         this.appUser.set(null);
         return;
       }
 
-      // Se o email não estiver verificado, tratar fluxo de confirmação
-      if (!user.email_verified) {
-        await this.handleUnverifiedEmail(user, userId, isAutomatic);
-        return;
-      }
-
-      // Email verificado, definir usuário na signal
+      // Definir usuário na signal apenas com email e role
       this.pendingEmailConfirmation.set(null);
       this.appUser.set(user as User);
     } catch (err) {
