@@ -23,10 +23,19 @@ export default async function handler(req, res) {
   // Autenticação real via Supabase
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error || !data.user) {
+  if (error || !data.session) {
     return res.status(401).json({ success: false, error: error?.message || 'Credenciais inválidas' });
   }
 
-  // Retorne apenas os dados necessários
-  return res.status(200).json({ success: true, user: data.user });
+  // Retorne o objeto de sessão completo
+  return res.status(200).json({
+    success: true,
+    session: {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      expires_in: data.session.expires_in,
+      token_type: data.session.token_type,
+      user: data.session.user
+    }
+  });
 }
