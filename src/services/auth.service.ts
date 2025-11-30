@@ -111,12 +111,12 @@ export class AuthService {
   constructor() {
     effect(async () => {
       const sUser = this.supabaseUser();
-      console.log("🔍 AuthService effect triggered. sUser:", sUser?.id);
-      if (sUser) {
+      console.log("🔍 AuthService effect triggered. sUser:", sUser?.email);
+      if (sUser && sUser.email) {
         console.log("👤 Usuário autenticado, buscando perfil...");
-        await this.fetchAppUser(sUser.id, true); // true = chamada automática
+        await this.fetchAppUser(sUser.email, true); // true = chamada automática
       }
-      });
+    });
     }
 
   private async handleUnverifiedEmail(
