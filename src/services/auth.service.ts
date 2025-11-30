@@ -26,9 +26,14 @@ export class AuthService {
         body: JSON.stringify({ email, password })
       });
       const result = await res.json();
-      if (res.ok && result.success && result.user) {
-        this.appUser.set(result.user);
-        return result.user;
+      if (res.ok && result.success && result.session) {
+        // Persistir sessão Supabase no frontend
+        await this.supabase.client.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token
+        });
+        this.appUser.set(result.session.user);
+        return result.session.user;
       } else {
         this.notificationService.addNotification(result.error || 'Credenciais inválidas');
         return null;
