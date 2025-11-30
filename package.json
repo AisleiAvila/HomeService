@@ -25,7 +25,7 @@
     "@fullcalendar/list": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
     "@sendgrid/mail": "^8.1.6",
-    "@supabase/supabase-js": "^2.39.7",
+    "@supabase/supabase-js": "^2.86.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
