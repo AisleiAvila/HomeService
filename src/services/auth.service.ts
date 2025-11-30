@@ -79,10 +79,11 @@ export class AuthService {
    */
   private async fetchAppUser(userId: string, isAutomatic: boolean): Promise<void> {
     try {
+      // Buscar perfil pelo email, pois id não é UUID
       const { data: user, error } = await this.supabase.client
         .from("users")
         .select("*")
-        .eq("id", userId)
+        .eq("email", userId)
         .single();
 
       if (error) {
