@@ -20,6 +20,7 @@ export class AdminCreateServiceRequestComponent {
   private readonly router = inject(Router);
 
   goBack() {
+    console.log('goBack chamado (pai)');
     if (globalThis.history.length > 1) {
       globalThis.history.back();
     } else {

@@ -12,7 +12,8 @@ import {
   ServiceRequestPayload,
   ServiceSubcategoryExtended,
   User,
-  UserStatus
+  UserStatus,
+  ServiceRequestOrigin
 } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
@@ -25,6 +26,54 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class DataService {
+        // Signals para origens de solicitação de serviço
+        readonly origins = signal<ServiceRequestOrigin[]>([]);
+
+        /** Busca todas as origens de solicitação de serviço */
+        async fetchOrigins(): Promise<void> {
+          const { data, error } = await this.supabase.client
+            .from("service_request_origins")
+            .select("*")
+            .order("name");
+          if (error) {
+            this.notificationService.addNotification(
+              "Erro ao buscar origens: " + error.message
+            );
+            return;
+          }
+          this.origins.set(data || []);
+        }
+
+        /** Adiciona uma nova origem */
+        async addOrigin(name: string): Promise<boolean> {
+          const { error } = await this.supabase.client
+            .from("service_request_origins")
+            .insert({ name });
+          if (error) {
+            this.notificationService.addNotification(
+              "Erro ao adicionar origem: " + error.message
+            );
+            return false;
+          }
+          await this.fetchOrigins();
+          return true;
+        }
+
+        /** Remove uma origem pelo id */
+        async removeOrigin(id: number): Promise<boolean> {
+          const { error } = await this.supabase.client
+            .from("service_request_origins")
+            .delete()
+            .eq("id", id);
+          if (error) {
+            this.notificationService.addNotification(
+              "Erro ao remover origem: " + error.message
+            );
+            return false;
+          }
+          await this.fetchOrigins();
+          return true;
+        }
       /**
        * Atualiza dados extras do profissional após registro (specialties, phone)
        */
@@ -272,6 +321,7 @@ export class DataService {
       description: payload.description,
       category_id: payload.category_id,
       subcategory_id: payload.subcategory_id, // Agora é obrigatório
+      origin_id: payload.origin_id,
       street: payload.address.street,
       city: payload.address.city,
       state: payload.address.state,
@@ -321,6 +371,7 @@ export class DataService {
       description: payload.description,
       category_id: payload.category_id,
       subcategory_id: payload.subcategory_id,
+      origin_id: payload.origin_id,
       status: "Solicitado",
       payment_status: "Unpaid" as const,
       created_by_admin: true,

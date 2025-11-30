@@ -1,13 +1,11 @@
-
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { Router } from "@angular/router";
+import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
-import { I18nService } from "../../../i18n.service";
-import { StatusPieChartComponent } from "../../status-pie-chart.component";
 import { CategoryBarChartComponent } from "../../category-bar-chart.component";
-import { TemporalEvolutionChartComponent } from "../../temporal-evolution-chart.component";
+import { StatusPieChartComponent } from '../../status-pie-chart.component';
 
 @Component({
     selector: "app-admin-overview",
@@ -17,7 +15,6 @@ import { TemporalEvolutionChartComponent } from "../../temporal-evolution-chart.
         I18nPipe,
         StatusPieChartComponent,
         CategoryBarChartComponent,
-        TemporalEvolutionChartComponent,
     ],
     templateUrl: "./admin-overview.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,

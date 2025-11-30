@@ -23,6 +23,7 @@ export interface AdminServiceRequestPayload {
   description: string;
   category_id: number;
   subcategory_id: number;
+  origin_id: number;
   requester_name: string;
   requester_phone: string;
   requester_nif?: string;
@@ -46,6 +47,11 @@ export interface AdminServiceRequestPayload {
 export class AdminServiceRequestFormComponent {
   closeModal = output<void>();
 
+  logAndEmit() {
+    console.log('Cancelar clicado (filho)');
+    this.closeModal.emit();
+  }
+
   private readonly i18n = inject(I18nService);
   private readonly dataService = inject(DataService);
   private readonly notificationService = inject(NotificationService);
@@ -64,6 +70,7 @@ export class AdminServiceRequestFormComponent {
     description: "",
     category_id: 0,
     subcategory_id: 0,
+    origin_id: 0,
     requester_name: "",
     requester_phone: "",
     requester_nif: "",
@@ -76,6 +83,7 @@ export class AdminServiceRequestFormComponent {
     urgency: "medium",
     service_deadline: undefined,
   });
+  origins = this.dataService.origins;
 
   updateNewRequest<K extends keyof AdminServiceRequestPayload>(key: K, value: AdminServiceRequestPayload[K]) {
     this.newRequest.update(req => ({ ...req, [key]: value }));

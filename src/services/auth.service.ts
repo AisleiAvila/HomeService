@@ -1074,15 +1074,7 @@ export class AuthService {
       email_verified: true,
     };
     console.log("🔎 Dados para insert de perfil:", insertData);
-    const insertSQL = `INSERT INTO users (name, email, role, status, avatar_url, email_verified) VALUES (
-      '${insertData.name.replaceAll("'", "''")}',
-      '${insertData.email}',
-      '${insertData.role}',
-      '${insertData.status}',
-      '${insertData.avatar_url}',
-      ${insertData.email_verified ? 'TRUE' : 'FALSE'}
-    );`;
-    console.log("📝 Query SQL de insert:", insertSQL);
+    // SQL de insert apenas para debug pode ser removido, pois não é utilizado
     const { data: insertResult, error: insertError } = await this.supabase.client
       .from("users")
       .insert(insertData)

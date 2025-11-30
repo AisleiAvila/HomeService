@@ -56,6 +56,10 @@ export class DashboardComponent implements OnInit {
     this.viewDetails.emit(request);
     // Aqui pode abrir modal, navegar ou atualizar view conforme necessário
   }
+    logAndCloseDetails() {
+      console.log('closeDetails recebido (pai dashboard)');
+      this.selectedRequest.set(null);
+    }
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");

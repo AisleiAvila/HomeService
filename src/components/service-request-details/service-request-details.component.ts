@@ -57,7 +57,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
           <!-- Botão Voltar e Título -->
           <div class="flex items-center space-x-4">
             <button
-              (click)="closeDetails.emit()"
+              (click)="logAndEmitCloseDetails()"
               class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               aria-label="{{ 'backToList' | i18n }}"
             >

@@ -21,6 +21,9 @@ import type { ServiceSubcategory } from "../../models/maintenance.models";
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+    // Sinal para origens de solicitação
+    origins = inject(DataService).origins;
+    origin_id = signal<number>(0);
   // Propriedade para controlar se o campo foi tocado/interagido
   touched: {
     title: boolean;
@@ -58,6 +61,11 @@ export class ServiceRequestFormComponent implements OnInit {
     this.updateField("zip_code", formatted);
   }
   @Output() closeForm = new EventEmitter<void>();
+
+  onCancelClick() {
+    console.log('Cancelar clicado (service-request-form)');
+    this.closeForm.emit();
+  }
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
 
@@ -76,10 +84,8 @@ export class ServiceRequestFormComponent implements OnInit {
   client_phone = signal<string>("");
   client_nif = signal<string>("");
   
-  ngOnInit() {
-    console.log('=== ServiceRequestForm ngOnInit ===');
-    console.log('Categories:', this.categories());
-    console.log('Categories length:', this.categories().length);
+  ngOnInit(): void {
+    this.dataService.fetchOrigins();
   }
 
   onCategoryChange(value: string) {
@@ -419,6 +425,7 @@ export class ServiceRequestFormComponent implements OnInit {
         description: this.description(),
         category_id: this.category_id(),
         subcategory_id: this.subcategory_id(),
+        origin_id: this.origin_id(),
         address,
         requested_datetime: this.requestedDateTime(),
       };

@@ -1,3 +1,8 @@
+// Origem da solicitação de serviço
+export interface ServiceRequestOrigin {
+  id: number;
+  name: string;
+}
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 
@@ -157,6 +162,10 @@ export interface ServiceRequest {
   client_email?: string; // Email do cliente (obrigatório no novo sistema)
   client_phone?: string; // Telefone do cliente (obrigatório no novo sistema)
   client_address?: string; // Endereço completo do cliente
+
+  // Origem da solicitação
+  origin_id?: number; // FK para service_request_origins
+  origin?: ServiceRequestOrigin; // Objeto populado via JOIN
   
   // DADOS DO PROFISSIONAL
   professional_id: number | null;
@@ -422,6 +431,7 @@ export interface ServiceRequestPayload {
   description: string;
   category_id: number;
   subcategory_id: number; // Agora obrigatório
+  origin_id: number;
   address: Address;
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
 }

@@ -6,6 +6,7 @@ export type Language = "en" | "pt";
 const allTranslations: Record<Language, Record<string, string>> = {
   en: {
     // General
+    overviewTitle: "Overview",
     signIn: "Sign In",
     createAccount: "Create Account",
     email: "Email",
@@ -858,9 +859,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     "Ar Condicionado": "Air Conditioning",
     Eletrodomésticos: "Appliances",
     Vidraceiro: "Glazier",
+    dashboardOverviewSubtitle:
+      "Quick overview of your service requests and activities",
   },
   pt: {
     // General
+    overviewTitle: "Visão Geral",
 
     signIn: "Entrar",
     createAccount: "Criar Conta",
@@ -1720,6 +1724,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     "Ar Condicionado": "Ar Condicionado",
     Eletrodomésticos: "Eletrodomésticos",
     Vidraceiro: "Vidraceiro",
+    dashboardOverviewSubtitle: "Visão rápida das suas solicitações de serviço e atividades",
   },
 };
 

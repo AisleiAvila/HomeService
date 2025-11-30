@@ -22,6 +22,13 @@
 
 <div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
   <div>
+    <div class="bg-indigo-600 rounded-lg px-6 py-4 mb-2">
+      <h2 class="text-xl sm:text-2xl font-bold text-white break-words">
+        <i class="fas fa-tachometer-alt mr-2"></i>
+        {{ "overviewTitle" | i18n }}
+      </h2>
+      <p class="text-white text-sm mt-1">{{ "dashboardOverviewSubtitle" | i18n }}</p>
+    </div>
     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 break-words">
       {{ "welcomeBack" | i18n : { name: user().name } }}
     </h2>
@@ -58,7 +65,7 @@
   <app-service-request-details
     [request]="selectedRequest()"
     [currentUser]="user()"
-    (close)="selectedRequest.set(null)"
+    (close)="logAndCloseDetails()"
     (refreshRequest)="selectedRequest.set(null)"
   ></app-service-request-details>
   }

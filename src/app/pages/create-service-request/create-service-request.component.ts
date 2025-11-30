@@ -10,7 +10,7 @@ import { ServiceRequestFormComponent } from "../../../components/service-request
   template: `
     <div class="min-w-0 overflow-hidden">
       <app-service-request-form
-        (close)="goBack()"
+        (closeForm)="goBack()"
       />
     </div>
   `,
@@ -20,6 +20,7 @@ export class CreateServiceRequestComponent {
   private readonly router = inject(Router);
 
   goBack() {
+    console.log('goBack chamado (pai)');
     if (globalThis.history.length > 1) {
       globalThis.history.back();
     } else {
