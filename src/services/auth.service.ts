@@ -26,14 +26,18 @@ export class AuthService {
         body: JSON.stringify({ email, password })
       });
       const result = await res.json();
-      if (res.ok && result.success && result.session) {
-        // Persistir sessão Supabase no frontend
-        await this.supabase.client.auth.setSession({
-          access_token: result.session.access_token,
-          refresh_token: result.session.refresh_token
-        });
-        this.appUser.set(result.session.user);
-        return result.session.user;
+      // Compatível com backend local (result.user) e Supabase/Vercel (result.session.user)
+      const user = result.session?.user || result.user;
+      if (res.ok && result.success && user) {
+        // Persistir sessão Supabase se existir
+        if (result.session?.access_token && result.session?.refresh_token) {
+          await this.supabase.client.auth.setSession({
+            access_token: result.session.access_token,
+            refresh_token: result.session.refresh_token
+          });
+        }
+        this.appUser.set(user);
+        return user;
       } else {
         this.notificationService.addNotification(result.error || 'Credenciais inválidas');
         return null;

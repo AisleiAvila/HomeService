@@ -49,6 +49,6 @@
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
-    "start": "concurrently \"ng serve --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\""
+    "start": "concurrently \"ng serve --configuration=development --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\""
   }
 }
