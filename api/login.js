@@ -15,19 +15,24 @@ export default async function handler(req, res) {
     try {
       body = JSON.parse(body);
     } catch {
+      console.log('[LOGIN] Body inválido:', body);
       return res.status(400).json({ success: false, error: 'Body inválido' });
     }
   }
   const { email, password } = body || {};
+  console.log('[LOGIN] Tentativa de login:', { email });
 
   // Autenticação real via Supabase
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  console.log('[LOGIN] Resultado Supabase:', { error, session: data?.session, user: data?.user });
 
   if (error || !data.session) {
+    console.log('[LOGIN] Erro ou sessão inválida:', { error, session: data?.session });
     return res.status(401).json({ success: false, error: error?.message || 'Credenciais inválidas' });
   }
 
   // Retorne o objeto de sessão completo
+  console.log('[LOGIN] Login bem-sucedido:', { user: data.session.user });
   return res.status(200).json({
     success: true,
     session: {
