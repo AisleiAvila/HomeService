@@ -82,7 +82,7 @@ export class AuthService {
       // Buscar perfil pelo email, pois id não é UUID
       const { data: user, error } = await this.supabase.client
         .from("users")
-        .select("email, role")
+        .select("email, role, status")
         .eq("email", userId)
         .single();
 
