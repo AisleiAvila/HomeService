@@ -26,16 +26,9 @@ export class AuthService {
         body: JSON.stringify({ email, password })
       });
       const result = await res.json();
-      // Compatível com backend local (result.user) e Supabase/Vercel (result.session.user)
-      const user = result.session?.user || result.user;
+      // Aceita apenas autenticação via backend próprio
+      const user = result.user;
       if (res.ok && result.success && user) {
-        // Persistir sessão Supabase se existir
-        if (result.session?.access_token && result.session?.refresh_token) {
-          await this.supabase.client.auth.setSession({
-            access_token: result.session.access_token,
-            refresh_token: result.session.refresh_token
-          });
-        }
         this.appUser.set(user);
         return user;
       } else {
