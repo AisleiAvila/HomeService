@@ -22,25 +22,35 @@ export default async function handler(req, res) {
   const { email, password } = body || {};
   console.log('[LOGIN] Tentativa de login:', { email });
 
-  // Autenticação real via Supabase
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  console.log('[LOGIN] Resultado Supabase:', { error, session: data?.session, user: data?.user });
+  // Buscar usuário na tabela users
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
 
-  if (error || !data.session) {
-    console.log('[LOGIN] Erro ou sessão inválida:', { error, session: data?.session });
-    return res.status(401).json({ success: false, error: error?.message || 'Credenciais inválidas' });
+  if (error || !user) {
+    console.log('[LOGIN] Usuário não encontrado ou erro:', { error });
+    return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
   }
 
-  // Retorne o objeto de sessão completo
-  console.log('[LOGIN] Login bem-sucedido:', { user: data.session.user });
+  // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
+  if (user.password_hash) {
+    // Exemplo: comparar hash (ajuste para sua lógica real)
+    // Aqui apenas compara texto puro para exemplo
+    if (user.password_hash !== password) {
+      console.log('[LOGIN] Senha inválida para usuário:', email);
+      return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
+    }
+  } else if (user.password && user.password !== password) {
+    console.log('[LOGIN] Senha inválida para usuário:', email);
+    return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
+  }
+
+  // Login bem-sucedido
+  console.log('[LOGIN] Login bem-sucedido:', { user });
   return res.status(200).json({
     success: true,
-    session: {
-      access_token: data.session.access_token,
-      refresh_token: data.session.refresh_token,
-      expires_in: data.session.expires_in,
-      token_type: data.session.token_type,
-      user: data.session.user
-    }
+    user
   });
 }
