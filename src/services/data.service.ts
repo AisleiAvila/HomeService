@@ -338,6 +338,8 @@ export class DataService {
       state: payload.address.state,
       zip_code: payload.address.zip_code,
       requested_datetime: requestedDateTime, // Campo principal
+      valor: payload.valor,
+      valor_prestador: payload.valor_prestador,
       status: "Solicitado",
       payment_status: "Unpaid",
     };

@@ -48,82 +48,110 @@
       </p>
     </div>
 
-    <!-- Seção de Categoria e Subcategoria -->
+    <!-- Ordem correta dos campos -->
     <div class="p-6 bg-white">
-          <div class="flex items-center gap-2 mb-4">
-            <i class="fas fa-building text-indigo-600"></i>
-            <h3 class="text-lg font-semibold text-gray-800">Origem da Solicitação</h3>
-          </div>
-          <div class="mb-4">
-            <label for="origin_id" class="block text-sm font-medium text-gray-700">Origem</label>
-            <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
-              <option value="0" disabled selected>Selecione a origem</option>
-              <ng-container *ngFor="let origin of origins()">
-                <option [value]="origin.id">{{ origin.name }}</option>
-              </ng-container>
-            </select>
-          </div>
+      <!-- Origem da Solicitação -->
       <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-tags text-indigo-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800">{{ "serviceCategory" | i18n }}</h3>
+        <i class="fas fa-building text-indigo-600"></i>
+        <h3 class="text-lg font-semibold text-gray-800">Origem da Solicitação</h3>
       </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Categoria -->
-      <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="category_id">
-          <i class="fas fa-folder text-indigo-500 mr-2 text-xs"></i>
-          {{ "category" | i18n }}
-        </label>
-        <select
-          id="category_id"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-          [value]="category_id() || ''"
-          (change)="onCategoryChange($any($event.target).value)"
-          required
-        >
-          <option value="" disabled selected>{{ "select" | i18n }}</option>
-          <ng-container *ngFor="let cat of categories()">
-            <option [value]="cat.id">{{ cat.name }}</option>
+      <div class="mb-4">
+        <label for="origin_id" class="block text-sm font-medium text-gray-700">Origem</label>
+        <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
+          <option value="0" disabled selected>Selecione a origem</option>
+          <ng-container *ngFor="let origin of origins()">
+            <option [value]="origin.id">{{ origin.name }}</option>
           </ng-container>
         </select>
-        <span
-          *ngIf="!validFields().category_id && category_id()"
-          class="text-xs text-red-500 flex items-center mt-1"
-        >
-          <i class="fas fa-exclamation-circle mr-1"></i>
-          {{ "selectCategory" | i18n }}
-        </span>
       </div>
 
-      <!-- Subcategoria -->
-      <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="subcategory_id">
-          <i class="fas fa-tag text-indigo-500 mr-2 text-xs"></i>
-          {{ "subcategory" | i18n }}
-        </label>
-        <select
-          id="subcategory_id"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
-          [value]="subcategory_id() || ''"
-          (change)="updateField('subcategory_id', $any($event.target).value)"
-          [disabled]="!category_id()"
-          required
-        >
-          <option value="" disabled selected>{{ "select" | i18n }}</option>
-          <ng-container *ngFor="let sub of subcategories()">
-            <option [value]="sub.id">{{ sub.name }}</option>
-          </ng-container>
-        </select>
-        <span
-          *ngIf="!validFields().subcategory_id && subcategory_id()"
-          class="text-xs text-red-500 flex items-center mt-1"
-        >
-          <i class="fas fa-exclamation-circle mr-1"></i>
-          {{ "selectSubcategory" | i18n }}
-        </span>
+      <!-- Categoria do Serviço (Categoria/Subcategoria) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Categoria -->
+        <div>
+          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="category_id">
+            <i class="fas fa-folder text-indigo-500 mr-2 text-xs"></i>
+            {{ "category" | i18n }}
+          </label>
+          <select
+            id="category_id"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [value]="category_id() || ''"
+            (change)="onCategoryChange($any($event.target).value)"
+            required
+          >
+            <option value="" disabled selected>{{ "select" | i18n }}</option>
+            <ng-container *ngFor="let cat of categories()">
+              <option [value]="cat.id">{{ cat.name }}</option>
+            </ng-container>
+          </select>
+          <span
+            *ngIf="!validFields().category_id && category_id()"
+            class="text-xs text-red-500 flex items-center mt-1"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ "selectCategory" | i18n }}
+          </span>
+        </div>
+
+        <!-- Subcategoria -->
+        <div>
+          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="subcategory_id">
+            <i class="fas fa-tag text-indigo-500 mr-2 text-xs"></i>
+            {{ "subcategory" | i18n }}
+          </label>
+          <select
+            id="subcategory_id"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+            [value]="subcategory_id() || ''"
+            (change)="updateField('subcategory_id', $any($event.target).value)"
+            [disabled]="!category_id()"
+            required
+          >
+            <option value="" disabled selected>{{ "select" | i18n }}</option>
+            <ng-container *ngFor="let sub of subcategories()">
+              <option [value]="sub.id">{{ sub.name }}</option>
+            </ng-container>
+          </select>
+          <span
+            *ngIf="!validFields().subcategory_id && subcategory_id()"
+            class="text-xs text-red-500 flex items-center mt-1"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ "selectSubcategory" | i18n }}
+          </span>
+        </div>
       </div>
-    </div>
+
+      <!-- Valor Total / Valor do Prestador -->
+      <div class="flex gap-4 mb-4">
+        <div class="w-1/2">
+          <label for="valor" class="block text-sm font-medium text-gray-700">Valor Total (€)</label>
+          <input
+            id="valor"
+            type="number"
+            min="0.01"
+            step="0.01"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [value]="valor() ?? ''"
+            (input)="updateField('valor', $event.target.value)"
+            required
+          />
+        </div>
+        <div class="w-1/2">
+          <label for="valor_prestador" class="block text-sm font-medium text-gray-700">Valor do Prestador (€)</label>
+          <input
+            id="valor_prestador"
+            type="number"
+            min="0.01"
+            step="0.01"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            [value]="valor_prestador() ?? ''"
+            (input)="updateField('valor_prestador', $event.target.value)"
+            required
+          />
+        </div>
+      </div>
   </div>
 
   <!-- Seção de Informações do Solicitante -->

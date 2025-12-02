@@ -21,7 +21,7 @@ export class FinancialReportsComponent {
         this.dataService.serviceRequests().filter(
             (r) =>
                 (r.status === "Concluído" || r.status === ("Completed" as any)) &&
-                r.cost
+                r.valor
         )
     );
 
@@ -29,12 +29,12 @@ export class FinancialReportsComponent {
         const completed = this.completedRequests();
         const totalRevenue = completed
             .filter((r) => r.payment_status === "Paid")
-            .reduce((sum, r) => sum + (r.cost || 0), 0);
+            .reduce((sum, r) => sum + (r.valor || 0), 0);
 
         const totalTax = totalRevenue * 0.07;
         const outstandingAmount = completed
             .filter((r) => r.payment_status === "Unpaid")
-            .reduce((sum, r) => sum + (r.cost || 0), 0);
+            .reduce((sum, r) => sum + (r.valor || 0), 0);
 
         return {
             completedServices: completed.length,

@@ -295,20 +295,7 @@ export class AlertService {
   }
 
   private checkQuoteResponseOverdue(request: ServiceRequest, now: Date): { isOverdue: boolean; message: string } {
-    if (!request.quote_sent_at) {
-      return { isOverdue: false, message: "" };
-    }
-
-    const deadline = new Date(request.quote_sent_at);
-    deadline.setHours(deadline.getHours() + this.DEADLINES.quote_response);
-
-    if (now > deadline) {
-      return {
-        isOverdue: true,
-        message: "Resposta ao orçamento está em atraso. Por favor, aprove ou rejeite o orçamento."
-      };
-    }
-
+    // Orçamento removido do fluxo. Função mantida para compatibilidade, mas não faz nada.
     return { isOverdue: false, message: "" };
   }
 
@@ -410,15 +397,7 @@ export class AlertService {
   }
 
   private checkQuoteResponseDeadline(request: ServiceRequest, now: Date, warningHours: number): string | null {
-    if (!request.quote_sent_at) return null;
-
-    const deadline = new Date(request.quote_sent_at);
-    deadline.setHours(deadline.getHours() + this.DEADLINES.quote_response);
-    
-    if (this.isWithinWarningPeriod(now, deadline, warningHours)) {
-      return `Lembrete: Você tem até ${deadline.toLocaleString("pt-PT")} para responder ao orçamento.`;
-    }
-    
+    // Orçamento removido do fluxo. Função mantida para compatibilidade, mas não faz nada.
     return null;
   }
 

@@ -37,11 +37,11 @@ export class AdminOverviewComponent {
 
         // Calculate financial stats with null safety
         const completed = requests.filter(
-            (r) => (r.status === "Concluído" || r.status === ("Completed" as any)) && r.cost != null
+            (r) => (r.status === "Concluído" || r.status === ("Completed" as any)) && r.valor != null
         );
         const totalRevenue = completed
             .filter((r) => r.payment_status === "Paid")
-            .reduce((sum, r) => sum + (this.validateCost(r.cost)), 0);
+            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
 
         // Calculate active services
         const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Cancelado').length;

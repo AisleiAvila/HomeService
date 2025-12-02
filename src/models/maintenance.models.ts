@@ -199,8 +199,9 @@ export interface ServiceRequest {
   requested_date: string; // ISO string - DEPRECATED: use requested_datetime
   scheduled_date: string | null; // ISO string - DEPRECATED: use scheduled_start_datetime
   
-  // CUSTO (campo legado)
-  cost: number | null;
+  // VALORES DO SERVIÇO
+  valor: number; // Valor total do serviço
+  valor_prestador: number; // Valor da prestação de serviço
 
   // Campos existentes para controle de agendamento e tempo
   requested_datetime?: string; // Data e hora solicitada (ISO string)
@@ -221,17 +222,10 @@ export interface ServiceRequest {
   finalized_at?: string | null; // Data/hora de finalização pelo admin
   admin_notes?: string | null; // Notas administrativas internas
 
-  // ============================================================================
-  // CAMPOS DEPRECATED (sistema antigo de orçamentos - serão removidos)
-  // ============================================================================
-
-  // FASE 1: ORÇAMENTO (DEPRECATED - remover no futuro)
-  quote_amount?: number | null; // DEPRECATED: Valor do orçamento
-  quote_description?: string | null; // DEPRECATED: Descrição detalhada do orçamento
-  quote_sent_at?: string | null; // DEPRECATED: Data envio orçamento
-  quote_approved_at?: string | null; // DEPRECATED: Data aprovação
-  clarifications?: string | null; // Esclarecimentos
-  admin_requests?: string | null; // Solicitações do admin
+  // =========================================================================
+  // CAMPOS REMOVIDOS: sistema antigo de orçamentos
+  // =========================================================================
+  // (quote_amount, quote_description, quote_sent_at, quote_approved_at, clarifications, admin_requests) REMOVIDOS
 
   // FASE 2: SELEÇÃO E AGENDAMENTO
   selected_professional_id?: number | null; // Profissional selecionado
@@ -431,9 +425,11 @@ export interface ServiceRequestPayload {
   description: string;
   category_id: number;
   subcategory_id: number; // Agora obrigatório
-  origin_id: number;
+  origin_id?: number;
   address: Address;
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
+  valor: number;
+  valor_prestador: number;
 }
 
 export type Urgency = "low" | "medium" | "high" | "critical";

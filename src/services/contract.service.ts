@@ -125,8 +125,8 @@ export class ContractService {
       title: serviceRequest.title,
       description: serviceRequest.description,
       category: serviceRequest.category,
-      quote_amount: serviceRequest.quote_amount,
-      quote_description: serviceRequest.quote_description,
+      valor: serviceRequest.valor,
+      valor_prestador: serviceRequest.valor_prestador,
       location: {
         street: serviceRequest.street,
         city: serviceRequest.city,
@@ -239,8 +239,8 @@ export class ContractService {
           <p><strong>Categoria:</strong> ${data.category}</p>
           <p><strong>Descrição:</strong> ${data.description}</p>
           ${
-            data.quote_description
-              ? `<p><strong>Detalhes do Orçamento:</strong> ${data.quote_description}</p>`
+            data.valor_prestador
+              ? `<p><strong>Valor do Prestador:</strong> €${data.valor_prestador.toFixed(2)}</p>`
               : ""
           }
         </div>
@@ -255,7 +255,7 @@ export class ContractService {
         <div class="section">
           <h3>4. VALOR E CONDIÇÕES DE PAGAMENTO</h3>
           <p class="amount">Valor Total: €${
-            data.quote_amount?.toFixed(2) || "0.00"
+            data.valor?.toFixed(2) || "0.00"
           }</p>
           <p><strong>Condições de Pagamento:</strong></p>
           <ul>

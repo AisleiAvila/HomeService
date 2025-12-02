@@ -861,6 +861,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     Vidraceiro: "Glazier",
     dashboardOverviewSubtitle:
       "Quick overview of your service requests and activities",
+    districtPlaceholder: "Select district",
+
   },
   pt: {
     // General
@@ -1725,6 +1727,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     Eletrodomésticos: "Eletrodomésticos",
     Vidraceiro: "Vidraceiro",
     dashboardOverviewSubtitle: "Visão rápida das suas solicitações de serviço e atividades",
+    districtPlaceholder: "Distrito Exemplo",
   },
 };
 

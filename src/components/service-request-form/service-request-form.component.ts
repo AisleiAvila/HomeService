@@ -21,6 +21,9 @@ import type { ServiceSubcategory } from "../../models/maintenance.models";
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+      // Signals para valores do serviço
+      valor = signal<number | null>(null);
+      valor_prestador = signal<number | null>(null);
     // Sinal para origens de solicitação
     origins = inject(DataService).origins;
     origin_id = signal<number>(0);
@@ -47,7 +50,7 @@ export class ServiceRequestFormComponent implements OnInit {
   // Sinal para estado de submissão
   isSubmitting = signal<boolean>(false);
   // Corrige erro: método para formatar zip_code ao colar
-  onZipCodePaste(event: ClipboardEvent) {
+  async onZipCodePaste(event: ClipboardEvent) {
     event.preventDefault();
     const pasted = event.clipboardData?.getData("text") || "";
     let digits = pasted.replaceAll(/\D/g, "");
@@ -58,7 +61,7 @@ export class ServiceRequestFormComponent implements OnInit {
     if (formatted.length > 8) {
       formatted = formatted.slice(0, 8);
     }
-    this.updateField("zip_code", formatted);
+    await this.updateField("zip_code", formatted);
   }
   @Output() closeForm = new EventEmitter<void>();
 
@@ -145,6 +148,8 @@ export class ServiceRequestFormComponent implements OnInit {
     client_name: boolean;
     client_phone: boolean;
     client_nif: boolean;
+    valor: boolean;
+    valor_prestador: boolean;
   }>({
     title: false,
     description: false,
@@ -159,7 +164,9 @@ export class ServiceRequestFormComponent implements OnInit {
     number: false,
     client_name: false,
     client_phone: false,
-    client_nif: true, // NIF é opcional, então inicia como válido
+    client_nif: true, // NIF é opcional
+    valor: false,
+    valor_prestador: false,
   });
 
   // Método para verificar se o formulário está válido
@@ -178,6 +185,8 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.zip_code &&
       fields.client_name &&
       fields.client_phone &&
+      fields.valor &&
+      fields.valor_prestador &&
       fields.client_nif // NIF sempre válido (opcional)
     );
   }
@@ -202,6 +211,8 @@ export class ServiceRequestFormComponent implements OnInit {
       client_name: () => this.updateClientName(value),
       client_phone: () => this.updateClientPhone(value),
       client_nif: () => this.updateClientNif(value),
+      valor: () => this.updateValor(value),
+      valor_prestador: () => this.updateValorPrestador(value),
     };
 
     const handler = fieldHandlers[field];
@@ -215,6 +226,24 @@ export class ServiceRequestFormComponent implements OnInit {
     this.validFields.update((fields) => ({
       ...fields,
       title: value.length >= 3,
+    }));
+  }
+
+  private updateValor(value: string) {
+    const num = Number(value);
+    this.valor.set(Number.isNaN(num) ? null : num);
+    this.validFields.update((fields) => ({
+      ...fields,
+      valor: !Number.isNaN(num) && num > 0,
+    }));
+  }
+
+  private updateValorPrestador(value: string) {
+    const num = Number(value);
+    this.valor_prestador.set(Number.isNaN(num) ? null : num);
+    this.validFields.update((fields) => ({
+      ...fields,
+      valor_prestador: !Number.isNaN(num) && num > 0,
     }));
   }
 
@@ -428,6 +457,8 @@ export class ServiceRequestFormComponent implements OnInit {
         origin_id: this.origin_id(),
         address,
         requested_datetime: this.requestedDateTime(),
+        valor: this.valor(),
+        valor_prestador: this.valor_prestador(),
       };
       await this.dataService.addServiceRequest(payload);
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));
@@ -436,11 +467,11 @@ export class ServiceRequestFormComponent implements OnInit {
       this.isSubmitting.set(false);
     } catch (error) {
       console.error("Erro ao enviar solicitação de serviço:", error);
-      this.formError.set(
-        this.i18n.translate("formErrorGeneric") +
+      this.formError!.set(
+        this.i18n!.translate("formErrorGeneric") +
           (error?.message ? ` (${error.message})` : "")
       );
-      this.isSubmitting.set(false);
+      this.isSubmitting!.set(false);
     }
   }
 }

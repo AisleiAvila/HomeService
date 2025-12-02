@@ -109,7 +109,7 @@ export class AuthService {
     effect(async () => {
       const sUser = this.supabaseUser();
       console.log("🔍 AuthService effect triggered. sUser:", sUser?.email);
-      if (sUser && sUser.email) {
+      if (sUser?.email) {
         console.log("👤 Usuário autenticado, buscando perfil...");
         await this.fetchAppUser(sUser.email, true); // true = chamada automática
       }
