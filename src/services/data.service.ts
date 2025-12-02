@@ -168,8 +168,12 @@ export class DataService {
       const users = this.users();
       const requests = data.map((r) => ({
         ...r,
-        professional_name:
-          users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
+           client_name: r.client_name || r.client_profile?.name || "",
+           client_email: r.client_email || r.client_profile?.email || "",
+           client_phone: r.client_phone || r.client_profile?.phone || "",
+           client_address: r.client_address || r.client_profile?.address || "",
+           professional_name:
+             users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
       }));
       this.serviceRequests.set(requests);
     } else {
@@ -318,6 +322,12 @@ export class DataService {
     const { StatusService } = await import("../services/status.service");
     const newRequestData: any = {
       client_id: currentUser.id,
+      client_name: currentUser.name,
+      client_email: currentUser.email,
+      client_phone: currentUser.phone || null,
+      client_address: currentUser.address
+        ? `${currentUser.address.street}, ${currentUser.address.city}, ${currentUser.address.state}, ${currentUser.address.zip_code}`
+        : null,
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,

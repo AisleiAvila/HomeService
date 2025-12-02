@@ -1754,9 +1754,7 @@ export class I18nService {
     this.language.set(lang);
     localStorage.setItem("homeservice-language", lang);
     console.log(`🌍 [I18N] Idioma alterado para: ${lang}`);
-
-    // Força reload da página para garantir que as traduções sejam atualizadas
-    globalThis.location.reload();
+    // Agora a troca de idioma é reativa via signals, sem reload.
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
