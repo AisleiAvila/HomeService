@@ -50,31 +50,26 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
       >
     </div>
     } @else {
-    <!-- Cabeçalho Responsivo -->
-    <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <!-- Botão Voltar e Título -->
-          <div class="flex items-center space-x-4">
-            <button
-              (click)="logAndEmitCloseDetails()"
-              class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="{{ 'backToList' | i18n }}"
-            >
-              <i class="fas fa-arrow-left text-lg"></i>
-            </button>
-            <div>
-              <h1
-                class="text-lg sm:text-xl font-semibold text-gray-900 truncate"
-              >
-                {{ "serviceRequestDetails" | i18n }}
-              </h1>
-              <p class="text-sm text-gray-500 truncate">
-                {{ request().title }}
-              </p>
-            </div>
-          </div>
+    <!-- Cabeçalho com gradiente, ícone e título -->
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-file-alt mr-3"></i>
+            {{ "serviceRequestDetails" | i18n }}
+          </h2>
+          <p class="text-indigo-100 text-sm mt-1">
+            {{ request().title }}
+          </p>
         </div>
+        <button
+          (click)="logAndEmitCloseDetails()"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-all transform hover:scale-105 shadow-lg"
+          aria-label="{{ 'backToList' | i18n }}"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>{{ 'backToList' | i18n }}</span>
+        </button>
       </div>
     </div>
 
@@ -229,21 +224,34 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 </label>
                 <p class="text-gray-900">{{ request().title }}</p>
               </div>
-
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "description" | i18n }}
                 </label>
                 <p class="text-gray-900">{{ request().description }}</p>
               </div>
-
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "category" | i18n }}
                 </label>
                 <p class="text-gray-900">{{ request().category }}</p>
               </div>
-
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ "valorTotal" | i18n }}
+                </label>
+                <p class="text-lg font-semibold text-green-600">
+                  €{{ request().valor | number : '1.2-2' }}
+                </p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ "valorPrestador" | i18n }}
+                </label>
+                <p class="text-lg font-semibold text-blue-600">
+                  €{{ request().valor_prestador | number : '1.2-2' }}
+                </p>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "priority" | i18n }}
@@ -852,5 +860,10 @@ export class ServiceRequestDetailsComponent implements OnInit {
       request: this.request(),
       professionalId: professionalId.toString(),
     });
+  }
+
+  // Corrige o botão Voltar para emitir o evento closeDetails corretamente
+  logAndEmitCloseDetails() {
+    this.closeDetails.emit();
   }
 }
