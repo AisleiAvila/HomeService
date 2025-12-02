@@ -1,5 +1,6 @@
 // Vercel Function para autenticação customizada
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
 const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc';
@@ -38,11 +39,11 @@ export default async function handler(req, res) {
 
   // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
   if (user.password_hash) {
-    console.log('[LOGIN] Comparando password_hash:', { password_hash: user.password_hash, passwordRecebida: password });
-    // Exemplo: comparar hash (ajuste para sua lógica real)
-    // Aqui apenas compara texto puro para exemplo
-    if (user.password_hash !== password) {
-      console.log('[LOGIN] Senha inválida para usuário:', { email, password_hash: user.password_hash, passwordRecebida: password });
+    // Calcular hash SHA-256 da senha recebida
+    const hash = crypto.createHash('sha256').update(password).digest('hex');
+    console.log('[LOGIN] Comparando password_hash:', { password_hash: user.password_hash, passwordRecebida: password, hashCalculado: hash });
+    if (user.password_hash !== hash) {
+      console.log('[LOGIN] Senha inválida para usuário:', { email, password_hash: user.password_hash, passwordRecebida: password, hashCalculado: hash });
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }
   } else if (user.password) {
