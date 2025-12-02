@@ -1,5 +1,5 @@
-<!-- Stats Cards - Layout melhorado -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+<!-- Stats Cards - Layout expandido -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 w-full px-0">
     @for (stat of stats(); track stat.label) {
         <button type="button"
             (click)="handleCardClick(stat.id)"
@@ -38,10 +38,9 @@
     }
 </div>
 
-<!-- Charts Section - Container expandido e corrigido -->
-<div class="w-full space-y-6 mb-8">
-    <!-- Container único para forçar quebra em telas menores -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Charts Section - Container expandido -->
+<div class="w-full space-y-6 mb-8 px-0">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <!-- Gráfico de Pizza -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 w-full">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
