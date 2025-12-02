@@ -249,6 +249,7 @@ export class DataService {
   }
 
   private async fetchSubcategories() {
+    console.log("[DataService] fetchSubcategories chamado");
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
       .select(
