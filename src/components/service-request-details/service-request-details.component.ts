@@ -242,7 +242,11 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                   {{ "valorTotal" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600">
-                  €{{ request().valor | number : '1.2-2' }}
+                  @if (request().valor && request().valor > 0) {
+                    €{{ request().valor | number : '1.2-2' }}
+                  } @else {
+                    —
+                  }
                 </p>
               </div>
               }
@@ -251,7 +255,11 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                   {{ "valorPrestador" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-blue-600">
-                  €{{ request().valor_prestador | number : '1.2-2' }}
+                  @if (request().valor_prestador && request().valor_prestador > 0) {
+                    €{{ request().valor_prestador | number : '1.2-2' }}
+                  } @else {
+                    —
+                  }
                 </p>
               </div>
               <div>
