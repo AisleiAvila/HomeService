@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     }
   }
   const { email, password } = body || {};
-  console.log('[LOGIN] Tentativa de login:', { email });
+  console.log('[LOGIN] Tentativa de login:', { email, passwordRecebida: password });
 
   // Buscar usuário na tabela users
   const { data: user, error } = await supabase
@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     .eq('email', email)
     .single();
 
+  console.log('[LOGIN] Resultado busca usuário:', { user, error });
+
   if (error || !user) {
     console.log('[LOGIN] Usuário não encontrado ou erro:', { error });
     return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
@@ -36,15 +38,19 @@ export default async function handler(req, res) {
 
   // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
   if (user.password_hash) {
+    console.log('[LOGIN] Comparando password_hash:', { password_hash: user.password_hash, passwordRecebida: password });
     // Exemplo: comparar hash (ajuste para sua lógica real)
     // Aqui apenas compara texto puro para exemplo
     if (user.password_hash !== password) {
-      console.log('[LOGIN] Senha inválida para usuário:', email);
+      console.log('[LOGIN] Senha inválida para usuário:', { email, password_hash: user.password_hash, passwordRecebida: password });
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }
-  } else if (user.password && user.password !== password) {
-    console.log('[LOGIN] Senha inválida para usuário:', email);
-    return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
+  } else if (user.password) {
+    console.log('[LOGIN] Comparando password:', { password: user.password, passwordRecebida: password });
+    if (user.password !== password) {
+      console.log('[LOGIN] Senha inválida para usuário:', { email, password: user.password, passwordRecebida: password });
+      return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
+    }
   }
 
   // Login bem-sucedido
