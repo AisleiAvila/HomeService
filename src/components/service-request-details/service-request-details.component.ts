@@ -236,6 +236,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                 </label>
                 <p class="text-gray-900">{{ request().category }}</p>
               </div>
+              @if (currentUser().role === "admin") {
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "valorTotal" | i18n }}
@@ -244,6 +245,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
                   €{{ request().valor | number : '1.2-2' }}
                 </p>
               </div>
+              }
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "valorPrestador" | i18n }}
