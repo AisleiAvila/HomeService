@@ -875,5 +875,6 @@ export class ServiceRequestDetailsComponent implements OnInit {
   // Corrige o botão Voltar para emitir o evento closeDetails corretamente
   logAndEmitCloseDetails() {
     this.closeDetails.emit();
+    this.router.navigate(["/admin/requests"]);
   }
 }
