@@ -175,6 +175,7 @@ export class DataService {
            professional_name:
              users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
       }));
+      alert("Fetched requests: " + JSON.stringify(requests));
       this.serviceRequests.set(requests);
     } else {
       this.serviceRequests.set([]);
