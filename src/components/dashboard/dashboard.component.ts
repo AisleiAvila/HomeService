@@ -220,7 +220,6 @@ export class DashboardComponent implements OnInit {
 
   userRequests = computed(() => {
     const allRequests = this.dataService.serviceRequests();
-    alert("allRequests --> " + JSON.stringify(allRequests));
     const currentUser = this.user();
 
     let filtered = [];
