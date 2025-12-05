@@ -18,6 +18,7 @@ import { NotificationService } from "./services/notification.service";
 import { WorkflowServiceSimplified } from "./services/workflow-simplified.service";
 import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
+import { UiStateService } from "./services/ui-state.service";
 
 // Models
 import {
@@ -103,13 +104,15 @@ export class AppComponent implements OnInit {
   isSidebarOpen = signal(false);
   isSidebarCollapsed = signal(false);
   isNotificationCenterOpen = signal(false);
-  isChatOpen = signal(false);
-  isSchedulerOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
   showDirectAssignmentModal = signal(false);
+  isSchedulerOpen = signal(false);
 
-  selectedRequest = signal<ServiceRequest | null>(null);
+  // UI State Service (chat)
+  readonly uiState = inject(UiStateService);
+  isChatOpen = this.uiState.isChatOpen;
+  selectedRequest = this.uiState.selectedRequest;
 
   // User data
   currentUser = this.authService.appUser;
@@ -410,8 +413,7 @@ export class AppComponent implements OnInit {
   }
 
   openChat(request: ServiceRequest) {
-    this.selectedRequest.set(request);
-    this.isChatOpen.set(true);
+    this.uiState.openChat(request);
   }
   openScheduler(request: ServiceRequest) {
     this.selectedRequest.set(request);
@@ -456,10 +458,9 @@ export class AppComponent implements OnInit {
 
   closeModal() {
     this.isNotificationCenterOpen.set(false);
-    this.isChatOpen.set(false);
     this.isSchedulerOpen.set(false);
     this.isClarificationModalOpen.set(false);
-    this.selectedRequest.set(null);
+    this.uiState.closeChat();
   }
 
   async handleApproveQuote(request: ServiceRequest) {

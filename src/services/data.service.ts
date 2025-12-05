@@ -26,6 +26,29 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class DataService {
+          /**
+           * Subscrição em tempo real para mensagens do chat de uma solicitação de serviço
+           */
+          private chatSubscription: any = null;
+
+          listenToChatMessages(requestId: number) {
+            // Cancela subscrição anterior, se houver
+            if (this.chatSubscription) {
+              this.supabase.client.removeChannel(this.chatSubscription);
+              this.chatSubscription = null;
+            }
+            this.chatSubscription = this.supabase.client
+              .channel(`public:chat_messages:${requestId}`)
+              .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'chat_messages', filter: `request_id=eq.${requestId}` },
+                (payload) => {
+                  // Sempre recarrega as mensagens do chat para garantir consistência
+                  this.fetchChatMessages(requestId);
+                }
+              )
+              .subscribe();
+          }
         // Signals para origens de solicitação de serviço
         readonly origins = signal<ServiceRequestOrigin[]>([]);
 

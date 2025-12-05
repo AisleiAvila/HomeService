@@ -58,6 +58,7 @@ export class ChatComponent {
       const request = this.serviceRequest();
       if (request) {
         this.dataService.fetchChatMessages(request.id);
+        this.dataService.listenToChatMessages(request.id);
       }
     });
 

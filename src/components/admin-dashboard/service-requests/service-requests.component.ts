@@ -1,3 +1,4 @@
+import { UiStateService } from "../../../services/ui-state.service";
 
 import { StatusService } from "@/src/services/status.service";
 import { CommonModule } from "@angular/common";
@@ -22,6 +23,7 @@ export class ServiceRequestsComponent {
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    readonly uiState = inject(UiStateService);
 
     // Current user
     currentUser = this.authService.appUser;
@@ -331,7 +333,7 @@ export class ServiceRequestsComponent {
     }
     handleOpenChat(req: ServiceRequest) { 
         console.log('Chat', req); 
-        this.openChat.emit(req);
+        this.uiState.openChat(req);
     }
     handleRequestClarification(req: ServiceRequest) { 
         console.log('Clarify', req); 
