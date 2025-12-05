@@ -46,13 +46,50 @@ export class AdminOverviewComponent {
         // Calculate active services
         const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Cancelado').length;
 
-        // Calculate trends (simulated for now - will be replaced with real calculation)
+        // Cálculo real das tendências mês a mês
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0); // último dia mês anterior
+
+        // Receita
+        const revenueThisMonth = requests
+            .filter(r => r.payment_status === "Paid" && r.completed_at && new Date(r.completed_at) >= startOfMonth)
+            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        const revenueLastMonth = requests
+            .filter(r => r.payment_status === "Paid" && r.completed_at && new Date(r.completed_at) >= startOfPrevMonth && new Date(r.completed_at) <= endOfPrevMonth)
+            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        const revenueTrend = revenueLastMonth > 0
+            ? (((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100).toFixed(1) + "%"
+            : "+0%";
+
+        // Aprovações
+        const approvalsThisMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfMonth).length;
+        const approvalsLastMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfPrevMonth && new Date(u.created_at) <= endOfPrevMonth).length;
+        const approvalsTrend = approvalsLastMonth > 0
+            ? (((approvalsThisMonth - approvalsLastMonth) / approvalsLastMonth) * 100).toFixed(1) + "%"
+            : "+0%";
+
+        // Serviços ativos
+        const activeThisMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfMonth).length;
+        const activeLastMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfPrevMonth && new Date(r.created_at) <= endOfPrevMonth).length;
+        const activeTrend = activeLastMonth > 0
+            ? (((activeThisMonth - activeLastMonth) / activeLastMonth) * 100).toFixed(1) + "%"
+            : "+0%";
+
+        // Profissionais ativos
+        const professionalsThisMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfMonth).length;
+        const professionalsLastMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfPrevMonth && new Date(u.created_at) <= endOfPrevMonth).length;
+        const professionalsTrend = professionalsLastMonth > 0
+            ? (((professionalsThisMonth - professionalsLastMonth) / professionalsLastMonth) * 100).toFixed(1) + "%"
+            : "+0%";
+
         const trends = {
-            revenue: "+12.5%",
-            approvals: "-5%",
-            active: "+8%",
-            professionals: "+2",
-            clients: "+15%",
+            revenue: revenueTrend,
+            approvals: approvalsTrend,
+            active: activeTrend,
+            professionals: professionalsTrend,
+            clients: "+0%", // clientes removidos do sistema
         };
 
         return [
@@ -96,16 +133,16 @@ export class AdminOverviewComponent {
                 trendColor: trends.professionals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
             },
-            {
-                id: "activeClients",
-                label: this.i18n.translate("activeClients"),
-                value: clients.length,
-                icon: "fas fa-users",
-                bgColor: "bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700",
-                trend: trends.clients,
-                trendColor: trends.clients.includes("+") ? "text-green-600" : "text-red-600",
-                badge: null,
-            },
+            // {
+            //     id: "activeClients",
+            //     label: this.i18n.translate("activeClients"),
+            //     value: clients.length,
+            //     icon: "fas fa-users",
+            //     bgColor: "bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700",
+            //     trend: trends.clients,
+            //     trendColor: trends.clients.includes("+") ? "text-green-600" : "text-red-600",
+            //     badge: null,
+            // },
         ];
     });
 

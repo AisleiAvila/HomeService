@@ -143,6 +143,7 @@ export interface User {
   role: UserRole;
   status: UserStatus;
   avatar_url: string;
+  created_at?: string; // Data de criação do usuário (ISO)
   email_verified?: boolean; // Campo para verificação de email
   specialties?: ServiceCategory[];
   address?: Address;
