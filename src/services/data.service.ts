@@ -751,20 +751,34 @@ export class DataService {
     if (!currentUser) return;
 
     const newMessage = {
+      id: Math.floor(Math.random() * 1e9), // id temporário para UI
       request_id: requestId,
       sender_id: senderId,
       text: text,
       timestamp: new Date().toISOString(),
     };
 
+    // Atualiza localmente para resposta instantânea
+    this.chatMessages.set([
+      ...this.chatMessages(),
+      newMessage as any
+    ]);
+
     const { error } = await this.supabase.client
       .from("chat_messages")
-      .insert(newMessage);
+      .insert({
+        request_id: requestId,
+        sender_id: senderId,
+        text: text,
+        timestamp: newMessage.timestamp,
+      });
 
     if (error) {
       this.notificationService.addNotification(
         "Error sending message: " + error.message
       );
+      // Remove a mensagem local se falhar
+      this.chatMessages.set(this.chatMessages().filter(m => m !== newMessage));
     }
   }
 
