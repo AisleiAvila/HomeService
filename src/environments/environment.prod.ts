@@ -4,8 +4,8 @@ export const environment = {
   supabaseUrl: "https://uqrvenlkquheajuveggv.supabase.co",
   apiUrl: "https://your-backend-url.com",
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
-  loginApiUrl: "/api/auth/api/login",
-  confirmEmailApiUrl: "/api/auth/api/confirm-email",
+  loginApiUrl: "/api/login",
+  confirmEmailApiUrl: "/api/confirm-email",
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular
