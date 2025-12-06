@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('node:crypto');
-const { default: serverlessExpress } = require('@vendia/serverless-express');
+const serverlessExpress = require('@vendia/serverless-express');
 require('dotenv').config();
 
 const app = express();
@@ -97,4 +97,4 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
-module.exports = serverlessExpress({ app });
+module.exports = (req, res) => serverlessExpress({ app })(req, res);
