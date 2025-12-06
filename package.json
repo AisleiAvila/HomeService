@@ -26,6 +26,7 @@
     "@fullcalendar/timegrid": "^6.1.19",
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.86.0",
+    "@vendia/serverless-express": "^4.12.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
