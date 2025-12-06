@@ -11,7 +11,7 @@ app.use(express.json());
 const corsOptions = {
   origin: [
     'https://home-service-nu.vercel.app',
-    'https://home-service-eyp2mm4wz-aisleiavilas-projects.vercel.app'
+    /^https:\/\/home-service-.*\.vercel\.app$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
