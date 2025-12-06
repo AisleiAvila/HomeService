@@ -5,8 +5,21 @@ const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('node:crypto');
+
+
 const app = express();
-app.use(cors({
+console.log('Express inicializado, aguardando requisições...');
+
+// Log de cada requisição recebida (debug CORS/rede)
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.headers.origin}`);
+  next();
+});
+
+// Confia no proxy para cookies/headers corretos em produção (Vercel, etc)
+app.set('trust proxy', 1);
+
+const corsOptions = {
   origin: [
     'http://localhost:4200',
     'http://localhost:3000',
@@ -19,9 +32,14 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+// Middleware CORS global
+app.use(cors(corsOptions));
+
 
 // Responder manualmente a preflight OPTIONS para todas as rotas
+
 app.use(express.json());
 
 // Carrega variáveis de ambiente do .env se existir
