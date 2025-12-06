@@ -5,7 +5,7 @@ export const environment = {
   apiUrl: "https://your-backend-url.com",
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
   loginApiUrl: "https://home-service-nu.vercel.app/api/auth/api/login",
-  confirmEmailApiUrl: "https://home-service-nu.vercel.app/api/confirm-email",
+  confirmEmailApiUrl: "https://home-service-nu.vercel.app/api/auth/api/confirm-email",
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular
