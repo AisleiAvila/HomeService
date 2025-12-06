@@ -16,7 +16,7 @@ import { I18nService } from "@/src/i18n.service";
   imports: [CommonModule],
   template: `
     <div
-      class="w-full max-w-xs md:max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-4 mobile-safe flex flex-col items-center"
+      class="w-full max-w-xs md:max-w-md bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
     >
       <div class="w-full flex justify-center items-center">
         <canvas
@@ -27,10 +27,10 @@ import { I18nService } from "@/src/i18n.service";
           height="220"
         ></canvas>
       </div>
-      <div class="flex flex-wrap gap-2 justify-center mt-4 w-full">
+      <div class="flex flex-wrap gap-2 justify-center mt-6 w-full">
         <ng-container *ngFor="let item of chartData()">
           <span
-            class="px-2 py-1 rounded text-xs font-medium"
+            class="px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700"
             [style.background]="item.color"
             [style.color]="'white'"
           >
@@ -68,16 +68,16 @@ export class CategoryBarChartComponent implements AfterViewInit {
     }
     
     const colors = [
-      "#2563eb", // blue-600
-      "#059669", // emerald-600
-      "#eab308", // yellow-500
-      "#ef4444", // red-500
-      "#6366f1", // indigo-500
-      "#f59e42", // amber-500
-      "#10b981", // emerald-500
-      "#f43f5e", // rose-500
-      "#a3e635", // lime-500
-      "#f472b6", // pink-400
+      "#1e40af", // blue-800 - Azul profissional
+      "#475569", // slate-600 - Cinza ardósia
+      "#0f766e", // teal-700 - Verde-azulado
+      "#7c3aed", // violet-600 - Violeta elegante
+      "#0891b2", // cyan-600 - Ciano corporativo
+      "#4f46e5", // indigo-600 - Índigo sóbrio
+      "#6b7280", // gray-500 - Cinza neutro
+      "#059669", // emerald-600 - Verde esmeralda
+      "#0369a1", // sky-700 - Azul céu escuro
+      "#4338ca", // indigo-700 - Índigo profundo
     ];
     let i = 0;
     return Object.entries(d).map(([category, value]) => ({
@@ -133,31 +133,54 @@ export class CategoryBarChartComponent implements AfterViewInit {
       const x = xStart + index * barWidth;
       const y = canvas.height - 30 - barHeight;
 
-      // Draw bar
-      ctx.fillStyle = item.color;
+      // Desenhar barra com gradiente e sombra
+      ctx.save();
+      
+      // Sombra sutil
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      
+      // Criar gradiente vertical para dar profundidade
+      const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+      gradient.addColorStop(0, item.color);
+      gradient.addColorStop(1, item.color + 'dd'); // Levemente mais escuro no fundo
+      
+      ctx.fillStyle = gradient;
       ctx.fillRect(x, y, actualBarWidth, barHeight);
+      
+      ctx.restore();
+      
+      // Borda superior sutil para destaque
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + actualBarWidth, y);
+      ctx.stroke();
 
       // Draw value on top of bar (only if there's space)
       if (barHeight > 20) {
-        ctx.font = "10px sans-serif";
-        ctx.fillStyle = "#374151"; // gray-700
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillStyle = "#1f2937"; // gray-800 - mais escuro e profissional
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillText(item.value.toString(), x + actualBarWidth / 2, y - 2);
+        ctx.fillText(item.value.toString(), x + actualBarWidth / 2, y - 4);
       }
 
       // Draw category label below the bar
-      ctx.font = "8px sans-serif";
-      ctx.fillStyle = "#6b7280"; // gray-500
+      ctx.font = "9px sans-serif";
+      ctx.fillStyle = "#4b5563"; // gray-600 - mais legível
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.fillText(item.label, x + actualBarWidth / 2, canvas.height - 25);
       index++;
     }
 
-    // Draw Y-axis
-    ctx.strokeStyle = "#d1d5db"; // gray-300
-    ctx.lineWidth = 1;
+    // Draw Y-axis com estilo mais sutil
+    ctx.strokeStyle = "#e5e7eb"; // gray-200 - mais suave
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(25, 30);
     ctx.lineTo(25, canvas.height - 30);

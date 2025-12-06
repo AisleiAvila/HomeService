@@ -15,7 +15,7 @@ import { I18nService } from "../i18n.service";
   imports: [CommonModule],
   template: `
     <div
-      class="w-full max-w-xs md:max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-4 mobile-safe flex flex-col items-center"
+      class="w-full max-w-xs md:max-w-md bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
     >
       <div class="w-full flex justify-center items-center">
         <canvas
@@ -26,10 +26,10 @@ import { I18nService } from "../i18n.service";
           height="220"
         ></canvas>
       </div>
-      <div class="flex flex-wrap gap-2 justify-center mt-4 w-full">
+      <div class="flex flex-wrap gap-2 justify-center mt-6 w-full">
         <ng-container *ngFor="let item of chartData()">
           <span
-            class="px-2 py-1 rounded text-xs font-medium"
+            class="px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700"
             [style.background]="item.color"
             [style.color]="'white'"
           >
@@ -66,16 +66,16 @@ export class StatusPieChartComponent {
     }
     
     const colors = [
-      "#2563eb",
-      "#059669",
-      "#eab308",
-      "#ef4444",
-      "#6366f1",
-      "#f59e42",
-      "#10b981",
-      "#f43f5e",
-      "#a3e635",
-      "#f472b6",
+      "#1e40af", // blue-800 - Azul profissional
+      "#475569", // slate-600 - Cinza ardósia
+      "#0f766e", // teal-700 - Verde-azulado
+      "#7c3aed", // violet-600 - Violeta elegante
+      "#0891b2", // cyan-600 - Ciano corporativo
+      "#4f46e5", // indigo-600 - Índigo sóbrio
+      "#6b7280", // gray-500 - Cinza neutro
+      "#059669", // emerald-600 - Verde esmeralda
+      "#0369a1", // sky-700 - Azul céu escuro
+      "#4338ca", // indigo-700 - Índigo profundo
     ];
     let i = 0;
     return Object.entries(d).map(([status, value]) => ({
@@ -122,12 +122,28 @@ export class StatusPieChartComponent {
     let startAngle = 0;
     data.forEach((item) => {
       const sliceAngle = (item.value / total) * 2 * Math.PI;
+      
+      // Desenhar fatia com sombra sutil
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      
       ctx.beginPath();
       ctx.moveTo(110, 110);
       ctx.arc(110, 110, 100, startAngle, startAngle + sliceAngle);
       ctx.closePath();
       ctx.fillStyle = item.color;
       ctx.fill();
+      
+      ctx.restore();
+      
+      // Adicionar borda branca fina entre fatias para separação visual
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
       startAngle += sliceAngle;
     });
   }

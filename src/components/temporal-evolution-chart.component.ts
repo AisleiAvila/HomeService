@@ -16,7 +16,7 @@ import { I18nService } from "../i18n.service";
   imports: [CommonModule],
   template: `
     <div
-      class="w-full max-w-xs md:max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-4 mobile-safe flex flex-col items-center"
+      class="w-full max-w-xs md:max-w-md bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
     >
       <div class="w-full flex justify-center items-center">
         <canvas
@@ -27,22 +27,22 @@ import { I18nService } from "../i18n.service";
           height="220"
         ></canvas>
       </div>
-      <div class="flex flex-wrap gap-2 justify-center mt-4 w-full">
-        <div class="text-center">
-          <div class="text-sm font-medium text-gray-600">Total</div>
-          <div class="text-lg font-bold text-blue-600">
+      <div class="flex flex-wrap gap-4 justify-center mt-6 w-full">
+        <div class="text-center px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
+          <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</div>
+          <div class="text-xl font-bold text-blue-800">
             {{ totalRequests() }}
           </div>
         </div>
-        <div class="text-center">
-          <div class="text-sm font-medium text-gray-600">Média/Dia</div>
-          <div class="text-lg font-bold text-green-600">
+        <div class="text-center px-4 py-2 bg-teal-50 rounded-lg border border-teal-100">
+          <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Média/Dia</div>
+          <div class="text-xl font-bold text-teal-700">
             {{ averagePerDay() }}
           </div>
         </div>
-        <div class="text-center">
-          <div class="text-sm font-medium text-gray-600">Tendência</div>
-          <div class="text-lg font-bold" [class]="trendColor()">
+        <div class="text-center px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
+          <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Tendência</div>
+          <div class="text-xl font-bold" [class]="trendColor()">
             {{ trend() }}
           </div>
         </div>
@@ -96,7 +96,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
 
   trendColor = computed(() => {
     const trend = this.trend();
-    return trend.includes("+") ? "text-green-600" : "text-red-600";
+    return trend.includes("+") ? "text-teal-700" : "text-slate-600";
   });
 
   ngAfterViewInit() {
@@ -141,12 +141,12 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     const margin = 20;
     const chartWidth = canvas.width - 2 * margin;
     const chartHeight = canvas.height - 2 * margin;
-    const pointRadius = 3;
-    const lineWidth = 2;
+    const pointRadius = 4;
+    const lineWidth = 2.5;
 
-    // Desenhar eixos
-    ctx.strokeStyle = "#d1d5db";
-    ctx.lineWidth = 1;
+    // Desenhar eixos com estilo sutil
+    ctx.strokeStyle = "#e5e7eb"; // gray-200
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(margin, margin);
     ctx.lineTo(margin, canvas.height - margin);
@@ -154,9 +154,35 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     ctx.lineTo(canvas.width - margin, canvas.height - margin);
     ctx.stroke();
 
-    // Desenhar linha de evolução
-    ctx.strokeStyle = "#3b82f6";
+    // Desenhar área sob a linha primeiro (fundo)
+    const gradient = ctx.createLinearGradient(0, margin, 0, canvas.height - margin);
+    gradient.addColorStop(0, "rgba(30, 64, 175, 0.15)"); // blue-800 com transparência
+    gradient.addColorStop(1, "rgba(30, 64, 175, 0.02)");
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(margin, canvas.height - margin);
+
+    entries.forEach(([date, value], index) => {
+      const x = margin + (index / (entries.length - 1)) * chartWidth;
+      const y = canvas.height - margin - (value / maxValue) * chartHeight;
+      ctx.lineTo(x, y);
+    });
+
+    ctx.lineTo(canvas.width - margin, canvas.height - margin);
+    ctx.closePath();
+    ctx.fill();
+
+    // Desenhar linha de evolução com sombra
+    ctx.save();
+    ctx.shadowColor = 'rgba(30, 64, 175, 0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+    
+    ctx.strokeStyle = "#1e40af"; // blue-800
     ctx.lineWidth = lineWidth;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     ctx.beginPath();
 
     entries.forEach(([date, value], index) => {
@@ -171,31 +197,24 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     });
 
     ctx.stroke();
+    ctx.restore();
 
-    // Desenhar pontos
-    ctx.fillStyle = "#3b82f6";
+    // Desenhar pontos com borda branca
     entries.forEach(([date, value], index) => {
       const x = margin + (index / (entries.length - 1)) * chartWidth;
       const y = canvas.height - margin - (value / maxValue) * chartHeight;
 
+      // Borda branca
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x, y, pointRadius + 1.5, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Ponto interno
+      ctx.fillStyle = "#1e40af"; // blue-800
       ctx.beginPath();
       ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
       ctx.fill();
     });
-
-    // Desenhar área sob a linha
-    ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
-    ctx.beginPath();
-    ctx.moveTo(margin, canvas.height - margin);
-
-    entries.forEach(([date, value], index) => {
-      const x = margin + (index / (entries.length - 1)) * chartWidth;
-      const y = canvas.height - margin - (value / maxValue) * chartHeight;
-      ctx.lineTo(x, y);
-    });
-
-    ctx.lineTo(canvas.width - margin, canvas.height - margin);
-    ctx.closePath();
-    ctx.fill();
   }
 }
