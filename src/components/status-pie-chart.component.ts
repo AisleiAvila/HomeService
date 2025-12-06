@@ -17,7 +17,6 @@ import { I18nService } from "../i18n.service";
     <div
       class="w-full max-w-xs md:max-w-md bg-white dark:bg-gray-800 rounded-lg shadow p-4 mobile-safe flex flex-col items-center"
     >
-      <h3 class="text-lg font-semibold mb-2 text-center">{{ title() }}</h3>
       <div class="w-full flex justify-center items-center">
         <canvas
           id="pieCanvas"

@@ -48,6 +48,9 @@ export class DataService {
                 }
               )
               .subscribe();
+            
+            // Retorna a subscription para permitir cleanup
+            return this.chatSubscription;
           }
         // Signals para origens de solicitação de serviço
         readonly origins = signal<ServiceRequestOrigin[]>([]);
