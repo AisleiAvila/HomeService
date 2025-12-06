@@ -4,7 +4,7 @@ export const environment = {
   supabaseUrl: "https://uqrvenlkquheajuveggv.supabase.co",
   apiUrl: "https://your-backend-url.com",
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
-  loginApiUrl: "https://home-service-nu.vercel.app/api/login",
+  loginApiUrl: "https://home-service-nu.vercel.app/api/auth/api/login",
   confirmEmailApiUrl: "https://home-service-nu.vercel.app/api/confirm-email",
 };
 
