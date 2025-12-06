@@ -1312,6 +1312,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     newPasswordDescription: "Escolha uma senha forte para sua conta.",
     newPasswordPlaceholder: "Digite sua nova senha",
     confirmPassword: "Confirmar Senha",
+    landingAboutTitle: "Sobre Nós",
+    landingAboutText1: "Somos uma empresa de construção civil dedicada a transformar sonhos em realidade. Com mais de 20 anos de experiência, oferecemos soluções completas desde o planejamento até a execução de projetos residenciais e comerciais.",
+    landingAboutText2: "Nossa equipe de profissionais qualificados está comprometida com a qualidade, inovação e satisfação do cliente. Utilizamos materiais de alta qualidade e técnicas modernas para garantir resultados duradouros e esteticamente agradáveis.",
+
     landingServicesTitle: "Nossos Serviços",
     landingServicesProjects: "Projetos",
     landingServicesProjects1: "Casas, condomínios e edifícios",
