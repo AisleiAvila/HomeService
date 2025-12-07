@@ -11,13 +11,12 @@ import {
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { User, ServiceRequest } from "../../models/maintenance.models";
+import { User, ServiceRequest, ServiceStatus } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { StatusService } from "../../services/status.service";
 
 @Component({
   selector: "app-dashboard",
@@ -27,34 +26,11 @@ import { StatusService } from "../../services/status.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
-  // Mapeamento entre status do enum e status dos dados
-  // Mapeamento entre status do enum e status dos dados
-  private readonly statusMap: Record<string, string> = {
-    Requested: "Solicitado",
-    InAnalysis: "Solicitado",
-    AwaitingClarifications: "Aguardando esclarecimentos",
-    QuoteSent: "Aguardando Confirmação",
-    AwaitingQuoteApproval: "Aguardando Confirmação",
-    QuoteApproved: "Aceito",
-    QuoteRejected: "Recusado",
-    AwaitingExecutionDate: "Aceito",
-    DateProposedByAdmin: "Data Definida",
-    AwaitingDateApproval: "Aguardando Confirmação",
-    DateApprovedByClient: "Data Definida",
-    DateRejectedByClient: "Recusado",
-    SearchingProfessional: "Solicitado",
-    ProfessionalSelected: "Atribuído",
-    AwaitingProfessionalConfirmation: "Aguardando Confirmação",
-    Scheduled: "Data Definida",
-    InProgress: "Em Progresso",
-    CompletedAwaitingApproval: "Aguardando Finalização",
-    Completed: "Concluído",
-    Cancelled: "Cancelado",
-  };
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
+    console.log('[Dashboard] handleViewDetails chamado com request:', request?.id, request?.title);
+    this.selectedRequest.set(request);
     this.viewDetails.emit(request);
-    // Aqui pode abrir modal, navegar ou atualizar view conforme necessário
   }
     logAndCloseDetails() {
       console.log('closeDetails recebido (pai dashboard)');
@@ -100,10 +76,10 @@ export class DashboardComponent implements OnInit {
   }
 
   quickFilterOptions = [
-    { status: "Requested", label: "statusRequested" },
-    { status: "InAnalysis", label: "statusInAnalysis" },
-    { status: "Scheduled", label: "statusScheduled" },
-    { status: "Completed", label: "statusCompleted" },
+    { status: "Solicitado", label: "statusRequested" },
+    { status: "Atribuído", label: "statusAssigned" },
+    { status: "Data Definida", label: "statusScheduled" },
+    { status: "Concluído", label: "statusCompleted" },
   ];
 
   // Método utilitário para uso no template
@@ -198,8 +174,22 @@ export class DashboardComponent implements OnInit {
   }
 
   public ngOnInit() {
+    const allStatus: ServiceStatus[] = [
+      "Solicitado",
+      "Atribuído",
+      "Aguardando Confirmação",
+      "Aceito",
+      "Recusado",
+      "Data Definida",
+      "Em Progresso",
+      "Aguardando Finalização",
+      "Pagamento Feito",
+      "Concluído",
+      "Cancelado"
+    ];
+    
     this.statusAtivos.set(
-      Object.values(StatusService).map((status) => ({
+      allStatus.map((status) => ({
         value: status,
         label: this.i18n.translate(status),
       }))
@@ -243,10 +233,9 @@ export class DashboardComponent implements OnInit {
     const category = this.filterCategory();
     const search = this.searchTerm().toLowerCase();
 
-    // Filtro por status - converte o valor em inglês para português
+    // Filtro por status
     if (status) {
-      const statusPt = this.statusMap[status];
-      reqs = reqs.filter((r) => r.status === statusPt);
+      reqs = reqs.filter((r) => r.status === status);
     }
 
     if (startDate && endDate) {
@@ -406,21 +395,30 @@ export class DashboardComponent implements OnInit {
     const currentUser = this.user();
     const requests = this.userRequests();
 
-    const ativosPt = new Set(
-      this.statusAtivos()
-        .map((s) => this.statusMap[s.value])
-        .filter(Boolean)
-    );
+    // Status que indicam serviços ativos (não finalizados)
+    const activeStatuses: ServiceStatus[] = [
+      "Solicitado",
+      "Atribuído",
+      "Aguardando Confirmação",
+      "Aceito",
+      "Data Definida",
+      "Em Progresso",
+      "Aguardando Finalização",
+      "Pagamento Feito"
+    ];
+    
+    const isActive = (status: string) => activeStatuses.includes(status as ServiceStatus);
+
     if (currentUser.role === "admin") {
       return [
         {
           label: this.i18n.translate("activeRequests"),
-          value: requests.filter((r) => ativosPt.has(r.status)).length,
+          value: requests.filter((r) => isActive(r.status)).length,
           icon: "fas fa-cogs text-blue-500",
         },
         {
           label: this.i18n.translate("completedRequests"),
-          value: requests.filter((r) => !ativosPt.has(r.status)).length,
+          value: requests.filter((r) => r.status === "Concluído").length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
@@ -428,18 +426,18 @@ export class DashboardComponent implements OnInit {
 
     if (currentUser.role === "professional") {
       const earnings = requests
-        .filter((r) => r.payment_status === "Paid" && r.cost)
-        .reduce((sum, r) => sum + r.cost!, 0);
+        .filter((r) => r.payment_status === "Paid" && r.valor)
+        .reduce((sum, r) => sum + r.valor!, 0);
 
       return [
         {
           label: this.i18n.translate("activeJobs"),
-          value: requests.filter((r) => ativosPt.has(r.status)).length,
+          value: requests.filter((r) => isActive(r.status)).length,
           icon: "fas fa-briefcase text-blue-500",
         },
         {
           label: this.i18n.translate("completedJobs"),
-          value: requests.filter((r) => !ativosPt.has(r.status)).length,
+          value: requests.filter((r) => r.status === "Concluído").length,
           icon: "fas fa-check-double text-green-500",
         },
         {

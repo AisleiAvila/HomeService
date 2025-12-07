@@ -193,6 +193,19 @@ export class AppComponent implements OnInit {
       } else if (user) {
         if (user.status === "Active") {
           this.view.set("app");
+          
+          // Redirecionar admin para /admin após login
+          if (user.role === 'admin') {
+            console.log('[AppComponent] Admin detectado, redirecionando para /admin');
+            this.router.navigate(['/admin']);
+            this.currentNav.set('dashboard');
+          } else {
+            // Garantir que não-admin está na rota raiz
+            console.log('[AppComponent] Usuário não-admin, garantindo rota raiz');
+            this.router.navigate(['/']);
+            this.currentNav.set('dashboard');
+          }
+          
           // Only load data if we haven't loaded it for this user yet
           if (this.lastLoadedUserId === user.id) {
             console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
@@ -236,12 +249,24 @@ export class AppComponent implements OnInit {
     this.view.set("landing");
   }
   navigate(nav: Nav) {
+    const user = this.currentUser();
+    console.log('[AppComponent] Navigate chamado:', {
+      nav,
+      userRole: user?.role,
+      userEmail: user?.email
+    });
+    
     if (nav === 'create-service-request') {
       this.router.navigate(['/create-service-request']);
     } else if (nav === 'admin-create-service-request') {
       this.router.navigate(['/admin-create-service-request']);
-    } else if (nav === 'dashboard' && this.currentUser()?.role === 'admin') {
+    } else if (nav === 'dashboard' && user?.role === 'admin') {
+      console.log('[AppComponent] Redirecionando admin para /admin');
       this.router.navigate(['/admin']);
+      this.currentNav.set(nav);
+    } else if (nav === 'dashboard' && user?.role !== 'admin') {
+      console.log('[AppComponent] Navegando usuário não-admin para dashboard normal');
+      this.router.navigate(['/']);
       this.currentNav.set(nav);
     } else {
       this.router.navigate(['/']);

@@ -4,6 +4,7 @@ import { CreateServiceRequestComponent } from './pages/create-service-request/cr
 import { AdminCreateServiceRequestComponent } from './pages/admin-create-service-request/admin-create-service-request.component';
 import { EmailConfirmationComponent } from './components/email-confirmation.component';
 import { AdminDashboardComponent } from '../components/admin-dashboard/admin-dashboard.component';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminDashboardComponent,
+    canActivate: [adminGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', loadComponent: () => import('../components/admin-dashboard/admin-overview/admin-overview.component').then(m => m.AdminOverviewComponent) },
