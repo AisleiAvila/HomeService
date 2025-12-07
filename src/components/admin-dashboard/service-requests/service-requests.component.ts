@@ -1,12 +1,11 @@
 import { UiStateService } from "../../../services/ui-state.service";
 
-import { StatusService } from "@/src/services/status.service";
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, ElementRef, QueryList, ViewChildren, computed, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
-import { ServiceRequest } from "../../../models/maintenance.models";
+import { ServiceRequest, ServiceStatus } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
@@ -74,12 +73,26 @@ export class ServiceRequestsComponent {
         "Aveiro",
     ];
 
-    statusOptions = computed(() =>
-        Object.values(StatusService).map((status) => ({
+    statusOptions = computed(() => {
+        const allStatus: ServiceStatus[] = [
+            "Solicitado",
+            "Atribuído",
+            "Aguardando Confirmação",
+            "Aceito",
+            "Recusado",
+            "Data Definida",
+            "Em Progresso",
+            "Aguardando Finalização",
+            "Pagamento Feito",
+            "Concluído",
+            "Cancelado"
+        ];
+        
+        return allStatus.map((status) => ({
             value: status,
             label: this.i18n.translate(status),
-        }))
-    );
+        }));
+    });
 
     professionalOptions = computed(() =>
         this.dataService.users().filter(u => u.role === 'professional' && u.status === 'Active')
