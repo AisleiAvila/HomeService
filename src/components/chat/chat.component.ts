@@ -14,7 +14,6 @@ import {
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
-  ChatMessage,
   ServiceRequest,
   User
 } from "../../models/maintenance.models";

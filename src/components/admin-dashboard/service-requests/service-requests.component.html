@@ -258,7 +258,7 @@
                         </button>
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                        {{ "cost" | i18n }}
+                        {{ "value" | i18n }}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "actions" | i18n }}
@@ -283,7 +283,7 @@
                             }}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+                        {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
@@ -402,9 +402,9 @@
                         }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600 font-medium">{{ "cost" | i18n }}:</span>
+                    <span class="text-gray-600 font-medium">{{ "value" | i18n }}:</span>
                     <span class="text-gray-900 font-semibold">
-                        {{ req.cost ? "€" + (req.cost | number : "1.2-2") : "N/A" }}
+                        {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </span>
                 </div>
             </div>
