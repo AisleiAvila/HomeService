@@ -288,13 +288,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
                             <!-- Ação Principal -->
-                            @if (req.status === 'Solicitado') {
-                            <button (click)="analyzeRequest(req)"
-                                class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-                                [title]="'analyzeRequest' | i18n">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            } @else if (req.status === 'Em análise') {
+                            @if (req.status === 'Em análise') {
                             <button (click)="selectRequestForQuote(req)"
                                 class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
                                 [title]="'sendQuote' | i18n">
@@ -349,18 +343,6 @@
                                             <i class="fas fa-comments w-5 mr-2"></i>
                                             {{ "chat" | i18n }}
                                         </a>
-
-                                        <!-- Ações condicionais -->
-                                        @if (req.status === 'Solicitado' || req.status ===
-                                        'Em análise' || req.status === 'Orçamento aprovado')
-                                        {
-                                        <a href="#" (click)="handleRequestClarification(req); $event.preventDefault()"
-                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            role="menuitem">
-                                            <i class="fas fa-question-circle w-5 mr-2"></i>
-                                            {{ "requestClarification" | i18n }}
-                                        </a>
-                                        }
                                     </div>
                                 </div>
                                 }
@@ -422,27 +404,11 @@
                         : ("provideQuote" | i18n)
                         }}
                     </button>
-                    } @if(req.status === 'Solicitado') {
-                    <button (click)="analyzeRequest(req)"
-                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200 flex items-center justify-center">
-                        <i class="fas fa-search mr-2"></i>
-                        {{ "analyzeRequest" | i18n }}
-                    </button>
-                    <button (click)="handleRequestClarification(req)"
-                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
-                        <i class="fas fa-question-circle mr-2"></i>
-                        {{ "requestClarification" | i18n }}
-                    </button>
                     } @if(req.status === 'Em análise') {
                     <button (click)="selectRequestForQuote(req)"
                         class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-calculator mr-2"></i>
                         {{ "sendQuote" | i18n }}
-                    </button>
-                    <button (click)="handleRequestClarification(req)"
-                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
-                        <i class="fas fa-question-circle mr-2"></i>
-                        {{ "requestClarification" | i18n }}
                     </button>
                     } @if(needsProfessionalAssignment(req)) {
                     <button (click)="selectRequestForAssignment(req)"
@@ -454,13 +420,6 @@
                         : ("assign" | i18n)
                         }}
                     </button>
-                    @if(req.status === 'Orçamento aprovado') {
-                    <button (click)="handleRequestClarification(req)"
-                        class="flex-1 min-w-[100px] px-3 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors duration-200 flex items-center justify-center">
-                        <i class="fas fa-question-circle mr-2"></i>
-                        {{ "requestClarification" | i18n }}
-                    </button>
-                    }
                     }
 
                     <!-- Botão de Direcionamento Direto - Apenas para Admin -->

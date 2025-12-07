@@ -56,7 +56,6 @@ export class ServiceRequestsComponent {
     openDirectAssignment = output<ServiceRequest>();
     viewDetails = output<ServiceRequest>();
     openChat = output<ServiceRequest>();
-    requestClarification = output<ServiceRequest>();
 
     // Options
     quickFilterOptions = [
@@ -278,7 +277,6 @@ export class ServiceRequestsComponent {
     }
 
     // Action placeholders - these would need to emit events or call services
-    analyzeRequest(req: ServiceRequest) { console.log('Analyze', req); }
     selectRequestForQuote(req: ServiceRequest) { console.log('Quote', req); }
     needsProfessionalAssignment(req: ServiceRequest): boolean { return false; } // Placeholder
     selectRequestForAssignment(req: ServiceRequest) { console.log('Assign', req); }
@@ -334,9 +332,5 @@ export class ServiceRequestsComponent {
     handleOpenChat(req: ServiceRequest) { 
         console.log('Chat', req); 
         this.uiState.openChat(req);
-    }
-    handleRequestClarification(req: ServiceRequest) { 
-        console.log('Clarify', req); 
-        this.requestClarification.emit(req);
     }
 }
