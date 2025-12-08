@@ -55,13 +55,13 @@
   </div>
 
   <!-- Service Lists OU Detalhes -->
-  @if (selectedRequest()) {
-  <app-service-request-details
-    [requestInput]="selectedRequest()"
-    [currentUserInput]="user()"
-    (closeDetails)="logAndCloseDetails()"
-    (refreshRequest)="selectedRequest.set(null)"
-  ></app-service-request-details>
+  @if (selectedRequest() && selectedRequest()!.id) {
+    <app-service-request-details
+      [requestInput]="selectedRequest()!"
+      [currentUserInput]="user()!"
+      (closeDetails)="logAndCloseDetails()"
+      (refreshRequest)="selectedRequest.set(null)"
+    ></app-service-request-details>
   }
   
   @if (!selectedRequest()) {

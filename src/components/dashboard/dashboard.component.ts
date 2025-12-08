@@ -6,6 +6,7 @@ import {
   output,
   inject,
   signal,
+  effect,
   OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -24,27 +25,45 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
   standalone: true,
   imports: [CommonModule, FormsModule, ServiceListComponent, ServiceRequestDetailsComponent, I18nPipe],
   templateUrl: './dashboard.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // TEMPORARIAMENTE removido OnPush para debug
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
+    public selectedRequest = signal<ServiceRequest | null>(null);
+    viewDetails = output<ServiceRequest>();
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
-    console.log('[Dashboard] handleViewDetails chamado com request:', request?.id, request?.title);
-    console.log('[Dashboard] Request completo:', request);
-    console.log('[Dashboard] Setando selectedRequest...');
+    console.log('[Dashboard] handleViewDetails chamado com request:', request);
+    if (!request?.id) {
+      console.error('[Dashboard] Request inválido recebido:', request);
+      return;
+    }
+    // Logar todos os campos principais
+    console.log('[Dashboard] Request.id:', request.id);
+    console.log('[Dashboard] Request.title:', request.title);
+    console.log('[Dashboard] Request.status:', request.status);
+    console.log('[Dashboard] Request.professional_id:', request.professional_id);
+    console.log('[Dashboard] Request.valor:', request.valor);
+    console.log('[Dashboard] Request.valor_prestador:', request.valor_prestador);
+    
+    // Setar o signal diretamente sem setTimeout
     this.selectedRequest.set(request);
     console.log('[Dashboard] selectedRequest após set:', this.selectedRequest());
     this.viewDetails.emit(request);
   }
+
+  // Effect para logar mudanças no signal selectedRequest
+  readonly _logSelectedRequestEffect = effect(() => {
+    console.log('[Dashboard] selectedRequest mudou:', this.selectedRequest());
+  });
     logAndCloseDetails() {
-      console.log('closeDetails recebido (pai dashboard)');
-      this.selectedRequest.set(null);
-    }
+    console.log('closeDetails recebido (pai dashboard)');
+    this.selectedRequest.set(null);
+    console.log('[Dashboard] selectedRequest após fechar:', this.selectedRequest());
+  }
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
-  
-  // Filtros avançados e pesquisa
   filterStatus = signal<string>("");
   filterStartDate = signal<string>("");
   filterEndDate = signal<string>("");
@@ -91,7 +110,6 @@ export class DashboardComponent implements OnInit {
     return Array.isArray(val);
   }
   user = input.required<User>();
-  viewDetails = output<ServiceRequest>();
   openChat = output<ServiceRequest>();
   payNow = output<ServiceRequest>();
   scheduleRequest = output<ServiceRequest>();
@@ -202,7 +220,7 @@ export class DashboardComponent implements OnInit {
     );
   }
 
-  public selectedRequest = signal<ServiceRequest | null>(null);
+  // Removido duplicidade de selectedRequest
 
   readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);

@@ -7,8 +7,8 @@ import {
   computed,
   inject,
   signal,
-  OnInit,
   effect,
+  AfterViewInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -44,11 +44,15 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
   template: `
     @if (!request()) {
     <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold">
+      <h3 class="text-xl font-bold mb-2">❌ ERRO DE DADOS</h3>
       Erro: Nenhuma solicitação selecionada ou dados inválidos.<br />
       Volte e selecione uma solicitação válida.<br />
-      <span style="font-size:12px;"
-        >[DEBUG] request(): {{ request() | json }}</span
-      >
+      <div style="font-size:11px; text-align:left; margin-top:10px; background:#fff; padding:10px; border-radius:4px;">
+        <strong>DEBUG INFO:</strong><br>
+        <code>request(): {{ request() | json }}</code><br>
+        <code>_requestInput(): {{ _requestInput() | json }}</code><br>
+        <code>loadedRequest(): {{ loadedRequest() | json }}</code>
+      </div>
     </div>
     } @else {
     <!-- Cabeçalho com gradiente, ícone e título -->
@@ -504,24 +508,36 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestDetailsComponent implements OnInit {
+export class ServiceRequestDetailsComponent implements AfterViewInit {
+  constructor() {
+    console.error('🏗️🏗️🏗️ [CONSTRUTOR] Componente ServiceRequestDetails CRIADO - timestamp:', Date.now());
+  }
+
+  ngAfterViewInit(): void {
+    console.error('🔵 [ngAfterViewInit] Executando...');
+    console.error('🔵 [ngAfterViewInit] _requestInput():', this._requestInput()?.id, this._requestInput()?.title);
+    console.error('🔵 [ngAfterViewInit] request():', this.request()?.id, this.request()?.title);
+    console.error('🔵 [ngAfterViewInit] loadedRequest():', this.loadedRequest()?.id);
+  }
+
   @Output() businessRuleError = new EventEmitter<string>();
-  
-  // Input usando @Input tradicional para garantir compatibilidade
-  private _requestInput?: ServiceRequest;
+
+  // Signals internos para armazenar os valores dos inputs
+  private readonly _requestInput = signal<ServiceRequest | undefined>(undefined);
+  private readonly _currentUserInput = signal<User | undefined>(undefined);
+
+  // Inputs COM SETTERS que populam os signals
   @Input() 
   set requestInput(value: ServiceRequest | undefined) {
-    console.log('[ServiceRequestDetails] @Input requestInput setter chamado com:', value?.id);
-    this._requestInput = value;
-    if (value) {
-      this.loadedRequest.set(value);
-    }
-  }
-  get requestInput(): ServiceRequest | undefined {
-    return this._requestInput;
+    console.error('✨✨✨ [SETTER] requestInput chamado!', value?.id, value?.title);
+    this._requestInput.set(value);
   }
   
-  @Input() currentUserInput?: User;
+  @Input() 
+  set currentUserInput(value: User | undefined) {
+    console.error('✨✨✨ [SETTER] currentUserInput chamado!', value?.id);
+    this._currentUserInput.set(value);
+  }
 
   // Injeção de serviços
   private readonly dataService = inject(DataService);
@@ -537,56 +553,55 @@ export class ServiceRequestDetailsComponent implements OnInit {
 
   // Request e User efetivos usados no template
   request = computed(() => {
-    const inputReq = this.requestInput;
+    const inputReq = this._requestInput();
     const loadedReq = this.loadedRequest();
-    console.log('[ServiceRequestDetails] Computed request:', {
-      inputReq: inputReq?.id,
-      loadedReq: loadedReq?.id,
-      final: (inputReq || loadedReq)?.id
-    });
-    return inputReq || loadedReq;
+    const final = inputReq || loadedReq;
+    console.error('🟡 [COMPUTED] request() executando:');
+    console.error('   ➜ inputReq:', inputReq?.id, inputReq?.title);
+    console.error('   ➜ loadedReq:', loadedReq?.id, loadedReq?.title);
+    console.error('   ➜ FINAL:', final?.id, final?.title);
+    console.error('   ➜ RETORNANDO:', final ? 'OBJETO VÁLIDO' : 'UNDEFINED');
+    return final;
   });
-  currentUser = computed(() => this.currentUserInput || this.loadedUser() || this.authService.appUser());
+  currentUser = computed(() => this._currentUserInput() || this.loadedUser() || this.authService.appUser());
 
-  // Effect para reagir a mudanças no requestInput
+  // Effect para reagir a mudanças no requestInput e carregar via rota se necessário
   private readonly requestEffect = effect(() => {
-    const inputReq = this.requestInput;
-    console.log('[ServiceRequestDetails] Effect - requestInput mudou:', inputReq?.id);
+    const inputReq = this._requestInput();
+    console.log('[ServiceRequestDetails] Effect executando - requestInput:', inputReq?.id);
+    
     if (inputReq) {
-      console.log('[ServiceRequestDetails] Request recebido via input:', inputReq.id);
+      console.log('[ServiceRequestDetails] ✅ Request recebido via input:', inputReq.id, inputReq.title);
+      return;
+    }
+    
+    // Se não há input, tentar carregar via rota
+    const routeId = this.route.snapshot.params['id'];
+    console.log('[ServiceRequestDetails] Sem input, verificando rota. ID:', routeId);
+    
+    if (routeId) {
+      const requests = this.dataService.serviceRequests();
+      const foundRequest = requests.find(r => r.id === Number.parseInt(routeId));
+      if (foundRequest) {
+        console.log('[ServiceRequestDetails] ✅ Request carregado via rota:', foundRequest.id);
+        this.loadedRequest.set(foundRequest);
+      } else {
+        console.error('[ServiceRequestDetails] ❌ Request não encontrado na rota:', routeId);
+        this.router.navigate(['/admin/requests']);
+      }
     }
   });
-
-  ngOnInit() {
-    console.log('[ServiceRequestDetails] ngOnInit - requestInput:', this.requestInput?.id);
-    console.log('[ServiceRequestDetails] ngOnInit - request computed:', this.request()?.id);
-    
-    // Se não há request via input, buscar pelo ID da rota
-    this.route.params.subscribe(params => {
-      const id = params['id'];
-      console.log('[ServiceRequestDetails] Route params id:', id);
-      if (id && !this.requestInput) {
-        console.log('[ServiceRequestDetails] Tentando carregar via rota...');
-        const requests = this.dataService.serviceRequests();
-        const foundRequest = requests.find(r => r.id === Number.parseInt(id));
-        if (foundRequest) {
-          console.log('[ServiceRequestDetails] Request encontrado via rota:', foundRequest.id);
-          this.loadedRequest.set(foundRequest);
-        } else {
-          console.error('Request não encontrado:', id);
-          this.router.navigate(['/admin/requests']);
-        }
-      }
-    });
-
-    // Se não há user via input, usar o user autenticado
-    if (!this.currentUserInput) {
-      const user = this.authService.appUser();
-      if (user) {
-        this.loadedUser.set(user);
+  
+  // Effect para garantir que o user está disponível
+  private readonly userEffect = effect(() => {
+    const inputUser = this._currentUserInput();
+    if (!inputUser && !this.loadedUser()) {
+      const authUser = this.authService.appUser();
+      if (authUser) {
+        this.loadedUser.set(authUser);
       }
     }
-  }
+  });
 
   // Signals para UI state
   showMobileActions = signal(false);

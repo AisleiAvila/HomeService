@@ -47,6 +47,16 @@ export class ServiceListComponent {
   sortChange = output<string>(); // Emite a coluna clicada
 
   viewDetails = output<ServiceRequest>();
+
+  logAndEmitViewDetails(request: ServiceRequest) {
+    console.log('[ServiceListComponent] Botão detalhes clicado. Request:', request);
+    if (request) {
+      console.log('[ServiceListComponent] Emitindo viewDetails com:', request.id, request.title);
+      this.viewDetails.emit(request);
+    } else {
+      console.error('[ServiceListComponent] Request inválido ao tentar emitir detalhes:', request);
+    }
+  }
   openChat = output<ServiceRequest>();
   approveQuote = output<ServiceRequest>();
   rejectQuote = output<ServiceRequest>();

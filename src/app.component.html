@@ -153,10 +153,15 @@
               </ng-container>
               <ng-container *ngSwitchCase="'details'">
                 <ng-container *ngIf="selectedRequest()">
-                  <app-service-request-details [request]="selectedRequest()!" [currentUser]="currentUser()!"
-                    (close)="goBackFromDetails()" (openChat)="openChat($event)"
-                    (approveQuote)="handleApproveQuote($event)" (rejectQuote)="handleRejectQuote($event)"
-                    (scheduleRequest)="openScheduler($event)" (payNow)="handlePayment($event)"
+                  <app-service-request-details 
+                    [requestInput]="selectedRequest()!" 
+                    [currentUserInput]="currentUser()!"
+                    (closeDetails)="goBackFromDetails()" 
+                    (openChat)="openChat($event)"
+                    (approveQuote)="handleApproveQuote($event)" 
+                    (rejectQuote)="handleRejectQuote($event)"
+                    (scheduleRequest)="openScheduler($event)" 
+                    (payNow)="handlePayment($event)"
                     (refreshRequest)="handleRefreshRequest()" />
                 </ng-container>
               </ng-container>
