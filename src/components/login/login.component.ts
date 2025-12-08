@@ -36,19 +36,6 @@ export interface LoginPayload {
           <span class="hidden sm:inline">{{ "backToHome" | i18n }}</span>
         </button>
 
-        <!-- Seletor de idioma no topo direito -->
-        <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
-          <i class="fas fa-globe text-indigo-500 text-lg"></i>
-          <select
-            class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            (change)="i18n.setLanguage($event.target.value)"
-            [value]="i18n.language()"
-            aria-label="Selecionar idioma"
-          >
-            <option value="pt">Português</option>
-            <option value="en">English</option>
-          </select>
-        </div>
         <div class="flex flex-col items-center pt-10 pb-2 gap-2">
           <img
             src="src/assets/logo-new.png"
