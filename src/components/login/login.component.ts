@@ -23,16 +23,20 @@ export interface LoginPayload {
   template: `
     <div
       class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-300 mobile-safe"
+      aria-label="Tela de login"
     >
       <div
         class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-indigo-100 transition-all duration-300"
+        role="form"
+        aria-labelledby="login-title"
       >
         <button
           (click)="switchToLanding.emit()"
           class="absolute top-3 left-3 text-indigo-400 hover:text-indigo-700 flex items-center focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white/80 px-2 py-1 rounded-lg shadow-sm"
           aria-label="Voltar para Home"
+          tabindex="0"
         >
-          <i class="fas fa-arrow-left mr-2"></i>
+          <i class="fas fa-arrow-left mr-2" aria-hidden="true"></i>
           <span class="hidden sm:inline">{{ "backToHome" | i18n }}</span>
         </button>
 
@@ -43,6 +47,7 @@ export interface LoginPayload {
             class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg mb-2"
           />
           <h1
+            id="login-title"
             class="text-3xl md:text-4xl font-extrabold text-indigo-700 drop-shadow-sm"
           >
             {{ "signIn" | i18n }}
@@ -52,14 +57,24 @@ export interface LoginPayload {
           </p>
         </div>
 
-        <form (ngSubmit)="login()" class="space-y-7">
+        <!-- Spinner centralizado -->
+        @if (isLoading()) {
+        <div class="absolute inset-0 flex items-center justify-center bg-white/70 z-10 rounded-3xl">
+          <i class="fas fa-spinner fa-spin text-indigo-500 text-4xl" aria-label="Carregando"></i>
+        </div>
+        }
+
+        <form (ngSubmit)="login()" class="space-y-7" autocomplete="off" aria-describedby="login-error">
           <!-- Mensagem de Erro -->
           @if (errorMessage()) {
           <div
+            id="login-error"
             class="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md"
+            role="alert"
+            aria-live="assertive"
           >
             <div class="flex items-center">
-              <i class="fas fa-exclamation-circle mr-2"></i>
+              <i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>
               <span>{{ errorMessage() }}</span>
             </div>
           </div>
@@ -77,10 +92,19 @@ export interface LoginPayload {
               type="email"
               autocomplete="email"
               required
-              class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+              aria-required="true"
+              [attr.aria-invalid]="emailInvalid() ? 'true' : 'false'"
+              aria-describedby="email-error"
+              class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+              [ngClass]="{ 'border-red-400': emailInvalid(), 'border-indigo-200': !emailInvalid() }"
               [ngModel]="email()"
               (ngModelChange)="email.set($event)"
+              (blur)="validateEmail()"
+              tabindex="1"
             />
+            @if (emailInvalid()) {
+            <span id="email-error" class="text-xs text-red-600 mt-1 block" role="alert">{{ "invalidEmail" | i18n }}</span>
+            }
           </div>
 
           <div>
@@ -89,16 +113,36 @@ export interface LoginPayload {
               class="block text-sm font-semibold text-indigo-700 mb-1"
               >{{ "password" | i18n }}</label
             >
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
-              [ngModel]="password()"
-              (ngModelChange)="password.set($event)"
-            />
+            <div class="relative">
+              <input
+                id="password"
+                name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                autocomplete="current-password"
+                required
+                aria-required="true"
+                [attr.aria-invalid]="passwordInvalid() ? 'true' : 'false'"
+                aria-describedby="password-error"
+                class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+                [ngClass]="{ 'border-red-400': passwordInvalid(), 'border-indigo-200': !passwordInvalid() }"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                (blur)="validatePassword()"
+                tabindex="2"
+              />
+              <button
+                type="button"
+                (click)="toggleShowPassword()"
+                class="absolute right-2 top-2 text-indigo-400 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white/80 px-2 py-1 rounded-lg"
+                aria-label="{{ showPassword ? 'Ocultar senha' : 'Mostrar senha' }}"
+                tabindex="3"
+              >
+                <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+              </button>
+            </div>
+            @if (passwordInvalid()) {
+            <span id="password-error" class="text-xs text-red-600 mt-1 block" role="alert">{{ "invalidPassword" | i18n }}</span>
+            }
           </div>
 
           <div class="flex items-center justify-between mt-2">
@@ -106,6 +150,8 @@ export interface LoginPayload {
               type="button"
               (click)="handleForgotPassword()"
               class="text-sm font-semibold text-indigo-500 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 px-2 py-1 rounded-lg"
+              aria-label="{{ 'forgotPassword' | i18n }}"
+              tabindex="4"
             >
               {{ "forgotPassword" | i18n }}
             </button>
@@ -114,15 +160,12 @@ export interface LoginPayload {
           <div>
             <button
               type="submit"
-              [disabled]="!email() || !password() || isLoading()"
+              [disabled]="!email() || !password() || isLoading() || emailInvalid() || passwordInvalid()"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-all duration-150"
+              aria-label="{{ 'login' | i18n }}"
+              tabindex="5"
             >
-              @if (isLoading()) {
-              <i class="fas fa-spinner fa-spin mr-2"></i>
-              {{ "loggingIn" | i18n }}
-              } @else {
               {{ "login" | i18n }}
-              }
             </button>
           </div>
         </form>
@@ -132,6 +175,8 @@ export interface LoginPayload {
           <button
             (click)="switchToRegister.emit()"
             class="font-bold text-indigo-600 hover:text-indigo-800 ml-1 focus:outline-none focus:ring-2 focus:ring-indigo-400 px-2 py-1 rounded-lg"
+            aria-label="{{ 'createAccount' | i18n }}"
+            tabindex="6"
           >
             {{ "createAccount" | i18n }}
           </button>
@@ -142,7 +187,6 @@ export interface LoginPayload {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
-  // Removido: loggedIn = output<LoginPayload>();
   private readonly authService = inject(AuthService);
   switchToRegister = output<void>();
   switchToLanding = output<void>();
@@ -153,12 +197,25 @@ export class LoginComponent {
   errorMessage = signal<string | null>(null);
   isLoading = signal(false);
 
-  // Injeção do serviço de internacionalização
+  // Estado para mostrar/ocultar senha
+  showPassword = false;
+
+  // Estado de validação
+  emailInvalid = signal(false);
+  passwordInvalid = signal(false);
+
   readonly i18n = inject(I18nService);
 
   login() {
     this.errorMessage.set(null);
     this.isLoading.set(true);
+    // Validação antes do submit
+    this.validateEmail();
+    this.validatePassword();
+    if (this.emailInvalid() || this.passwordInvalid()) {
+      this.isLoading.set(false);
+      return;
+    }
     this.authService.loginCustom(this.email(), this.password())
       .then((user) => {
         if (user) {
@@ -187,8 +244,22 @@ export class LoginComponent {
   }
 
   handleForgotPassword() {
-    console.log("Forgot password for email:", this.email());
-    // Sempre permitir acesso à tela de reset, mesmo sem email preenchido
     this.forgotPassword.emit(this.email());
+  }
+
+  toggleShowPassword() {
+    this.showPassword = !this.showPassword;
+  }
+
+  validateEmail() {
+    // Regex simples para email válido
+    const emailValue = this.email().trim();
+    this.emailInvalid.set(!/^\S+@\S+\.\S+$/.test(emailValue));
+  }
+
+  validatePassword() {
+    // Exemplo: mínimo 6 caracteres
+    const pwd = this.password();
+    this.passwordInvalid.set(pwd.length < 6);
   }
 }
