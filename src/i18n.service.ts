@@ -871,6 +871,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     updateRequest: "Update Request",
     fillFormToEditRequest: "Fill out the form below to edit the service request",
     requestOrigin: "Request Origin",
+    invalidCredentials: "Invalid email or password.",
+    authServerError: "Authentication server error. Please try again later.",
 
   },
   pt: {
@@ -1749,6 +1751,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     editServiceRequest: "Editar Solicitação de Serviço",
     fillFormToEditRequest: "Preencha o formulário abaixo para editar a solicitação de serviço",
     requestOrigin: "Origem da Solicitação",
+    invalidCredentials: "Credenciais inválidas. Por favor, tente novamente.",
+    authServerError: "Erro no servidor de autenticação. Por favor, tente novamente mais tarde.",
+
   },
 };
 

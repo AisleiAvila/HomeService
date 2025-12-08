@@ -40,7 +40,7 @@ export interface LoginPayload {
           <span class="hidden sm:inline">{{ "backToHome" | i18n }}</span>
         </button>
 
-        <div class="flex flex-col items-center pt-10 pb-2 gap-2">
+        <div class="flex flex-col items-center pt-4 pb-2 gap-2">
           <img
             src="src/assets/logo-new.png"
             alt="Logo HomeService"
@@ -75,7 +75,7 @@ export interface LoginPayload {
           >
             <div class="flex items-center">
               <i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>
-              <span>{{ errorMessage() }}</span>
+              <span>{{ errorMessage() | i18n }}</span>
             </div>
           </div>
           }
@@ -222,11 +222,11 @@ export class LoginComponent {
           this.clearError();
           // Redirecionamento pode ser feito via AppComponent ou Router
         } else {
-          this.setError('Credenciais inválidas ou erro de autenticação.');
+          this.setError('invalidCredentials');
         }
       })
       .catch(() => {
-        this.setError('Erro ao conectar ao servidor de autenticação.');
+        this.setError('authServerError');
       })
       .finally(() => {
         this.isLoading.set(false);
