@@ -138,12 +138,12 @@
             </div>
           </td>
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            @if (request.cost) {
-            <span class="text-green-600 font-medium"
-              >€ {{ request.cost | number : "1.2-2" }}</span
-            >
+            @if (request.valor_prestador && request.valor_prestador > 0) {
+              <span class="text-green-600 font-medium">
+                € {{ request.valor_prestador | number : "1.2-2" }}
+              </span>
             } @else {
-            <span class="text-gray-400">{{ "awaitingQuote" | i18n }}</span>
+              <span class="text-gray-400">—</span>
             }
           </td>
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -190,7 +190,7 @@
               
               <!-- Profissional: Iniciar serviço para status Agendado -->
               @if(currentUser().role === 'professional' && (request.status ===
-              'Agendado' || request.status === 'Scheduled')) {
+              'Data Definida' || request.status === 'Scheduled')) {
               <button
                 (click)="!isLoading(request.id) && startService.emit(request)"
                 class="service-list-action-start-service"
@@ -483,7 +483,7 @@
             </button>
             }
             
-            @if(request.status === 'Agendado' || request.status === 'Scheduled') {
+            @if(request.status === 'Data Definida' || request.status === 'Scheduled') {
             <button
               (click)="!isLoading(request.id) && startService.emit(request)"
               class="service-list-action-start-service"

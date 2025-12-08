@@ -182,14 +182,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
               } @else { -->
               
               <!-- Status de resposta do profissional -->
-              @if (quote.response_status === 'pending' || quote.response_status === 'responded') {
-              <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p class="text-sm text-yellow-800">
-                  <i class="fas fa-clock mr-2"></i>
-                  {{ "awaitingQuote" | i18n }}
-                </p>
-              </div>
-              }
+              <!-- (Removido: sistema não usa mais orçamento) -->
               <!-- } FIM DA SEÇÃO DEPRECATED DE ORÇAMENTOS -->
 
               <!-- Botões de ação para admin - SIMPLIFICADO: apenas seleção de profissional -->
@@ -556,7 +549,7 @@ export class ServiceRequestDetailsComponent implements OnInit {
   currentUser = computed(() => this.currentUserInput || this.loadedUser() || this.authService.appUser());
 
   // Effect para reagir a mudanças no requestInput
-  private requestEffect = effect(() => {
+  private readonly requestEffect = effect(() => {
     const inputReq = this.requestInput;
     console.log('[ServiceRequestDetails] Effect - requestInput mudou:', inputReq?.id);
     if (inputReq) {

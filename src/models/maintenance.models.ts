@@ -18,7 +18,8 @@ export type ServiceStatus =
   | "Aguardando Finalização"        // Profissional concluiu, aguardando admin
   | "Pagamento Feito"               // Admin registrou pagamento
   | "Concluído"                     // Admin finalizou
-  | "Cancelado";                    // Cancelado
+  | "Cancelado"                     // Cancelado
+  | "In Progress";                  // Sinônimo para "Em Progresso"
 
 export type PaymentStatus =
   | "Unpaid"

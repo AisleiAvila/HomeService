@@ -26,6 +26,15 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class DataService {
+            /**
+             * Recarrega as solicitações de serviço para o usuário atual
+             */
+            async reloadServiceRequests(): Promise<void> {
+              const currentUser = this.authService.appUser();
+              if (currentUser) {
+                await this.fetchServiceRequests(currentUser);
+              }
+            }
           /**
            * Subscrição em tempo real para mensagens do chat de uma solicitação de serviço
            */

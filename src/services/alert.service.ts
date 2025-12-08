@@ -221,6 +221,7 @@ export class AlertService {
       "Recusado": 1,
       "Data Definida": 3,
       "Em Progresso": 4,
+      "In Progress": 4,
       "Aguardando Finalização": 5,
       "Pagamento Feito": 1,
       "Concluído": 0,

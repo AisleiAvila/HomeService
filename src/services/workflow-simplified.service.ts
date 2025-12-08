@@ -56,6 +56,7 @@ export class WorkflowServiceSimplified {
     
     // Em execução → Profissional conclui ou volta se necessário
     "Em Progresso": ["Aguardando Finalização", "Cancelado"],
+    "In Progress": ["Aguardando Finalização", "Cancelado"],
     
     // Aguardando → Admin paga ou volta para execução se houver problema
     "Aguardando Finalização": ["Pagamento Feito", "Em Progresso", "Cancelado"],
@@ -834,6 +835,21 @@ export class WorkflowServiceSimplified {
    * Obtém descrição legível de um status
    */
   getStatusDescription(status: ServiceStatus): string {
+    // Aceita tanto 'Em Progresso' (pt) quanto 'In Progress' (en) como equivalentes
+    const s = String(status);
+    
+    // Mapeamento de traduções inglês para português
+    const translationMap: Record<string, ServiceStatus> = {
+      "In Progress": "Em Progresso",
+      "Scheduled": "Data Definida",
+      "Awaiting Finalization": "Aguardando Finalização",
+      "Payment Made": "Pagamento Feito",
+      "Completed": "Concluído",
+      "Cancelled": "Cancelado",
+    };
+    
+    const normalized = (translationMap[s] || s) as ServiceStatus;
+
     const descriptions: Record<ServiceStatus, string> = {
       "Solicitado": "Aguardando atribuição de profissional",
       "Atribuído": "Profissional foi atribuído",
@@ -842,13 +858,14 @@ export class WorkflowServiceSimplified {
       "Recusado": "Profissional recusou o serviço",
       "Data Definida": "Data de execução agendada",
       "Em Progresso": "Serviço em execução",
+      "In Progress": "Serviço em execução",
       "Aguardando Finalização": "Aguardando finalização administrativa",
       "Pagamento Feito": "Pagamento ao profissional registrado",
       "Concluído": "Serviço finalizado",
       "Cancelado": "Serviço cancelado",
     };
 
-    return descriptions[status] || status;
+    return descriptions[normalized] || status;
   }
 
   /**

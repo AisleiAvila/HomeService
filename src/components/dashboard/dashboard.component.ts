@@ -153,6 +153,8 @@ export class DashboardComponent implements OnInit {
       );
 
       if (success) {
+        // Recarrega a lista após iniciar o serviço
+        await this.dataService.reloadServiceRequests();
         this.selectedRequest.set(null);
       }
     } catch (error: any) {

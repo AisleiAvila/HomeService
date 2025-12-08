@@ -864,6 +864,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     dashboardOverviewSubtitle:
       "Quick overview of your service requests and activities",
     districtPlaceholder: "Select district",
+    serviceStarted: "Service started",
 
   },
   pt: {
@@ -1736,6 +1737,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     Vidraceiro: "Vidraceiro",
     dashboardOverviewSubtitle: "Visão rápida das suas solicitações de serviço e atividades",
     districtPlaceholder: "Distrito Exemplo",
+    serviceStarted: "Serviço Iniciado",
   },
 };
 

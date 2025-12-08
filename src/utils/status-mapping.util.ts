@@ -13,6 +13,7 @@ export const statusDisplayMap: Record<ServiceStatus, string> = {
   "Recusado": "Recusado",
   "Data Definida": "Data Definida",
   "Em Progresso": "Em Progresso",
+  "In Progress": "Em Progresso",
   "Aguardando Finalização": "Aguardando Finalização",
   "Pagamento Feito": "Pagamento Feito",
   "Concluído": "Concluído",
