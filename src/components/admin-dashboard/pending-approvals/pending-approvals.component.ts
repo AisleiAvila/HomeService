@@ -29,7 +29,7 @@ export class PendingApprovalsComponent {
     async approveClient(userId: number) {
         await this.dataService.updateUser(userId, { status: "Active", email_verified: true });
         this.notificationService.showSuccess(
-            this.i18n.translate("professionalApproved")
+            this.i18n.translate("professionalApproved", { name: this.dataService.users().find(u => u.id === userId)?.name || '' })
         );
     }
 

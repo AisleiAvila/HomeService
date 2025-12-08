@@ -555,7 +555,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     paymentStatusChanged: 'Request #{id} payment status changed to "{status}"',
     professionalApproved: "Professional {name} has been approved",
     professionalRejected: "Professional {name} has been rejected",
-    userStatusUpdated: 'User #{id} status updated to "{status}"',
+    userStatusUpdated: 'User {name} status updated to "{status}"',
 
     // Admin Dashboard
     overview: "Overview",
@@ -1442,7 +1442,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       'Solicitação #{id} mudou status de pagamento para "{status}"',
     professionalApproved: "Profissional {name} foi aprovado",
     professionalRejected: "Profissional {name} foi rejeitado",
-    userStatusUpdated: 'Usuário #{id} status atualizado para "{status}"',
+    userStatusUpdated: 'Usuário {name} status atualizado para "{status}"',
 
     // Admin Dashboard
     overview: "Visão Geral",

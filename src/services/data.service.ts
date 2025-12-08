@@ -715,9 +715,10 @@ export class DataService {
 
     // Notify about user updates
     if (updates.status) {
+      const user = this.users().find(u => u.id === userId);
       this.notificationService.addNotification(
         this.i18n.translate("userStatusUpdated", {
-          userId: userId.toString(),
+          name: user?.name || "",
           status: updates.status
         })
       );
