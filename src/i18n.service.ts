@@ -865,6 +865,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Quick overview of your service requests and activities",
     districtPlaceholder: "Select district",
     serviceStarted: "Service started",
+    professionalAssignedSuccess: "Professional assigned successfully",
 
   },
   pt: {
@@ -1738,6 +1739,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     dashboardOverviewSubtitle: "Visão rápida das suas solicitações de serviço e atividades",
     districtPlaceholder: "Distrito Exemplo",
     serviceStarted: "Serviço Iniciado",
+    professionalAssignedSuccess: "Profissional atribuído com sucesso à solicitação #{id}",
   },
 };
 

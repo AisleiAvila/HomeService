@@ -24,6 +24,21 @@ import { I18nPipe } from '../pipes/i18n.pipe';
   imports: [CommonModule, FormsModule, I18nPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- Simulação de envio de SMS -->
+    <div class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+      <h3 class="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-200">
+        ⚡ Simular envio de SMS
+      </h3>
+      <button
+        (click)="simulateSms()"
+        class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg mb-2"
+      >
+        Simular envio
+      </button>
+      <div *ngIf="simulationResult()" class="mt-2 p-3 rounded bg-yellow-100 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100">
+        <strong>Simulação:</strong> {{ simulationResult() }}
+      </div>
+    </div>
     <div class="container mx-auto p-6 max-w-4xl">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <!-- Cabeçalho -->
@@ -225,8 +240,25 @@ import { I18nPipe } from '../pipes/i18n.pipe';
   `]
 })
 export class SmsDemoComponent {
+
   readonly smsService = inject(SmsService);
   readonly Math = Math;
+
+  // Estado para simulação
+  simulationResult = signal<string>('');
+  /**
+   * Simula o envio de SMS e exibe resultado na tela
+   */
+  simulateSms(): void {
+    const to = this.phoneNumber();
+    const msg = this.selectedTemplate() === 'custom' ? this.message() : `[Template: ${this.selectedTemplate()}]`;
+    if (!to || !msg) {
+      this.simulationResult.set('Preencha o telefone e a mensagem para simular.');
+      return;
+    }
+    const now = new Date().toLocaleString();
+    this.simulationResult.set(`SMS simulado para ${to} em ${now}: "${msg}"`);
+  }
 
   // Campos do formulário
   phoneNumber = signal<string>('');

@@ -499,7 +499,7 @@ export class DataService {
 
     console.log("✅ [directAssignServiceRequest] Successfully assigned professional");
     this.notificationService.addNotification(
-      "Professional assigned successfully!"
+      this.i18n.translate("professionalAssignedSuccess")
     );
 
     // Reload service requests

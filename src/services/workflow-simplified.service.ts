@@ -104,7 +104,11 @@ export class WorkflowServiceSimplified {
         "Aguardando Confirmação->Recusado",
         "Aceito->Data Definida",
         "Data Definida->Em Progresso",
+        "Data Definida->In Progress",
         "Em Progresso->Aguardando Finalização",
+        "In Progress->Aguardando Finalização",
+        "Aguardando Finalização->Pagamento Feito",
+        "Pagamento Feito->Concluído",
       ];
       
       const transitionKey = `${from}->${to}`;
@@ -503,7 +507,9 @@ export class WorkflowServiceSimplified {
 
       // Validar permissão
       const currentUser = await this.getCurrentUser();
+      console.log("[DEBUG] completeExecution - Usuário:", currentUser, "Status anterior:", previousStatus, "Tentando para:", "Aguardando Finalização");
       if (!currentUser || !this.canPerformTransition(previousStatus, "Aguardando Finalização", currentUser.role)) {
+        console.error("[DEBUG] Permissão negada para concluir execução", { currentUser, previousStatus });
         throw new Error("Usuário não tem permissão para concluir execução");
       }
 
@@ -662,7 +668,8 @@ export class WorkflowServiceSimplified {
   async finalizeService(
     requestId: number,
     adminId: number,
-    adminNotes?: string
+    adminNotes?: string,
+    onRefresh?: () => void
   ): Promise<boolean> {
     try {
       // Buscar status atual antes da mudança
@@ -676,10 +683,10 @@ export class WorkflowServiceSimplified {
         throw new Error(`Não é possível finalizar a partir do status ${previousStatus}`);
       }
 
-      // Validar permissão (apenas admin)
+      // Validar permissão (admin ou profissional, conforme regras)
       const currentUser = await this.getCurrentUser();
-      if (currentUser?.role !== "admin") {
-        throw new Error("Apenas administradores podem finalizar serviços");
+      if (!currentUser || !this.canPerformTransition(previousStatus, "Concluído", currentUser.role)) {
+        throw new Error("Usuário não tem permissão para finalizar serviço");
       }
 
       const { error } = await this.supabase.client
@@ -706,6 +713,15 @@ export class WorkflowServiceSimplified {
       this.notificationService.showSuccess(
         this.i18n.translate("serviceFinalized")
       );
+
+      // Chama refresh da lista, se fornecido
+      if (onRefresh) {
+        try {
+          onRefresh();
+        } catch (refreshError) {
+          console.error("Erro ao atualizar lista após finalização:", refreshError);
+        }
+      }
 
       return true;
     } catch (error) {
