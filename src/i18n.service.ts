@@ -867,6 +867,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     serviceStarted: "Service started",
     professionalAssignedSuccess: "Professional assigned successfully",
     editRequest: "Edit Request",
+    editServiceRequest: "Edit Service Request",
+    updateRequest: "Update Request",
+    fillFormToEditRequest: "Fill out the form below to edit the service request",
 
   },
   pt: {
@@ -1742,6 +1745,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     serviceStarted: "Serviço Iniciado",
     professionalAssignedSuccess: "Profissional atribuído com sucesso à solicitação #{id}",
     editRequest: "Editar Solicitação",
+    editServiceRequest: "Editar Solicitação de Serviço",
+    fillFormToEditRequest: "Preencha o formulário abaixo para editar a solicitação de serviço",
   },
 };
 

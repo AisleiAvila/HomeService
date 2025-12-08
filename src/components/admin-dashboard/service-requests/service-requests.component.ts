@@ -340,8 +340,7 @@ viewDetails = output<ServiceRequest>();
         this.requestToEdit.set(null);
     }
     openEditRequestModal(req: ServiceRequest) {
-        this.requestToEdit.set(req);
-        this.showEditRequestModal.set(true);
+        this.router.navigate([`/admin/service-request-edit/${req.id}`]);
     }
     
     async confirmDirectAssignment() {
