@@ -596,8 +596,9 @@ export class AuthService {
       }
 
       // Enviar e-mail com o código
+      console.log("📧 Tentando enviar e-mail para:", environment.emailServiceUrl);
       try {
-        await fetch("http://localhost:4001/api/send-email", {
+        const emailResponse = await fetch(environment.emailServiceUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -613,12 +614,36 @@ export class AuthService {
             `
           })
         });
+
+        console.log("📬 Resposta do servidor de e-mail - Status:", emailResponse.status);
+        
+        if (!emailResponse.ok) {
+          const errorText = await emailResponse.text();
+          console.error("❌ Servidor de e-mail retornou erro:", errorText);
+          throw new Error(`Servidor de e-mail retornou status ${emailResponse.status}`);
+        }
+
+        const emailResult = await emailResponse.json();
+        console.log("✅ Resposta do servidor de e-mail:", emailResult);
+        
+        if (!emailResult.success) {
+          throw new Error("Falha ao enviar e-mail: " + (emailResult.error || "Erro desconhecido"));
+        }
+        
         console.log("✅ Código de redefinição enviado com sucesso");
-      } catch (emailError) {
-        console.error("❌ Erro ao enviar e-mail:", emailError);
-        // Mesmo com erro no e-mail, o token foi salvo
-        // Não lançar erro para não confundir o usuário
-        console.log("⚠️ Token salvo, mas e-mail pode não ter sido enviado");
+      } catch (emailError: any) {
+        console.error("❌ Erro detalhado ao enviar e-mail:", emailError);
+        console.error("Tipo do erro:", emailError.constructor.name);
+        console.error("Mensagem:", emailError.message);
+        
+        // Verificar se é erro de conexão
+        if (emailError.message?.includes('fetch') || emailError.name === 'TypeError') {
+          console.error("🔴 ERRO DE CONEXÃO: O servidor de e-mail não está acessível!");
+          console.error("Verifique se o servidor está rodando em:", environment.emailServiceUrl);
+          throw new Error("Servidor de e-mail não está acessível. Por favor, tente novamente mais tarde.");
+        }
+        
+        throw new Error("Erro ao enviar e-mail: " + emailError.message);
       }
     } catch (error: any) {
       console.error("❌ Erro ao enviar código de redefinição:", error);
@@ -693,12 +718,25 @@ export class AuthService {
 
       console.log("✅ Código verificado, atualizando senha...");
 
-      // Hash da senha (usando bcrypt no backend ou salvando diretamente por agora)
-      // NOTA: Idealmente deve-se fazer hash da senha no backend
+      // Validar comprimento da senha
+      if (newPassword.length < 6) {
+        throw new Error("A senha deve ter pelo menos 6 caracteres");
+      }
+
+      // Criar hash SHA256 da senha (mesmo método usado no backend)
+      const encoder = new TextEncoder();
+      const data = encoder.encode(newPassword);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      console.log("🔐 Hash da senha gerado, atualizando no banco...");
+
+      // Atualizar senha e limpar tokens de reset
       const { error: updateError } = await this.supabase.client
         .from("users")
         .update({
-          password: newPassword, // Em produção, deve ser hasheada
+          password_hash: passwordHash, // Usar password_hash em vez de password
           reset_token: null,
           reset_token_expiry: null
         })

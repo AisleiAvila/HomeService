@@ -6,6 +6,7 @@ export const environment = {
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
   loginApiUrl: "/api/login",
   confirmEmailApiUrl: "/api/confirm-email",
+  emailServiceUrl: "/api/send-email", // Em produção, usar endpoint Vercel
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular
