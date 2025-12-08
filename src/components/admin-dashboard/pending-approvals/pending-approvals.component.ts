@@ -26,17 +26,19 @@ export class PendingApprovalsComponent {
         )
     );
 
-    approveClient(userId: number) {
-        this.dataService.updateUserStatus(userId, "Active");
+    async approveClient(userId: number) {
+        await this.dataService.updateUser(userId, { status: "Active", email_verified: true });
         this.notificationService.showSuccess(
             this.i18n.translate("professionalApproved")
         );
     }
 
-    rejectClient(userId: number) {
-        this.dataService.updateUserStatus(userId, "Rejected");
-        this.notificationService.showError(
-            this.i18n.translate("professionalRejected")
-        );
+    async rejectClient(userId: number) {
+        const success = await this.dataService.updateUserStatus(userId, "Rejected");
+        if (success) {
+            this.notificationService.showError(
+                this.i18n.translate("professionalRejected")
+            );
+        }
     }
 }
