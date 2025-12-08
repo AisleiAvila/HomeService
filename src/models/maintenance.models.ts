@@ -153,6 +153,8 @@ export interface User {
   sms_code?: string; // Código SMS para verificação
   sms_code_expires_at?: string; // Data/hora de expiração do código SMS (ISO)
   receive_sms_notifications?: boolean;
+  reset_token?: string | null; // Token para reset de senha
+  reset_token_expiry?: string | null; // Data/hora de expiração do token de reset (ISO)
 }
 
 export interface ServiceRequest {

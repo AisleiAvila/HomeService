@@ -68,28 +68,44 @@ app.post('/api/send-email', async (req, res) => {
   console.log('token:', req.body.token, typeof req.body.token);
   const { to, subject, html, token, tempPassword } = req.body;
   console.log('tempPassword recebido:', tempPassword, typeof tempPassword);
-  if (!to || !subject || !html || !token) {
-    return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes.' });
+  
+  // Validação mínima - permitir envio sem token para reset de senha
+  if (!to || !subject || !html) {
+    return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes (to, subject, html).' });
   }
+  
   try {
-    // Sempre use o domínio Vercel para o link de confirmação
-    const baseUrl = 'https://home-service-nu.vercel.app';
-    // O campo 'to' é o e-mail do usuário
-    const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
-    // Corpo do e-mail com senha temporária e instrução clara
-    const htmlWithLink = `<p>Olá,</p>
-      <p>Seu cadastro como profissional foi realizado com sucesso.<br>
-      <b>Sua senha temporária para o primeiro acesso é:</b><br>
-      <span style='font-size:1.2em;color:#1e293b;background:#f1f5f9;padding:4px 12px;border-radius:6px;'>${tempPassword}</span></p>
-      <p>Por favor, confirme seu e-mail clicando no botão abaixo:</p><br>
-      <a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>
-      Ou copie e cole este link no navegador:<br><span style='word-break:break-all;'>${confirmLink}</span>`;
-    await sgMail.send({
-      to,
-      from: FROM_EMAIL,
-      subject,
-      html: htmlWithLink,
-    });
+    // Se houver token, é um email de confirmação de cadastro
+    if (token) {
+      // Sempre use o domínio Vercel para o link de confirmação
+      const baseUrl = 'https://home-service-nu.vercel.app';
+      // O campo 'to' é o e-mail do usuário
+      const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
+      // Corpo do e-mail com senha temporária e instrução clara
+      const htmlWithLink = `<p>Olá,</p>
+        <p>Seu cadastro como profissional foi realizado com sucesso.<br>
+        <b>Sua senha temporária para o primeiro acesso é:</b><br>
+        <span style='font-size:1.2em;color:#1e293b;background:#f1f5f9;padding:4px 12px;border-radius:6px;'>${tempPassword}</span></p>
+        <p>Por favor, confirme seu e-mail clicando no botão abaixo:</p><br>
+        <a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>
+        Ou copie e cole este link no navegador:<br><span style='word-break:break-all;'>${confirmLink}</span>`;
+      
+      await sgMail.send({
+        to,
+        from: FROM_EMAIL,
+        subject,
+        html: htmlWithLink,
+      });
+    } else {
+      // Email genérico (reset de senha, etc) - usar HTML direto do body
+      await sgMail.send({
+        to,
+        from: FROM_EMAIL,
+        subject,
+        html,
+      });
+    }
+    
     res.json({ success: true });
   } catch (error) {
     console.error('Erro ao enviar e-mail:', error);

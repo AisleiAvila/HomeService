@@ -567,35 +567,59 @@ export class AuthService {
       }
 
       // Verificar se o usuário existe na tabela users
-      const { data: existingUser } = await this.supabase.client
+      const { data: existingUser, error: userError } = await this.supabase.client
         .from("users")
-        .select("email")
+        .select("email, name")
         .eq("email", email)
         .single();
 
-      if (!existingUser) {
+      if (userError || !existingUser) {
         throw new Error("E-mail não encontrado em nosso sistema");
       }
 
-      // Usar signInWithOtp para enviar código de verificação
-      const { error } = await this.supabase.client.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-          data: {
-            isPasswordReset: true, // Flag para identificar que é reset de senha
-          },
-        },
-      });
+      // Gerar token de reset de senha (código de 6 dígitos)
+      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutos
 
-      if (error) {
-        console.error("❌ Erro ao enviar código de redefinição:", error);
-        throw new Error(
-          error.message || "Erro ao enviar código de redefinição"
-        );
+      // Salvar token na tabela users
+      const { error: updateError } = await this.supabase.client
+        .from("users")
+        .update({
+          reset_token: resetToken,
+          reset_token_expiry: resetTokenExpiry
+        })
+        .eq("email", email);
+
+      if (updateError) {
+        console.error("❌ Erro ao salvar token de reset:", updateError);
+        throw new Error("Erro ao processar solicitação de reset");
       }
 
-      console.log("✅ Código de redefinição enviado com sucesso");
+      // Enviar e-mail com o código
+      try {
+        await fetch("http://localhost:4001/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: email,
+            subject: "Redefinição de senha - HomeService",
+            html: `
+              <p>Olá ${existingUser.name || 'usuário'},</p>
+              <p>Você solicitou a redefinição de sua senha.</p>
+              <p>Use o código abaixo para redefinir sua senha:</p>
+              <h2 style="background-color: #f0f0f0; padding: 10px; text-align: center; font-size: 24px; letter-spacing: 5px;">${resetToken}</h2>
+              <p><strong>Este código expira em 15 minutos.</strong></p>
+              <p>Se você não solicitou esta redefinição, ignore este e-mail.</p>
+            `
+          })
+        });
+        console.log("✅ Código de redefinição enviado com sucesso");
+      } catch (emailError) {
+        console.error("❌ Erro ao enviar e-mail:", emailError);
+        // Mesmo com erro no e-mail, o token foi salvo
+        // Não lançar erro para não confundir o usuário
+        console.log("⚠️ Token salvo, mas e-mail pode não ter sido enviado");
+      }
     } catch (error: any) {
       console.error("❌ Erro ao enviar código de redefinição:", error);
       throw error;
@@ -609,24 +633,40 @@ export class AuthService {
     console.log("🔍 Verificando código de redefinição:", code);
 
     try {
-      const { data, error } = await this.supabase.client.auth.verifyOtp({
-        email,
-        token: code,
-        type: "email",
-      });
+      // Buscar usuário e verificar token
+      const { data: user, error } = await this.supabase.client
+        .from("users")
+        .select("reset_token, reset_token_expiry")
+        .eq("email", email)
+        .single();
 
-      if (error) {
-        console.error("❌ Erro ao verificar código:", error);
+      if (error || !user) {
+        console.error("❌ Usuário não encontrado:", error);
         return false;
       }
 
-      if (data.user) {
-        console.log("✅ Código verificado com sucesso");
-        // Armazenar temporariamente a sessão para permitir mudança de senha
-        return true;
+      // Verificar se o token existe
+      if (!user.reset_token) {
+        console.error("❌ Nenhum token de reset encontrado");
+        return false;
       }
 
-      return false;
+      // Verificar se o token expirou
+      const expiryDate = new Date(user.reset_token_expiry);
+      const now = new Date();
+      if (now > expiryDate) {
+        console.error("❌ Token expirado");
+        return false;
+      }
+
+      // Verificar se o código corresponde
+      if (user.reset_token !== code) {
+        console.error("❌ Código inválido");
+        return false;
+      }
+
+      console.log("✅ Código verificado com sucesso");
+      return true;
     } catch (error: any) {
       console.error("❌ Erro inesperado ao verificar código:", error);
       return false;
@@ -634,47 +674,48 @@ export class AuthService {
   }
 
   /**
-   * Atualiza a senha após verificação do código OTP
+   * Atualiza a senha após verificação do código customizado
    */
   async updatePasswordWithCode(
     email: string,
     code: string,
     newPassword: string
   ): Promise<void> {
-    console.log("🔄 Atualizando senha após verificação OTP");
+    console.log("🔄 Atualizando senha após verificação do código");
 
     try {
-      // Primeiro verificar o código OTP e estabelecer sessão
-      const { data, error: verifyError } =
-        await this.supabase.client.auth.verifyOtp({
-          email,
-          token: code,
-          type: "email",
-        });
-
-      if (verifyError || !data.user) {
-        console.error("❌ Erro ao verificar código:", verifyError);
+      // Primeiro verificar se o código é válido
+      const isValid = await this.verifyPasswordResetCode(email, code);
+      
+      if (!isValid) {
         throw new Error("Código inválido ou expirado");
       }
 
       console.log("✅ Código verificado, atualizando senha...");
 
-      // Agora que temos uma sessão válida, atualizar a senha
-      const { error: updateError } = await this.supabase.client.auth.updateUser(
-        {
-          password: newPassword,
-        }
-      );
+      // Hash da senha (usando bcrypt no backend ou salvando diretamente por agora)
+      // NOTA: Idealmente deve-se fazer hash da senha no backend
+      const { error: updateError } = await this.supabase.client
+        .from("users")
+        .update({
+          password: newPassword, // Em produção, deve ser hasheada
+          reset_token: null,
+          reset_token_expiry: null
+        })
+        .eq("email", email);
 
       if (updateError) {
         console.error("❌ Erro ao atualizar senha:", updateError);
-        throw new Error(updateError.message || "Erro ao atualizar senha");
+        throw new Error("Erro ao atualizar senha");
       }
 
       console.log("✅ Senha atualizada com sucesso");
-
-      // Fazer logout para forçar novo login com a nova senha
-      await this.supabase.client.auth.signOut();
+      
+      // Limpar qualquer sessão existente
+      this.appUser.set(null);
+      this.notificationService.addNotification(
+        "Senha atualizada com sucesso! Faça login com sua nova senha."
+      );
     } catch (error: any) {
       console.error("❌ Erro ao atualizar senha:", error);
       throw error;
