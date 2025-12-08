@@ -1,3 +1,78 @@
+<!-- Modal Editar Solicitação -->
+@if (showEditRequestModal()) {
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-edit mr-2 text-yellow-600"></i>
+                {{ "editRequest" | i18n }}
+            </h3>
+            <button (click)="closeEditRequestModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Informações da Solicitação -->
+        @if (requestToEdit(); as request) {
+        <form #editRequestForm="ngForm" (ngSubmit)="confirmEditRequest(editRequestForm)">
+            <div class="space-y-4">
+                <!-- Endereço: Rua -->
+                <div>
+                    <label for="edit-street" class="block text-sm font-medium text-gray-700 mb-2">{{ "street" | i18n }}</label>
+                    <input id="edit-street" type="text" name="street" [(ngModel)]="request.street" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Endereço: Cidade -->
+                <div>
+                    <label for="edit-city" class="block text-sm font-medium text-gray-700 mb-2">{{ "city" | i18n }}</label>
+                    <input id="edit-city" type="text" name="city" [(ngModel)]="request.city" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Endereço: Distrito -->
+                <div>
+                    <label for="edit-state" class="block text-sm font-medium text-gray-700 mb-2">{{ "state" | i18n }}</label>
+                    <input id="edit-state" type="text" name="state" [(ngModel)]="request.state" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Endereço: Código Postal -->
+                <div>
+                    <label for="edit-zip-code" class="block text-sm font-medium text-gray-700 mb-2">{{ "zipCode" | i18n }}</label>
+                    <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Descrição -->
+                <div>
+                    <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-2">{{ "description" | i18n }}</label>
+                    <textarea id="edit-description" name="description" [(ngModel)]="request.description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                </div>
+                <!-- Data Prevista -->
+                <div>
+                    <label for="edit-scheduled-date" class="block text-sm font-medium text-gray-700 mb-2">{{ "scheduledDate" | i18n }}</label>
+                    <input id="edit-scheduled-date" type="datetime-local" name="scheduled_start_datetime" [(ngModel)]="request.scheduled_start_datetime" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Duração Estimada -->
+                <div>
+                    <label for="edit-estimated-duration" class="block text-sm font-medium text-gray-700 mb-2">{{ "estimatedDuration" | i18n }}</label>
+                    <input id="edit-estimated-duration" type="number" name="estimated_duration_minutes" [(ngModel)]="request.estimated_duration_minutes" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <!-- Notas Administrativas -->
+                <div>
+                    <label for="edit-admin-notes" class="block text-sm font-medium text-gray-700 mb-2">{{ "adminNotes" | i18n }}</label>
+                    <textarea id="edit-admin-notes" name="admin_notes" [(ngModel)]="request.admin_notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                </div>
+            </div>
+            <!-- Actions -->
+            <div class="flex gap-3 mt-6">
+                <button type="button" (click)="closeEditRequestModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    {{ "cancel" | i18n }}
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                    <i class="fas fa-save mr-2"></i>
+                    {{ "save" | i18n }}
+                </button>
+            </div>
+        </form>
+        }
+    </div>
+</div>
+}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <!-- Título da Seção -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500">
@@ -336,6 +411,12 @@
                                             role="menuitem">
                                             <i class="fas fa-eye w-5 mr-2"></i>
                                             {{ "viewDetails" | i18n }}
+                                        </a>
+                                        <a href="#" (click)="openEditRequestModal(req); $event.preventDefault()"
+                                            class="flex items-center px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-100"
+                                            role="menuitem">
+                                            <i class="fas fa-edit w-5 mr-2"></i>
+                                            {{ "editRequest" | i18n }}
                                         </a>
                                         <a href="#" (click)="handleOpenChat(req); $event.preventDefault()"
                                             class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

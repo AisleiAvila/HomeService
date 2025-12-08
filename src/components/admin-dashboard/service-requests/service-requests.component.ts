@@ -1,7 +1,7 @@
 import { UiStateService } from "../../../services/ui-state.service";
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, ElementRef, QueryList, ViewChildren, computed, inject, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
@@ -24,6 +24,14 @@ export class ServiceRequestsComponent {
     private readonly authService = inject(AuthService);
     readonly uiState = inject(UiStateService);
 
+    // Quick filter options
+    quickFilterOptions = [
+        { status: "Solicitado", label: "statusRequested" },
+        { status: "Atribuído", label: "statusAssigned" },
+        { status: "Data Definida", label: "statusScheduled" },
+        { status: "Concluído", label: "statusCompleted" },
+    ];
+
     // Current user
     currentUser = this.authService.appUser;
 
@@ -38,31 +46,52 @@ export class ServiceRequestsComponent {
     // Signals for sorting
     sortBy = signal<string>("date");
     sortOrder = signal<"asc" | "desc">("desc");
-
-    // Pagination
-    currentPage = signal(1);
-    itemsPerPage = signal(5);
-
-    // UI State
-    openActionsMenuId = signal<number | null>(null);
-    @ViewChildren("actionsMenu") actionsMenus!: QueryList<ElementRef>;
-    showDirectAssignmentModal = signal(false);
-    requestToAssign = signal<ServiceRequest | null>(null);
     selectedProfessionalId = signal<string>("");
     selectedExecutionDate = signal<string>("");
+    showEditRequestModal = signal(false);
+    requestToEdit = signal<ServiceRequest | null>(null);
+    showDirectAssignmentModal = signal(false);
+    requestToAssign = signal<ServiceRequest | null>(null);
+    openActionsMenuId = signal<number | null>(null);
 
-    // Outputs
-    openDirectAssignment = output<ServiceRequest>();
-    viewDetails = output<ServiceRequest>();
-    openChat = output<ServiceRequest>();
+    // Pagination signals
+    currentPage = signal<number>(1);
+    itemsPerPage = signal<number>(10);
 
-    // Options
-    quickFilterOptions = [
-        { status: "Solicitado", label: "statusRequested" },
-        { status: "Atribuído", label: "statusAssigned" },
-        { status: "Data Definida", label: "statusScheduled" },
-        { status: "Concluído", label: "statusCompleted" },
-    ];
+// Outputs
+openDirectAssignment = output<ServiceRequest>();
+viewDetails = output<ServiceRequest>();
+
+// Confirma edição da solicitação
+    async confirmEditRequest(form: any) {
+        const request = this.requestToEdit();
+        const user = this.currentUser();
+        if (!request || !user) {
+            return;
+        }
+
+        // Monta objeto de atualização com campos editáveis
+        const updates: Partial<ServiceRequest> = {
+            street: request.street ?? '',
+            city: request.city ?? '',
+            state: request.state ?? '',
+            zip_code: request.zip_code ?? '',
+            description: request.description ?? '',
+            scheduled_start_datetime: request.scheduled_start_datetime ?? '',
+            estimated_duration_minutes: request.estimated_duration_minutes ?? 0,
+            admin_notes: request.admin_notes ?? ''
+        };
+
+        // Chama serviço de edição
+        const workflowService = await import('../../../services/workflow-simplified.service');
+        const workflowInstance = new workflowService.WorkflowServiceSimplified();
+        const success = await workflowInstance.editServiceRequest(request.id, updates, user.id);
+        if (success) {
+            this.closeEditRequestModal();
+            // Atualiza lista (força reload dos dados)
+            await this.dataService.reloadServiceRequests();
+        }
+    }
 
     districtOptions = [
         "Lisboa",
@@ -306,13 +335,21 @@ export class ServiceRequestsComponent {
         this.selectedProfessionalId.set("");
         this.selectedExecutionDate.set("");
     }
+    closeEditRequestModal() {
+        this.showEditRequestModal.set(false);
+        this.requestToEdit.set(null);
+    }
+    openEditRequestModal(req: ServiceRequest) {
+        this.requestToEdit.set(req);
+        this.showEditRequestModal.set(true);
+    }
+    
     async confirmDirectAssignment() {
         const request = this.requestToAssign();
         const professionalId = this.selectedProfessionalId();
         const executionDate = this.selectedExecutionDate();
-
+        
         if (!request || !professionalId || !executionDate) {
-            alert(this.i18n.translate('pleaseSelectProfessionalAndDate'));
             return;
         }
 

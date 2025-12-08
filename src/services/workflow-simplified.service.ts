@@ -923,4 +923,65 @@ export class WorkflowServiceSimplified {
       this.canPerformTransition(status, nextStatus, userRole)
     );
   }
+    /**
+     * Edita os dados de uma solicitação
+     * Permite atualização de campos editáveis (exceto status e IDs principais)
+     */
+    async editServiceRequest(
+      requestId: number,
+      updates: Partial<ServiceRequest>,
+      userId: number
+    ): Promise<boolean> {
+      try {
+        const request = await this.getRequest(requestId);
+        if (!request) throw new Error("Solicitação não encontrada");
+
+        // Permitir edição apenas se não estiver em estado final
+        if (["Concluído", "Cancelado"].includes(request.status)) {
+          throw new Error("Não é possível editar uma solicitação finalizada ou cancelada");
+        }
+
+        // Campos que podem ser editados (exemplo: endereço, descrição, data prevista)
+        const editableFields = [
+          "address", "description", "scheduled_start_datetime", "estimated_duration_minutes", "admin_notes"
+        ];
+        const filteredUpdates: Partial<ServiceRequest> = {};
+        for (const key of editableFields) {
+          if (key in updates) {
+            filteredUpdates[key] = updates[key];
+          }
+        }
+
+        if (Object.keys(filteredUpdates).length === 0) {
+          throw new Error("Nenhum campo editável informado");
+        }
+
+        const { error } = await this.supabase.client
+          .from("service_requests")
+          .update(filteredUpdates)
+          .eq("id", requestId);
+
+        if (error) throw error;
+
+        // Auditoria: Log da edição
+        await this.auditService.logStatusChange(
+          requestId,
+          request.status,
+          request.status,
+          "Solicitação editada",
+          { updates: filteredUpdates, edited_by: userId }
+        );
+
+        this.notificationService.showSuccess(
+          this.i18n.translate("serviceRequestUpdated")
+        );
+        return true;
+      } catch (error) {
+        console.error("Erro ao editar solicitação:", error);
+        this.notificationService.showError(
+          error instanceof Error ? error.message : this.i18n.translate("errorEditingServiceRequest")
+        );
+        return false;
+      }
+    }
 }

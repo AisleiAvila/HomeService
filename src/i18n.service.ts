@@ -866,6 +866,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     districtPlaceholder: "Select district",
     serviceStarted: "Service started",
     professionalAssignedSuccess: "Professional assigned successfully",
+    editRequest: "Edit Request",
 
   },
   pt: {
@@ -1740,6 +1741,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     districtPlaceholder: "Distrito Exemplo",
     serviceStarted: "Serviço Iniciado",
     professionalAssignedSuccess: "Profissional atribuído com sucesso à solicitação #{id}",
+    editRequest: "Editar Solicitação",
   },
 };
 
