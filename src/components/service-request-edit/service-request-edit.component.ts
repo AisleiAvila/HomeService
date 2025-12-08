@@ -69,6 +69,6 @@ export class ServiceRequestEditComponent implements OnInit {
   }
 
   cancel() {
-    this.router.navigate(['/admin/service-requests']);
+    this.router.navigate(['/admin/requests']);
   }
 }
