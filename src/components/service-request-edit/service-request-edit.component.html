@@ -1,93 +1,216 @@
 <div class="w-full mobile-safe relative">
-  <div class="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-lg shadow-md overflow-hidden mb-6">
-    <div class="px-6 py-4 border-b border-white border-opacity-20">
-      <h2 class="text-2xl font-bold text-white flex items-center">
-        <i class="fas fa-edit mr-3"></i>
-        {{ 'editServiceRequest' | i18n }}
-      </h2>
-      <p class="text-white text-sm mt-1">
-        {{ 'fillFormToEditRequest' | i18n }}
-      </p>
-    </div>
-  </div>
-
-  @if (loading) {
+  <ng-container *ngIf="loading">
     <div class="text-center text-gray-500">{{ 'loading' | i18n }}</div>
-  } @else if (error) {
-    <div class="text-center text-red-600">{{ error }}</div>
-  } @else if (request) {
-    <form #editForm="ngForm" (ngSubmit)="save()" class="p-6 bg-white rounded-lg shadow">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="edit-street" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-road text-indigo-500 mr-2 text-xs"></i>
-            {{ 'street' | i18n }}
-          </label>
-          <input id="edit-street" type="text" name="street" [(ngModel)]="request.street" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+  </ng-container>
+  <ng-container *ngIf="!loading">
+    <ng-container *ngIf="error">
+      <div class="text-center text-red-600">{{ error }}</div>
+    </ng-container>
+    <ng-container *ngIf="!error && request">
+      <!-- Formulário Editar Solicitação de Serviço (estrutura igual à tela Nova Solicitação) -->
+      <form #editForm="ngForm" (ngSubmit)="save()" class="w-full mobile-safe relative">
+        <!-- Card Container -->
+        <div class="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-lg shadow-md overflow-hidden">
+          <div class="px-6 py-4 border-b border-white border-opacity-20">
+            <h2 class="text-2xl font-bold text-white flex items-center">
+              <i class="fas fa-edit mr-3"></i>
+              {{ 'editServiceRequest' | i18n }}
+            </h2>
+            <p class="text-white text-sm mt-1">
+              {{ 'fillFormToEditRequest' | i18n }}
+            </p>
+          </div>
+          <div class="p-6 bg-white">
+            <!-- Origem da Solicitação -->
+            <!-- Removido título duplicado -->
+            <div class="mb-4">
+              <label for="edit-origin-id" class="block text-sm font-medium text-gray-700 mb-1">{{ 'origin' | i18n }}</label>
+              <select id="edit-origin-id" name="origin_id" [(ngModel)]="request.origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                <option value="0" disabled>{{ 'selectOrigin' | i18n }}</option>
+                <ng-container *ngFor="let origin of origins; trackBy: trackOrigin">
+                  <option [value]="origin.id">{{ origin.name | i18n }}</option>
+                </ng-container>
+              </select>
+            </div>
+            <!-- Categoria/Subcategoria -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label for="edit-category-id" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-folder text-indigo-500 mr-2 text-xs"></i>
+                  {{ 'category' | i18n }}
+                </label>
+                <select id="edit-category-id" name="category_id" [(ngModel)]="request.category_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                  <option value="" disabled>{{ 'select' | i18n }}</option>
+                  <ng-container *ngFor="let cat of categories">
+                    <option [value]="cat.id">{{ cat.name | i18n }}</option>
+                  </ng-container>
+                </select>
+              </div>
+              <div>
+                <label for="edit-subcategory-id" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-tag text-indigo-500 mr-2 text-xs"></i>
+                  {{ 'subcategory' | i18n }}
+                </label>
+                <select id="edit-subcategory-id" name="subcategory_id" [(ngModel)]="request.subcategory_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                  <option value="" disabled>{{ 'select' | i18n }}</option>
+                  <ng-container *ngFor="let sub of subcategories">
+                    <option [value]="sub.id">{{ sub.name | i18n }}</option>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+  <!-- Valores -->
+          <div class="flex gap-4 mb-4">
+            <div class="w-1/2">
+              <label for="edit-valor" class="block text-sm font-medium text-gray-700">{{ 'totalValue' | i18n }}</label>
+              <input id="edit-valor" type="number" name="valor" [(ngModel)]="request.valor" min="0.01" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div class="w-1/2">
+              <label for="edit-valor-prestador" class="block text-sm font-medium text-gray-700">{{ 'providerValue' | i18n }}</label>
+              <input id="edit-valor-prestador" type="number" name="valor_prestador" [(ngModel)]="request.valor_prestador" min="0.01" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+          </div>
+          <!-- Informações do Solicitante -->
+          <div class="flex items-center gap-2 mb-4">
+            <i class="fas fa-user-circle text-indigo-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">{{ 'requesterInformation' | i18n }}</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label for="edit-client-name" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-user text-indigo-500 mr-2 text-xs"></i>
+                {{ 'client' | i18n }}
+              </label>
+              <input id="edit-client-name" type="text" name="client_name" [(ngModel)]="request.client_name" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-client-phone" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-phone text-indigo-500 mr-2 text-xs"></i>
+                {{ 'phone' | i18n }}
+              </label>
+              <input id="edit-client-phone" type="tel" name="client_phone" [(ngModel)]="request.client_phone" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-client-nif" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-id-card text-indigo-500 mr-2 text-xs"></i>
+                {{ 'nif' | i18n }} <span class="text-gray-400 ml-1">({{ 'optional' | i18n }})</span>
+              </label>
+              <!-- Campo removido: client_nif não existe no modelo -->
+            </div>
+          </div>
+          <!-- Detalhes do Serviço -->
+          <div class="flex items-center gap-2 mb-4">
+            <i class="fas fa-file-alt text-indigo-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">{{ 'serviceDetails' | i18n }}</h3>
+          </div>
+          <div class="space-y-4 mb-4">
+            <div>
+              <label for="edit-title" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-heading text-indigo-500 mr-2 text-xs"></i>
+                {{ 'title' | i18n }}
+              </label>
+              <input id="edit-title" type="text" name="title" [(ngModel)]="request.title" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-description" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-align-left text-indigo-500 mr-2 text-xs"></i>
+                {{ 'description' | i18n }}
+              </label>
+              <textarea id="edit-description" name="description" [(ngModel)]="request.description" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"></textarea>
+            </div>
+          </div>
+          <!-- Data/Hora Preferida e Prioridade -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="edit-requested-datetime" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
+                {{ 'preferredDateTime' | i18n }}
+              </label>
+              <input id="edit-requested-datetime" type="datetime-local" name="requested_datetime" [(ngModel)]="request.requested_datetime" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-priority" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-exclamation-triangle text-indigo-500 mr-2 text-xs"></i>
+                {{ 'priority' | i18n }}
+              </label>
+              <!-- Campo removido: priority não existe no modelo -->
+            </div>
+          </div>
+          <!-- Endereço -->
+          <div class="flex items-center gap-2 mb-4">
+            <i class="fas fa-map-marker-alt text-indigo-600"></i>
+            <h3 class="text-lg font-semibold text-gray-800">{{ 'address' | i18n }}</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label for="edit-zip-code" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-mail-bulk text-indigo-500 mr-2 text-xs"></i>
+                {{ 'postalCode' | i18n }}
+              </label>
+              <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-street" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-road text-indigo-500 mr-2 text-xs"></i>
+                {{ 'logradouro' | i18n }}
+              </label>
+              <input id="edit-street" type="text" name="street" [(ngModel)]="request.street" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-number" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-hashtag text-indigo-500 mr-2 text-xs"></i>
+                {{ 'number' | i18n }}
+              </label>
+              <!-- Campo removido: number não existe no modelo -->
+            </div>
+            <div>
+              <label for="edit-complement" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-building text-indigo-500 mr-2 text-xs"></i>
+                {{ 'complement' | i18n }}
+              </label>
+              <!-- Campo removido: complement não existe no modelo -->
+            </div>
+            <div>
+              <label for="edit-locality" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-city text-indigo-500 mr-2 text-xs"></i>
+                {{ 'locality' | i18n }}
+              </label>
+              <!-- Campo removido: locality não existe no modelo -->
+            </div>
+            <div>
+              <label for="edit-city" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-map text-indigo-500 mr-2 text-xs"></i>
+                {{ 'concelho' | i18n }}
+              </label>
+              <input id="edit-city" type="text" name="city" [(ngModel)]="request.city" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+            </div>
+            <div>
+              <label for="edit-district" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-map-marked-alt text-indigo-500 mr-2 text-xs"></i>
+                {{ 'district' | i18n }}
+              </label>
+              <!-- Campo removido: district não existe no modelo -->
+            </div>
+          </div>
+          <!-- Mensagens de erro/sucesso -->
+          <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center text-red-800">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              <span class="text-sm font-medium">{{ error }}</span>
+            </div>
+          </div>
+          <!-- Botões -->
+          <div class="flex gap-3 mt-6">
+            <button type="button" (click)="cancel()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              {{ 'cancel' | i18n }}
+            </button>
+            <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              {{ 'submit' | i18n }}
+            </button>
+          </div>
+          </div>
         </div>
-        <div>
-          <label for="edit-city" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-city text-indigo-500 mr-2 text-xs"></i>
-            {{ 'city' | i18n }}
-          </label>
-          <input id="edit-city" type="text" name="city" [(ngModel)]="request.city" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="edit-state" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-map-marker-alt text-indigo-500 mr-2 text-xs"></i>
-            {{ 'state' | i18n }}
-          </label>
-          <input id="edit-state" type="text" name="state" [(ngModel)]="request.state" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
-        </div>
-        <div>
-          <label for="edit-zip-code" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-mail-bulk text-indigo-500 mr-2 text-xs"></i>
-            {{ 'zipCode' | i18n }}
-          </label>
-          <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
-        </div>
-      </div>
-      <div class="mb-4">
-        <label for="edit-description" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-          <i class="fas fa-align-left text-indigo-500 mr-2 text-xs"></i>
-          {{ 'description' | i18n }}
-        </label>
-        <textarea id="edit-description" name="description" [(ngModel)]="request.description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"></textarea>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label for="edit-scheduled-date" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
-            {{ 'scheduledDate' | i18n }}
-          </label>
-          <input id="edit-scheduled-date" type="datetime-local" name="scheduled_start_datetime" [(ngModel)]="request.scheduled_start_datetime" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
-        </div>
-        <div>
-          <label for="edit-estimated-duration" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-clock text-indigo-500 mr-2 text-xs"></i>
-            {{ 'estimatedDuration' | i18n }}
-          </label>
-          <input id="edit-estimated-duration" type="number" name="estimated_duration_minutes" [(ngModel)]="request.estimated_duration_minutes" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
-        </div>
-      </div>
-      <div class="mb-4">
-        <label for="edit-admin-notes" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-          <i class="fas fa-sticky-note text-indigo-500 mr-2 text-xs"></i>
-          {{ 'adminNotes' | i18n }}
-        </label>
-        <textarea id="edit-admin-notes" name="admin_notes" [(ngModel)]="request.admin_notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"></textarea>
-      </div>
-      <div class="flex gap-3 mt-6">
-        <button type="button" (click)="cancel()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-          {{ 'cancel' | i18n }}
-        </button>
-        <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-          <i class="fas fa-save mr-2"></i>
-          {{ 'save' | i18n }}
-        </button>
-      </div>
-    </form>
-  }
+      </form>
+    </ng-container>
+  </ng-container>
 </div>

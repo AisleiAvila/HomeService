@@ -870,6 +870,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     editServiceRequest: "Edit Service Request",
     updateRequest: "Update Request",
     fillFormToEditRequest: "Fill out the form below to edit the service request",
+    requestOrigin: "Request Origin",
 
   },
   pt: {
@@ -1747,6 +1748,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     editRequest: "Editar Solicitação",
     editServiceRequest: "Editar Solicitação de Serviço",
     fillFormToEditRequest: "Preencha o formulário abaixo para editar a solicitação de serviço",
+    requestOrigin: "Origem da Solicitação",
   },
 };
 
