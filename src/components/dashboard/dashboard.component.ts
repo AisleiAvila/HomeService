@@ -400,7 +400,7 @@ export class DashboardComponent implements OnInit {
     const requests = this.userRequests();
 
     // Status que indicam serviços ativos (não finalizados)
-    const activeStatuses: ServiceStatus[] = [
+    const activeStatuses = new Set<ServiceStatus>([
       "Solicitado",
       "Atribuído",
       "Aguardando Confirmação",
@@ -409,9 +409,9 @@ export class DashboardComponent implements OnInit {
       "Em Progresso",
       "Aguardando Finalização",
       "Pagamento Feito"
-    ];
+    ]);
     
-    const isActive = (status: string) => activeStatuses.includes(status as ServiceStatus);
+    const isActive = (status: string) => activeStatuses.has(status as ServiceStatus);
 
     if (currentUser.role === "admin") {
       return [

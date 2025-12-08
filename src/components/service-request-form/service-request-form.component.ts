@@ -467,11 +467,11 @@ export class ServiceRequestFormComponent implements OnInit {
       this.isSubmitting.set(false);
     } catch (error) {
       console.error("Erro ao enviar solicitação de serviço:", error);
-      this.formError!.set(
-        this.i18n!.translate("formErrorGeneric") +
+      this.formError.set(
+        this.i18n.translate("formErrorGeneric") +
           (error?.message ? ` (${error.message})` : "")
       );
-      this.isSubmitting!.set(false);
+      this.isSubmitting.set(false);
     }
   }
 }
