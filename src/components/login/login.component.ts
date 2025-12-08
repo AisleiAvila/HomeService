@@ -118,7 +118,7 @@ export interface LoginPayload {
                 id="password"
                 name="password"
                 [type]="showPassword ? 'text' : 'password'"
-                autocomplete="current-password"
+                autocomplete="off"
                 required
                 aria-required="true"
                 [attr.aria-invalid]="passwordInvalid() ? 'true' : 'false'"
@@ -204,11 +204,27 @@ export class LoginComponent {
   emailInvalid = signal(false);
   passwordInvalid = signal(false);
 
+  // Rate limiting: máximo de 5 tentativas em 10 minutos
+  maxAttempts = 5;
+  attemptWindowMs = 10 * 60 * 1000; // 10 minutos
+  attempts = signal<number[]>([]); // array de timestamps
+
   readonly i18n = inject(I18nService);
 
   login() {
     this.errorMessage.set(null);
     this.isLoading.set(true);
+
+    // Limitação de tentativas
+    const now = Date.now();
+    const windowStart = now - this.attemptWindowMs;
+    const filteredAttempts = this.attempts().filter(ts => ts > windowStart);
+    if (filteredAttempts.length >= this.maxAttempts) {
+      this.setError('tooManyAttempts');
+      this.isLoading.set(false);
+      return;
+    }
+
     // Validação antes do submit
     this.validateEmail();
     this.validatePassword();
@@ -216,8 +232,11 @@ export class LoginComponent {
       this.isLoading.set(false);
       return;
     }
+
     this.authService.loginCustom(this.email(), this.password())
       .then((user) => {
+        // Registra tentativa
+        this.attempts.set([...filteredAttempts, now]);
         if (user) {
           this.clearError();
           // Redirecionamento pode ser feito via AppComponent ou Router
@@ -226,6 +245,8 @@ export class LoginComponent {
         }
       })
       .catch(() => {
+        // Registra tentativa
+        this.attempts.set([...filteredAttempts, now]);
         this.setError('authServerError');
       })
       .finally(() => {
@@ -252,9 +273,11 @@ export class LoginComponent {
   }
 
   validateEmail() {
-    // Regex simples para email válido
+    // Validação de email simplificada e prática
     const emailValue = this.email().trim();
-    this.emailInvalid.set(!/^\S+@\S+\.\S+$/.test(emailValue));
+    // Padrão simples: caracteres locais + @ + domínio com TLD
+    const regex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    this.emailInvalid.set(!regex.test(emailValue));
   }
 
   validatePassword() {
