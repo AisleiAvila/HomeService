@@ -183,7 +183,9 @@
       }
     </div>
 
-    <!-- Lista de Solicitações -->
+      <!-- Divisor visual entre filtros e lista -->
+      <hr class="my-6 border-t-2 border-gray-200"> 
+      <!-- Lista de Solicitações -->
     @if (user() && isArray(paginatedRequests()) && paginatedRequests().length > 0) {
     <app-service-list
       [serviceRequests]="paginatedRequests() || []"
