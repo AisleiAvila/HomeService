@@ -1,0 +1,78 @@
+{
+  "sms_invalid_phone": {
+    "pt": "Número de telefone inválido. Use formato internacional (+351...)",
+    "en": "Invalid phone number. Use international format (+351...)"
+  },
+  "sms_empty_message": {
+    "pt": "A mensagem não pode estar vazia",
+    "en": "Message cannot be empty"
+  },
+  "sms_send_failed": {
+    "pt": "Falha ao enviar SMS",
+    "en": "Failed to send SMS"
+  },
+  "sms_sent_success": {
+    "pt": "SMS enviado com sucesso",
+    "en": "SMS sent successfully"
+  },
+  "sms_send_error": {
+    "pt": "Erro ao enviar SMS",
+    "en": "Error sending SMS"
+  },
+  "sms_verification_title": {
+    "pt": "Verificação de Telefone",
+    "en": "Phone Verification"
+  },
+  "sms_verification_sent": {
+    "pt": "Código de verificação enviado",
+    "en": "Verification code sent"
+  },
+  "sms_verification_invalid": {
+    "pt": "Código de verificação inválido",
+    "en": "Invalid verification code"
+  },
+  "sms_verification_expired": {
+    "pt": "Código de verificação expirado",
+    "en": "Verification code expired"
+  },
+  "sms_notification_status_change": {
+    "pt": "Atualização do pedido #{{requestId}}. Novo status: {{status}}",
+    "en": "Update on request #{{requestId}}. New status: {{status}}"
+  },
+  "sms_reminder_service": {
+    "pt": "Lembrete: {{serviceName}} agendado para {{date}}",
+    "en": "Reminder: {{serviceName}} scheduled for {{date}}"
+  },
+  "sms_welcome": {
+    "pt": "Bem-vindo ao HomeService! Seu cadastro foi confirmado.",
+    "en": "Welcome to HomeService! Your registration has been confirmed."
+  },
+  "sms_password_reset": {
+    "pt": "Seu código de recuperação de senha é: {{code}}. Válido por {{expiresIn}} minutos.",
+    "en": "Your password recovery code is: {{code}}. Valid for {{expiresIn}} minutes."
+  },
+  "sms_service_assigned": {
+    "pt": "Um novo serviço foi atribuído a você. Verifique os detalhes no app.",
+    "en": "A new service has been assigned to you. Check details in the app."
+  },
+  "sms_payment_received": {
+    "pt": "Pagamento recebido para o pedido #{{requestId}}. Valor: €{{amount}}",
+    "en": "Payment received for request #{{requestId}}. Amount: €{{amount}}"
+  },
+  "sms_service_completed": {
+    "pt": "Serviço #{{requestId}} concluído. Obrigado por usar o HomeService!",
+    "en": "Service #{{requestId}} completed. Thank you for using HomeService!"
+  },
+  "sms_preferences_updated": {
+    "pt": "Preferências de SMS atualizadas com sucesso",
+    "en": "SMS preferences updated successfully"
+  },
+  "sms_disabled": {
+    "pt": "Notificações por SMS desativadas",
+    "en": "SMS notifications disabled"
+  },
+  "sms_enabled": {
+    "pt": "Notificações por SMS ativadas",
+    "en": "SMS notifications enabled"
+  }
+}

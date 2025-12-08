@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { SmsService } from "./sms.service";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
@@ -30,6 +31,7 @@ export class WorkflowServiceSimplified {
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
   private readonly auditService = inject(StatusAuditService);
+  private readonly smsService = inject(SmsService);
 
   /**
    * Mapeamento de transições válidas
@@ -818,7 +820,34 @@ export class WorkflowServiceSimplified {
     messageKey: string,
     message: string
   ): Promise<void> {
-    // Implementar notificação via NotificationService
+    // Buscar dados do profissional
+    const { data: professional, error } = await this.supabase.client
+      .from("users")
+      .select("id, name, phone, receive_sms_notifications")
+      .eq("id", professionalId)
+      .single();
+
+    if (error || !professional) {
+      console.error("Erro ao buscar profissional para SMS:", error);
+      return;
+    }
+
+    // Verifica se o profissional aceita receber SMS e se o telefone está presente
+    if (professional.receive_sms_notifications !== false && professional.phone) {
+      try {
+        await this.smsService.sendSms({
+          to: professional.phone,
+          message: message,
+        });
+        console.log(`SMS enviado para profissional ${professionalId}: ${professional.phone}`);
+      } catch (smsError) {
+        console.error("Erro ao enviar SMS ao profissional:", smsError);
+      }
+    } else {
+      console.log(`Profissional ${professionalId} não possui telefone válido ou optou por não receber SMS.`);
+    }
+
+    // Notificação visual (NotificationService)
     console.log(`Notificando profissional ${professionalId}: ${message}`);
   }
 

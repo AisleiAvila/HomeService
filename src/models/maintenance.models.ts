@@ -615,3 +615,63 @@ export interface ServiceRequestPayload {
   address: Address;
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
 }
+
+// ====================================
+// SMS TYPES
+// ====================================
+
+/**
+ * Tipos de template para SMS
+ */
+export type SmsTemplateType = 'verification' | 'notification' | 'reminder' | 'custom';
+
+/**
+ * Status de envio de SMS
+ */
+export type SmsStatus = 'sent' | 'delivered' | 'failed' | 'pending';
+
+/**
+ * Parâmetros para envio de SMS
+ */
+export interface SmsParams {
+  to: string; // Número de telefone no formato internacional (+351...)
+  message: string; // Mensagem a ser enviada
+  template?: SmsTemplateType; // Template predefinido
+  variables?: Record<string, string>; // Variáveis para substituição no template
+}
+
+/**
+ * Resposta do envio de SMS
+ */
+export interface SmsResponse {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+  timestamp?: string;
+  status?: string;
+  segments?: number;
+}
+
+/**
+ * Histórico de SMS enviado
+ */
+export interface SmsHistory {
+  id: string;
+  to: string;
+  message: string;
+  status: SmsStatus;
+  sent_at: Date;
+  delivered_at?: Date;
+  error?: string;
+}
+
+/**
+ * Configuração de notificações SMS para usuário
+ */
+export interface SmsNotificationPreferences {
+  receive_sms_notifications: boolean;
+  notify_on_status_change: boolean;
+  notify_on_assignment: boolean;
+  notify_on_schedule: boolean;
+  notify_on_payment: boolean;
+}

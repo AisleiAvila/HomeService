@@ -27,13 +27,15 @@
     "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.86.0",
     "@vendia/serverless-express": "^4.12.6",
+    "axios": "^1.13.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
     "pg": "^8.16.3",
     "rxjs": "^7.8.2",
-    "tippy.js": "^6.3.7"
+    "tippy.js": "^6.3.7",
+    "twilio": "^5.10.7"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -50,6 +52,9 @@
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
-    "start": "concurrently \"ng serve --configuration=development --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\""
+    "start": "concurrently \"ng serve --configuration=development --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\"",
+    "sms:server": "node send-sms.cjs",
+    "sms:test": "node test-sms.cjs",
+    "email:server": "node send-email.cjs"
   }
 }
