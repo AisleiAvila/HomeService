@@ -15,13 +15,14 @@ import { User, ServiceRequest, ServiceStatus } from "../../models/maintenance.mo
 import { DataService } from "../../services/data.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { ServiceListComponent } from "../service-list/service-list.component";
+import { ServiceRequestDetailsComponent } from "../service-request-details/service-request-details.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, FormsModule, ServiceListComponent, I18nPipe],
+  imports: [CommonModule, FormsModule, ServiceListComponent, ServiceRequestDetailsComponent, I18nPipe],
   templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -29,7 +30,10 @@ export class DashboardComponent implements OnInit {
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
     console.log('[Dashboard] handleViewDetails chamado com request:', request?.id, request?.title);
+    console.log('[Dashboard] Request completo:', request);
+    console.log('[Dashboard] Setando selectedRequest...');
     this.selectedRequest.set(request);
+    console.log('[Dashboard] selectedRequest após set:', this.selectedRequest());
     this.viewDetails.emit(request);
   }
     logAndCloseDetails() {

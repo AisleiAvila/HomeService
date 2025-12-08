@@ -1,13 +1,14 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  input,
+  Input,
   Output,
   EventEmitter,
   computed,
   inject,
   signal,
   OnInit,
+  effect,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -513,9 +514,21 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
 export class ServiceRequestDetailsComponent implements OnInit {
   @Output() businessRuleError = new EventEmitter<string>();
   
-  // Input opcional - usado quando o componente é chamado diretamente (via parent)
-  protected requestInput = input<ServiceRequest | undefined>(undefined);
-  protected currentUserInput = input<User | undefined>(undefined);
+  // Input usando @Input tradicional para garantir compatibilidade
+  private _requestInput?: ServiceRequest;
+  @Input() 
+  set requestInput(value: ServiceRequest | undefined) {
+    console.log('[ServiceRequestDetails] @Input requestInput setter chamado com:', value?.id);
+    this._requestInput = value;
+    if (value) {
+      this.loadedRequest.set(value);
+    }
+  }
+  get requestInput(): ServiceRequest | undefined {
+    return this._requestInput;
+  }
+  
+  @Input() currentUserInput?: User;
 
   // Injeção de serviços
   private readonly dataService = inject(DataService);
@@ -530,29 +543,51 @@ export class ServiceRequestDetailsComponent implements OnInit {
   private readonly loadedUser = signal<User | undefined>(undefined);
 
   // Request e User efetivos usados no template
-  request = computed(() => this.requestInput() || this.loadedRequest());
-  currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
+  request = computed(() => {
+    const inputReq = this.requestInput;
+    const loadedReq = this.loadedRequest();
+    console.log('[ServiceRequestDetails] Computed request:', {
+      inputReq: inputReq?.id,
+      loadedReq: loadedReq?.id,
+      final: (inputReq || loadedReq)?.id
+    });
+    return inputReq || loadedReq;
+  });
+  currentUser = computed(() => this.currentUserInput || this.loadedUser() || this.authService.appUser());
+
+  // Effect para reagir a mudanças no requestInput
+  private requestEffect = effect(() => {
+    const inputReq = this.requestInput;
+    console.log('[ServiceRequestDetails] Effect - requestInput mudou:', inputReq?.id);
+    if (inputReq) {
+      console.log('[ServiceRequestDetails] Request recebido via input:', inputReq.id);
+    }
+  });
 
   ngOnInit() {
+    console.log('[ServiceRequestDetails] ngOnInit - requestInput:', this.requestInput?.id);
+    console.log('[ServiceRequestDetails] ngOnInit - request computed:', this.request()?.id);
+    
     // Se não há request via input, buscar pelo ID da rota
-    if (!this.requestInput()) {
-      this.route.params.subscribe(params => {
-        const id = params['id'];
-        if (id) {
-          const requests = this.dataService.serviceRequests();
-          const foundRequest = requests.find(r => r.id === Number.parseInt(id));
-          if (foundRequest) {
-            this.loadedRequest.set(foundRequest);
-          } else {
-            console.error('Request não encontrado:', id);
-            this.router.navigate(['/admin/requests']);
-          }
+    this.route.params.subscribe(params => {
+      const id = params['id'];
+      console.log('[ServiceRequestDetails] Route params id:', id);
+      if (id && !this.requestInput) {
+        console.log('[ServiceRequestDetails] Tentando carregar via rota...');
+        const requests = this.dataService.serviceRequests();
+        const foundRequest = requests.find(r => r.id === Number.parseInt(id));
+        if (foundRequest) {
+          console.log('[ServiceRequestDetails] Request encontrado via rota:', foundRequest.id);
+          this.loadedRequest.set(foundRequest);
+        } else {
+          console.error('Request não encontrado:', id);
+          this.router.navigate(['/admin/requests']);
         }
-      });
-    }
+      }
+    });
 
     // Se não há user via input, usar o user autenticado
-    if (!this.currentUserInput()) {
+    if (!this.currentUserInput) {
       const user = this.authService.appUser();
       if (user) {
         this.loadedUser.set(user);

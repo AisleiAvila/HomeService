@@ -63,9 +63,9 @@
   <!-- Service Lists OU Detalhes -->
   @if (selectedRequest()) {
   <app-service-request-details
-    [request]="selectedRequest()"
-    [currentUser]="user()"
-    (close)="logAndCloseDetails()"
+    [requestInput]="selectedRequest()"
+    [currentUserInput]="user()"
+    (closeDetails)="logAndCloseDetails()"
     (refreshRequest)="selectedRequest.set(null)"
   ></app-service-request-details>
   }
