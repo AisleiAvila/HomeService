@@ -1,42 +1,56 @@
-<div
+<dialog
   *ngIf="show()"
   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  aria-labelledby="payment-modal-title"
+  (keydown)="onModalKeydown($event)"
+  open
+  #modalContainer
 >
   <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
     <button
       (click)="handleClose()"
       [disabled]="loading()"
       class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-      aria-label="Fechar"
+      aria-label="{{ 'close' | i18n }}"
+      type="button"
+      tabindex="0"
     >
-      <i class="fas fa-times"></i>
+      <i class="fas fa-times" aria-hidden="true"></i>
     </button>
-    <h2 class="text-xl font-bold mb-4 text-gray-900">{{ "payNow" | i18n }}</h2>
-    <div class="mb-4">
+    <h2 id="payment-modal-title" class="text-xl font-bold mb-4 text-gray-900">{{ "payNow" | i18n }}</h2>
+    <!-- Bloco: Informações do Serviço -->
+    <div class="mb-4 pb-4 border-b border-gray-200">
+      <!-- Serviço -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "service" | i18n }}:
         <span class="font-medium">{{ request().title }}</span>
       </div>
+      <!-- Categoria -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "category" | i18n }}:
         <span class="font-medium">{{ request().category?.name || '—' }}</span>
       </div>
+      <!-- Profissional -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "professional" | i18n }}:
         <span class="font-medium">{{ request().professional_name || ("unassigned" | i18n) }}</span>
       </div>
+      <!-- Valor do Prestador -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "valorPrestador" | i18n }}:
         <span class="font-semibold text-green-700">€ {{ request().valor_prestador | number : '1.2-2' }}</span>
       </div>
+      <!-- Valor Total -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "valorTotal" | i18n }}:
         <span class="font-semibold text-blue-700">€ {{ request().valor | number : '1.2-2' }}</span>
       </div>
+      <!-- Status -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "status" | i18n }}:
         <span class="font-medium">{{ request().status }}</span>
       </div>
+      <!-- Período de Execução -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "executionPeriod" | i18n }}:
         <span class="font-medium">
@@ -46,13 +60,12 @@
         </span>
       </div>
     </div>
-    <div class="mb-4">
-      <div class="block text-sm font-medium text-gray-700 mb-2">{{
-        "choosePaymentMethod" | i18n
-      }}</div>
+    <!-- Bloco: Métodos de Pagamento -->
+    <div class="mb-4 pt-4 border-t border-gray-200">
+      <div class="block text-sm font-medium text-gray-700 mb-2">{{ "choosePaymentMethod" | i18n }}</div>
       <div class="space-y-2">
         <ng-container *ngFor="let method of paymentMethods">
-          <label class="flex items-center cursor-pointer">
+          <label class="flex items-center cursor-pointer group" [attr.title]="method.tooltip">
             <input
               type="radio"
               name="paymentMethod"
@@ -61,8 +74,19 @@
               (change)="selectedMethod.set(method.id)"
               class="form-radio text-green-600"
               [disabled]="loading()"
+              aria-checked="{{selectedMethod() === method.id}}"
+              aria-label="{{ method.label }}"
+              tabindex="0"
             />
-            <span class="ml-2 text-gray-800">{{ method.label }}</span>
+            <span class="ml-2 flex items-center text-gray-800">
+              <i [ngClass]="{
+                'fas fa-credit-card text-blue-500': method.id === 'card',
+                'fab fa-whatsapp text-green-500': method.id === 'mbway',
+                'fas fa-university text-indigo-500': method.id === 'bank'
+              }" class="mr-2"></i>
+              {{ method.label }}
+              <span class="ml-1 text-xs text-gray-400 group-hover:text-gray-700">&#9432;</span>
+            </span>
           </label>
         </ng-container>
       </div>
@@ -71,11 +95,14 @@
       (click)="handlePay()"
       [disabled]="!selectedMethod() || loading()"
       class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50"
+      type="button"
+      tabindex="0"
     >
       <i
         [class]="loading() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
-      ></i
-      >{{ "confirmPayment" | i18n }}
+        aria-hidden="true"
+      ></i>
+      <span>{{ "confirmPayment" | i18n }}</span>
     </button>
   </div>
-</div>
+</dialog>

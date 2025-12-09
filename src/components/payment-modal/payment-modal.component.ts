@@ -26,14 +26,29 @@ export class PaymentModalComponent {
   onPay = output<{ request: ServiceRequest; method: string }>();
   onClose = output<void>();
 
+  // Ref para o elemento do modal
+  modalRef?: HTMLDialogElement;
+
   private readonly i18n = inject(I18nService);
 
   selectedMethod = signal<string>("");
 
   paymentMethods = [
-    { id: "card", label: this.i18n.translate("creditCard") },
-    { id: "mbway", label: this.i18n.translate("mbway") },
-    { id: "bank", label: this.i18n.translate("bankTransfer") },
+    {
+      id: "card",
+      label: this.i18n.translate("creditCard"),
+      tooltip: this.i18n.translate("creditCardTooltip") || "Pagamento com cartão de crédito ou débito."
+    },
+    {
+      id: "mbway",
+      label: this.i18n.translate("mbway"),
+      tooltip: this.i18n.translate("mbwayTooltip") || "Pagamento instantâneo via MB WAY."
+    },
+    {
+      id: "bank",
+      label: this.i18n.translate("bankTransfer"),
+      tooltip: this.i18n.translate("bankTransferTooltip") || "Transferência bancária tradicional."
+    },
   ];
 
   handlePay() {
@@ -43,6 +58,20 @@ export class PaymentModalComponent {
         request: this.request(),
         method: this.selectedMethod(),
       });
+    }
+  }
+
+  // Fecha modal ao pressionar ESC
+  onModalKeydown(event: KeyboardEvent) {
+    if (event.key === "Escape" && !this.loading()) {
+      this.handleClose();
+    }
+  }
+
+  // Move foco para o modal ao abrir
+  ngAfterViewChecked() {
+    if (this.show() && this.modalRef) {
+      this.modalRef.focus();
     }
   }
 
