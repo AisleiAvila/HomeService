@@ -33,7 +33,9 @@
       <!-- Profissional -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "professional" | i18n }}:
-        <span class="font-medium">{{ request().professional_name ? (request().professional_name | i18n) : ("unassigned" | i18n) }}</span>
+        <span class="font-medium">
+          {{ (request().professional_name && request().professional_name.trim() !== '') ? request().professional_name : ("unassigned" | i18n) }}
+        </span>
       </div>
       <!-- Valor do Prestador -->
       <div class="text-sm text-gray-700 mb-2">
