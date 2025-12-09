@@ -71,6 +71,7 @@ export class PaymentModalComponent implements AfterViewChecked {
       request: this.request(),
       method: this.selectedMethod(),
     });
+
   }
 
   // Método para ser chamado pelo pai em caso de erro

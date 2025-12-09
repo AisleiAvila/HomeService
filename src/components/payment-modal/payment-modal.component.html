@@ -35,6 +35,16 @@
           <span *ngIf="request().category.description.trim()" class="block text-xs text-gray-500 mt-1">{{ request().category.description | i18n }}</span>
         </ng-container>
       </div>
+      <!-- Subcategoria -->
+      <div class="text-sm text-gray-700 mb-2">
+        {{ "subcategory" | i18n }}:
+        <span class="font-medium">
+          {{ request()?.subcategory?.name ? (request().subcategory.name | i18n) : ('—' | i18n) }}
+        </span>
+        <ng-container *ngIf="request()?.subcategory?.description">
+          <span *ngIf="request().subcategory.description.trim()" class="block text-xs text-gray-500 mt-1">{{ request().subcategory.description | i18n }}</span>
+        </ng-container>
+      </div>
       <!-- Profissional -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "professional" | i18n }}:

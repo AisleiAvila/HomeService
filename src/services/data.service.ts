@@ -182,7 +182,16 @@ export class DataService {
   }
 
   private async fetchServiceRequests(currentUser: User) {
-    let query = this.supabase.client.from("service_requests").select("*");
+    let query = this.supabase.client
+      .from("service_requests")
+      .select(`*,
+        category:service_categories!service_requests_category_id_fkey (
+          id, name
+        ),
+        subcategory:service_subcategories!service_requests_subcategory_id_fkey (
+          id, name, description
+        )
+      `);
 
     if (currentUser.role === "professional") {
       query = query.eq("professional_id", currentUser.id);

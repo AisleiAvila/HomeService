@@ -883,6 +883,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     creditCardTooltip: "Pay securely using your credit card.",
     mbwayTooltip: "Pay quickly using MB WAY.",
     bankTransferTooltip: "Pay via bank transfer.",
+    invalidEmail: "Please enter a valid email address.",
+    invalidPassword: "Password must be at least 6 characters long.",
    
 
   },
@@ -1773,6 +1775,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     mbwayTooltip: "Pague rapidamente usando MB WAY com o número {phone}",
     creditCardTooltip: "Pague com segurança usando seu cartão de crédito.",
     bankTransferTooltip: "Pague via transferência bancária.",
+    invalidEmail: "Por favor, insira um endereço de email válido.",
+    invalidPassword: "A senha deve ter pelo menos 6 caracteres.",
 
   },
 };
