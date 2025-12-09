@@ -9,15 +9,42 @@ import { ServiceRequest, ServiceStatus } from "../../../models/maintenance.model
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
+import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 
 @Component({
     selector: "app-service-requests",
     standalone: true,
-    imports: [CommonModule, FormsModule, I18nPipe],
+    imports: [CommonModule, FormsModule, I18nPipe, PaymentModalComponent],
     templateUrl: "./service-requests.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceRequestsComponent {
+            async processPayment(event: { request: ServiceRequest; method: string }) {
+                const req = event.request;
+                // Chama serviço para registrar pagamento
+                const workflowService = await import('../../../services/workflow-simplified.service');
+                const workflowInstance = new workflowService.WorkflowServiceSimplified();
+                // Exemplo: valor e método do pagamento
+                await workflowInstance.registerPayment(
+                    req.id,
+                    this.currentUser()?.id ?? 0,
+                    {
+                        amount: req.valor_prestador ?? req.valor ?? 0,
+                        method: event.method as any,
+                        notes: 'Pagamento realizado via painel admin',
+                    }
+                );
+                // Atualiza lista e fecha modal
+                await this.dataService.reloadServiceRequests();
+                this.showPaymentModal.set(false);
+            }
+        showPaymentModal = signal(false);
+        requestToPay = signal<ServiceRequest | null>(null);
+
+        handlePayRequest(req: ServiceRequest) {
+            this.requestToPay.set(req);
+            this.showPaymentModal.set(true);
+        }
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);

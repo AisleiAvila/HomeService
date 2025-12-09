@@ -873,6 +873,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestOrigin: "Request Origin",
     invalidCredentials: "Invalid email or password.",
     authServerError: "Authentication server error. Please try again later.",
+    payRequest: "Pay Request",
 
   },
   pt: {
@@ -1753,6 +1754,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     requestOrigin: "Origem da Solicitação",
     invalidCredentials: "Credenciais inválidas. Por favor, tente novamente.",
     authServerError: "Erro no servidor de autenticação. Por favor, tente novamente mais tarde.",
+    payRequest: "Pagar Solicitação",
 
   },
 };

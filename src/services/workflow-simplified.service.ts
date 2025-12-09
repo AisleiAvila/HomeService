@@ -140,6 +140,7 @@ export class WorkflowServiceSimplified {
         created_by_admin_id: adminId,
         status: "Solicitado",
         created_at: new Date().toISOString(),
+        isPaid: false,
         // professional_id será definido na atribuição
       };
 
@@ -617,6 +618,7 @@ export class WorkflowServiceSimplified {
           payment_notes: paymentData.notes,
           paid_by_admin_id: adminId,
           status: "Pagamento Feito",
+          isPaid: true,
         })
         .eq("id", requestId);
 

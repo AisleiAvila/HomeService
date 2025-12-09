@@ -239,6 +239,17 @@
         }
     </div>
 
+    <!-- Modal de Pagamento -->
+    @if (showPaymentModal() && requestToPay()) {
+    <app-payment-modal
+        [request]="requestToPay()!"
+        [show]="showPaymentModal()"
+        [loading]="false"
+        (onPay)="processPayment($event)"
+        (onClose)="showPaymentModal.set(false)"
+    />
+    }
+
     <!-- Desktop Table View -->
     <div class="hidden lg:block">
         <table class="min-w-full divide-y divide-gray-200">
@@ -362,7 +373,15 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
-                            <!-- Ação Principal -->
+                            <!-- Botão de pagamento: só admins, status 'Concluído', não pago -->
+                            @if (currentUser() && currentUser()!.role === 'admin' && req.status === 'Concluído' && !req.isPaid) {
+                            <button (click)="handlePayRequest(req)"
+                                class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                                [title]="'payRequest' | i18n">
+                                <i class="fas fa-credit-card"></i>
+                            </button>
+                            }
+                            <!-- ...ações existentes... -->
                             @if (req.status === 'Em análise') {
                             <button (click)="selectRequestForQuote(req)"
                                 class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
@@ -375,8 +394,7 @@
                                 [title]="req.status === 'Agendado' && !req.professional_id ? ('assignProfessionalToScheduled' | i18n) : ('assign' | i18n)">
                                 <i class="fas fa-user-plus"></i>
                             </button>
-                            } @else if (req.status === 'Pending' || req.status ===
-                            'Quoted') {
+                            } @else if (req.status === 'Pending' || req.status === 'Quoted') {
                             <button (click)="selectRequestForQuote(req)"
                                 class="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
                                 [title]="req.status === 'Quoted' ? ('viewQuote' | i18n) : ('provideQuote' | i18n)">

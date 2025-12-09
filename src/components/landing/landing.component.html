@@ -4,10 +4,10 @@
 
 
   <!-- Hero visual principal com imagem e overlay -->
-  <div class="relative w-full h-[35vh] sm:h-[40vh] lg:h-[45vh] flex items-center justify-center mb-8">
+  <div class="relative w-full h-[35vh] sm:h-[40vh] lg:h-[45vh] flex items-center justify-center mb-0">
     <img
   [src]="imgError ? placeholderDataUrl : 'src/assets/landing-page.png'"
-      alt="Família feliz em frente a uma casa construída pela Natan Construtora"
+      alt="Imagem de capa da página inicial"
       class="w-auto h-full max-w-full object-contain"
       loading="eager"
       (error)="imgError = true"
@@ -21,25 +21,26 @@
       <span class="text-blue-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
     </div>
     <!-- Controles no canto superior direito: idioma + botões -->
-  <div class="absolute top-2 right-8 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-col items-end gap-3">
-      <ng-content select="[language-switcher]"></ng-content>
-      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+    <div class="absolute top-2 right-2 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-row items-center gap-2">
+      <div class="flex flex-row items-center gap-2 flex-nowrap max-w-full overflow-x-auto min-w-0 justify-end sm:justify-start w-full">
+        <ng-content select="[language-switcher]"></ng-content>
         <button
           (click)="signIn.emit()"
-          class="bg-white text-indigo-800 font-semibold py-3 px-5 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-100/80 border-2 border-indigo-200 w-full sm:w-auto hover:shadow-xl min-h-12"
+          class="bg-white text-indigo-800 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-100/80 border-2 border-indigo-200 hover:shadow-xl min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0"
+          aria-label="{{ 'signIn' | i18n }}"
         >
           <!-- Ícone login: porta com seta -->
-          <svg class="inline-block mr-2 w-5 h-5 text-blue-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="inline-block w-5 h-5 text-blue-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
           </svg>
-          {{ "signIn" | i18n }}
+          <span class="ml-2 text-base font-semibold">{{ "signIn" | i18n }}</span>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="container mx-auto px-2 sm:px-4 pb-40 pt-8 sm:pt-6">
+  <div class="container mx-auto px-2 sm:px-4 pb-40 pt-0 sm:pt-0">
 
 
     <!-- Estatísticas -->
@@ -126,7 +127,7 @@
     >
       <h2 class="text-3xl font-serif font-bold mb-6 tracking-tight text-center flex items-center justify-center gap-3">
         <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 012 2z"/>
         </svg>
         {{ 'landingContactsTitle' | i18n }}
       </h2>
@@ -138,7 +139,7 @@
           <div class="space-y-3">
             <a href="mailto:natanconstrucoes@gmail.com" class="flex items-center gap-3 text-white hover:text-blue-300 transition-colors group" aria-label="Enviar email para Natan Construtora">
               <svg class="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 012 2z"/>
               </svg>
               <div>
                 <div class="text-sm text-white/70">{{ 'landingContactsEmail' | i18n }}</div>
