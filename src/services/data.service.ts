@@ -190,6 +190,9 @@ export class DataService {
         ),
         subcategory:service_subcategories!service_requests_subcategory_id_fkey (
           id, name, description
+        ),
+        professional:users!service_requests_professional_id_fkey (
+          id, name
         )
       `);
 
@@ -209,15 +212,13 @@ export class DataService {
         "Using sample data - Error fetching service requests: " + error.message
       );
     } else if (data && data.length > 0) {
-      const users = this.users();
       const requests = data.map((r) => ({
         ...r,
-           client_name: r.client_name || r.client_profile?.name || "",
-           client_email: r.client_email || r.client_profile?.email || "",
-           client_phone: r.client_phone || r.client_profile?.phone || "",
-           client_address: r.client_address || r.client_profile?.address || "",
-           professional_name:
-             users.find((u) => u.id === r.professional_id)?.name || "Unassigned",
+        client_name: r.client_name || r.client_profile?.name || "",
+        client_email: r.client_email || r.client_profile?.email || "",
+        client_phone: r.client_phone || r.client_profile?.phone || "",
+        client_address: r.client_address || r.client_profile?.address || "",
+        professional_name: r.professional?.name || "Unassigned",
       }));
       this.serviceRequests.set(requests);
     } else {
