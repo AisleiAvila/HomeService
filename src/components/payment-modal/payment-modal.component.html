@@ -19,25 +19,31 @@
       </div>
       <div class="text-sm text-gray-700 mb-2">
         {{ "category" | i18n }}:
-        <span class="font-medium">{{ request().category }}</span>
+        <span class="font-medium">{{ request().category?.name || '—' }}</span>
       </div>
       <div class="text-sm text-gray-700 mb-2">
         {{ "professional" | i18n }}:
-        <span class="font-medium">{{
-          request().professional_id
-            ? request().professional_id
-            : ("unassigned" | i18n)
-        }}</span>
+        <span class="font-medium">{{ request().professional_name || ("unassigned" | i18n) }}</span>
       </div>
       <div class="text-sm text-gray-700 mb-2">
-        {{ "cost" | i18n }}:
-        <span class="font-semibold text-green-700"
-          >€ {{ request().cost | number : "1.2-2" }}</span
-        >
+        {{ "valorPrestador" | i18n }}:
+        <span class="font-semibold text-green-700">€ {{ request().valor_prestador | number : '1.2-2' }}</span>
+      </div>
+      <div class="text-sm text-gray-700 mb-2">
+        {{ "valorTotal" | i18n }}:
+        <span class="font-semibold text-blue-700">€ {{ request().valor | number : '1.2-2' }}</span>
       </div>
       <div class="text-sm text-gray-700 mb-2">
         {{ "status" | i18n }}:
         <span class="font-medium">{{ request().status }}</span>
+      </div>
+      <div class="text-sm text-gray-700 mb-2">
+        {{ "executionPeriod" | i18n }}:
+        <span class="font-medium">
+          {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : '—' }}
+          —
+          {{ request().actual_end_datetime ? (request().actual_end_datetime | date : 'dd/MM/yyyy HH:mm') : '—' }}
+        </span>
       </div>
     </div>
     <div class="mb-4">
