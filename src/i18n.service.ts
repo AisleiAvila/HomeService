@@ -880,6 +880,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     aMountToPay: "Amount to Pay",
     currencySymbol: "€",
     valorPrestador: "Provider Value",
+    creditCardTooltip: "Pay securely using your credit card.",
+    mbwayTooltip: "Pay quickly using MB WAY.",
+    bankTransferTooltip: "Pay via bank transfer.",
    
 
   },
@@ -1767,7 +1770,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     aMountToPay: "Valor a Pagar",
     currencySymbol: "€",
     valorPrestador: "Valor do Prestador",
-
+    mbwayTooltip: "Pague rapidamente usando MB WAY com o número {phone}",
+    creditCardTooltip: "Pague com segurança usando seu cartão de crédito.",
+    bankTransferTooltip: "Pague via transferência bancária.",
 
   },
 };
