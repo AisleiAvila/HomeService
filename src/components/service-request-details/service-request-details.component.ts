@@ -237,7 +237,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
               @if (currentUser().role === "admin") {
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                  {{ "valorTotal" | i18n }}
+                  {{ "TotalValue" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600">
                   @if (request().valor && request().valor > 0) {

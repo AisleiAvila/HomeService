@@ -5,6 +5,7 @@ import {
   output,
   signal,
   inject,
+  AfterViewChecked,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ServiceRequest } from "../../models/maintenance.models";
@@ -18,13 +19,18 @@ import { I18nService } from "../../i18n.service";
   templateUrl: "./payment-modal.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PaymentModalComponent {
+export class PaymentModalComponent implements AfterViewChecked {
   request = input.required<ServiceRequest>();
   show = input<boolean>(false);
   // Controls disabled state and spinner until parent completes payment
   loading = input<boolean>(false);
+  // Estado local de spinner
+  processing = signal<boolean>(false);
   onPay = output<{ request: ServiceRequest; method: string }>();
   onClose = output<void>();
+
+  // Estado de erro/feedback
+  error = signal<string>("");
 
   // Ref para o elemento do modal
   modalRef?: HTMLDialogElement;
@@ -53,12 +59,24 @@ export class PaymentModalComponent {
 
   handlePay() {
     if (this.loading()) return;
-    if (this.selectedMethod()) {
-      this.onPay.emit({
-        request: this.request(),
-        method: this.selectedMethod(),
-      });
+    this.error.set("");
+    if (!this.selectedMethod()) {
+      this.error.set(this.i18n.translate("selectPaymentMethodError") || "Selecione um método de pagamento.");
+      return;
     }
+    // Ativa spinner local
+    this.processing.set(true);
+    // Emite evento para o pai processar pagamento
+    this.onPay.emit({
+      request: this.request(),
+      method: this.selectedMethod(),
+    });
+  }
+
+  // Método para ser chamado pelo pai em caso de erro
+  showError(msg: string) {
+    this.error.set(msg);
+    this.processing.set(false);
   }
 
   // Fecha modal ao pressionar ESC
@@ -77,6 +95,8 @@ export class PaymentModalComponent {
 
   handleClose() {
     if (this.loading()) return;
+    this.error.set("");
+    this.processing.set(false);
     this.onClose.emit();
   }
 }

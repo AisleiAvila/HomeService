@@ -23,40 +23,40 @@
       <!-- Serviço -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "service" | i18n }}:
-        <span class="font-medium">{{ request().title }}</span>
+        <span class="font-medium">{{ request().title | i18n }}</span>
       </div>
       <!-- Categoria -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "category" | i18n }}:
-        <span class="font-medium">{{ request().category?.name || '—' }}</span>
+        <span class="font-medium">{{ request().category?.name ? (request().category?.name | i18n) : ('—' | i18n) }}</span>
       </div>
       <!-- Profissional -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "professional" | i18n }}:
-        <span class="font-medium">{{ request().professional_name || ("unassigned" | i18n) }}</span>
+        <span class="font-medium">{{ request().professional_name ? (request().professional_name | i18n) : ("unassigned" | i18n) }}</span>
       </div>
       <!-- Valor do Prestador -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "valorPrestador" | i18n }}:
-        <span class="font-semibold text-green-700">€ {{ request().valor_prestador | number : '1.2-2' }}</span>
+        <span class="font-semibold text-green-700">{{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
       </div>
       <!-- Valor Total -->
       <div class="text-sm text-gray-700 mb-2">
-        {{ "valorTotal" | i18n }}:
-        <span class="font-semibold text-blue-700">€ {{ request().valor | number : '1.2-2' }}</span>
+        {{ "TotalValue" | i18n }}:
+        <span class="font-semibold text-blue-700">{{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
       </div>
       <!-- Status -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "status" | i18n }}:
-        <span class="font-medium">{{ request().status }}</span>
+        <span class="font-medium">{{ request().status | i18n }}</span>
       </div>
       <!-- Período de Execução -->
       <div class="text-sm text-gray-700 mb-2">
         {{ "executionPeriod" | i18n }}:
         <span class="font-medium">
-          {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : '—' }}
+          {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
           —
-          {{ request().actual_end_datetime ? (request().actual_end_datetime | date : 'dd/MM/yyyy HH:mm') : '—' }}
+          {{ request().actual_end_datetime ? (request().actual_end_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
         </span>
       </div>
     </div>
@@ -73,7 +73,7 @@
               [checked]="selectedMethod() === method.id"
               (change)="selectedMethod.set(method.id)"
               class="form-radio text-green-600"
-              [disabled]="loading()"
+              [disabled]="loading() || processing()"
               aria-checked="{{selectedMethod() === method.id}}"
               aria-label="{{ method.label }}"
               tabindex="0"
@@ -90,16 +90,21 @@
           </label>
         </ng-container>
       </div>
+      <!-- Mensagem de erro -->
+      <div *ngIf="error()" class="mt-2 text-sm text-red-600 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        {{ error() }}
+      </div>
     </div>
     <button
       (click)="handlePay()"
-      [disabled]="!selectedMethod() || loading()"
-      class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50"
+      [disabled]="!selectedMethod() || loading() || processing()"
+      class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
       type="button"
       tabindex="0"
     >
       <i
-        [class]="loading() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
+        [class]="(loading() || processing()) ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
         aria-hidden="true"
       ></i>
       <span>{{ "confirmPayment" | i18n }}</span>

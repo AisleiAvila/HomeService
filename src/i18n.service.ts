@@ -1,5 +1,6 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
+import { aM } from "@fullcalendar/core/internal-common";
 
 export type Language = "en" | "pt";
 
@@ -874,6 +875,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidCredentials: "Invalid email or password.",
     authServerError: "Authentication server error. Please try again later.",
     payRequest: "Pay Request",
+    executionPeriod: "Execution Period",
+    TotalValue: "Total Value",
+    aMountToPay: "Amount to Pay",
+    currencySymbol: "€",
+    valorPrestador: "Provider Value",
+   
 
   },
   pt: {
@@ -1755,6 +1762,12 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidCredentials: "Credenciais inválidas. Por favor, tente novamente.",
     authServerError: "Erro no servidor de autenticação. Por favor, tente novamente mais tarde.",
     payRequest: "Pagar Solicitação",
+    executionPeriod: "Período de Execução",
+    TotalValue: "Valor Total",
+    aMountToPay: "Valor a Pagar",
+    currencySymbol: "€",
+    valorPrestador: "Valor do Prestador",
+
 
   },
 };
