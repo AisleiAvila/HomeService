@@ -64,7 +64,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     freguesia: "Parish (Optional)",
     postalCodeInvalidFormat: "Format: 0000-000",
 
-    // Pagination
+    payment: "Payment",
+    paymentDone: "Done",
+    paymentPending: "Pending",
     itemsPerPage: "Items per page",
     showing: "Showing",
     to: "to",
@@ -162,6 +164,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectAProfessional: "Select a Professional",
     selectDate: "Select Date",
     cancel: "Cancel",
+        // Status de pagamento
+        // (mantido apenas no início do objeto)
     confirmSchedule: "Confirm Schedule",
     pendingActions: "Pending Actions",
     request: "Request",
@@ -568,7 +572,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     clients: "Users",
     financialDetails: "Financial Details",
     date: "Date",
-    payment: "Payment",
+    // Removed duplicate 'payment'
     total: "Total",
     action: "Action",
     generateInvoice: "Generate Invoice",
@@ -1476,7 +1480,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     clients: "Usuários",
     financialDetails: "Detalhes Financeiros",
     date: "Data",
-    payment: "Pagamento",
+    // Removido duplicata 'payment'
     total: "Total",
     action: "Ação",
     generateInvoice: "Gerar Fatura",
@@ -1777,6 +1781,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     bankTransferTooltip: "Pague via transferência bancária.",
     invalidEmail: "Por favor, insira um endereço de email válido.",
     invalidPassword: "A senha deve ter pelo menos 6 caracteres.",
+    payment: "Pagamento",
+    paymentDone: "Realizado",
+    paymentPending: "Pendente",
 
   },
 };

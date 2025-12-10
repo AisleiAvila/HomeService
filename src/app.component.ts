@@ -84,7 +84,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
 })
 export class AppComponent implements OnInit {
   // Spinner global para transições (ex: login ou dashboard loading)
-  private _isAppLoading = signal(false);
+  private readonly _isAppLoading = signal(false);
   // Computed: mostra spinner se login ou dashboard/data está carregando
   isAppLoading = computed(() => this._isAppLoading() || this.dataService.isLoading());
   // Services

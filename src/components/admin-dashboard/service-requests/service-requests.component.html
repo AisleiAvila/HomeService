@@ -328,6 +328,9 @@
                         </button>
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "payment" | i18n }}
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "value" | i18n }}
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
@@ -351,6 +354,11 @@
                         <span [class]="statusClass(req.status)">{{
                             req.status
                             }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span [ngClass]="req.ispaid ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'">
+                            {{ req.ispaid ? ('paymentDone' | i18n) : ('paymentPending' | i18n) }}
+                        </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
