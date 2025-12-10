@@ -143,16 +143,37 @@ export class DataService {
     /**
      * Adiciona profissional ao Supabase
      */
-    async addProfessional(newUser: Partial<User>): Promise<boolean> {
-      const { error } = await this.supabase.client
+    async addProfessional(newUser: Partial<User>, categoryIds: number[]): Promise<boolean> {
+      // 1. Insere o usuário
+      const { data, error } = await this.supabase.client
         .from("users")
-        .insert([newUser]);
-      if (error) {
+        .insert([newUser])
+        .select()
+        .single();
+      if (error || !data) {
         this.notificationService.addNotification(
-          "Erro ao adicionar profissional: " + error.message
+          "Erro ao adicionar profissional: " + (error?.message || 'Falha ao inserir usuário')
         );
         return false;
       }
+      // 2. Insere especialidades na tabela user_specialties
+      if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+        const specialtiesPayload = categoryIds.map((catId) => ({
+          user_id: data.id,
+          category_id: catId
+        }));
+        const { error: specialtiesError } = await this.supabase.client
+          .from("user_specialties")
+          .insert(specialtiesPayload);
+        if (specialtiesError) {
+          this.notificationService.addNotification(
+            "Erro ao adicionar especialidades: " + specialtiesError.message
+          );
+          // Opcional: pode remover o usuário se falhar
+        }
+      }
+      // Atualiza contagem após cadastro
+      await this.fetchProfessionalCountsByCategory();
       return true;
     }
   private readonly supabase = inject(SupabaseService);
@@ -1342,7 +1363,33 @@ export class DataService {
         "Error fetching users: " + error.message
       );
     } else {
-      this.users.set(data || []);
+      // Normaliza specialties para garantir que seja array de objetos {id, name}
+      const normalized = (data || []).map((user: any) => {
+        if (Array.isArray(user.specialties)) {
+          user.specialties = user.specialties.map((cat: any) => {
+            if (typeof cat === 'number') {
+              // Se vier só o id
+              return { id: cat, name: '' };
+            }
+            if (typeof cat === 'string') {
+              // Se vier como string (ex: JSON)
+              try {
+                const obj = JSON.parse(cat);
+                if (obj && typeof obj.id === 'number') return obj;
+              } catch {}
+              return { id: Number(cat) || 0, name: '' };
+            }
+            if (cat && typeof cat.id === 'number') {
+              return cat;
+            }
+            return { id: 0, name: '' };
+          });
+        } else {
+          user.specialties = [];
+        }
+        return user;
+      });
+      this.users.set(normalized);
     }
   }
 
@@ -1507,5 +1554,38 @@ export class DataService {
       console.error("❌ [DataService] Erro ao buscar código postal:", error);
       return null;
     }
+  }
+
+  /**
+   * Busca especialidades de um profissional
+   */
+  async fetchUserSpecialties(userId: number): Promise<number[]> {
+    const { data, error } = await this.supabase.client
+      .from("user_specialties")
+      .select("category_id")
+      .eq("user_id", userId);
+    if (error) {
+      this.notificationService.addNotification("Erro ao buscar especialidades: " + error.message);
+      return [];
+    }
+    return (data || []).map((row: any) => row.category_id);
+  }
+
+  /**
+   * Conta profissionais por categoria
+   */
+  async fetchProfessionalCountsByCategory(): Promise<Map<number, number>> {
+    const { data, error } = await this.supabase.client
+      .from("user_specialties")
+      .select("category_id, user_id");
+    const counts = new Map<number, number>();
+    if (error) {
+      this.notificationService.addNotification("Erro ao contar profissionais: " + error.message);
+      return counts;
+    }
+    for (const row of data || []) {
+      counts.set(row.category_id, (counts.get(row.category_id) || 0) + 1);
+    }
+    return counts;
   }
 }

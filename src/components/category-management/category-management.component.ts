@@ -56,21 +56,7 @@ export class CategoryManagementComponent {
 
   // ========== COMPUTED SIGNALS ==========
   allCategories = computed(() => this.dataService.categories());
-  allSubcategories = computed(() => {
-    const subs = this.dataService.subcategories();
-    console.log('[CategoryManagement] allSubcategories computed:', subs.length, 'subcategories');
-    return subs;
-  });
-  
-  /**
-   * Subcategorias da categoria selecionada para gestão
-   */
-  subcategoriesForSelectedCategory = computed(() => {
-    const cat = this.selectedCategoryForSubcategories();
-    if (!cat) return [];
-    return this.allSubcategories().filter((sub) => sub.category_id === cat.id);
-  });
-
+  allSubcategories = computed(() => this.dataService.subcategories());
   /**
    * Mapa de contagem de subcategorias por categoria (otimizado para lookup rápido)
    */
@@ -269,7 +255,7 @@ export class CategoryManagementComponent {
     const name = this.newSubcategoryName().trim();
     
     if (!cat || !name) return;
-    if (this.subcategoriesForSelectedCategory().some((sub) => sub.name === name)) {
+    if (this.subcategoriesOf(cat.id).some((sub) => sub.name === name)) {
       return;
     }
     
@@ -460,5 +446,22 @@ export class CategoryManagementComponent {
    */
   trackBySubId(index: number, item: ServiceSubcategoryExtended): number {
     return item.id;
+  }
+
+  /**
+   * Signal reativo para contagem de profissionais por categoria
+   */
+  professionalCounts = signal<Map<number, number>>(new Map());
+
+  /**
+   * Carrega contagem de profissionais por categoria
+   */
+  async loadProfessionalCounts() {
+    const counts = await this.dataService.fetchProfessionalCountsByCategory();
+    this.professionalCounts.set(counts);
+  }
+
+  constructor() {
+    this.loadProfessionalCounts();
   }
 }
