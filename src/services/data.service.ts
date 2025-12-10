@@ -26,15 +26,22 @@ import { environment } from "../environments/environment";
   providedIn: "root",
 })
 export class DataService {
+  // Signal global de loading para dashboard e fetchs
+  readonly isLoading = signal(false);
             /**
              * Recarrega as solicitações de serviço para o usuário atual
              */
-            async reloadServiceRequests(): Promise<void> {
-              const currentUser = this.authService.appUser();
-              if (currentUser) {
-                await this.fetchServiceRequests(currentUser);
-              }
-            }
+  async reloadServiceRequests(): Promise<void> {
+    const currentUser = this.authService.appUser();
+    if (currentUser) {
+      this.isLoading.set(true);
+      try {
+        await this.fetchServiceRequests(currentUser);
+      } finally {
+        this.isLoading.set(false);
+      }
+    }
+  }
           /**
            * Subscrição em tempo real para mensagens do chat de uma solicitação de serviço
            */
@@ -182,6 +189,7 @@ export class DataService {
   }
 
   private async fetchServiceRequests(currentUser: User) {
+    this.isLoading.set(true);
     let query = this.supabase.client
       .from("service_requests")
       .select(`*,
@@ -211,6 +219,7 @@ export class DataService {
       this.notificationService.addNotification(
         "Using sample data - Error fetching service requests: " + error.message
       );
+      this.isLoading.set(false);
     } else if (data && data.length > 0) {
       const requests = data.map((r) => ({
         ...r,
@@ -221,12 +230,15 @@ export class DataService {
         professional_name: r.professional?.name || "Unassigned",
       }));
       this.serviceRequests.set(requests);
+      this.isLoading.set(false);
     } else {
       this.serviceRequests.set([]);
+      this.isLoading.set(false);
     }
   }
 
   async fetchCategories() {
+    this.isLoading.set(true);
     const { data, error } = await this.supabase.client
       .from("service_categories")
       .select(`
@@ -246,13 +258,16 @@ export class DataService {
 
     if (error) {
       this.handleFetchCategoriesError(error);
+      this.isLoading.set(false);
       return;
     }
 
     if (data && data.length > 0) {
       this.processCategoriesData(data);
+      this.isLoading.set(false);
     } else {
       console.log("No categories found in Supabase, keeping sample data");
+      this.isLoading.set(false);
     }
   }
 
@@ -298,6 +313,7 @@ export class DataService {
   }
 
   private async fetchSubcategories() {
+    this.isLoading.set(true);
     console.log("[DataService] fetchSubcategories chamado");
     const { data, error } = await this.supabase.client
       .from("service_subcategories")
@@ -311,6 +327,7 @@ export class DataService {
       this.notificationService.addNotification(
         "Erro ao buscar subcategorias: " + error.message
       );
+      this.isLoading.set(false);
     }
     // Always log raw response for debugging (helps diagnose RLS / empty result)
     try {
@@ -350,8 +367,10 @@ export class DataService {
         console.error("[DataService] Error logging subcategories debug info:", e);
       }
       this.subcategories.set(normalized as ServiceSubcategoryExtended[]);
+      this.isLoading.set(false);
     } else {
       console.log("No subcategories found in Supabase.");
+      this.isLoading.set(false);
     }
   }
 
@@ -1341,12 +1360,17 @@ export class DataService {
   async loadInitialData() {
     const user = this.authService.appUser();
     if (user) {
-      await Promise.all([
-        this.fetchUsers(),
-        this.fetchServiceRequests(user),
-        this.fetchCategories(),
-        this.fetchSubcategories(), // Carregar subcategorias separadamente também
-      ]);
+      this.isLoading.set(true);
+      try {
+        await Promise.all([
+          this.fetchUsers(),
+          this.fetchServiceRequests(user),
+          this.fetchCategories(),
+          this.fetchSubcategories(),
+        ]);
+      } finally {
+        this.isLoading.set(false);
+      }
     }
   }
 

@@ -19,6 +19,8 @@ import { PaymentModalComponent } from "../../payment-modal/payment-modal.compone
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceRequestsComponent {
+    // Signal de loading local, sincronizado com o DataService
+    isLoading = computed(() => this.dataService.isLoading());
             async processPayment(event: { request: ServiceRequest; method: string }) {
                 const req = event.request;
                 // Chama serviço para registrar pagamento

@@ -1,4 +1,9 @@
 <app-notification-toast />
+
+<!-- Spinner global para transições (ex: login) -->
+<div *ngIf="isAppLoading()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
+  <i class="fas fa-spinner fa-spin text-indigo-600 text-5xl" aria-label="Carregando"></i>
+</div>
 <ng-container [ngSwitch]="view()">
   <!-- Landing -->
   <ng-container *ngSwitchCase="'landing'">

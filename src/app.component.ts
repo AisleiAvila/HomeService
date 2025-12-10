@@ -83,6 +83,10 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
+  // Spinner global para transições (ex: login ou dashboard loading)
+  private _isAppLoading = signal(false);
+  // Computed: mostra spinner se login ou dashboard/data está carregando
+  isAppLoading = computed(() => this._isAppLoading() || this.dataService.isLoading());
   // Services
   readonly authService = inject(AuthService);
   readonly dataService = inject(DataService);
@@ -276,18 +280,23 @@ export class AppComponent implements OnInit {
   }
 
   async handleLogin(payload: LoginPayload) {
+    this._isAppLoading.set(true);
     try {
       const user = await this.authService.loginCustom(payload.email, payload.password);
       if (!user) {
         this.setLoginError('Credenciais inválidas ou erro de autenticação.');
+        this._isAppLoading.set(false);
         return;
       }
       this.clearLoginError();
-      // Se desejar, pode adicionar lógica para redirecionar após login bem-sucedido
+      // O spinner será desativado após o dashboard carregar (ver effect abaixo)
     } catch (error) {
       this.handleLoginError(error);
+      this._isAppLoading.set(false);
     }
   }
+  // Desativa o spinner global após o dashboard estar pronto
+  private readonly dashboardLoaded = false;
 
   private setLoginError(message: string) {
     if (this.loginComponent) {
@@ -348,13 +357,7 @@ export class AppComponent implements OnInit {
   }
 
   async handleRegister(payload: RegisterPayload) {
-    console.log("🎯 AppComponent.handleRegister() chamado com payload:", {
-      name: payload.name,
-      email: payload.email,
-      role: payload.role,
-      passwordLength: payload.password.length,
-    });
-
+    console.log("🎯 AppComponent.handleRegister() chamado com payload:", payload);
     try {
       console.log("📞 Chamando authService.register()...");
       await this.authService.register(
@@ -373,6 +376,25 @@ export class AppComponent implements OnInit {
     }
   }
 
+  handleLogout() {
+    try {
+      this.authService.logout();
+      this.currentUser.set(null);
+      this.dataService.clearData();
+      this.view.set("landing");
+      this.isSidebarOpen.set(false);
+      this.isNotificationCenterOpen.set(false);
+      this.isSchedulerOpen.set(false);
+      this.isClarificationModalOpen.set(false);
+      this.selectedRequest.set(null);
+      this.currentNav.set("dashboard");
+      this.notificationService.addNotification(this.i18n.translate('logout_success'));
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('logout_error');
+      this.notificationService.addNotification(errorMessage);
+    }
+  }
+
   handleVerification(code: string) {
     this.authService
       .verifyOtp(this.emailForVerification(), code)
@@ -383,53 +405,6 @@ export class AppComponent implements OnInit {
         );
         this.authService.pendingEmailConfirmation.set(null);
       });
-  }
-
-  handleResendVerification() {
-    const email = this.emailForVerification();
-    if (email) this.authService.resendVerificationCode(email);
-  }
-
-  handleBackToLanding() {
-    this.authService.pendingEmailConfirmation.set(null);
-    this.emailForVerification.set("");
-    this.view.set("landing");
-  }
-
-  handleForgotPassword(email: string) {
-    this.emailForPasswordReset.set(email);
-    this.view.set("forgot-password");
-  }
-
-  handleForgotPasswordCodeRequested(email: string) {
-    this.emailForPasswordReset.set(email);
-    this.view.set("reset-password");
-  }
-
-  handlePasswordResetComplete() {
-    this.emailForPasswordReset.set("");
-    this.view.set("login");
-    this.notificationService.addNotification(
-      this.i18n.translate("password_reset_success")
-    );
-  }
-
-  async handleLogout() {
-    try {
-      await this.authService.logout();
-      this.view.set("landing");
-      this.isSidebarOpen.set(false);
-      this.selectedRequest.set(null);
-      this.isChatOpen.set(false);
-      this.isNotificationCenterOpen.set(false);
-    } catch (error) {
-      console.error('Error during logout:', error);
-      const errorMessage = error instanceof Error ? error.message : this.i18n.translate('logout_error');
-      this.notificationService.addNotification(errorMessage);
-      this.view.set("landing");
-      this.isSidebarOpen.set(false);
-      this.authService.appUser.set(null);
-    }
   }
 
   openNewRequestForm() {

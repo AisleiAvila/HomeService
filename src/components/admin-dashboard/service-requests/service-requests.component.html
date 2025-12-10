@@ -73,6 +73,12 @@
     </div>
 </div>
 }
+<!-- Spinner de loading global/local -->
+@if (isLoading()) {
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
+        <i class="fas fa-spinner fa-spin text-indigo-600 text-5xl" aria-label="Carregando"></i>
+    </div>
+}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <!-- Título da Seção -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500">

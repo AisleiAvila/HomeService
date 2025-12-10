@@ -58,11 +58,7 @@ export interface LoginPayload {
         </div>
 
         <!-- Spinner centralizado -->
-        @if (isLoading()) {
-        <div class="absolute inset-0 flex items-center justify-center bg-white/70 z-10 rounded-3xl">
-          <i class="fas fa-spinner fa-spin text-indigo-500 text-4xl" aria-label="Carregando"></i>
-        </div>
-        }
+
 
         <form (ngSubmit)="login()" class="space-y-7" autocomplete="off" aria-describedby="login-error">
           <!-- Mensagem de Erro -->
