@@ -889,6 +889,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     bankTransferTooltip: "Pay via bank transfer.",
     invalidEmail: "Please enter a valid email address.",
     invalidPassword: "Password must be at least 6 characters long.",
+    addProfessionalDesc:
+      "Create a new professional account and assign specialties",
    
 
   },
@@ -1784,6 +1786,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     payment: "Pagamento",
     paymentDone: "Realizado",
     paymentPending: "Pendente",
+    addProfessionalDesc: "Adicione um novo profissional ao sistema",
 
   },
 };
