@@ -460,6 +460,19 @@ export class ProfileComponent implements OnDestroy {
     }
   }
 
+  /**
+   * Abre o modal da câmera e move o foco para o elemento de vídeo após renderização
+   */
+  openCameraModalWithFocus() {
+    this.openCameraModal();
+    setTimeout(() => {
+      const videoEl = this.videoElement();
+      if (videoEl) {
+        videoEl.nativeElement.focus();
+      }
+    }, 300);
+  }
+
   // Métodos para template
   showCameraModal() {
     return this.isCameraOpen();
