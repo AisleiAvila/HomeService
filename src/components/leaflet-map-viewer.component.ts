@@ -99,9 +99,9 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
         console.warn('[Map Viewer] Erro ao obter localização:', error.message);
       },
       {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        enableHighAccuracy: false, // Reduzir precisão para melhorar velocidade
+        timeout: 15000, // Timeout maior para ambientes serverless
+        maximumAge: 30000, // Permitir cache de 30 segundos
       }
     );
   }

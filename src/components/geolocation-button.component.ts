@@ -36,7 +36,18 @@ export class GeolocationButtonComponent {
         this.geolocationService.setCoordinates(position.coords.latitude, position.coords.longitude);
       },
       (err) => {
-        this.error.set('Não foi possível obter a localização.');
+        let errorMessage = 'Não foi possível obter a localização.';
+        if (err.code === err.TIMEOUT) {
+          errorMessage = 'Tempo esgotado. Tente novamente.';
+        } else if (err.code === err.PERMISSION_DENIED) {
+          errorMessage = 'Permissão negada. Ative a localização.';
+        }
+        this.error.set(errorMessage);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 30000,
       }
     );
   }

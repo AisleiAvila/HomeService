@@ -411,35 +411,50 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
     };
   }
 
-  private getCurrentPosition(): Promise<GeolocationPosition> {
+  private getCurrentPosition(retryCount = 0): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('Geolocalização não é suportada pelo seu navegador'));
         return;
       }
 
+      const options: PositionOptions = {
+        enableHighAccuracy: retryCount === 0, // Primeira tentativa: alta precisão
+        timeout: retryCount === 0 ? 15000 : 20000, // Timeouts mais longos para ambientes serverless
+        maximumAge: retryCount > 0 ? 30000 : 5000, // Permitir cache em retentativas
+      };
+
       navigator.geolocation.getCurrentPosition(
         (position) => resolve(position),
-        (error) => {
+        async (error) => {
           let message = 'Erro ao obter localização';
+          
+          // Se timeout e ainda temos tentativas, retry com configurações mais permissivas
+          if (error.code === error.TIMEOUT && retryCount < 2) {
+            console.warn(`[Geolocation] Timeout na tentativa ${retryCount + 1}, tentando novamente...`);
+            try {
+              const position = await this.getCurrentPosition(retryCount + 1);
+              resolve(position);
+              return;
+            } catch (retryError) {
+              // Se retry falhar, continua com o erro original
+            }
+          }
+          
           switch (error.code) {
             case error.PERMISSION_DENIED:
               message = 'Permissão de localização negada. Ative nas configurações do navegador.';
               break;
             case error.POSITION_UNAVAILABLE:
-              message = 'Localização indisponível no momento.';
+              message = 'Localização indisponível no momento. Tente novamente.';
               break;
             case error.TIMEOUT:
-              message = 'Tempo esgotado ao obter localização.';
+              message = 'Tempo esgotado ao obter localização. Tente novamente em alguns segundos.';
               break;
           }
           reject(new Error(message));
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
+        options
       );
     });
   }
@@ -725,13 +740,19 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       },
       (error) => {
         console.error('[Route] Erro no rastreamento:', error);
-        this.error.set('Erro ao rastrear localização');
+        let errorMessage = 'Erro ao rastrear localização';
+        if (error.code === error.TIMEOUT) {
+          // Não parar o tracking por timeout, apenas logar
+          console.warn('[Route] Timeout no rastreamento, aguardando próxima atualização...');
+          return;
+        }
+        this.error.set(errorMessage);
         this.stopTracking();
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 0,
-        timeout: 5000,
+        maximumAge: 5000, // Permitir posições de até 5 segundos atrás
+        timeout: 15000, // Timeout maior para evitar interrupções
       }
     );
   }
