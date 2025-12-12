@@ -233,6 +233,14 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 </label>
                 <p class="text-gray-900">{{ request().description }}</p>
               </div>
+              @if (request().origin) {
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ "origin" | i18n }}
+                </label>
+                <p class="text-gray-900">{{ request().origin?.name || '—' }}</p>
+              </div>
+              }
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "category" | i18n }}
@@ -245,14 +253,6 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                   {{ "subcategory" | i18n }}
                 </label>
                 <p class="text-gray-900">{{ request().subcategory?.name || '—' }}</p>
-              </div>
-              }
-              @if (request().origin) {
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  {{ "origin" | i18n }}
-                </label>
-                <p class="text-gray-900">{{ request().origin?.name || '—' }}</p>
               </div>
               }
               @if (currentUser().role === "admin") {
@@ -297,13 +297,7 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "status" | i18n }}
                 </label>
-                <span [class]="getStatusClass(request().status)">
-                  @if (request().status) {
-                    {{ request().status }}
-                  } @else {
-                    —
-                  }
-                </span>
+                <p class="text-gray-900">{{ request().status || '—' }}</p>
               </div>
 
               @if (request().professional_name) {
@@ -884,12 +878,7 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
     }
   }
 
-  getStatusClass(status: ServiceStatus): string {
-    const baseClasses = "px-2 py-1 text-xs font-medium rounded-full";
-    // Usa cor do utilitário centralizado
-    const color = StatusUtilsService.getColor(status);
-    return `${baseClasses} ${color} text-white`;
-  }
+
 
   getStatusLabel(status: ServiceStatus): string {
     return StatusUtilsService.getLabel(status, inject(I18nService));
