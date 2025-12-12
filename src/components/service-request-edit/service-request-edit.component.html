@@ -147,7 +147,7 @@
                 <i class="fas fa-mail-bulk text-indigo-500 mr-2 text-xs"></i>
                 {{ 'postalCode' | i18n }}
               </label>
-              <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+              <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" (ngModelChange)="onZipCodeChange($event)" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
             </div>
             <div>
               <label for="edit-street" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
@@ -175,7 +175,7 @@
                 <i class="fas fa-city text-indigo-500 mr-2 text-xs"></i>
                 {{ 'locality' | i18n }}
               </label>
-              <!-- Campo removido: locality não existe no modelo -->
+              <input id="edit-locality" type="text" [value]="locality()" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" />
             </div>
             <div>
               <label for="edit-city" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
@@ -189,7 +189,7 @@
                 <i class="fas fa-map-marked-alt text-indigo-500 mr-2 text-xs"></i>
                 {{ 'district' | i18n }}
               </label>
-              <!-- Campo removido: district não existe no modelo -->
+              <input id="edit-district" type="text" [value]="district()" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed" />
             </div>
           </div>
           <!-- Mensagens de erro/sucesso -->
@@ -197,6 +197,12 @@
             <div class="flex items-center text-red-800">
               <i class="fas fa-exclamation-triangle mr-2"></i>
               <span class="text-sm font-medium">{{ error }}</span>
+            </div>
+          </div>
+          <div *ngIf="formError()" class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+            <div class="flex items-center text-orange-800">
+              <i class="fas fa-info-circle mr-2"></i>
+              <span class="text-sm font-medium">{{ formError() }}</span>
             </div>
           </div>
           <!-- Botões -->
@@ -208,7 +214,7 @@
               {{ 'submit' | i18n }}
             </button>
           </div>
-          </div>
+        </div>
         </div>
       </form>
     </ng-container>

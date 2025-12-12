@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -29,6 +29,9 @@ export class ServiceRequestEditComponent implements OnInit {
   request: ServiceRequest | null = null;
   loading = true;
   error: string | null = null;
+  formError = signal<string>('');
+  locality = signal<string>('');
+  district = signal<string>('');
 
   // Computed signal para categorias (filtrar apenas as que têm subcategorias)
   categories = computed(() => {
@@ -102,6 +105,88 @@ export class ServiceRequestEditComponent implements OnInit {
 
   trackSubcategory(_index: number, item: any): number {
     return item.id;
+  }
+
+  async onZipCodeChange(postalCode: string): Promise<void> {
+    if (!this.request) return;
+    
+    const formatted = this.formatZipCode(postalCode);
+    this.request.zip_code = formatted;
+    
+    const isValidZip = this.isValidPostalCode(formatted);
+
+    if (isValidZip) {
+      await this.fetchPostalCodeInfo(formatted);
+    } else {
+      this.clearAddressFields();
+    }
+    
+    this.cdr.markForCheck();
+  }
+
+  private formatZipCode(value: string): string {
+    let formatted = value.replaceAll(/\D/g, "");
+    if (formatted.length > 4) {
+      formatted = formatted.slice(0, 4) + "-" + formatted.slice(4, 7);
+    }
+    if (formatted.length > 8) {
+      formatted = formatted.slice(0, 8);
+    }
+    return formatted;
+  }
+
+  private async fetchPostalCodeInfo(formatted: string): Promise<void> {
+    try {
+      const result = await this.dataService.getPostalCodeInfo(formatted);
+      if (result) {
+        this.populateAddressFields(result);
+        this.formError.set('');
+      } else {
+        this.clearAddressFields();
+        this.formError.set('Código postal não encontrado.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar informações do código postal:', error);
+      this.formError.set('Erro ao buscar informações do código postal.');
+    }
+  }
+
+  private populateAddressFields(result: any): void {
+    if (!this.request) return;
+    
+    this.request.street = result.arteria_completa || '';
+    this.request.city = result.concelho || '';
+    this.request.state = result.distrito || '';
+    this.locality.set(result.localidade || '');
+    this.district.set(result.distrito || '');
+    
+    this.cdr.markForCheck();
+  }
+
+  private clearAddressFields(): void {
+    if (!this.request) return;
+    
+    this.request.street = '';
+    this.request.city = '';
+    this.request.state = '';
+    this.locality.set('');
+    this.district.set('');
+    
+    this.cdr.markForCheck();
+  }
+
+  private isValidPostalCode(postalCode: string): boolean {
+    // Aceita formato 'XXXX-XXX' ou apenas dígitos (7 caracteres)
+    const regex = /^\d{4}-\d{3}$/;
+    const digitsOnly = postalCode.replaceAll(/\D/g, "");
+    // Aceita 'XXXX-XXX' ou 'XXXXXXX'
+    if (regex.test(postalCode)) {
+      return true;
+    }
+    if (digitsOnly.length === 7) {
+      return true;
+    }
+    return false;
   }
 
   async save() {
