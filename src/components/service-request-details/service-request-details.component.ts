@@ -1,14 +1,13 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  Input,
+  input,
   Output,
   EventEmitter,
   computed,
   inject,
   signal,
   effect,
-  AfterViewInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -19,6 +18,24 @@ import {
   ServiceStatus,
 } from "@/src/models/maintenance.models";
 import { I18nService } from "@/src/i18n.service";
+
+// Tipos específicos para ações
+type ActionType = 'schedule' | 'start' | 'complete' | 'pay' | 'chat';
+type ActionClass = 'primary' | 'secondary' | 'success' | 'danger';
+
+interface ServiceAction {
+  type: ActionType;
+  label: string;
+  class: ActionClass;
+  loading: boolean;
+}
+
+// Estado de carregamento com granularidade
+interface LoadingState {
+  main: boolean;
+  coordinates: boolean;
+  quotes: boolean;
+}
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { TimeControlComponent } from "../time-control/time-control.component";
@@ -48,68 +65,64 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
   ],
   template: `
     @if (!request()) {
-    <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold">
-      <h3 class="text-xl font-bold mb-2">❌ ERRO DE DADOS</h3>
-      Erro: Nenhuma solicitação selecionada ou dados inválidos.<br />
-      Volte e selecione uma solicitação válida.<br />
-      <div style="font-size:11px; text-align:left; margin-top:10px; background:#fff; padding:10px; border-radius:4px;">
-        <strong>DEBUG INFO:</strong><br>
-        <code>request(): {{ request() | json }}</code><br>
-        <code>_requestInput(): {{ _requestInput() | json }}</code><br>
-        <code>loadedRequest(): {{ loadedRequest() | json }}</code>
-      </div>
+    <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold" role="alert" aria-live="polite">
+      <h3 class="text-xl font-bold mb-2">❌ {{ 'error' | i18n }}</h3>
+      {{ 'noRequestSelected' | i18n }}<br />
+      {{ 'selectValidRequest' | i18n }}
     </div>
     } @else {
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500">
+    <header class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500" role="banner">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-2xl font-bold text-white flex items-center">
-            <i class="fas fa-file-alt mr-3"></i>
+            <i class="fas fa-file-alt mr-3" aria-hidden="true"></i>
             {{ "serviceRequestDetails" | i18n }}
           </h2>
-          <p class="text-indigo-100 text-sm mt-1">
+          <p class="text-indigo-100 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
             {{ request().title }}
           </p>
         </div>
         <button
           (click)="logAndEmitCloseDetails()"
           class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-all transform hover:scale-105 shadow-lg"
-          aria-label="{{ 'backToList' | i18n }}"
+          [attr.aria-label]="'backToList' | i18n"
         >
-          <i class="fas fa-arrow-left"></i>
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>
           <span>{{ 'backToList' | i18n }}</span>
         </button>
       </div>
-    </div>
+    </header>
 
     <!-- Conteúdo Principal -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" role="main">
       @if (request()) {
       <div class="space-y-6">
         <!-- Workflow Timeline -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'workflowTimeline' | i18n">
           <app-workflow-timeline
             [serviceRequest]="request()"
+            role="complementary"
           ></app-workflow-timeline>
-        </div>
+        </section>
 
         <!-- Professional Responses / Respostas dos Profissionais -->
         @if (professionalQuotes().length > 0) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'professionalResponses' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="professional-quotes-title">
             {{ "professionalResponses" | i18n }}
-            <span class="text-sm font-normal text-gray-500 ml-2">
+            <span class="text-sm font-normal text-gray-500 ml-2" aria-label="professionalResponsesCount">
               ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('response' | i18n) : ('responses' | i18n) }})
             </span>
           </h3>
-          <div class="space-y-4">
+          <div class="space-y-4" [attr.aria-labelledby]="'professional-quotes-title'">
             @for (quote of professionalQuotes(); track quote.professional_id) {
-            <div 
+            <article 
               class="border rounded-lg p-4 transition-all"
               [class.border-green-500]="quote.isSelected"
               [class.bg-green-50]="quote.isSelected"
               [class.border-gray-200]="!quote.isSelected"
+              [attr.aria-label]="'professionalQuote' | i18n : { name: quote.professional_name }"
             >
               <!-- Cabeçalho da resposta -->
               <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
@@ -119,9 +132,10 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                     [src]="quote.professional_avatar_url" 
                     [alt]="quote.professional_name"
                     class="w-10 h-10 rounded-full object-cover"
+                    loading="lazy"
                   >
                   } @else {
-                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center" aria-hidden="true">
                     <i class="fas fa-user text-blue-600"></i>
                   </div>
                   }
@@ -130,8 +144,8 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                       {{ quote.professional_name || ("professional" | i18n) }}
                     </h4>
                     @if (quote.professional_rating) {
-                    <div class="flex items-center mt-1">
-                      <i class="fas fa-star text-yellow-400 text-xs"></i>
+                    <div class="flex items-center mt-1" [attr.aria-label]="'professionalRating' | i18n : { rating: quote.professional_rating.toFixed(1) }">
+                      <i class="fas fa-star text-yellow-400 text-xs" aria-hidden="true"></i>
                       <span class="text-xs text-gray-600 ml-1">{{ quote.professional_rating.toFixed(1) }}</span>
                     </div>
                     }
@@ -140,14 +154,14 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 
                 <div class="flex items-center space-x-2">
                   @if (quote.isSelected) {
-                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                    <i class="fas fa-check-circle mr-1"></i>
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800" role="status">
+                    <i class="fas fa-check-circle mr-1" aria-hidden="true"></i>
                     {{ "selected" | i18n }}
                   </span>
                   }
                   @if (quote.isLowest && quote.hasQuote) {
                   <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                    <i class="fas fa-award mr-1"></i>
+                    <i class="fas fa-award mr-1" aria-hidden="true"></i>
                     {{ "lowestQuote" | i18n }}
                   </span>
                   }
@@ -157,110 +171,74 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 </div>
               </div>
 
-              <!-- Valor e detalhes do orçamento - DEPRECATED: Sistema novo não usa orçamentos -->
-              <!-- @if (quote.hasQuote) {
-              <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-baseline justify-between mb-2">
-                  <span class="text-sm text-gray-600">{{ "quoteValue" | i18n }}:</span>
-                  <p class="text-2xl font-bold text-green-600">
-                    €{{ quote.quote_amount | number : "1.2-2" }}
-                  </p>
-                </div>
-                
-                @if (quote.estimated_duration_hours) {
-                <div class="flex items-center text-sm text-gray-600 mt-2">
-                  <i class="fas fa-clock mr-2"></i>
-                  <span>{{ "estimatedDuration" | i18n }}: {{ quote.estimated_duration_hours }}h</span>
-                </div>
-                }
-
-                @if (quote.quote_notes) {
-                <div class="mt-3 pt-3 border-t border-gray-200">
-                  <p class="text-sm font-medium text-gray-700 mb-1">{{ "notes" | i18n }}:</p>
-                  <p class="text-sm text-gray-600">{{ quote.quote_notes }}</p>
-                </div>
-                }
-
-                @if (quote.responded_at) {
-                <div class="mt-2 text-xs text-gray-500">
-                  <i class="fas fa-calendar-alt mr-1"></i>
-                  {{ "respondedAt" | i18n }}: {{ quote.responded_at | date : "short" }}
-                </div>
-                }
-              </div>
-              } @else { -->
-              
-              <!-- Status de resposta do profissional -->
-              <!-- (Removido: sistema não usa mais orçamento) -->
-              <!-- } FIM DA SEÇÃO DEPRECATED DE ORÇAMENTOS -->
-
               <!-- Botões de ação para admin - SIMPLIFICADO: apenas seleção de profissional -->
               @if (currentUser().role === "admin" && (quote.response_status === "responded" || quote.response_status === "accepted") && !quote.isSelected) {
               <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200">
                 <button
                   (click)="selectSpecificProfessional(quote.professional_id)"
                   class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                  [attr.aria-label]="'selectProfessionalAction' | i18n : { name: quote.professional_name }"
                 >
-                  <i class="fas fa-check mr-2"></i>
+                  <i class="fas fa-check mr-2" aria-hidden="true"></i>
                   {{ "selectProfessional" | i18n }}
                 </button>
               </div>
               }
-            </div>
+            </article>
             }
           </div>
-        </div>
+        </section>
         }
 
         <!-- Service Request Details Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'requestInformation' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="request-info-title">
             {{ "requestInformation" | i18n }}
           </h3>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6" [attr.aria-labelledby]="'request-info-title'">
             <!-- Left Column -->
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="title-label">
                   {{ "title" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().title }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="description-label">
                   {{ "description" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().description }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
               </div>
               @if (request().origin) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="origin-label">
                   {{ "origin" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().origin?.name || '—' }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'origin-label'">{{ request().origin?.name || '—' }}</p>
               </div>
               }
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="category-label">
                   {{ "category" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().category?.name || '—' }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'category-label'">{{ request().category?.name || '—' }}</p>
               </div>
               @if (request().subcategory) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="subcategory-label">
                   {{ "subcategory" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().subcategory?.name || '—' }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'subcategory-label'">{{ request().subcategory?.name || '—' }}</p>
               </div>
               }
               @if (currentUser().role === "admin") {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="total-value-label">
                   {{ "TotalValue" | i18n }}
                 </label>
-                <p class="text-lg font-semibold text-green-600">
+                <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'total-value-label'">
                   @if (request().valor && request().valor > 0) {
                     €{{ request().valor | number : '1.2-2' }}
                   } @else {
@@ -270,10 +248,10 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
               </div>
               }
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="professional-value-label">
                   {{ "valorPrestador" | i18n }}
                 </label>
-                <p class="text-lg font-semibold text-blue-600">
+                <p class="text-lg font-semibold text-blue-600" [attr.aria-labelledby]="'professional-value-label'">
                   @if (request().valor_prestador && request().valor_prestador > 0) {
                     €{{ request().valor_prestador | number : '1.2-2' }}
                   } @else {
@@ -282,10 +260,10 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 </p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="priority-label">
                   {{ "priority" | i18n }}
                 </label>
-                <span [class]="getPriorityClass(request().priority)">
+                <span [class]="getPriorityClass(request().priority)" [attr.aria-labelledby]="'priority-label'">
                   {{ request().priority | i18n }}
                 </span>
               </div>
@@ -294,18 +272,18 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
             <!-- Right Column -->
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="status-label">
                   {{ "status" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().status || '—' }}</p>
+                <p class="text-gray-900" [attr.aria-labelledby]="'status-label'" role="status">{{ request().status || '—' }}</p>
               </div>
 
               @if (request().professional_name) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="professional-label">
                   {{ "professionalName" | i18n }}
                 </label>
-                <p class="text-gray-900">
+                <p class="text-gray-900" [attr.aria-labelledby]="'professional-label'">
                   {{
                     request().professional_name || ("nameNotAvailable" | i18n)
                   }}
@@ -313,20 +291,20 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
               </div>
               } @if (request().cost) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="cost-label">
                   {{ "cost" | i18n }}
                 </label>
-                <p class="text-lg font-semibold text-green-600">
+                <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'cost-label'">
                   €{{ request().cost | number : "1.2-2" }}
                 </p>
               </div>
               }
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="created-at-label">
                   {{ "createdAt" | i18n }}
                 </label>
-                <p class="text-gray-900">
+                <p class="text-gray-900" [attr.aria-labelledby]="'created-at-label'">
                   @if (request().created_at) {
                     {{ request().created_at | date : "dd/MM/yyyy HH:mm" }}
                   } @else if (request().requested_date) {
@@ -339,134 +317,142 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
 
               @if (request().scheduled_date) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
+                <label class="block text-sm font-medium text-gray-700 mb-1" id="scheduled-date-label">
                   {{ "scheduledDate" | i18n }}
                 </label>
-                <p class="text-gray-900">
+                <p class="text-gray-900" [attr.aria-labelledby]="'scheduled-date-label'">
                   {{ request().scheduled_date | date : "short" }}
                 </p>
               </div>
               }
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Address Information (detailed with labels) -->
         @if (hasAddress()) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'address' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="address-title">
             {{ "address" | i18n }}
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900" [attr.aria-labelledby]="'address-title'">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="postal-code-label">
                 {{ 'postalCode' | i18n }}
               </label>
-              <p class="break-words">{{ request().zip_code || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'postal-code-label'">{{ request().zip_code || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="street-label">
                 {{ 'logradouro' | i18n }}
               </label>
-              <p class="break-words">{{ request().street || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'street-label'">{{ request().street || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="number-label">
                 {{ 'number' | i18n }}
               </label>
-              <p class="break-words">{{ request().street_number || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'number-label'">{{ request().street_number || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="complement-label">
                 {{ 'complement' | i18n }}
               </label>
-              <p class="break-words">{{ request().complement || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'complement-label'">{{ request().complement || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="locality-label">
                 {{ 'locality' | i18n }}
               </label>
-              <p class="break-words">{{ addressParts().locality || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'locality-label'">{{ addressParts().locality || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="city-label">
                 {{ 'concelho' | i18n }}
               </label>
-              <p class="break-words">{{ request().city || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'city-label'">{{ request().city || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="district-label">
                 {{ 'district' | i18n }}
               </label>
-              <p class="break-words">{{ request().state || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'district-label'">{{ request().state || '—' }}</p>
             </div>
           </div>
-        </div>
+        </section>
         }
 
         <!-- Geolocation / Geolocalização -->
         @if (serviceLatitude() && serviceLongitude()) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'geolocation' | i18n">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">
-              <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+            <h3 class="text-lg font-semibold text-gray-800" id="geolocation-title">
+              <i class="fas fa-map-marker-alt mr-2 text-blue-500" aria-hidden="true"></i>
               {{ "geolocation" | i18n }}
             </h3>
             @if (currentUser().role === 'professional') {
               <button
                 (click)="showRouteMap.set(!showRouteMap())"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2">
-                <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}"></i>
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                [attr.aria-label]="(showRouteMap() ? 'geolocation' : 'viewRoute') | i18n"
+                [attr.aria-pressed]="showRouteMap()">
+                <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}" aria-hidden="true"></i>
                 {{ (showRouteMap() ? 'geolocation' : 'viewRoute') | i18n }}
               </button>
             }
           </div>
-          <div class="space-y-4">
+          <div class="space-y-4" [attr.aria-labelledby]="'geolocation-title'">
             @if (!showRouteMap()) {
               <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <label class="block text-xs font-medium text-gray-500 mb-1">
+                  <label class="block text-xs font-medium text-gray-500 mb-1" id="latitude-label">
                     Latitude
                   </label>
-                  <p class="text-gray-900 font-mono">{{ serviceLatitude() }}</p>
+                  <p class="text-gray-900 font-mono" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-500 mb-1">
+                  <label class="block text-xs font-medium text-gray-500 mb-1" id="longitude-label">
                     Longitude
                   </label>
-                  <p class="text-gray-900 font-mono">{{ serviceLongitude() }}</p>
+                  <p class="text-gray-900 font-mono" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
                 </div>
               </div>
               <app-leaflet-map-viewer
                 [latitude]="serviceLatitude()!"
-                [longitude]="serviceLongitude()!">
+                [longitude]="serviceLongitude()!"
+                role="img"
+                [attr.aria-label]="'mapViewerRegion' | i18n">
               </app-leaflet-map-viewer>
             } @else {
               <app-leaflet-route-map
                 [destinationLatitude]="serviceLatitude()!"
                 [destinationLongitude]="serviceLongitude()!"
                 [mapHeight]="'500px'"
-                [showInstructions]="true">
+                [showInstructions]="true"
+                role="img"
+                [attr.aria-label]="'routeMapRegion' | i18n">
               </app-leaflet-route-map>
             }
           </div>
-        </div>
+        </section>
         }
 
         <!-- Photos Gallery -->
         @if (hasPhotos()) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'photos' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="photos-title">
             {{ "photos" | i18n }}
             <span class="text-sm font-normal text-gray-500 ml-2">
               ({{ request().photos!.length }})
             </span>
           </h3>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
             @for (photo of request().photos; track photo; let idx = $index) {
-            <div 
+            <button 
               class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all cursor-pointer group"
               (click)="openPhotoModal(photo)"
+              [attr.aria-label]="'photoOf' | i18n : { number: idx + 1 }"
+              type="button"
             >
               <img 
                 [src]="photo" 
@@ -474,77 +460,80 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 class="w-full h-full object-cover"
                 loading="lazy"
               >
-              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center" aria-hidden="true">
                 <i class="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 text-2xl transition-opacity"></i>
               </div>
-            </div>
+            </button>
             }
           </div>
-        </div>
+        </section>
         }
 
         <!-- Attachments -->
         @if (hasAttachments()) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'attachments' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="attachments-title">
             {{ "attachments" | i18n }}
             <span class="text-sm font-normal text-gray-500 ml-2">
               ({{ request().attachments!.length }})
             </span>
           </h3>
-          <div class="space-y-2">
+          <div class="space-y-2" [attr.aria-labelledby]="'attachments-title'">
             @for (attachment of request().attachments; track attachment; let idx = $index) {
             <a 
               [href]="attachment"
               target="_blank"
               rel="noopener noreferrer"
               class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-500 transition-colors"
+              [attr.aria-label]="'attachmentLink' | i18n : { number: idx + 1 }"
             >
-              <i class="fas fa-file-alt text-gray-400 text-xl mr-3"></i>
+              <i class="fas fa-file-alt text-gray-400 text-xl mr-3" aria-hidden="true"></i>
               <div class="flex-1">
                 <p class="text-sm font-medium text-gray-900">
                   {{ "attachment" | i18n }} {{ idx + 1 }}
                 </p>
                 <p class="text-xs text-gray-500">{{ "clickToView" | i18n }}</p>
               </div>
-              <i class="fas fa-external-link-alt text-gray-400"></i>
+              <i class="fas fa-external-link-alt text-gray-400" aria-hidden="true"></i>
             </a>
             }
           </div>
-        </div>
+        </section>
         }
 
         <!-- Time Control (for professionals) -->
         @if ( currentUser().role === "professional" && request().professional_id
         === currentUser().id && (request().status === "Em Progresso" ||
         request().status === "Aceito") ) {
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'timeControl' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="time-control-title">
             {{ "timeControl" | i18n }}
           </h3>
-          <app-time-control
-            [serviceRequest]="request()"
-            [user]="currentUser()"
-          ></app-time-control>
-        </div>
+          <div [attr.aria-labelledby]="'time-control-title'">
+            <app-time-control
+              [serviceRequest]="request()"
+              [user]="currentUser()"
+            ></app-time-control>
+          </div>
+        </section>
         }
 
         <!-- Service Clarifications -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'serviceClarifications' | i18n">
           <app-service-clarifications
             [serviceRequest]="request()"
             [currentUser]="currentUser()"
           ></app-service-clarifications>
-        </div>
+        </section>
 
         <!-- Action Buttons for mobile at bottom -->
         @if (availableActions().length > 0) {
-        <div class="block sm:hidden">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 class="text-sm font-medium text-gray-700 mb-3">
+        <section class="block sm:hidden">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" role="region" [attr.aria-label]="'availableActions' | i18n">
+            <h3 class="text-sm font-medium text-gray-700 mb-3" id="mobile-actions-title">
               {{ "availableActions" | i18n }}
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-2" [attr.aria-labelledby]="'mobile-actions-title'">
               @for (action of availableActions(); track action.type) {
               <button
                 (click)="executeAction(action)"
@@ -552,10 +541,12 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 [class]="
                   getActionButtonClass(action) + ' w-full justify-center'
                 "
+                [attr.aria-label]="action.label | i18n"
               >
                 @if (action.loading) {
                 <span
                   class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
+                  aria-hidden="true"
                 ></span>
                 }
                 {{ action.label | i18n }}
@@ -563,15 +554,15 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
               }
             </div>
           </div>
-        </div>
+        </section>
         }
       </div>
       } @else {
-      <div class="flex items-center justify-center h-64">
+      <div class="flex items-center justify-center h-64" role="status" aria-live="polite">
         <p class="text-gray-500">{{ "loadingServiceRequest" | i18n }}</p>
       </div>
       }
-    </div>
+    </main>
     }
 
     <!-- Photo Modal -->
@@ -579,13 +570,17 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
     <div 
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
       (click)="closePhotoModal()"
+      role="dialog"
+      [attr.aria-label]="'photoModal' | i18n"
+      aria-modal="true"
     >
       <button
         (click)="closePhotoModal()"
         class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl z-10"
-        aria-label="{{ 'close' | i18n }}"
+        [attr.aria-label]="'close' | i18n"
+        type="button"
       >
-        <i class="fas fa-times"></i>
+        <i class="fas fa-times" aria-hidden="true"></i>
       </button>
       
       <div class="max-w-6xl max-h-full" (click)="$event.stopPropagation()">
@@ -600,36 +595,12 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestDetailsComponent implements AfterViewInit {
-  constructor() {
-    console.error('🏗️🏗️🏗️ [CONSTRUTOR] Componente ServiceRequestDetails CRIADO - timestamp:', Date.now());
-  }
-
-  ngAfterViewInit(): void {
-    console.error('🔵 [ngAfterViewInit] Executando...');
-    console.error('🔵 [ngAfterViewInit] _requestInput():', this._requestInput()?.id, this._requestInput()?.title);
-    console.error('🔵 [ngAfterViewInit] request():', this.request()?.id, this.request()?.title);
-    console.error('🔵 [ngAfterViewInit] loadedRequest():', this.loadedRequest()?.id);
-  }
-
+export class ServiceRequestDetailsComponent {
   @Output() businessRuleError = new EventEmitter<string>();
 
-  // Signals internos para armazenar os valores dos inputs
-  private readonly _requestInput = signal<ServiceRequest | undefined>(undefined);
-  private readonly _currentUserInput = signal<User | undefined>(undefined);
-
-  // Inputs COM SETTERS que populam os signals
-  @Input() 
-  set requestInput(value: ServiceRequest | undefined) {
-    console.error('✨✨✨ [SETTER] requestInput chamado!', value?.id, value?.title);
-    this._requestInput.set(value);
-  }
-  
-  @Input() 
-  set currentUserInput(value: User | undefined) {
-    console.error('✨✨✨ [SETTER] currentUserInput chamado!', value?.id);
-    this._currentUserInput.set(value);
-  }
+  // Inputs usando signal inputs nativos do Angular
+  requestInput = input<ServiceRequest>();
+  currentUserInput = input<User>();
 
   // Injeção de serviços
   private readonly dataService = inject(DataService);
@@ -646,40 +617,29 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
 
   // Request e User efetivos usados no template
   request = computed(() => {
-    const inputReq = this._requestInput();
+    const inputReq = this.requestInput();
     const loadedReq = this.loadedRequest();
-    const final = inputReq || loadedReq;
-    console.error('🟡 [COMPUTED] request() executando:');
-    console.error('   ➜ inputReq:', inputReq?.id, inputReq?.title);
-    console.error('   ➜ loadedReq:', loadedReq?.id, loadedReq?.title);
-    console.error('   ➜ FINAL:', final?.id, final?.title);
-    console.error('   ➜ RETORNANDO:', final ? 'OBJETO VÁLIDO' : 'UNDEFINED');
-    return final;
+    return inputReq || loadedReq;
   });
-  currentUser = computed(() => this._currentUserInput() || this.loadedUser() || this.authService.appUser());
+  currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
 
   // Effect para reagir a mudanças no requestInput e carregar via rota se necessário
   private readonly requestEffect = effect(() => {
-    const inputReq = this._requestInput();
-    console.log('[ServiceRequestDetails] Effect executando - requestInput:', inputReq?.id);
+    const inputReq = this.requestInput();
     
     if (inputReq) {
-      console.log('[ServiceRequestDetails] ✅ Request recebido via input:', inputReq.id, inputReq.title);
       return;
     }
     
     // Se não há input, tentar carregar via rota
     const routeId = this.route.snapshot.params['id'];
-    console.log('[ServiceRequestDetails] Sem input, verificando rota. ID:', routeId);
     
     if (routeId) {
       const requests = this.dataService.serviceRequests();
       const foundRequest = requests.find(r => r.id === Number.parseInt(routeId));
       if (foundRequest) {
-        console.log('[ServiceRequestDetails] ✅ Request carregado via rota:', foundRequest.id);
         this.loadedRequest.set(foundRequest);
       } else {
-        console.error('[ServiceRequestDetails] ❌ Request não encontrado na rota:', routeId);
         this.router.navigate(['/admin/requests']);
       }
     }
@@ -687,7 +647,7 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
   
   // Effect para garantir que o user está disponível
   private readonly userEffect = effect(() => {
-    const inputUser = this._currentUserInput();
+    const inputUser = this.currentUserInput();
     if (!inputUser && !this.loadedUser()) {
       const authUser = this.authService.appUser();
       if (authUser) {
@@ -701,6 +661,13 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
   showPhotoModal = signal(false);
   selectedPhoto = signal<string | null>(null);
   showRouteMap = signal(false);
+
+  // Estado de carregamento com granularidade
+  loadingState = signal<LoadingState>({
+    main: false,
+    coordinates: false,
+    quotes: false,
+  });
 
   // Verifica se há dados de endereço (aninhado ou campos planos)
   hasAddress = computed(() => {
@@ -750,7 +717,7 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
         this.postalCodeCoordinates.set(null);
       }
     } catch (error) {
-      console.error('[ServiceRequestDetails] Erro ao buscar coordenadas:', error);
+      console.error('Erro ao buscar coordenadas do código postal:', error);
       this.postalCodeCoordinates.set(null);
     }
   });
@@ -813,72 +780,66 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
 
   @Output() refreshRequest = new EventEmitter<void>();
 
-  // Computed properties
-  availableActions = computed(() => {
+  // Computed properties com type safety melhorado
+  availableActions = computed<ServiceAction[]>(() => {
     const user = this.currentUser();
     const req = this.request();
 
-    console.log("🔍 [Actions Debug] User role:", user.role);
-    console.log("🔍 [Actions Debug] Request status:", req.status);
-
-    const allPossibleActions = [
+    const allPossibleActions: (ServiceAction & { condition: boolean })[] = [
       // SISTEMA NOVO: Sem fase de orçamentos
       // Profissional não fornece mais orçamento, apenas aceita/recusa atribuição
       
       // Fase 1: Agendamento (após profissional aceitar)
       {
-        type: "schedule",
+        type: "schedule" as ActionType,
         label: "scheduleService",
-        class: "primary",
+        class: "primary" as ActionClass,
         loading: false,
         condition: user.role === "professional" && req.professional_id === user.id && req.status === "Aceito" && !req.scheduled_date,
       },
       // Fase 2: Execução do Serviço
       {
-        type: "start",
+        type: "start" as ActionType,
         label: "startService",
-        class: "primary",
+        class: "primary" as ActionClass,
         loading: false,
         condition: user.role === "professional" && req.professional_id === user.id && req.status === "Data Definida",
       },
       {
-        type: "complete",
+        type: "complete" as ActionType,
         label: "completeService",
-        class: "primary",
+        class: "primary" as ActionClass,
         loading: false,
         condition: user.role === "professional" && req.professional_id === user.id && req.status === "Em Progresso",
       },
       // Fase 3: Pagamento (Admin)
       {
-        type: "pay",
+        type: "pay" as ActionType,
         label: "payNow",
-        class: "primary",
+        class: "primary" as ActionClass,
         loading: false,
         condition: user.role === "admin" && req.status === "Aguardando Finalização" && !req.payment_date,
       },
       // Chat sempre disponível para partes envolvidas
       {
-        type: "chat",
+        type: "chat" as ActionType,
         label: "chat",
-        class: "secondary",
+        class: "secondary" as ActionClass,
         loading: false,
         condition: (user.role === "admin" || (user.role === "professional" && req.professional_id === user.id)),
       },
     ];
 
-    const actions = allPossibleActions
+    return allPossibleActions
       .filter((action) => action.condition)
       .map(({ condition, ...action }) => action);
-
-    console.log("🔍 [Actions Debug] Available actions:", actions);
-    return actions;
   });
 
   toggleMobileActions() {
     this.showMobileActions.update((current) => !current);
   }
 
-  getActionButtonClass(action: any): string {
+  getActionButtonClass(action: ServiceAction): string {
     const baseClasses =
       "inline-flex items-center font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -934,13 +895,11 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
     }
   }
 
-  async executeAction(action: any) {
+  async executeAction(action: ServiceAction): Promise<void> {
     try {
       action.loading = true;
 
       switch (action.type) {
-        // REMOVIDO: case "quote" - Sistema novo não tem orçamentos
-        // REMOVIDO: case "approve"/"reject" - Admin não aprova mais orçamentos
         case "schedule":
           this.scheduleRequest.emit(this.request());
           break;
@@ -958,7 +917,8 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
           break;
       }
     } catch (error) {
-      console.error(`Error executing action ${action.type}:`, error);
+      console.error('Erro ao executar ação:', error);
+      this.notificationService.addNotification(error instanceof Error ? error.message : 'Erro ao executar ação');
     } finally {
       action.loading = false;
     }
@@ -988,7 +948,6 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
           "Não é permitido iniciar o serviço antes da data agendada!"
         );
       } else {
-        console.error("Erro ao iniciar serviço:", error);
         throw error;
       }
     }
@@ -1018,7 +977,6 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
           "Não é permitido concluir o serviço antes do tempo mínimo!"
         );
       } else {
-        console.error("Erro ao concluir serviço:", error);
         throw error;
       }
     }
