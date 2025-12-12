@@ -360,15 +360,27 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                {{ 'streetAddress' | i18n }}
+                {{ 'postalCode' | i18n }}
               </label>
-              <p class="break-words">{{ addressParts().streetNumber || '—' }}</p>
+              <p class="break-words">{{ request().zip_code || '—' }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                {{ 'postalCode' | i18n }}
+                {{ 'logradouro' | i18n }}
               </label>
-              <p class="break-words">{{ addressParts().postalCode || '—' }}</p>
+              <p class="break-words">{{ request().street || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'number' | i18n }}
+              </label>
+              <p class="break-words">{{ request().street_number || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'complement' | i18n }}
+              </label>
+              <p class="break-words">{{ request().complement || '—' }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -378,9 +390,15 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ 'concelho' | i18n }}
+              </label>
+              <p class="break-words">{{ request().city || '—' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
                 {{ 'district' | i18n }}
               </label>
-              <p class="break-words">{{ addressParts().district || '—' }}</p>
+              <p class="break-words">{{ request().state || '—' }}</p>
             </div>
           </div>
         </div>
