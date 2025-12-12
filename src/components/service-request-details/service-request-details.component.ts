@@ -237,8 +237,24 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   {{ "category" | i18n }}
                 </label>
-                <p class="text-gray-900">{{ request().category }}</p>
+                <p class="text-gray-900">{{ request().category?.name || '—' }}</p>
               </div>
+              @if (request().subcategory) {
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ "subcategory" | i18n }}
+                </label>
+                <p class="text-gray-900">{{ request().subcategory?.name || '—' }}</p>
+              </div>
+              }
+              @if (request().origin) {
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  {{ "origin" | i18n }}
+                </label>
+                <p class="text-gray-900">{{ request().origin?.name || '—' }}</p>
+              </div>
+              }
               @if (currentUser().role === "admin") {
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -282,7 +298,11 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                   {{ "status" | i18n }}
                 </label>
                 <span [class]="getStatusClass(request().status)">
-                  {{ request().status }}
+                  @if (request().status) {
+                    {{ request().status }}
+                  } @else {
+                    —
+                  }
                 </span>
               </div>
 
@@ -313,7 +333,13 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
                   {{ "createdAt" | i18n }}
                 </label>
                 <p class="text-gray-900">
-                  {{ request().created_at | date : "short" }}
+                  @if (request().created_at) {
+                    {{ request().created_at | date : "dd/MM/yyyy HH:mm" }}
+                  } @else if (request().requested_date) {
+                    {{ request().requested_date | date : "dd/MM/yyyy HH:mm" }}
+                  } @else {
+                    —
+                  }
                 </p>
               </div>
 

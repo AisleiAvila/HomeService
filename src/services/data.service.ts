@@ -226,6 +226,9 @@ export class DataService {
         ),
         professional:users!service_requests_professional_id_fkey (
           id, name
+        ),
+        origin:service_request_origins!service_requests_origin_id_fkey (
+          id, name
         )
       `);
 
