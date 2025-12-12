@@ -110,6 +110,8 @@ export class ServiceRequestEditComponent implements OnInit {
     try {
       const updates = {
         street: this.request.street,
+        street_number: this.request.street_number,
+        complement: this.request.complement,
         city: this.request.city,
         state: this.request.state,
         zip_code: this.request.zip_code,
