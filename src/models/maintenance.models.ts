@@ -130,6 +130,8 @@ export interface SchedulingReport {
 
 export interface Address {
   street: string; // Rua/Avenida completa
+  street_number?: string; // Número do logradouro
+  complement?: string; // Complemento (apto, bloco, etc)
   city: string; // Localidade (ex: Lisboa, Porto)
   state: string; // Distrito (ex: Lisboa, Porto, Coimbra)
   zip_code: string; // Código Postal (formato: XXXX-XXX)
@@ -191,6 +193,8 @@ export interface ServiceRequest {
   
   // ENDEREÇO DO SERVIÇO
   street: string;
+  street_number?: string; // Número do logradouro
+  complement?: string; // Complemento (apto, bloco, etc)
   city: string;
   state: string;
   zip_code: string;

@@ -426,6 +426,8 @@ export class DataService {
       subcategory_id: payload.subcategory_id, // Agora é obrigatório
       origin_id: payload.origin_id,
       street: payload.address.street,
+      street_number: payload.address.street_number,
+      complement: payload.address.complement,
       city: payload.address.city,
       state: payload.address.state,
       zip_code: payload.address.zip_code,

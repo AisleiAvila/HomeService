@@ -161,14 +161,14 @@
                 <i class="fas fa-hashtag text-indigo-500 mr-2 text-xs"></i>
                 {{ 'number' | i18n }}
               </label>
-              <!-- Campo removido: number não existe no modelo -->
+              <input id="edit-number" type="text" name="street_number" [(ngModel)]="request.street_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
             </div>
             <div>
               <label for="edit-complement" class="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <i class="fas fa-building text-indigo-500 mr-2 text-xs"></i>
                 {{ 'complement' | i18n }}
               </label>
-              <!-- Campo removido: complement não existe no modelo -->
+              <input id="edit-complement" type="text" name="complement" [(ngModel)]="request.complement" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
             </div>
             <div>
               <label for="edit-locality" class="flex items-center text-sm font-semibold text-gray-700 mb-2">

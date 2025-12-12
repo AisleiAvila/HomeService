@@ -490,6 +490,8 @@ export class ServiceRequestFormComponent implements OnInit {
       }
       const address = {
         street: this.street(),
+        street_number: this.number(),
+        complement: this.complement(),
         city: this.locality(),
         state: this.district(),
         zip_code: zip,
