@@ -87,7 +87,8 @@ export class SupabaseService {
     return { data, error };
   }
 
-  private async initializeCurrentUser() {
+  // IMPORTANTE: Chamar este método no bootstrap da aplicação ou via APP_INITIALIZER
+  async initializeCurrentUser() {
     try {
       const {
         data: { user },

@@ -1,18 +1,19 @@
 import {
   Component,
-  signal,
-  Output,
+  computed,
   EventEmitter,
   inject,
   OnInit,
+  Output,
+  signal
 } from "@angular/core";
 
-import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
-import { DataService } from "../../services/data.service";
 import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import type { ServiceSubcategory } from "../../models/maintenance.models";
+import { DataService } from "../../services/data.service";
 import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
 
 @Component({
@@ -76,7 +77,27 @@ export class ServiceRequestFormComponent implements OnInit {
   private readonly i18n = inject(I18nService);
 
   // Usar signals diretamente do DataService
-  categories = this.dataService.categories;
+  // Filtrar apenas categorias que têm subcategorias
+  categories = computed(() => {
+    const allCats = this.dataService.categories();
+    console.log('========================================');
+    console.log('🔍 [ServiceRequestForm] INICIO DO FILTRO');
+    console.log('🔍 Total de categorias:', allCats.length);
+    
+    const filtered = allCats.filter(cat => {
+      // Verificar se subcategories existe E não é um array vazio
+      const hasSubcats = Array.isArray(cat.subcategories) && cat.subcategories.length > 0;
+      console.log(`   📋 ${cat.name}:`);
+      console.log(`      - Subcategorias: ${JSON.stringify(cat.subcategories)}`);
+      console.log(`      - Length: ${cat.subcategories?.length || 0}`);
+      console.log(`      - ${hasSubcats ? '✅ EXIBIR' : '❌ OCULTAR'}`);
+      return hasSubcats;
+    });
+    
+    console.log('✅ Categorias que SERÃO EXIBIDAS:', filtered.map(c => c.name));
+    console.log('========================================');
+    return filtered;
+  });
   subcategories = signal<ServiceSubcategory[]>([]);
   subcategory_id = signal<number | null>(null);
 

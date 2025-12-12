@@ -57,7 +57,27 @@ export class AdminServiceRequestFormComponent {
   private readonly notificationService = inject(NotificationService);
   private readonly addressService = inject(PortugalAddressValidationService);
 
-  categories = this.dataService.categories;
+  // Filtrar apenas categorias que têm subcategorias
+  categories = computed(() => {
+    const allCats = this.dataService.categories();
+    console.log('========================================');
+    console.log('🔍 [AdminServiceRequestForm] INICIO DO FILTRO');
+    console.log('🔍 Total de categorias:', allCats.length);
+    
+    const filtered = allCats.filter(cat => {
+      // Verificar se subcategories existe E não é um array vazio
+      const hasSubcats = Array.isArray(cat.subcategories) && cat.subcategories.length > 0;
+      console.log(`   📋 ${cat.name}:`);
+      console.log(`      - Subcategorias: ${JSON.stringify(cat.subcategories)}`);
+      console.log(`      - Length: ${cat.subcategories?.length || 0}`);
+      console.log(`      - ${hasSubcats ? '✅ EXIBIR' : '❌ OCULTAR'}`);
+      return hasSubcats;
+    });
+    
+    console.log('✅ Categorias que SERÃO EXIBIDAS:', filtered.map(c => c.name));
+    console.log('========================================');
+    return filtered;
+  });
   subcategories = signal<ServiceSubcategory[]>([]);
   urgencyLevels: Urgency[] = ["low", "medium", "high", "critical"];
 

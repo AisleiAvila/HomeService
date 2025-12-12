@@ -437,7 +437,8 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
               resolve(position);
               return;
             } catch (retryError) {
-              // Se retry falhar, continua com o erro original
+              // Se retry falhar, loga o erro e continua com o erro original
+              console.warn(`[Geolocation] Retry ${retryCount + 1} falhou:`, retryError);
             }
           }
           
