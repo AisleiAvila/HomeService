@@ -126,7 +126,7 @@ export class ServiceRequestEditComponent implements OnInit {
         .update(updates)
         .eq('id', this.request.id);
       await this.dataService.reloadServiceRequests();
-      this.router.navigate(['/admin/service-requests']);
+      this.router.navigate(['/admin/requests']);
     } catch (e) {
       console.error(e);
       this.error = 'Erro ao salvar alterações';
