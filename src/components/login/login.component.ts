@@ -157,7 +157,7 @@ export interface LoginPayload {
             <button
               type="submit"
               [disabled]="!email() || !password() || isLoading() || emailInvalid() || passwordInvalid()"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-all duration-150"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
               aria-label="{{ 'login' | i18n }}"
               tabindex="5"
             >
