@@ -4,7 +4,7 @@
  * Respeita limite de 1 requisição/segundo
  */
 
-const https = require('https');
+const https = require('node:https');
 
 // Configuração
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
@@ -49,8 +49,8 @@ async function geocode(postalCode, locality, district) {
     
     if (response.data && response.data.length > 0) {
       return {
-        latitude: parseFloat(response.data[0].lat),
-        longitude: parseFloat(response.data[0].lon),
+        latitude: Number.parseFloat(response.data[0].lat),
+        longitude: Number.parseFloat(response.data[0].lon),
         success: true
       };
     }
