@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -29,6 +29,21 @@ export class ServiceRequestEditComponent implements OnInit {
   request: ServiceRequest | null = null;
   loading = true;
   error: string | null = null;
+
+  // Computed signal para categorias (filtrar apenas as que têm subcategorias)
+  categories = computed(() => {
+    const allCats = this.dataService.categories();
+    return allCats.filter(cat => 
+      Array.isArray(cat.subcategories) && cat.subcategories.length > 0
+    );
+  });
+
+  // Signal para subcategorias da categoria selecionada
+  subcategories = computed(() => {
+    if (!this.request?.category_id) return [];
+    const selectedCategory = this.categories().find(c => c.id === this.request?.category_id);
+    return selectedCategory?.subcategories || [];
+  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -64,6 +79,31 @@ export class ServiceRequestEditComponent implements OnInit {
     }, 5000);
   }
 
+  onCategoryChange(event: Event): void {
+    if (!this.request) return;
+    const categoryId = Number((event.target as HTMLSelectElement).value);
+    this.request.category_id = categoryId;
+    
+    // Reset subcategoria quando categoria mudar
+    this.request.subcategory_id = null;
+    
+    // Forçar detecção de mudanças para atualizar o computed signal de subcategories
+    this.cdr.markForCheck();
+  }
+
+  // TrackBy functions para melhor performance
+  trackOrigin(_index: number, item: any): number {
+    return item.id;
+  }
+
+  trackCategory(_index: number, item: any): number {
+    return item.id;
+  }
+
+  trackSubcategory(_index: number, item: any): number {
+    return item.id;
+  }
+
   async save() {
     if (!this.request) return;
     this.loading = true;
@@ -77,6 +117,9 @@ export class ServiceRequestEditComponent implements OnInit {
         scheduled_start_datetime: this.request.scheduled_start_datetime,
         estimated_duration_minutes: this.request.estimated_duration_minutes,
         admin_notes: this.request.admin_notes,
+        category_id: this.request.category_id,
+        subcategory_id: this.request.subcategory_id,
+        origin_id: this.request.origin_id,
       };
       await this.supabaseService.client
         .from('service_requests')

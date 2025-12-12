@@ -901,6 +901,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     addProfessionalDesc:
       "Create a new professional account and assign specialties",
     logout_success: "You have been logged out successfully.",
+    providerValue: "Provider Value",
+    origin: "Origin",
    
 
   },
@@ -1807,6 +1809,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     paymentPending: "Pendente",
     addProfessionalDesc: "Adicione um novo profissional ao sistema",
     logout_success: "Logout realizado com sucesso.",
+    providerValue: "Valor do Prestador",
+    origin: "Origem",
 
   },
 };
