@@ -804,14 +804,31 @@ export class WorkflowServiceSimplified {
   private async updateStatus(
     requestId: number,
     newStatus: ServiceStatus,
-    userId: number
+    userId: number,
+    notes?: string
   ): Promise<void> {
-    const { error } = await this.supabase.client
+    // Atualiza o status atual
+    const { error: updateError } = await this.supabase.client
       .from("service_requests")
       .update({ status: newStatus })
       .eq("id", requestId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
+
+    // Registra a mudança no histórico
+    const { error: historyError } = await this.supabase.client
+      .from("service_requests_status")
+      .insert({
+        service_request_id: requestId,
+        status: newStatus,
+        changed_by: userId,
+        notes: notes || null
+      });
+
+    if (historyError) {
+      console.error('Erro ao registrar histórico de status:', historyError);
+      // Não lança erro para não quebrar o fluxo principal
+    }
   }
 
   private async getRequest(requestId: number): Promise<ServiceRequest | null> {
