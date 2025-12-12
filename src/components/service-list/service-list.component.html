@@ -96,7 +96,7 @@
           <td class="px-4 lg:px-6 py-4">
             <div class="min-w-0">
               <div class="text-sm font-medium text-gray-900 truncate">
-                {{ request.category }}
+                {{ request.category?.name }}
               </div>
               <div class="text-sm text-gray-500 truncate">
                 {{ request.title }}
@@ -248,7 +248,7 @@
             <h3
               class="service-request-title text-gray-900 text-base sm:text-lg font-semibold leading-tight"
             >
-              {{ request.category }}
+              {{ request.category?.name }}
             </h3>
             <p class="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
               {{ request.title }}
