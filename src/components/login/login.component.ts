@@ -158,10 +158,11 @@ export interface LoginPayload {
               type="submit"
               [disabled]="!email() || !password() || isLoading() || emailInvalid() || passwordInvalid()"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
+              style="text-decoration: none !important; border-bottom: none !important; box-shadow: none !important;"
               aria-label="{{ 'login' | i18n }}"
               tabindex="5"
             >
-              {{ "login" | i18n }}
+              <span style="text-decoration: none !important; border-bottom: none !important;">{{ "login" | i18n }}</span>
             </button>
           </div>
         </form>
