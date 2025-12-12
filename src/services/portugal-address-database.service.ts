@@ -307,6 +307,8 @@ export class PortugalAddressDatabaseService {
       concelho: concelhoData?.nome_concelho || "Desconhecido",
       distrito: distritoData?.nome_distrito || "Desconhecido",
       designacao_postal: data.desig_postal,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
     };
 
     console.log("🏗️ [DATABASE] Endereço base construído:", endereco);

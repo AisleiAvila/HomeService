@@ -29,6 +29,9 @@ import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
+import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
+import { LeafletRouteMapComponent } from "../leaflet-route-map.component";
+import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
 
 @Component({
   selector: "app-service-request-details",
@@ -40,6 +43,8 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
     TimeControlComponent,
     WorkflowTimelineComponent,
     ServiceClarificationsComponent,
+    LeafletMapViewerComponent,
+    LeafletRouteMapComponent,
   ],
   template: `
     @if (!request()) {
@@ -361,6 +366,55 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
         </div>
         }
 
+        <!-- Geolocation / Geolocalização -->
+        @if (serviceLatitude() && serviceLongitude()) {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">
+              <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+              {{ "geolocation" | i18n }}
+            </h3>
+            @if (currentUser().role === 'professional') {
+              <button
+                (click)="showRouteMap.set(!showRouteMap())"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2">
+                <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}"></i>
+                {{ (showRouteMap() ? 'geolocation' : 'viewRoute') | i18n }}
+              </button>
+            }
+          </div>
+          <div class="space-y-4">
+            @if (!showRouteMap()) {
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">
+                    Latitude
+                  </label>
+                  <p class="text-gray-900 font-mono">{{ serviceLatitude() }}</p>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">
+                    Longitude
+                  </label>
+                  <p class="text-gray-900 font-mono">{{ serviceLongitude() }}</p>
+                </div>
+              </div>
+              <app-leaflet-map-viewer
+                [latitude]="serviceLatitude()!"
+                [longitude]="serviceLongitude()!">
+              </app-leaflet-map-viewer>
+            } @else {
+              <app-leaflet-route-map
+                [destinationLatitude]="serviceLatitude()!"
+                [destinationLongitude]="serviceLongitude()!"
+                [mapHeight]="'500px'"
+                [showInstructions]="true">
+              </app-leaflet-route-map>
+            }
+          </div>
+        </div>
+        }
+
         <!-- Photos Gallery -->
         @if (hasPhotos()) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -546,6 +600,7 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workflowService = inject(WorkflowServiceSimplified);
+  private readonly addressService = inject(PortugalAddressDatabaseService);
 
   // Signal para request carregado via rota
   private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
@@ -607,6 +662,7 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
   showMobileActions = signal(false);
   showPhotoModal = signal(false);
   selectedPhoto = signal<string | null>(null);
+  showRouteMap = signal(false);
 
   // Verifica se há dados de endereço (aninhado ou campos planos)
   hasAddress = computed(() => {
@@ -632,6 +688,45 @@ export class ServiceRequestDetailsComponent implements AfterViewInit {
     return [p.postalCode, p.locality].filter(Boolean).join(" ");
   });
   addressLine3 = computed(() => this.addressParts().district);
+
+  // Signal para armazenar coordenadas do código postal
+  private readonly postalCodeCoordinates = signal<{ latitude: number; longitude: number } | null>(null);
+
+  // Effect para buscar coordenadas quando o código postal do request mudar
+  private readonly coordinatesEffect = effect(async () => {
+    const postalCode = this.addressParts().postalCode;
+    
+    if (!postalCode) {
+      this.postalCodeCoordinates.set(null);
+      return;
+    }
+
+    try {
+      const result = await this.addressService.validateCodigoPostal(postalCode);
+      if (result.valid && result.endereco?.latitude && result.endereco?.longitude) {
+        this.postalCodeCoordinates.set({
+          latitude: result.endereco.latitude,
+          longitude: result.endereco.longitude
+        });
+      } else {
+        this.postalCodeCoordinates.set(null);
+      }
+    } catch (error) {
+      console.error('[ServiceRequestDetails] Erro ao buscar coordenadas:', error);
+      this.postalCodeCoordinates.set(null);
+    }
+  });
+
+  // Coordenadas finais (do request ou do código postal)
+  serviceLatitude = computed(() => {
+    const req = this.request();
+    return req.latitude || this.postalCodeCoordinates()?.latitude || null;
+  });
+  
+  serviceLongitude = computed(() => {
+    const req = this.request();
+    return req.longitude || this.postalCodeCoordinates()?.longitude || null;
+  });
 
   // Organiza e enriquece respostas de profissionais
   professionalQuotes = computed(() => {

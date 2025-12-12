@@ -36,6 +36,8 @@ export interface CodigoPostal {
   num_cod_postal: string;
   ext_cod_postal: string;
   desig_postal: string;
+  latitude?: number | null;
+  longitude?: number | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -47,6 +49,8 @@ export interface EnderecoCompleto {
   distrito: string;
   arteria?: string;
   designacao_postal: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface ValidationResultDatabase {

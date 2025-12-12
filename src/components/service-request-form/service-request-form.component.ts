@@ -13,14 +13,17 @@ import { DataService } from "../../services/data.service";
 import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
 import type { ServiceSubcategory } from "../../models/maintenance.models";
+import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
 
 @Component({
   selector: "app-service-request-form",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [CommonModule, FormsModule, I18nPipe, LeafletMapViewerComponent],
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
+  latitude = signal<number | null>(null);
+  longitude = signal<number | null>(null);
       // Signals para valores do serviço
       valor = signal<number | null>(null);
       valor_prestador = signal<number | null>(null);
@@ -197,7 +200,7 @@ export class ServiceRequestFormComponent implements OnInit {
       return;
     }
     this.formError.set(null);
-    
+
     const fieldHandlers: Record<string, () => void | Promise<void>> = {
       title: () => this.updateTitle(value),
       description: () => this.updateDescription(value),
@@ -205,7 +208,28 @@ export class ServiceRequestFormComponent implements OnInit {
       subcategory_id: () => this.updateSubcategoryId(value),
       requestedDateTime: () => this.updateRequestedDateTime(value),
       priority: () => this.updatePriority(value),
-      zip_code: () => this.updateZipCode(value),
+      zip_code: async () => {
+        await this.updateZipCode(value);
+        // Automação: buscar endereço e preencher lat/lng
+        if (value?.length === 8) {
+          const addressService = await import('../../services/portugal-address-database.service');
+          const serviceInstance = new addressService.PortugalAddressDatabaseService();
+          try {
+            const endereco = await serviceInstance.getEnderecoByCodigoPostal(value);
+            if (endereco) {
+              this.latitude.set(typeof endereco.latitude === 'number' ? endereco.latitude : null);
+              this.longitude.set(typeof endereco.longitude === 'number' ? endereco.longitude : null);
+              this.locality.set(endereco.localidade ?? '');
+              this.district.set(endereco.distrito ?? '');
+              this.county.set(endereco.concelho ?? '');
+              this.street.set(endereco.designacao_postal ?? '');
+            }
+          } catch {
+            // Apenas loga erro, não interrompe fluxo
+            console.warn('Erro ao buscar coordenadas do endereço.');
+          }
+        }
+      },
       number: () => this.updateNumber(value),
       complement: () => this.complement.set(value),
       client_name: () => this.updateClientName(value),
@@ -213,6 +237,8 @@ export class ServiceRequestFormComponent implements OnInit {
       client_nif: () => this.updateClientNif(value),
       valor: () => this.updateValor(value),
       valor_prestador: () => this.updateValorPrestador(value),
+      latitude: () => this.latitude.set(value ? Number(value) : null),
+      longitude: () => this.longitude.set(value ? Number(value) : null),
     };
 
     const handler = fieldHandlers[field];
@@ -459,6 +485,8 @@ export class ServiceRequestFormComponent implements OnInit {
         requested_datetime: this.requestedDateTime(),
         valor: this.valor(),
         valor_prestador: this.valor_prestador(),
+        latitude: this.latitude(),
+        longitude: this.longitude(),
       };
       await this.dataService.addServiceRequest(payload);
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));

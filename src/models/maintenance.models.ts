@@ -195,6 +195,10 @@ export interface ServiceRequest {
   state: string;
   zip_code: string;
   
+  // GEOLOCALIZAÇÃO
+  latitude?: number | null;
+  longitude?: number | null;
+  
   // STATUS E PAGAMENTO
   status: ServiceStatus;
   payment_status: PaymentStatus;
@@ -436,6 +440,8 @@ export interface ServiceRequestPayload {
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
   valor: number;
   valor_prestador: number;
+    latitude?: number | null;
+    longitude?: number | null;
 }
 
 export type Urgency = "low" | "medium" | "high" | "critical";
@@ -676,4 +682,34 @@ export interface SmsNotificationPreferences {
   notify_on_assignment: boolean;
   notify_on_schedule: boolean;
   notify_on_payment: boolean;
+}
+
+// Interface para código postal português
+export interface CodigoPostal {
+  codigo_postal_completo: string;
+  num_cod_postal: string;
+  ext_cod_postal: string;
+  nome_localidade: string;
+  cod_distrito: string;
+  cod_concelho: string;
+  desig_postal: string;
+  nome_arteria?: string;
+  tipo_arteria?: string;
+  prep1?: string;
+  titulo_arteria?: string;
+  local_arteria?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
+// Interface para endereço completo retornado pelo serviço
+export interface EnderecoCompleto {
+  codigo_postal: string;
+  localidade: string;
+  concelho: string;
+  distrito: string;
+  designacao_postal: string;
+  arteria?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }

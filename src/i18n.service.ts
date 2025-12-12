@@ -106,6 +106,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     description: "Description",
     category: "Category",
     address: "Address",
+    geolocation: "Geolocation",
+    distance: "Distance",
+    estimatedTime: "Estimated Time",
+    routeInstructions: "Route Instructions",
+    steps: "steps",
+    obtainingLocation: "Obtaining your location...",
+    retry: "Try Again",
+    viewRoute: "View Route",
+    navigation: "Navigation",
     appName: "HomeService",
     menu: "Menu",
     newRequest: "New Request",
@@ -891,6 +900,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidPassword: "Password must be at least 6 characters long.",
     addProfessionalDesc:
       "Create a new professional account and assign specialties",
+    logout_success: "You have been logged out successfully.",
    
 
   },
@@ -996,6 +1006,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
     description: "Descrição",
     category: "Categoria",
     address: "Endereço",
+    geolocation: "Geolocalização",
+    distance: "Distância",
+    estimatedTime: "Tempo Estimado",
+    routeInstructions: "Instruções da Rota",
+    steps: "passos",
+    obtainingLocation: "Obtendo sua localização...",
+    retry: "Tentar Novamente",
+    viewRoute: "Ver Rota",
+    navigation: "Navegação",
     appName: "HomeService",
     menu: "Menu",
     newRequest: "Nova Solicitação",
@@ -1787,6 +1806,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     paymentDone: "Realizado",
     paymentPending: "Pendente",
     addProfessionalDesc: "Adicione um novo profissional ao sistema",
+    logout_success: "Logout realizado com sucesso.",
 
   },
 };

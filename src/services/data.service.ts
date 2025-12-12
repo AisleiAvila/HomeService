@@ -1,4 +1,8 @@
-﻿import { inject, Injectable, signal } from "@angular/core";
+﻿// ...existing code...
+
+// Adiciona dentro da classe DataService já existente:
+// ...existing code...
+import { inject, Injectable, signal } from "@angular/core";
 
 import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
 import { I18nService } from "../i18n.service";
@@ -422,6 +426,8 @@ export class DataService {
       city: payload.address.city,
       state: payload.address.state,
       zip_code: payload.address.zip_code,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
       requested_datetime: requestedDateTime, // Campo principal
       valor: payload.valor,
       valor_prestador: payload.valor_prestador,
@@ -1587,5 +1593,21 @@ export class DataService {
       counts.set(row.category_id, (counts.get(row.category_id) || 0) + 1);
     }
     return counts;
+  }
+  /**
+   * Salva coordenadas de geolocalização do profissional no banco de dados
+   */
+  async saveProfessionalLocation(userId: number, latitude: number, longitude: number): Promise<boolean> {
+    const { error } = await this.supabase.client
+      .from('users')
+      .update({ latitude, longitude })
+      .eq('id', userId);
+    if (error) {
+      this.notificationService.addNotification(
+        'Erro ao salvar localização do profissional: ' + error.message
+      );
+      return false;
+    }
+    return true;
   }
 }

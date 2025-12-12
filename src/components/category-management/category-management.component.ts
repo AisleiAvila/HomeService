@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ServiceCategory,
@@ -16,7 +16,7 @@ import { DataService } from "../../services/data.service";
   styleUrls: ["./category-management.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoryManagementComponent {
+export class CategoryManagementComponent implements OnInit {
   // ========== INJEÇÃO DE SERVIÇOS ==========
   private readonly dataService = inject(DataService);
 
@@ -461,7 +461,7 @@ export class CategoryManagementComponent {
     this.professionalCounts.set(counts);
   }
 
-  constructor() {
+  ngOnInit() {
     this.loadProfessionalCounts();
   }
 }
