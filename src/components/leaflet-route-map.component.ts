@@ -203,6 +203,8 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
 
   private map: any;
   private routingControl: any;
+  private routePolyline: any = null; // Store route polyline for cleanup
+  private startMarker: any = null; // Store start marker for cleanup
   private readonly currentLocation = signal<{ lat: number; lng: number } | null>(null);
   private currentPositionMarker: any = null;
   private watchId: number | null = null;
@@ -231,6 +233,18 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopTracking();
+    
+    // Cleanup map layers
+    if (this.routePolyline && this.map) {
+      this.map.removeLayer(this.routePolyline);
+    }
+    if (this.startMarker && this.map) {
+      this.map.removeLayer(this.startMarker);
+    }
+    if (this.routingControl && this.map) {
+      this.map.removeControl(this.routingControl);
+    }
+    
     if (this.map) {
       this.map.remove();
     }
@@ -430,14 +444,98 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private createRoute(startLat: number, startLng: number, endLat: number, endLng: number): void {
+  private async createRoute(startLat: number, startLng: number, endLat: number, endLng: number): Promise<void> {
     console.log('[Route] Creating route from:', startLat, startLng, 'to:', endLat, endLng);
+    
+    try {
+      // Usar API serverless da Vercel para evitar problemas CORS
+      const apiUrl = `/api/route?startLat=${startLat}&startLng=${startLng}&endLat=${endLat}&endLng=${endLng}`;
+      console.log('[Route] Chamando API serverless:', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        console.warn('[Route] API falhou, usando distância em linha reta');
+        return;
+      }
+      
+      console.log('[Route] Rota recebida da API:', data);
+      
+      // Limpar rotas anteriores
+      if (this.routePolyline) {
+        this.map.removeLayer(this.routePolyline);
+      }
+      if (this.startMarker) {
+        this.map.removeLayer(this.startMarker);
+      }
+      
+      // Adicionar linha da rota ao mapa
+      if (data.coordinates && data.coordinates.length > 0) {
+        this.routePolyline = L.polyline(data.coordinates, {
+          color: '#2563eb',
+          weight: 6,
+          opacity: 0.8,
+        }).addTo(this.map);
+        
+        // Ajustar zoom para mostrar toda a rota
+        this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+        
+        // Adicionar marcador de início
+        this.startMarker = L.marker([startLat, startLng], {
+          icon: L.divIcon({
+            className: 'custom-start-marker',
+            html: '<div style="background-color: #2563eb; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-user" style="color: white; font-size: 12px;"></i></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        })
+          .addTo(this.map)
+          .bindPopup('<b>Você está aqui</b>');
+        
+        // Atualizar informações da rota
+        this.routeInfo.set({
+          distance: this.formatDistance(data.distance),
+          duration: this.formatDuration(data.duration),
+          instructions: data.instructions.map((inst: any) => ({
+            text: `${inst.index}. ${this.translateInstruction(inst.instruction)}: ${inst.name}`,
+            distance: this.formatDistance(inst.distance),
+          })),
+        });
+        
+        console.log('[Route] Rota renderizada com sucesso');
+      }
+    } catch (error: any) {
+      console.error('[Route] Erro ao criar rota:', error);
+      // Mantém a distância em linha reta que já foi calculada
+    }
+  }
+  
+  private translateInstruction(type: string): string {
+    const translations: Record<string, string> = {
+      'turn-right': 'Vire à direita',
+      'turn-left': 'Vire à esquerda',
+      'turn-slight-right': 'Vire levemente à direita',
+      'turn-slight-left': 'Vire levemente à esquerda',
+      'turn-sharp-right': 'Vire acentuadamente à direita',
+      'turn-sharp-left': 'Vire acentuadamente à esquerda',
+      'continue': 'Continue',
+      'depart': 'Siga',
+      'arrive': 'Chegue ao destino',
+      'roundabout': 'Entre na rotunda',
+      'merge': 'Entre na via',
+      'fork': 'Pegue a bifurcação',
+      'end-of-road': 'Fim da estrada',
+    };
+    return translations[type] || type;
+  }
+
+  private createRouteWithLeafletRouting(startLat: number, startLng: number, endLat: number, endLng: number): void {
+    console.log('[Route] Fallback: usando Leaflet Routing Machine diretamente');
     
     // Verificar se L.Routing está disponível
     if (!L.Routing) {
       console.error('[Route] L.Routing não está disponível! Biblioteca não carregada.');
-      this.error.set('Biblioteca de rotas não carregada. Recarregue a página.');
-      this.loading.set(false);
       return;
     }
 
