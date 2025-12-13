@@ -394,7 +394,10 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
               <label class="block text-sm font-medium text-gray-700 mb-1" id="street-label">
                 {{ 'logradouro' | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'street-label'">{{ request().street || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'street-label'">{{ request().street || request().street_manual || '—' }}</p>
+              @if (request().street_manual && !request().street) {
+                <span class="text-xs text-gray-500 italic">{{ 'manualEntry' | i18n }}</span>
+              }
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" id="number-label">

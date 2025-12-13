@@ -109,6 +109,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     geolocation: "Geolocation",
     distance: "Distance",
     estimatedTime: "Estimated Time",
+    manualEntry: "Manual Entry",
     routeInstructions: "Route Instructions",
     steps: "steps",
     obtainingLocation: "Obtaining your location...",
@@ -1732,6 +1733,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     streetPlaceholder: "Rua Exemplo",
     streetManualInfo: "Este código postal não possui logradouro associado. Por favor, informe-o manualmente.",
+    manualEntry: "Entrada Manual",
     numberPlaceholder: "123",
     cityPlaceholder: "Lisboa",
     statePlaceholder: "Lisboa",
