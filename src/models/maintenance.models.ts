@@ -329,7 +329,7 @@ export interface ServiceRequest {
   // Respostas de profissionais
   professional_responses?: ProfessionalQuoteResponse[] | null;
   /** Indica se o serviço foi pago ao profissional */
-  isPaid: boolean;
+  ispaid: boolean;
 }
 
 export interface ChatMessage {

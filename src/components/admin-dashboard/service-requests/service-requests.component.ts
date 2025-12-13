@@ -10,6 +10,7 @@ import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
+import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
 
 @Component({
     selector: "app-service-requests",
@@ -23,11 +24,8 @@ export class ServiceRequestsComponent {
     isLoading = computed(() => this.dataService.isLoading());
             async processPayment(event: { request: ServiceRequest; method: string }) {
                 const req = event.request;
-                // Chama serviço para registrar pagamento
-                const workflowService = await import('../../../services/workflow-simplified.service');
-                const workflowInstance = new workflowService.WorkflowServiceSimplified();
-                // Exemplo: valor e método do pagamento
-                await workflowInstance.registerPayment(
+                // Chama serviço para registrar pagamento via injeção
+                await this.workflowService.registerPayment(
                     req.id,
                     this.currentUser()?.id ?? 0,
                     {
@@ -51,6 +49,7 @@ export class ServiceRequestsComponent {
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    private readonly workflowService = inject(WorkflowServiceSimplified);
     readonly uiState = inject(UiStateService);
 
     // Quick filter options
