@@ -33,6 +33,25 @@ export class ServiceRequestEditComponent implements OnInit {
   locality = signal<string>('');
   district = signal<string>('');
 
+  // Getter/Setter para formatar requested_datetime para datetime-local input
+  get requestedDateTimeFormatted(): string {
+    if (!this.request?.requested_datetime) return '';
+    // Converter ISO string para formato datetime-local (YYYY-MM-DDTHH:mm)
+    const date = new Date(this.request.requested_datetime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  set requestedDateTimeFormatted(value: string) {
+    if (!this.request) return;
+    // Converter de datetime-local para ISO string
+    this.request.requested_datetime = value ? new Date(value).toISOString() : undefined;
+  }
+
   // Computed signal para categorias (filtrar apenas as que têm subcategorias)
   categories = computed(() => {
     const allCats = this.dataService.categories();
@@ -201,6 +220,8 @@ export class ServiceRequestEditComponent implements OnInit {
         state: this.request.state,
         zip_code: this.request.zip_code,
         description: this.request.description,
+        requested_datetime: this.request.requested_datetime,
+        priority: this.request.priority,
         scheduled_start_datetime: this.request.scheduled_start_datetime,
         estimated_duration_minutes: this.request.estimated_duration_minutes,
         admin_notes: this.request.admin_notes,

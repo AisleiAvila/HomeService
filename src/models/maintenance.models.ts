@@ -216,6 +216,9 @@ export interface ServiceRequest {
   valor: number; // Valor total do serviço
   valor_prestador: number; // Valor da prestação de serviço
 
+  // PRIORIDADE
+  priority?: 'Normal' | 'Urgent'; // Prioridade da solicitação
+
   // Campos existentes para controle de agendamento e tempo
   requested_datetime?: string; // Data e hora solicitada (ISO string)
   scheduled_start_datetime?: string | null; // Data e hora agendada pelo profissional (ISO string)
@@ -443,6 +446,7 @@ export interface ServiceRequestPayload {
   origin_id?: number;
   address: Address;
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
+  priority?: 'Normal' | 'Urgent'; // Prioridade da solicitação
   valor: number;
   valor_prestador: number;
   latitude?: number | null;

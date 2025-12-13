@@ -571,6 +571,7 @@ export class ServiceRequestFormComponent implements OnInit {
         origin_id: this.origin_id(),
         address,
         requested_datetime: this.requestedDateTime(),
+        priority: (this.priority() || undefined) as 'Normal' | 'Urgent' | undefined,
         valor: this.valor(),
         valor_prestador: this.valor_prestador(),
         latitude: this.latitude(),

@@ -443,6 +443,7 @@ export class DataService {
       latitude: payload.latitude,
       longitude: payload.longitude,
       requested_datetime: requestedDateTime, // Campo principal
+      priority: payload.priority || null,
       valor: payload.valor,
       valor_prestador: payload.valor_prestador,
       status: "Solicitado",
