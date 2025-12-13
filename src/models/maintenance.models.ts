@@ -194,6 +194,7 @@ export interface ServiceRequest {
   
   // ENDEREÇO DO SERVIÇO
   street: string;
+  street_manual?: string | null; // Logradouro manual (quando não há no código postal)
   street_number?: string; // Número do logradouro
   complement?: string; // Complemento (apto, bloco, etc)
   city: string;

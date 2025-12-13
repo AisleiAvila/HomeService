@@ -81,6 +81,13 @@ export class ServiceRequestEditComponent implements OnInit {
     ]).then(() => {
       this.request = this.dataService.getServiceRequestById(id) || null;
       console.log('Edit request loaded:', this.request);
+      
+      // Inicializar campos de endereço derivados
+      if (this.request) {
+        this.locality.set(this.request.city || '');
+        this.district.set(this.request.state || '');
+      }
+      
       this.loading = false;
       this.cdr.markForCheck();
     }).catch((e) => {
@@ -215,10 +222,13 @@ export class ServiceRequestEditComponent implements OnInit {
       const updates = {
         street: this.request.street,
         street_number: this.request.street_number,
+        street_manual: this.request.street_manual,
         complement: this.request.complement,
         city: this.request.city,
         state: this.request.state,
         zip_code: this.request.zip_code,
+        latitude: this.request.latitude,
+        longitude: this.request.longitude,
         description: this.request.description,
         requested_datetime: this.request.requested_datetime,
         priority: this.request.priority,
