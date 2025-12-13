@@ -365,8 +365,8 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex items-center gap-2">
-                            <!-- Botão de pagamento: só admins, status 'Concluído', não pago -->
-                            @if (currentUser() && currentUser()!.role === 'admin' && req.status === 'Concluído' && !req.isPaid) {
+                            <!-- Botão de pagamento: só admins, status 'Aguardando Finalização' -->
+                            @if (currentUser() && currentUser()!.role === 'admin' && req.status === 'Aguardando Finalização') {
                             <button (click)="handlePayRequest(req)"
                                 class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
                                 [title]="'payRequest' | i18n">
