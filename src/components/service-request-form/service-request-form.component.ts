@@ -15,12 +15,11 @@ import { FormsModule } from "@angular/forms";
 import type { ServiceSubcategory } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
-import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
 
 @Component({
   selector: "app-service-request-form",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe, LeafletMapViewerComponent],
+  imports: [CommonModule, FormsModule, I18nPipe],
   templateUrl: "./service-request-form.component.html",
 })
 export class ServiceRequestFormComponent implements OnInit {
@@ -383,10 +382,18 @@ export class ServiceRequestFormComponent implements OnInit {
     this.district.set(endereco.distrito || "");
     this.county.set(endereco.concelho || "");
     
-    // O campo pode ser arteria, designacao_postal ou outros
-    const streetFromPostal = endereco.arteria || endereco.designacao_postal || "";
+    // Apenas arteria é considerado logradouro válido
+    // designacao_postal geralmente contém concelho/localidade quando não há arteria
+    const streetFromPostal = endereco.arteria || "";
     this.street.set(streetFromPostal);
     this.hasStreetFromPostalCode.set(!!streetFromPostal);
+    
+    console.log('[populateAddressFieldsFromService] Logradouro:', {
+      arteria: endereco.arteria,
+      designacao_postal: endereco.designacao_postal,
+      streetFromPostal,
+      hasStreetFromPostalCode: !!streetFromPostal
+    });
     
     // Definir coordenadas
     console.log('[populateAddressFieldsFromService] Verificando coordenadas:', {

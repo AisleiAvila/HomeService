@@ -616,10 +616,6 @@
 
   <!-- Seção de Endereço -->
     <div class="p-6 bg-white">
-      <!-- Mapa OpenStreetMap -->
-      <div class="mb-6">
-        <app-leaflet-map-viewer *ngIf="latitude() && longitude()" [latitude]="latitude()" [longitude]="longitude()"></app-leaflet-map-viewer>
-      </div>
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-map-marker-alt text-indigo-600"></i>
         <h3 class="text-lg font-semibold text-gray-800">{{ "address" | i18n }}</h3>
