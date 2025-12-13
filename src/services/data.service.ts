@@ -435,6 +435,7 @@ export class DataService {
       origin_id: payload.origin_id,
       street: payload.address.street,
       street_number: payload.address.street_number,
+      street_manual: payload.street_manual,
       complement: payload.address.complement,
       city: payload.address.city,
       state: payload.address.state,
@@ -451,9 +452,10 @@ export class DataService {
     console.log("📤 [addServiceRequest] Dados a serem inseridos:", newRequestData);
     console.log("🔐 [addServiceRequest] Session do Supabase:", await this.supabase.client.auth.getSession());
     
-    const { error } = await this.supabase.client
+    const { data, error } = await this.supabase.client
       .from("service_requests")
-      .insert(newRequestData);
+      .insert(newRequestData)
+      .select();
 
     if (error) {
       console.error("❌ [addServiceRequest] Erro ao inserir:", error);
@@ -464,6 +466,17 @@ export class DataService {
     }
 
     console.log("✅ [addServiceRequest] Solicitação criada com sucesso!");
+
+    // Registrar status inicial no histórico
+    if (data && data.length > 0) {
+      const newRequestId = data[0].id;
+      await this.recordStatusChange(
+        newRequestId,
+        "Solicitado",
+        currentUser.id,
+        "Solicitação criada"
+      );
+    }
 
     this.notificationService.addNotification(
       "Service request created successfully!"

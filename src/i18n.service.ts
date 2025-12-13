@@ -822,6 +822,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterContact: "Contact",
 
     streetPlaceholder: "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
+    streetManualInfo: "This postal code does not have an associated street. Please enter it manually.",
     numberPlaceholder: "Number",
     cityPlaceholder: "City",
     statePlaceholder: "State",
@@ -1730,6 +1731,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     landingFooterContact: "Contacto",
 
     streetPlaceholder: "Rua Exemplo",
+    streetManualInfo: "Este código postal não possui logradouro associado. Por favor, informe-o manualmente.",
     numberPlaceholder: "123",
     cityPlaceholder: "Lisboa",
     statePlaceholder: "Lisboa",

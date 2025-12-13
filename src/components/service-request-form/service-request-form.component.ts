@@ -14,6 +14,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import type { ServiceSubcategory } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
+import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
 import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
 
 @Component({
@@ -38,6 +39,7 @@ export class ServiceRequestFormComponent implements OnInit {
     requestedDateTime: boolean;
     zip_code: boolean;
     number: boolean;
+    street: boolean;
     client_name: boolean;
     client_phone: boolean;
     client_nif: boolean;
@@ -48,6 +50,7 @@ export class ServiceRequestFormComponent implements OnInit {
     requestedDateTime: false,
     zip_code: false,
     number: false,
+    street: false,
     client_name: false,
     client_phone: false,
     client_nif: false,
@@ -77,6 +80,7 @@ export class ServiceRequestFormComponent implements OnInit {
   }
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
+  private readonly addressService = inject(PortugalAddressDatabaseService);
 
   // Usar signals diretamente do DataService
   // Filtrar apenas categorias que têm subcategorias
@@ -146,6 +150,8 @@ export class ServiceRequestFormComponent implements OnInit {
 
   category_id = signal<number | null>(null);
   street = signal<string>("");
+  street_manual = signal<string>("");
+  hasStreetFromPostalCode = signal<boolean>(false);
   city = signal<string>("");
   state = signal<string>("");
   zip_code = signal<string>("");
@@ -168,6 +174,7 @@ export class ServiceRequestFormComponent implements OnInit {
     requestedDateTime: boolean;
     priority: boolean;
     street: boolean;
+    street_manual: boolean;
     city: boolean;
     state: boolean;
     zip_code: boolean;
@@ -186,6 +193,7 @@ export class ServiceRequestFormComponent implements OnInit {
     requestedDateTime: false,
     priority: false,
     street: false,
+    street_manual: false,
     city: false,
     state: false,
     zip_code: false,
@@ -201,6 +209,8 @@ export class ServiceRequestFormComponent implements OnInit {
   // Método para verificar se o formulário está válido
   isFormValid(): boolean {
     const fields = this.validFields();
+    // Validar street_manual apenas se não houver logradouro do código postal
+    const streetValid = this.hasStreetFromPostalCode() || fields.street_manual;
     return (
       fields.title &&
       fields.description &&
@@ -208,7 +218,7 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.subcategory_id &&
       fields.requestedDateTime &&
       fields.priority &&
-      fields.street &&
+      streetValid &&
       fields.city &&
       fields.state &&
       fields.zip_code &&
@@ -235,30 +245,10 @@ export class ServiceRequestFormComponent implements OnInit {
       subcategory_id: () => this.updateSubcategoryId(value),
       requestedDateTime: () => this.updateRequestedDateTime(value),
       priority: () => this.updatePriority(value),
-      zip_code: async () => {
-        await this.updateZipCode(value);
-        // Automação: buscar endereço e preencher lat/lng
-        if (value?.length === 8) {
-          const addressService = await import('../../services/portugal-address-database.service');
-          const serviceInstance = new addressService.PortugalAddressDatabaseService();
-          try {
-            const endereco = await serviceInstance.getEnderecoByCodigoPostal(value);
-            if (endereco) {
-              this.latitude.set(typeof endereco.latitude === 'number' ? endereco.latitude : null);
-              this.longitude.set(typeof endereco.longitude === 'number' ? endereco.longitude : null);
-              this.locality.set(endereco.localidade ?? '');
-              this.district.set(endereco.distrito ?? '');
-              this.county.set(endereco.concelho ?? '');
-              this.street.set(endereco.designacao_postal ?? '');
-            }
-          } catch {
-            // Apenas loga erro, não interrompe fluxo
-            console.warn('Erro ao buscar coordenadas do endereço.');
-          }
-        }
-      },
+      zip_code: async () => this.updateZipCode(value),
       number: () => this.updateNumber(value),
       complement: () => this.complement.set(value),
+      street_manual: () => this.updateStreetManual(value),
       client_name: () => this.updateClientName(value),
       client_phone: () => this.updateClientPhone(value),
       client_nif: () => this.updateClientNif(value),
@@ -356,8 +346,21 @@ export class ServiceRequestFormComponent implements OnInit {
     }));
 
     if (isValidZip) {
-      await this.fetchPostalCodeInfo(formatted);
-    } else {
+      try {
+        const endereco = await this.addressService.getEnderecoByCodigoPostal(formatted);
+        console.log('[updateZipCode] Endereço recebido:', endereco);
+        if (endereco) {
+          this.populateAddressFieldsFromService(endereco);
+        } else {
+          this.clearAddressFields();
+          this.formError.set("Código postal não encontrado.");
+        }
+      } catch (error) {
+        console.error('[updateZipCode] Erro:', error);
+        this.clearAddressFields();
+        this.formError.set("Erro ao buscar código postal.");
+      }
+    } else if (!isValidZip) {
       this.clearAddressFields();
     }
   }
@@ -373,26 +376,50 @@ export class ServiceRequestFormComponent implements OnInit {
     return formatted;
   }
 
-  private async fetchPostalCodeInfo(formatted: string) {
-    const result = await this.dataService.getPostalCodeInfo(formatted);
-    if (result) {
-      this.populateAddressFields(result);
-    } else {
-      this.clearAddressFields();
-      this.formError.set("Código postal não encontrado.");
+  private populateAddressFieldsFromService(endereco: any) {
+    console.log('[populateAddressFieldsFromService] Endereço completo:', endereco);
+    
+    this.locality.set(endereco.localidade || "");
+    this.district.set(endereco.distrito || "");
+    this.county.set(endereco.concelho || "");
+    
+    // O campo pode ser arteria, designacao_postal ou outros
+    const streetFromPostal = endereco.arteria || endereco.designacao_postal || "";
+    this.street.set(streetFromPostal);
+    this.hasStreetFromPostalCode.set(!!streetFromPostal);
+    
+    // Definir coordenadas
+    console.log('[populateAddressFieldsFromService] Verificando coordenadas:', {
+      latitude: endereco.latitude,
+      longitude: endereco.longitude
+    });
+    
+    if (endereco.latitude !== undefined && endereco.latitude !== null) {
+      const lat = typeof endereco.latitude === 'number' ? endereco.latitude : Number.parseFloat(endereco.latitude);
+      this.latitude.set(lat);
+      console.log('[populateAddressFieldsFromService] Latitude definida:', lat);
     }
-  }
-
-  private populateAddressFields(result: any) {
-    this.locality.set(result.localidade || "");
-    this.district.set(result.distrito || "");
-    this.county.set(result.concelho || "");
-    this.street.set(result.arteria_completa || "");
+    if (endereco.longitude !== undefined && endereco.longitude !== null) {
+      const lng = typeof endereco.longitude === 'number' ? endereco.longitude : Number.parseFloat(endereco.longitude);
+      this.longitude.set(lng);
+      console.log('[populateAddressFieldsFromService] Longitude definida:', lng);
+    }
+    
+    console.log('[populateAddressFieldsFromService] Coordenadas finais:', {
+      latitude: this.latitude(),
+      longitude: this.longitude()
+    });
+    
+    // Se não houver logradouro, limpar o manual e permitir edição
+    if (!streetFromPostal) {
+      this.street_manual.set('');
+    }
+    
     this.validFields.update((fields) => ({
       ...fields,
-      street: !!result.arteria_completa,
-      city: !!result.concelho,
-      state: !!result.distrito,
+      street: !!streetFromPostal,
+      city: !!endereco.concelho,
+      state: !!endereco.distrito,
     }));
   }
 
@@ -401,9 +428,14 @@ export class ServiceRequestFormComponent implements OnInit {
     this.district.set("");
     this.county.set("");
     this.street.set("");
+    this.hasStreetFromPostalCode.set(false);
+    this.street_manual.set("");
+    this.latitude.set(null);
+    this.longitude.set(null);
     this.validFields.update((fields) => ({
       ...fields,
       street: false,
+      street_manual: false,
       city: false,
       state: false,
     }));
@@ -416,7 +448,17 @@ export class ServiceRequestFormComponent implements OnInit {
       number: !!value && value.length > 0,
     }));
   }
-
+  private updateStreetManual(value: string) {
+    this.street_manual.set(value);
+    const isValid = value.length >= 5;
+    console.log('[updateStreetManual] value:', value, 'length:', value.length, 'isValid:', isValid);
+    this.validFields.update((fields) => ({
+      ...fields,
+      street_manual: isValid,
+    }));
+    console.log('[updateStreetManual] validFields após update:', this.validFields());
+    console.log('[updateStreetManual] isFormValid:', this.isFormValid());
+  }
   private updateClientName(value: string) {
     this.client_name.set(value);
     this.validFields.update((fields) => ({
@@ -526,6 +568,7 @@ export class ServiceRequestFormComponent implements OnInit {
         valor_prestador: this.valor_prestador(),
         latitude: this.latitude(),
         longitude: this.longitude(),
+        street_manual: this.street_manual() || null,
         // Dados do solicitante
         client_name: this.client_name(),
         client_phone: this.client_phone(),

@@ -447,6 +447,7 @@ export interface ServiceRequestPayload {
   valor_prestador: number;
   latitude?: number | null;
   longitude?: number | null;
+  street_manual?: string | null; // Logradouro informado manualmente quando não disponível no código postal
   // Dados do solicitante (coletados no formulário)
   client_name?: string;
   client_phone?: string;
