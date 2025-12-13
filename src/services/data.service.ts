@@ -251,14 +251,19 @@ export class DataService {
       );
       this.isLoading.set(false);
     } else if (data && data.length > 0) {
-      const requests = data.map((r) => ({
-        ...r,
-        client_name: r.client_name || r.client_profile?.name || "",
-        client_email: r.client_email || r.client_profile?.email || "",
-        client_phone: r.client_phone || r.client_profile?.phone || "",
-        client_address: r.client_address || r.client_profile?.address || "",
-        professional_name: r.professional?.name || "Unassigned",
-      }));
+      console.log('🔍 [DataService] Dados brutos do Supabase:', data[0]);
+      const requests = data.map((r) => {
+        const mapped = {
+          ...r,
+          client_name: r.client_name || "",
+          email_client: r.email_client || "",
+          client_phone: r.client_phone || "",
+          client_nif: r.client_nif || "",
+          professional_name: r.professional?.name || "Unassigned",
+        };
+        console.log(`🔍 [DataService] Request ID ${r.id}: client_name="${r.client_name}" -> mapped="${mapped.client_name}"`);
+        return mapped;
+      });
       this.serviceRequests.set(requests);
       this.isLoading.set(false);
     } else {
@@ -416,12 +421,13 @@ export class DataService {
     const { StatusService } = await import("../services/status.service");
     const newRequestData: any = {
       client_id: currentUser.id,
-      client_name: currentUser.name,
-      client_email: currentUser.email,
-      client_phone: currentUser.phone || null,
-      client_address: currentUser.address
-        ? `${currentUser.address.street}, ${currentUser.address.city}, ${currentUser.address.state}, ${currentUser.address.zip_code}`
-        : null,
+      // Dados do solicitante vindos do formulário (não do perfil do usuário)
+      client_name: payload.client_name || currentUser.name,
+      client_phone: payload.client_phone || currentUser.phone || null,
+      client_nif: payload.client_nif || null,
+      // Email mantém do usuário logado para notificações
+      email_client: payload.email_client || currentUser.email,
+      // Endereço do serviço (não do solicitante) já está nos campos street, city, etc
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,

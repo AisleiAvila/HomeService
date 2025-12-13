@@ -41,6 +41,7 @@ export class ServiceRequestFormComponent implements OnInit {
     client_name: boolean;
     client_phone: boolean;
     client_nif: boolean;
+    email_client: boolean;
   } = {
     title: false,
     description: false,
@@ -50,6 +51,7 @@ export class ServiceRequestFormComponent implements OnInit {
     client_name: false,
     client_phone: false,
     client_nif: false,
+    email_client: false,
   };
   // Sinal para estado de submissão
   isSubmitting = signal<boolean>(false);
@@ -110,6 +112,7 @@ export class ServiceRequestFormComponent implements OnInit {
   client_name = signal<string>("");
   client_phone = signal<string>("");
   client_nif = signal<string>("");
+  email_client = signal<string>("");
   
   ngOnInit(): void {
     this.dataService.fetchOrigins();
@@ -172,6 +175,7 @@ export class ServiceRequestFormComponent implements OnInit {
     client_name: boolean;
     client_phone: boolean;
     client_nif: boolean;
+    email_client: boolean;
     valor: boolean;
     valor_prestador: boolean;
   }>({
@@ -189,6 +193,7 @@ export class ServiceRequestFormComponent implements OnInit {
     client_name: false,
     client_phone: false,
     client_nif: true, // NIF é opcional
+    email_client: true, // Email é opcional
     valor: false,
     valor_prestador: false,
   });
@@ -211,7 +216,8 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.client_phone &&
       fields.valor &&
       fields.valor_prestador &&
-      fields.client_nif // NIF sempre válido (opcional)
+      fields.client_nif && // NIF sempre válido (opcional)
+      fields.email_client // Email sempre válido (opcional)
     );
   }
 
@@ -256,6 +262,7 @@ export class ServiceRequestFormComponent implements OnInit {
       client_name: () => this.updateClientName(value),
       client_phone: () => this.updateClientPhone(value),
       client_nif: () => this.updateClientNif(value),
+      email_client: () => this.updateEmailClient(value),
       valor: () => this.updateValor(value),
       valor_prestador: () => this.updateValorPrestador(value),
       latitude: () => this.latitude.set(value ? Number(value) : null),
@@ -436,6 +443,15 @@ export class ServiceRequestFormComponent implements OnInit {
     }));
   }
 
+  private updateEmailClient(value: string) {
+    this.email_client.set(value);
+    const isValidEmail = !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    this.validFields.update((fields) => ({
+      ...fields,
+      email_client: isValidEmail,
+    }));
+  }
+
   // Método para validação de código postal português
   isValidPostalCode(postalCode: string): boolean {
     // Aceita formato 'XXXX-XXX' ou apenas dígitos (7 caracteres)
@@ -510,6 +526,11 @@ export class ServiceRequestFormComponent implements OnInit {
         valor_prestador: this.valor_prestador(),
         latitude: this.latitude(),
         longitude: this.longitude(),
+        // Dados do solicitante
+        client_name: this.client_name(),
+        client_phone: this.client_phone(),
+        client_nif: this.client_nif() || null,
+        email_client: this.email_client(),
       };
       await this.dataService.addServiceRequest(payload);
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));

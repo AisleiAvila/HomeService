@@ -165,8 +165,9 @@ export interface ServiceRequest {
   // DADOS DO CLIENTE (informativo, não mais FK para users)
   client_id: number | null; // DEPRECATED - manter por compatibilidade
   client_name?: string; // Nome do cliente (obrigatório no novo sistema)
-  client_email?: string; // Email do cliente (obrigatório no novo sistema)
+  email_client?: string; // Email do cliente (obrigatório no novo sistema)
   client_phone?: string; // Telefone do cliente (obrigatório no novo sistema)
+  client_nif?: string; // NIF do cliente (opcional)
   client_address?: string; // Endereço completo do cliente
 
   // Origem da solicitação
@@ -444,8 +445,13 @@ export interface ServiceRequestPayload {
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
   valor: number;
   valor_prestador: number;
-    latitude?: number | null;
-    longitude?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  // Dados do solicitante (coletados no formulário)
+  client_name?: string;
+  client_phone?: string;
+  client_nif?: string | null;
+  email_client?: string;
 }
 
 export type Urgency = "low" | "medium" | "high" | "critical";

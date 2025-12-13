@@ -329,6 +329,54 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
           </div>
         </section>
 
+        <!-- Requester Information -->
+        @if (request().client_name || request().client_phone || request().client_nif || request().email_client) {
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'requesterInformation' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="requester-info-title">
+            {{ "requesterInformation" | i18n }}
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-gray-900" [attr.aria-labelledby]="'requester-info-title'">
+            @if (request().client_name) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-name-label">
+                <i class="fas fa-user text-indigo-500 mr-1" aria-hidden="true"></i>
+                {{ 'client' | i18n }}
+              </label>
+              <p class="break-words" [attr.aria-labelledby]="'client-name-label'">{{ request().client_name }}</p>
+            </div>
+            }
+            @if (request().client_phone) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-phone-label">
+                <i class="fas fa-phone text-indigo-500 mr-1" aria-hidden="true"></i>
+                {{ 'phone' | i18n }}
+              </label>
+              <p class="break-words" [attr.aria-labelledby]="'client-phone-label'">{{ request().client_phone }}</p>
+            </div>
+            }
+            @if (request().client_nif) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-nif-label">
+                <i class="fas fa-id-card text-indigo-500 mr-1" aria-hidden="true"></i>
+                {{ 'nif' | i18n }}
+              </label>
+              <p class="break-words" [attr.aria-labelledby]="'client-nif-label'">{{ request().client_nif }}</p>
+            </div>
+            }
+            @if (request().email_client) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-email-label">
+                <i class="fas fa-envelope text-indigo-500 mr-1" aria-hidden="true"></i>
+                {{ 'email' | i18n }}
+              </label>
+              <p class="break-words" [attr.aria-labelledby]="'client-email-label'">{{ request().email_client }}</p>
+            </div>
+            }
+          </div>
+        </section>
+        }
+
         <!-- Address Information (detailed with labels) -->
         @if (hasAddress()) {
         <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'address' | i18n">

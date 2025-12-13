@@ -207,6 +207,10 @@ export class ServiceRequestEditComponent implements OnInit {
         category_id: this.request.category_id,
         subcategory_id: this.request.subcategory_id,
         origin_id: this.request.origin_id,
+        client_name: this.request.client_name,
+        client_phone: this.request.client_phone,
+        client_nif: this.request.client_nif,
+        email_client: this.request.email_client,
       };
       await this.supabaseService.client
         .from('service_requests')

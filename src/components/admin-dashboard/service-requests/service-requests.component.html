@@ -345,7 +345,7 @@
                         {{ req.title }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ getClientName(req.client_id) }}
+                        {{ req.client_name || "—" }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ getProfessionalName(req.professional_id) }}
@@ -464,9 +464,7 @@
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span class="text-gray-600 font-medium">{{ "client" | i18n }}:</span>
-                    <span class="text-gray-900">{{
-                        getClientName(req.client_id)
-                        }}</span>
+                    <span class="text-gray-900">{{ req.client_name || "—" }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600 font-medium">{{ "professional" | i18n }}:</span>

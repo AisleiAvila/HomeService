@@ -197,7 +197,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  public async ngOnInit() {
+  public ngOnInit(): void {
     const allStatus: ServiceStatus[] = [
       "Solicitado",
       "Atribuído",
@@ -221,7 +221,7 @@ export class DashboardComponent implements OnInit {
 
     // Recarrega as solicitações quando o componente é inicializado
     console.log('[Dashboard] ngOnInit - Recarregando solicitações de serviço');
-    await this.dataService.reloadServiceRequests();
+    this.dataService.reloadServiceRequests();
   }
 
   // Removido duplicidade de selectedRequest

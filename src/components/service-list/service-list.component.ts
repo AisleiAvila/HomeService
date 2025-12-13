@@ -119,6 +119,8 @@ export class ServiceListComponent {
           console.log(
             `[ServiceListComponent] Request[${i}].id:`,
             r.id,
+            "client_name:",
+            r.client_name,
             "status:",
             r.status
           );

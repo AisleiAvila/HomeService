@@ -335,6 +335,60 @@
         </span>
       </div>
     </div>
+
+    <!-- Email do Cliente (Opcional) -->
+    <div class="mt-4">
+      <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="email_client">
+        <i class="fas fa-envelope text-indigo-500 mr-2 text-xs"></i>
+        {{ "email" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
+      </label>
+      <div class="relative">
+        <input
+          id="email_client"
+          type="email"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          [ngClass]="
+            touched.email_client && email_client()
+              ? !validFields().email_client
+                ? 'border-red-500'
+                : 'border-green-500'
+              : ''
+          "
+          [value]="email_client()"
+          (input)="
+            updateField('email_client', $event.target.value); touched.email_client = true
+          "
+          [placeholder]="'emailPlaceholder' | i18n"
+          autocomplete="email"
+          aria-label="{{ 'email' | i18n }}"
+          aria-describedby="email_client-error"
+          [attr.aria-invalid]="
+            touched.email_client && email_client() && !validFields().email_client ? 'true' : null
+          "
+        />
+        <span
+          *ngIf="touched.email_client && validFields().email_client && email_client()"
+          class="absolute right-3 top-2.5 text-green-500"
+        >
+          <i class="fas fa-check-circle"></i>
+        </span>
+        <span
+          *ngIf="touched.email_client && email_client() && !validFields().email_client"
+          class="absolute right-3 top-2.5 text-red-500"
+        >
+          <i class="fas fa-exclamation-circle"></i>
+        </span>
+      </div>
+      <span
+        *ngIf="touched.email_client && email_client() && !validFields().email_client"
+        id="email_client-error"
+        class="text-xs text-red-500 flex items-center mt-1"
+        role="alert"
+      >
+        <i class="fas fa-info-circle mr-1"></i>
+        {{ "invalidEmail" | i18n }}
+      </span>
+    </div>
   </div>
 
   <!-- Seção de Detalhes do Serviço -->
