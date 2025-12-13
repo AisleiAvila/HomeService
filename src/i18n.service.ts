@@ -907,6 +907,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     origin: "Origin",
     selectOrigin: "Select the origin of the request",
     nif: "NIF",
+    executionDate: "Execution Date",
    
 
   },
@@ -1819,6 +1820,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     origin: "Origem",
     selectOrigin: "Selecione a origem da solicitação",
     nif: "NIF",
+    executionDate: "Data de Execução",
 
   },
 };

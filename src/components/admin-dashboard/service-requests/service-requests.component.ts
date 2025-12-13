@@ -352,10 +352,20 @@ viewDetails = output<ServiceRequest>();
     needsProfessionalAssignment(req: ServiceRequest): boolean { return false; } // Placeholder
     selectRequestForAssignment(req: ServiceRequest) { console.log('Assign', req); }
     openDirectAssignmentModal(req: ServiceRequest) { 
-        console.log('Direct Assign', req); 
+        console.log('Direct Assign', req);
+        console.log('requested_datetime:', req.requested_datetime);
         this.requestToAssign.set(req);
         this.selectedProfessionalId.set("");
-        this.selectedExecutionDate.set("");
+        // Inicializa selectedExecutionDate com requested_datetime se disponível
+        // Converter ISO string para formato datetime-local (YYYY-MM-DDTHH:mm)
+        let executionDate = "";
+        if (req.requested_datetime) {
+            const date = new Date(req.requested_datetime);
+            // Formato: YYYY-MM-DDTHH:mm
+            executionDate = date.toISOString().slice(0, 16);
+        }
+        console.log('selectedExecutionDate set to:', executionDate);
+        this.selectedExecutionDate.set(executionDate);
         this.showDirectAssignmentModal.set(true);
     }
     closeDirectAssignmentModal() {
