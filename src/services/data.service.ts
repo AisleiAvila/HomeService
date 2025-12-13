@@ -23,6 +23,7 @@ import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
+import { WorkflowServiceSimplified } from "./workflow-simplified.service";
 
 import { environment } from "../environments/environment";
 
@@ -185,6 +186,7 @@ export class DataService {
   public readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
   private readonly addressDatabase = inject(PortugalAddressDatabaseService);
+  private readonly workflowService = inject(WorkflowServiceSimplified);
 
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
@@ -620,6 +622,18 @@ export class DataService {
     await this.updateServiceRequest(requestId, {
       status: status,
     });
+    
+    // Record in status history table
+    const currentUser = this.authService.appUser();
+    if (currentUser) {
+      await this.recordStatusChange(
+        requestId,
+        status,
+        currentUser.id,
+        `Orçamento do pedido foi ${approved ? "aprovado" : "rejeitado"}`
+      );
+    }
+    
     this.notificationService.addNotification(
       `Orçamento do pedido #${requestId} foi ${approved ? "aprovado" : "rejeitado"
       }.`
@@ -637,6 +651,18 @@ export class DataService {
       status: "Data Definida" as const,
     };
     await this.updateServiceRequest(requestId, updates);
+    
+    // Record in status history table
+    const currentUser = this.authService.appUser();
+    if (currentUser) {
+      await this.recordStatusChange(
+        requestId,
+        "Data Definida",
+        currentUser.id,
+        `Serviço agendado para ${scheduledDate.toLocaleDateString()}`
+      );
+    }
+    
     this.notificationService.addNotification(
       `Service request #${requestId} has been scheduled.`
     );
@@ -660,6 +686,18 @@ export class DataService {
       status: "Data Definida",
     };
     await this.updateServiceRequest(requestId, updates);
+    
+    // Record in status history table
+    const currentUser = this.authService.appUser();
+    if (currentUser) {
+      await this.recordStatusChange(
+        requestId,
+        "Data Definida",
+        currentUser.id,
+        `Data de execução proposta para ${proposedDate.toLocaleDateString()}: ${notes || ""}`
+      );
+    }
+    
     this.notificationService.addNotification(
       this.i18n.translate("executionDateProposed", {
         id: requestId.toString(),
@@ -691,68 +729,156 @@ export class DataService {
   ) {
     const request = this.serviceRequests().find((r) => r.id === requestId);
     if (!request) {
-      console.error("Request n├úo encontrado:", requestId);
+      console.error("Request não encontrado:", requestId);
       return;
     }
+
+    const updates = this.buildExecutionDateUpdates(approved, rejectionReason, request);
+    await this.updateServiceRequest(requestId, updates);
+    
+    await this.recordExecutionDateStatusChange(requestId, approved, rejectionReason, request);
+    
+    this.notifyExecutionDateResponse(requestId, approved);
+    
+    await this.notifyStakeholdersAboutExecutionDate(request, approved, rejectionReason, requestId);
+  }
+
+  private buildExecutionDateUpdates(
+    approved: boolean,
+    rejectionReason: string | undefined,
+    request: ServiceRequest
+  ): Partial<ServiceRequest> {
     const updates: Partial<ServiceRequest> = {
       execution_date_approval: approved ? "approved" : "rejected",
       execution_date_approved_at: new Date().toISOString(),
       execution_date_rejection_reason: approved ? null : rejectionReason,
       status: approved ? "Data Definida" : "Recusado",
     };
+    
     if (approved && request?.proposed_execution_date) {
       updates.scheduled_start_datetime = request.proposed_execution_date;
       updates.status = "Data Definida";
     }
-    await this.updateServiceRequest(requestId, updates);
+    
+    return updates;
+  }
+
+  private async recordExecutionDateStatusChange(
+    requestId: number,
+    approved: boolean,
+    rejectionReason: string | undefined,
+    request: ServiceRequest
+  ): Promise<void> {
+    const currentUser = this.authService.appUser();
+    if (!currentUser) return;
+
+    const newStatus = approved ? "Data Definida" : "Recusado";
+    const note = this.buildStatusChangeNote(approved, rejectionReason, request);
+    
+    await this.recordStatusChange(requestId, newStatus, currentUser.id, note);
+  }
+
+  private buildStatusChangeNote(
+    approved: boolean,
+    rejectionReason: string | undefined,
+    request: ServiceRequest
+  ): string {
+    if (approved) {
+      const formattedDate = request.proposed_execution_date
+        ? new Date(request.proposed_execution_date).toLocaleDateString()
+        : "";
+      return `Data de execução confirmada para ${formattedDate}`;
+    }
+    
+    return `Data de execução rejeitada. Motivo: ${rejectionReason || ""}`;
+  }
+
+  private notifyExecutionDateResponse(requestId: number, approved: boolean): void {
+    const translationKey = approved ? "executionDateApproved" : "executionDateRejected";
     this.notificationService.addNotification(
-      this.i18n.translate(
-        approved ? "executionDateApproved" : "executionDateRejected",
-        { id: requestId.toString() }
-      )
+      this.i18n.translate(translationKey, { id: requestId.toString() })
     );
-    const notificationType = approved
-      ? "execution_date_approved"
-      : "execution_date_rejected";
-    const titleKey = approved
-      ? "executionDateApprovedByClient"
-      : "executionDateRejectedByClient";
-    const messageKey = approved
-      ? "executionDateApprovedMessage"
-      : "executionDateRejectedMessage";
+  }
+
+  private async notifyStakeholdersAboutExecutionDate(
+    request: ServiceRequest,
+    approved: boolean,
+    rejectionReason: string | undefined,
+    requestId: number
+  ): Promise<void> {
+    const notificationConfig = this.getExecutionDateNotificationConfig(approved);
+    
+    await this.notifyAdminsAboutExecutionDate(notificationConfig, rejectionReason, requestId);
+    await this.notifyProfessionalAboutExecutionDate(request, notificationConfig, rejectionReason, requestId);
+  }
+
+  private getExecutionDateNotificationConfig(approved: boolean) {
+    if (approved) {
+      return {
+        type: "execution_date_approved" as const,
+        titleKey: "executionDateApprovedByClient",
+        messageKey: "executionDateApprovedMessage",
+        actionRequired: false,
+        adminPriority: "medium" as const
+      };
+    }
+    
+    return {
+      type: "execution_date_rejected" as const,
+      titleKey: "executionDateRejectedByClient",
+      messageKey: "executionDateRejectedMessage",
+      actionRequired: true,
+      adminPriority: "high" as const
+    };
+  }
+
+  private async notifyAdminsAboutExecutionDate(
+    config: ReturnType<typeof this.getExecutionDateNotificationConfig>,
+    rejectionReason: string | undefined,
+    requestId: number
+  ): Promise<void> {
     const adminUsers = this.users().filter((u) => u.role === "admin");
+    
     for (const admin of adminUsers) {
       await this.notificationService.createEnhancedNotification(
         admin.id,
-        notificationType,
-        this.i18n.translate(titleKey),
-        this.i18n.translate(messageKey, {
+        config.type,
+        this.i18n.translate(config.titleKey),
+        this.i18n.translate(config.messageKey, {
           requestId: requestId.toString(),
           reason: rejectionReason || "",
         }),
         {
           serviceRequestId: requestId,
-          actionRequired: !approved,
-          priority: approved ? "medium" : "high",
+          actionRequired: config.actionRequired,
+          priority: config.adminPriority,
         }
       );
     }
-    if (request.professional_id) {
-      await this.notificationService.createEnhancedNotification(
-        request.professional_id,
-        notificationType,
-        this.i18n.translate(titleKey),
-        this.i18n.translate(messageKey, {
-          requestId: requestId.toString(),
-          reason: rejectionReason || "",
-        }),
-        {
-          serviceRequestId: requestId,
-          actionRequired: false,
-          priority: "medium",
-        }
-      );
-    }
+  }
+
+  private async notifyProfessionalAboutExecutionDate(
+    request: ServiceRequest,
+    config: ReturnType<typeof this.getExecutionDateNotificationConfig>,
+    rejectionReason: string | undefined,
+    requestId: number
+  ): Promise<void> {
+    if (!request.professional_id) return;
+
+    await this.notificationService.createEnhancedNotification(
+      request.professional_id,
+      config.type,
+      this.i18n.translate(config.titleKey),
+      this.i18n.translate(config.messageKey, {
+        requestId: requestId.toString(),
+        reason: rejectionReason || "",
+      }),
+      {
+        serviceRequestId: requestId,
+        actionRequired: false,
+        priority: "medium",
+      }
+    );
   }
 
   async updatePaymentStatus(requestId: number, paymentStatus: PaymentStatus) {
@@ -1614,5 +1740,42 @@ export class DataService {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Registra uma mudança de status na tabela service_requests_status para histórico
+   */
+  private async recordStatusChange(
+    requestId: number,
+    newStatus: string,
+    userId: number,
+    notes?: string
+  ): Promise<void> {
+    try {
+      const statusEntry = {
+        service_request_id: requestId,
+        status: newStatus,
+        changed_by: userId,
+        changed_at: new Date().toISOString(),
+        notes: notes || null,
+      };
+
+      console.log('[recordStatusChange] Inserindo histórico:', statusEntry);
+
+      const { data, error } = await this.supabase.client
+        .from("service_requests_status")
+        .insert([statusEntry])
+        .select();
+
+      if (error) {
+        console.error("Erro ao registrar mudança de status:", error);
+        console.error("Dados tentados:", statusEntry);
+        return;
+      }
+
+      console.log('[recordStatusChange] Histórico inserido com sucesso:', data);
+    } catch (error) {
+      console.error("Erro em recordStatusChange:", error);
+    }
   }
 }

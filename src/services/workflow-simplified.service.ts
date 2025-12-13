@@ -129,6 +129,7 @@ export class WorkflowServiceSimplified {
     requestData: Partial<ServiceRequest>,
     adminId: number
   ): Promise<ServiceRequest | null> {
+    console.log('🎯 [createServiceRequest] INICIANDO - adminId:', adminId, 'data:', requestData);
     try {
       const admin = await this.getCurrentUser();
       if (admin?.role !== "admin") {
@@ -152,6 +153,20 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      console.log('📝 [createServiceRequest] Novo serviço criado com ID:', data.id);
+
+      // Registrar na tabela de histórico (primeira entrada - criação)
+      if (data?.id) {
+        console.log('📊 [createServiceRequest] ANTES DE updateStatus - Gravando status inicial "Solicitado" para ID:', data.id);
+        const statusResult = await this.updateStatus(
+          data.id,
+          "Solicitado",
+          adminId,
+          "Solicitação criada pelo administrador"
+        );
+        console.log('✅ [createServiceRequest] APÓS updateStatus - Resultado:', statusResult);
+      }
+
       // Auditoria: Log da criação (null → Solicitado)
       await this.auditService.logStatusChange(
         data.id,
@@ -164,6 +179,7 @@ export class WorkflowServiceSimplified {
         this.i18n.translate("serviceRequestCreated")
       );
 
+      console.log('[createServiceRequest] ✅ Solicitação criada com sucesso:', data);
       return data;
     } catch (error) {
       console.error("Erro ao criar solicitação:", error);
@@ -186,6 +202,7 @@ export class WorkflowServiceSimplified {
     professionalId: number,
     adminId: number
   ): Promise<boolean> {
+    console.log('🎯 [assignProfessional] INICIANDO - requestId:', requestId, 'professionalId:', professionalId);
     try {
       // Buscar status atual antes da mudança
       const request = await this.getRequest(requestId);
@@ -208,6 +225,11 @@ export class WorkflowServiceSimplified {
         .eq("id", requestId);
 
       if (error) throw error;
+      console.log('✅ [assignProfessional] Tabela service_requests atualizada');
+
+      // Registrar na tabela de histórico
+      console.log('📝 [assignProfessional] Chamando updateStatus para "Atribuído"');
+      await this.updateStatus(requestId, "Atribuído", adminId);
 
       // Auditoria: Log da atribuição (Solicitado → Atribuído)
       await this.auditService.logStatusChange(
@@ -218,6 +240,7 @@ export class WorkflowServiceSimplified {
       );
 
       // Atualizar status para aguardando confirmação
+      console.log('📝 [assignProfessional] Chamando updateStatus para "Aguardando Confirmação"');
       await this.updateStatus(requestId, "Aguardando Confirmação", adminId);
 
       // Auditoria: Log da mudança automática (Atribuído → Aguardando Confirmação)
@@ -284,6 +307,11 @@ export class WorkflowServiceSimplified {
         .eq("professional_id", professionalId);
 
       if (error) throw error;
+
+      // Registrar na tabela de histórico
+      if (currentUser) {
+        await this.updateStatus(requestId, newStatus, currentUser.id, notes ? `Resposta do profissional: ${notes}` : this.buildAuditMessage(accept, notes));
+      }
 
       await this.auditService.logStatusChange(
         requestId,
@@ -376,6 +404,17 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Registrar na tabela de histórico
+      const currentUserSchedule = await this.getCurrentUser();
+      if (currentUserSchedule) {
+        await this.updateStatus(
+          requestId, 
+          "Data Definida", 
+          currentUserSchedule.id, 
+          "Data agendada para " + new Date(scheduledDate).toLocaleString('pt-PT') + (estimatedDuration ? " (duração estimada: " + estimatedDuration + " min)" : "")
+        );
+      }
+
       // Auditoria: Log do agendamento (Aceito → Data Definida)
       await this.auditService.logStatusChange(
         requestId,
@@ -463,6 +502,11 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Registrar na tabela de histórico
+      if (currentUser) {
+        await this.updateStatus(requestId, "Em Progresso", currentUser.id, "Profissional iniciou a execução do serviço");
+      }
+
       // Auditoria: Log do início (Data Definida → Em Progresso)
       await this.auditService.logStatusChange(
         requestId,
@@ -542,6 +586,16 @@ export class WorkflowServiceSimplified {
         .eq("professional_id", professionalId);
 
       if (error) throw error;
+
+      // Registrar na tabela de histórico
+      if (currentUser) {
+        await this.updateStatus(
+          requestId, 
+          "Aguardando Finalização", 
+          currentUser.id, 
+          notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução"
+        );
+      }
 
       // Auditoria: Log da conclusão (Em Progresso → Aguardando Finalização)
       await this.auditService.logStatusChange(
@@ -624,6 +678,16 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Registrar na tabela de histórico
+      if (currentUser) {
+        await this.updateStatus(
+          requestId, 
+          "Pagamento Feito", 
+          currentUser.id, 
+          "Pagamento registrado: " + paymentData.amount + "€ via " + paymentData.method + (paymentData.notes ? " - " + paymentData.notes : "")
+        );
+      }
+
       // Auditoria: Log do pagamento (Aguardando Finalização → Pagamento Feito)
       await this.auditService.logStatusChange(
         requestId,
@@ -703,6 +767,16 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Registrar na tabela de histórico
+      if (currentUser) {
+        await this.updateStatus(
+          requestId, 
+          "Concluído", 
+          currentUser.id, 
+          "Serviço finalizado pelo administrador" + (adminNotes ? ": " + adminNotes : "")
+        );
+      }
+
       // Auditoria: Log da finalização (Pagamento Feito → Concluído)
       await this.auditService.logStatusChange(
         requestId,
@@ -774,6 +848,9 @@ export class WorkflowServiceSimplified {
 
       if (error) throw error;
 
+      // Registrar na tabela de histórico
+      await this.updateStatus(requestId, "Cancelado", userId, reason);
+
       // Auditoria: Log do cancelamento (qualquer status → Cancelado)
       await this.auditService.logStatusChange(
         requestId,
@@ -807,27 +884,47 @@ export class WorkflowServiceSimplified {
     userId: number,
     notes?: string
   ): Promise<void> {
-    // Atualiza o status atual
-    const { error: updateError } = await this.supabase.client
-      .from("service_requests")
-      .update({ status: newStatus })
-      .eq("id", requestId);
+    try {
+      console.log('[updateStatus] 🔄 INICIANDO - requestId:', requestId, 'newStatus:', newStatus, 'userId:', userId);
 
-    if (updateError) throw updateError;
+      // Atualiza o status atual na tabela principal
+      const { error: updateError } = await this.supabase.client
+        .from("service_requests")
+        .update({ status: newStatus })
+        .eq("id", requestId);
 
-    // Registra a mudança no histórico
-    const { error: historyError } = await this.supabase.client
-      .from("service_requests_status")
-      .insert({
+      if (updateError) {
+        console.error('[updateStatus] ❌ Erro ao atualizar status principal:', updateError);
+        throw updateError;
+      }
+
+      console.log('[updateStatus] ✅ Status principal atualizado');
+
+      // Registra a mudança no histórico (INSERT sempre, nunca UPDATE)
+      const statusEntry = {
         service_request_id: requestId,
         status: newStatus,
         changed_by: userId,
+        changed_at: new Date().toISOString(),
         notes: notes || null
-      });
+      };
 
-    if (historyError) {
-      console.error('Erro ao registrar histórico de status:', historyError);
-      // Não lança erro para não quebrar o fluxo principal
+      console.log('[updateStatus] 📝 Inserindo histórico:', statusEntry);
+
+      const { data, error: historyError } = await this.supabase.client
+        .from("service_requests_status")
+        .insert([statusEntry])
+        .select();
+
+      if (historyError) {
+        console.error('[updateStatus] ❌ ERRO ao inserir histórico:', historyError);
+        console.error('[updateStatus] Dados: ', statusEntry);
+        return;
+      }
+
+      console.log('[updateStatus] ✅ HISTÓRICO INSERIDO:', data);
+    } catch (error) {
+      console.error('[updateStatus] ❌ Erro geral:', error);
     }
   }
 

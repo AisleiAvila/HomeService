@@ -40,7 +40,7 @@
                   {{ 'category' | i18n }}
                 </label>
                 <select id="edit-category-id" name="category_id" [(ngModel)]="request.category_id" (change)="onCategoryChange($event)" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
-                  <option value="" disabled>{{ 'select' | i18n }}</option>
+                  <option value="" disabled>{{ 'selectCategory' | i18n }}</option>
                   <ng-container *ngFor="let cat of categories(); trackBy: trackCategory">
                     <option [value]="cat.id">{{ cat.name | i18n }}</option>
                   </ng-container>
@@ -52,7 +52,7 @@
                   {{ 'subcategory' | i18n }}
                 </label>
                 <select id="edit-subcategory-id" name="subcategory_id" [(ngModel)]="request.subcategory_id" [disabled]="!request.category_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed">
-                  <option value="" disabled>{{ 'select' | i18n }}</option>
+                  <option value="" disabled>{{ 'selectSybcategory' | i18n }}</option>
                   <ng-container *ngFor="let sub of subcategories(); trackBy: trackSubcategory">
                     <option [value]="sub.id">{{ sub.name | i18n }}</option>
                   </ng-container>

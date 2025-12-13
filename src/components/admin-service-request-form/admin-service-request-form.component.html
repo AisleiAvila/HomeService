@@ -15,9 +15,9 @@
       <div class="p-4 border rounded-lg dark:border-gray-700">
         <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Origem da Solicitação</h3>
         <div>
-          <label for="origin_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Origem</label>
+          <label for="origin_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'origin' | i18n }}</label>
           <select id="origin_id" name="origin_id" [ngModel]="newRequest().origin_id" (ngModelChange)="updateNewRequest('origin_id', +$event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-            <option value="0" disabled>Selecione a origem</option>
+            <option value="0" disabled>{{ 'selectOrigin' | i18n }}</option>
             @for (origin of origins(); track origin.id) {
               <option [value]="origin.id">{{ origin.name }}</option>
             }

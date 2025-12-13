@@ -210,7 +210,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     formInvalid: "Form Invalid",
     title: "Title",
     titlePlaceholder: "Enter service title...",
-    selectCategory: "Select a category...",
+    selectCategory: "Select a category",
     subcategory: "Subcategory",
     selectSubcategory: "Select a subcategory",
     descriptionPlaceholder: "Describe what you need...",
@@ -903,6 +903,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     logout_success: "You have been logged out successfully.",
     providerValue: "Provider Value",
     origin: "Origin",
+    selectOrigin: "Select the origin of the request",
+    nif: "NIF",
    
 
   },
@@ -1111,7 +1113,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     formInvalid: "Formulário Inválido",
     title: "Título",
     titlePlaceholder: "Digite o título do serviço...",
-    selectCategory: "Selecione uma categoria...",
+    selectCategory: "Selecione uma categoria",
     subcategory: "Subcategoria",
     selectSubcategory: "Selecione uma subcategoria",
     descriptionPlaceholder: "Descreva o que você precisa...",
@@ -1811,6 +1813,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     logout_success: "Logout realizado com sucesso.",
     providerValue: "Valor do Prestador",
     origin: "Origem",
+    selectOrigin: "Selecione a origem da solicitação",
+    nif: "NIF",
 
   },
 };

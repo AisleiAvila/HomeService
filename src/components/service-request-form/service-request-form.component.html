@@ -53,12 +53,12 @@
       <!-- Origem da Solicitação -->
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-building text-indigo-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800">Origem da Solicitação</h3>
+        <h3 class="text-lg font-semibold text-gray-800">{{ 'requestOrigin' | i18n }}</h3>
       </div>
       <div class="mb-4">
-        <label for="origin_id" class="block text-sm font-medium text-gray-700">Origem</label>
+        <label for="origin_id" class="block text-sm font-medium text-gray-700">{{ 'origin' | i18n }}</label>
         <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
-          <option value="0" disabled selected>Selecione a origem</option>
+          <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
           <ng-container *ngFor="let origin of origins()">
             <option [value]="origin.id">{{ origin.name }}</option>
           </ng-container>
@@ -80,7 +80,7 @@
             (change)="onCategoryChange($any($event.target).value)"
             required
           >
-            <option value="" disabled selected>{{ "select" | i18n }}</option>
+            <option value="" disabled selected>{{ "selectCategory" | i18n }}</option>
             <ng-container *ngFor="let cat of categories()">
               <option [value]="cat.id">{{ cat.name }}</option>
             </ng-container>
@@ -108,7 +108,7 @@
             [disabled]="!category_id()"
             required
           >
-            <option value="" disabled selected>{{ "select" | i18n }}</option>
+            <option value="" disabled selected>{{ "selectSubcategory" | i18n }}</option>
             <ng-container *ngFor="let sub of subcategories()">
               <option [value]="sub.id">{{ sub.name }}</option>
             </ng-container>

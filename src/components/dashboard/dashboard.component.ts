@@ -197,7 +197,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  public ngOnInit() {
+  public async ngOnInit() {
     const allStatus: ServiceStatus[] = [
       "Solicitado",
       "Atribuído",
@@ -218,6 +218,10 @@ export class DashboardComponent implements OnInit {
         label: this.i18n.translate(status),
       }))
     );
+
+    // Recarrega as solicitações quando o componente é inicializado
+    console.log('[Dashboard] ngOnInit - Recarregando solicitações de serviço');
+    await this.dataService.reloadServiceRequests();
   }
 
   // Removido duplicidade de selectedRequest
@@ -594,14 +598,25 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Atualizar status para "Data Definida"
-      await this.dataService.updateServiceRequest(request.id, {
-        status: "Data Definida",
-      });
-      
-      this.showBusinessError.set(true);
-      this.businessErrorMessage.set(this.i18n.translate("assignmentConfirmed"));
-      setTimeout(() => this.showBusinessError.set(false), 3000);
+      const currentUser = this.user();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem confirmar atribuição");
+      }
+
+      // Responder positivamente à atribuição
+      const success = await this.workflowService.respondToAssignment(
+        request.id,
+        currentUser.id,
+        true,
+        "Atribuição confirmada"
+      );
+
+      if (success) {
+        await this.dataService.reloadServiceRequests();
+        this.showBusinessError.set(true);
+        this.businessErrorMessage.set(this.i18n.translate("assignmentConfirmed"));
+        setTimeout(() => this.showBusinessError.set(false), 3000);
+      }
     } catch (error) {
       console.error("Erro ao confirmar atribuição:", error);
       this.showBusinessError.set(true);
@@ -618,15 +633,25 @@ export class DashboardComponent implements OnInit {
       Array.from(new Set([...(ids || []), request.id]))
     );
     try {
-      // Atualizar status para "Solicitado" e remover o profissional
-      await this.dataService.updateServiceRequest(request.id, {
-        status: "Solicitado",
-        professional_id: null,
-      });
-      
-      this.showBusinessError.set(true);
-      this.businessErrorMessage.set(this.i18n.translate("assignmentRejected"));
-      setTimeout(() => this.showBusinessError.set(false), 3000);
+      const currentUser = this.user();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem rejeitar atribuição");
+      }
+
+      // Responder negativamente à atribuição
+      const success = await this.workflowService.respondToAssignment(
+        request.id,
+        currentUser.id,
+        false,
+        "Atribuição recusada"
+      );
+
+      if (success) {
+        await this.dataService.reloadServiceRequests();
+        this.showBusinessError.set(true);
+        this.businessErrorMessage.set(this.i18n.translate("assignmentRejected"));
+        setTimeout(() => this.showBusinessError.set(false), 3000);
+      }
     } catch (error) {
       console.error("Erro ao rejeitar atribuição:", error);
       this.showBusinessError.set(true);

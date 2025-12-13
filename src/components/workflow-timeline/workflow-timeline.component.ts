@@ -154,18 +154,19 @@ export class WorkflowTimelineComponent {
     
     // Adiciona o status atual se não estiver no histórico
     const currentInHistory = statuses.some(s => s.name === currentStatus);
-    if (!currentInHistory) {
+    if (currentInHistory) {
+      // Marca o último como atual
+      const lastStatus = statuses.at(-1);
+      if (lastStatus) {
+        lastStatus.isCurrent = true;
+      }
+    } else {
       statuses.push({
         name: currentStatus,
         timestamp: request.updated_at || request.created_at || new Date().toISOString(),
         userName: null,
         isCurrent: true
       });
-    } else {
-      // Marca o último como atual
-      if (statuses.length > 0) {
-        statuses[statuses.length - 1].isCurrent = true;
-      }
     }
     
     return statuses;
@@ -176,10 +177,13 @@ export class WorkflowTimelineComponent {
     const request = this.serviceRequest();
     if (!request?.id) return;
     
+    console.log('[WorkflowTimeline] Carregando histórico para solicitação:', request.id);
+    
     try {
       const { data, error } = await this.supabase.client
         .from('service_requests_status')
         .select(`
+          id,
           status, 
           changed_at, 
           changed_by,
@@ -190,10 +194,12 @@ export class WorkflowTimelineComponent {
         .order('changed_at', { ascending: true });
       
       if (error) {
-        console.error('Erro ao carregar histórico de status:', error);
+        console.error('[WorkflowTimeline] Erro ao carregar histórico de status:', error);
         this.statusHistory.set([]);
         return;
       }
+      
+      console.log('[WorkflowTimeline] Registros carregados:', data?.length, 'Status encontrados:', data);
       
       // Mapeia os dados para extrair o nome do usuário
       const mappedData = (data || []).map((item: any) => ({
@@ -204,9 +210,10 @@ export class WorkflowTimelineComponent {
         notes: item.notes
       }));
       
+      console.log('[WorkflowTimeline] Dados mapeados:', mappedData);
       this.statusHistory.set(mappedData);
     } catch (error) {
-      console.error('Erro ao buscar histórico:', error);
+      console.error('[WorkflowTimeline] Erro ao buscar histórico:', error);
       this.statusHistory.set([]);
     }
   });
