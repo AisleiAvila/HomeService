@@ -43,12 +43,12 @@ export class NotificationService {
     };
     this.notifications.update((current) => [newNotification, ...current]);
 
-    // Auto-remove após 15 segundos
+    // Auto-remove após 5 segundos
     setTimeout(() => {
       this.notifications.update((all) =>
         all.filter((n) => n.id !== newNotification.id)
       );
-    }, 15000);
+    }, 5000);
   }
 
   showSuccess(message: string) {
