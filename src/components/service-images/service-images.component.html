@@ -20,30 +20,45 @@
           </span>
         </div>
 
-        <!-- Upload Button -->
+        <!-- Upload Buttons -->
         @if (canUploadBefore()) {
-        <div class="mb-4">
-          <label class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-            @if (uploadingBefore()) {
-              <div class="flex items-center gap-2 text-blue-600">
-                <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-                <span>{{ 'uploading' | i18n }}...</span>
-              </div>
-            } @else {
-              <div class="flex items-center gap-2 text-gray-600">
-                <i class="fas fa-cloud-upload-alt text-xl"></i>
-                <span class="font-medium">{{ 'clickToUploadImage' | i18n }}</span>
-              </div>
-            }
-            <input 
-              type="file" 
-              accept="image/*" 
-              (change)="uploadImage($event, 'before')"
+        <div class="mb-4 space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Upload from file -->
+            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+              @if (uploadingBefore()) {
+                <div class="flex items-center gap-2 text-blue-600">
+                  <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                  <span class="text-sm">{{ 'uploading' | i18n }}...</span>
+                </div>
+              } @else {
+                <div class="flex items-center gap-2 text-gray-600">
+                  <i class="fas fa-cloud-upload-alt text-lg"></i>
+                  <span class="font-medium text-sm">{{ 'uploadImage' | i18n }}</span>
+                </div>
+              }
+              <input 
+                type="file" 
+                accept="image/*" 
+                (change)="uploadImage($event, 'before')"
+                [disabled]="uploadingBefore()"
+                class="hidden"
+              />
+            </label>
+
+            <!-- Capture from camera -->
+            <button
+              (click)="openCamera('before')"
               [disabled]="uploadingBefore()"
-              class="hidden"
-            />
-          </label>
-          <p class="text-xs text-gray-500 mt-1 text-center">
+              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div class="flex items-center gap-2 text-gray-600">
+                <i class="fas fa-camera text-lg"></i>
+                <span class="font-medium text-sm">{{ 'useCamera' | i18n }}</span>
+              </div>
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 text-center">
             {{ 'maxFileSize5MB' | i18n }}
           </p>
         </div>
@@ -111,30 +126,45 @@
           </span>
         </div>
 
-        <!-- Upload Button -->
+        <!-- Upload Buttons -->
         @if (canUploadAfter()) {
-        <div class="mb-4">
-          <label class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
-            @if (uploadingAfter()) {
-              <div class="flex items-center gap-2 text-green-600">
-                <div class="animate-spin rounded-full h-5 w-5 border-2 border-green-600 border-t-transparent"></div>
-                <span>{{ 'uploading' | i18n }}...</span>
-              </div>
-            } @else {
-              <div class="flex items-center gap-2 text-gray-600">
-                <i class="fas fa-cloud-upload-alt text-xl"></i>
-                <span class="font-medium">{{ 'clickToUploadImage' | i18n }}</span>
-              </div>
-            }
-            <input 
-              type="file" 
-              accept="image/*" 
-              (change)="uploadImage($event, 'after')"
+        <div class="mb-4 space-y-2">
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Upload from file -->
+            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
+              @if (uploadingAfter()) {
+                <div class="flex items-center gap-2 text-green-600">
+                  <div class="animate-spin rounded-full h-5 w-5 border-2 border-green-600 border-t-transparent"></div>
+                  <span class="text-sm">{{ 'uploading' | i18n }}...</span>
+                </div>
+              } @else {
+                <div class="flex items-center gap-2 text-gray-600">
+                  <i class="fas fa-cloud-upload-alt text-lg"></i>
+                  <span class="font-medium text-sm">{{ 'uploadImage' | i18n }}</span>
+                </div>
+              }
+              <input 
+                type="file" 
+                accept="image/*" 
+                (change)="uploadImage($event, 'after')"
+                [disabled]="uploadingAfter()"
+                class="hidden"
+              />
+            </label>
+
+            <!-- Capture from camera -->
+            <button
+              (click)="openCamera('after')"
               [disabled]="uploadingAfter()"
-              class="hidden"
-            />
-          </label>
-          <p class="text-xs text-gray-500 mt-1 text-center">
+              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div class="flex items-center gap-2 text-gray-600">
+                <i class="fas fa-camera text-lg"></i>
+                <span class="font-medium text-sm">{{ 'useCamera' | i18n }}</span>
+              </div>
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 text-center">
             {{ 'maxFileSize5MB' | i18n }}
           </p>
         </div>
@@ -198,5 +228,63 @@
         </p>
       </div>
     }
+  }
+
+  <!-- Camera Modal -->
+  @if (isCameraOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4">
+      <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-500">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <i class="fas fa-camera"></i>
+            {{ 'capturePhoto' | i18n }}
+          </h3>
+          <button
+            (click)="closeCamera()"
+            class="text-white hover:text-gray-200 transition-colors"
+            [attr.aria-label]="'close' | i18n"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Video Preview -->
+        <div class="relative bg-black">
+          <video
+            #videoElement
+            autoplay
+            playsinline
+            class="w-full h-auto max-h-[60vh] object-contain"
+          ></video>
+          
+          <!-- Loading overlay -->
+          <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="text-center text-white">
+              <div class="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent mx-auto mb-2"></div>
+              <p class="text-sm">{{ 'loadingCamera' | i18n }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="p-4 bg-gray-50 flex items-center justify-center gap-3">
+          <button
+            (click)="closeCamera()"
+            class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <i class="fas fa-times"></i>
+            {{ 'cancel' | i18n }}
+          </button>
+          <button
+            (click)="capturePhoto()"
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <i class="fas fa-camera"></i>
+            {{ 'capture' | i18n }}
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>

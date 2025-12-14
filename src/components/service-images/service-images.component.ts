@@ -1,10 +1,11 @@
-import { Component, input, signal, inject, computed, OnInit } from '@angular/core';
+import { Component, input, signal, inject, computed, OnInit, viewChild, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WorkflowServiceSimplified } from '../../services/workflow-simplified.service';
 import { ServiceRequestImage } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { I18nService } from '../../i18n.service';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-service-images',
@@ -13,7 +14,7 @@ import { I18nService } from '../../i18n.service';
   templateUrl: './service-images.component.html',
   styleUrls: ['./service-images.component.css'],
 })
-export class ServiceImagesComponent implements OnInit {
+export class ServiceImagesComponent implements OnInit, OnDestroy {
   // Inputs
   requestId = input.required<number>();
   requestStatus = input.required<string>();
@@ -21,12 +22,20 @@ export class ServiceImagesComponent implements OnInit {
   // Services
   private workflowService = inject(WorkflowServiceSimplified);
   private i18n = inject(I18nService);
+  private notificationService = inject(NotificationService);
+
+  // ViewChild references
+  videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
 
   // State
   private allImages = signal<ServiceRequestImage[]>([]);
   isLoading = signal(false);
   uploadingBefore = signal(false);
   uploadingAfter = signal(false);
+  isCameraOpen = signal(false);
+  currentImageType = signal<'before' | 'after'>('before');
+  
+  private cameraStream: MediaStream | null = null;
 
   // Computed
   beforeImages = computed(() => 
@@ -49,6 +58,10 @@ export class ServiceImagesComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadImages();
+  }
+
+  ngOnDestroy() {
+    this.closeCamera();
   }
 
   async loadImages() {
@@ -145,5 +158,186 @@ export class ServiceImagesComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  async openCamera(imageType: 'before' | 'after') {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.notificationService.addNotification(
+        this.i18n.translate('errorCameraNotSupported')
+      );
+      return;
+    }
+
+    try {
+      const permissions = await navigator.permissions.query({
+        name: 'camera' as PermissionName,
+      });
+
+      if (permissions.state === 'denied') {
+        this.notificationService.addNotification(
+          this.i18n.translate('errorCameraPermissionDenied')
+        );
+        return;
+      }
+
+      this.currentImageType.set(imageType);
+      
+      this.cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'environment', // Câmera traseira preferencial para fotos do serviço
+        },
+        audio: false,
+      });
+
+      this.isCameraOpen.set(true);
+
+      setTimeout(() => {
+        const videoElement = this.videoElement();
+        if (videoElement) {
+          const video = videoElement.nativeElement;
+          video.srcObject = this.cameraStream;
+
+          video.onloadedmetadata = () => {
+            video.play().catch((playError) => {
+              console.error('Erro ao reproduzir vídeo:', playError);
+            });
+          };
+
+          video.onerror = (error) => {
+            console.error('Erro na reprodução do vídeo:', error);
+            this.notificationService.addNotification(
+              this.i18n.translate('errorAccessingCamera')
+            );
+            this.closeCamera();
+          };
+        } else {
+          console.error('Elemento de vídeo não encontrado');
+          this.closeCamera();
+        }
+      }, 100);
+    } catch (err: any) {
+      console.error('Erro ao acessar a câmera:', err);
+      
+      let errorMessage = this.i18n.translate('errorAccessingCamera');
+
+      if (err.name === 'NotAllowedError') {
+        errorMessage = this.i18n.translate('errorCameraPermissionDenied');
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = this.i18n.translate('errorNoCameraFound');
+      } else if (err.name === 'NotReadableError') {
+        errorMessage = this.i18n.translate('errorCameraInUse');
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = this.i18n.translate('errorCameraConstraints');
+      }
+
+      this.notificationService.addNotification(errorMessage);
+    }
+  }
+
+  async capturePhoto() {
+    const video = this.videoElement()?.nativeElement;
+    if (!video) {
+      this.notificationService.addNotification(
+        this.i18n.translate('errorAccessingCamera')
+      );
+      return;
+    }
+
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      this.notificationService.addNotification(
+        this.i18n.translate('errorVideoNotReady')
+      );
+      return;
+    }
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        this.notificationService.addNotification(
+          this.i18n.translate('errorCapturingPhoto')
+        );
+        return;
+      }
+
+      ctx.drawImage(video, 0, 0);
+
+      canvas.toBlob(
+        async (blob) => {
+          if (blob) {
+            const file = new File([blob], `service-image-${Date.now()}.jpg`, {
+              type: 'image/jpeg',
+            });
+
+            const imageType = this.currentImageType();
+            const loadingSignal = imageType === 'before' ? this.uploadingBefore : this.uploadingAfter;
+            loadingSignal.set(true);
+
+            try {
+              const result = await this.workflowService.uploadServiceImage(
+                file,
+                this.requestId(),
+                imageType,
+                ''
+              );
+
+              if (result) {
+                console.log('✅ Foto capturada e enviada com sucesso:', result);
+                await this.loadImages();
+                this.notificationService.addNotification(
+                  this.i18n.translate('photoUploadedSuccessfully')
+                );
+              }
+            } catch (error) {
+              console.error('❌ Erro ao fazer upload da foto:', error);
+              this.notificationService.addNotification(
+                this.i18n.translate('uploadImageError')
+              );
+            } finally {
+              loadingSignal.set(false);
+            }
+          } else {
+            this.notificationService.addNotification(
+              this.i18n.translate('errorCapturingPhoto')
+            );
+          }
+          this.closeCamera();
+        },
+        'image/jpeg',
+        0.9
+      );
+    } catch (error) {
+      console.error('Erro ao capturar foto:', error);
+      this.notificationService.addNotification(
+        this.i18n.translate('errorCapturingPhoto')
+      );
+      this.closeCamera();
+    }
+  }
+
+  closeCamera() {
+    try {
+      if (this.cameraStream) {
+        this.cameraStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+        this.cameraStream = null;
+      }
+
+      const videoElement = this.videoElement();
+      if (videoElement) {
+        const video = videoElement.nativeElement;
+        video.srcObject = null;
+      }
+
+      this.isCameraOpen.set(false);
+    } catch (error) {
+      console.error('Erro ao fechar câmera:', error);
+    }
   }
 }
