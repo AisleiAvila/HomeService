@@ -5,10 +5,13 @@ import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
 import { StatusAuditService } from "./status-audit.service";
+import { ServiceImageService } from "./service-image.service";
 import {
   ServiceRequest,
   ServiceStatus,
   UserRole,
+  ServiceRequestImage,
+  ServiceRequestImageUpload,
 } from "../models/maintenance.models";
 
 /**
@@ -32,6 +35,7 @@ export class WorkflowServiceSimplified {
   private readonly i18n = inject(I18nService);
   private readonly auditService = inject(StatusAuditService);
   private readonly smsService = inject(SmsService);
+  private readonly imageService = inject(ServiceImageService);
 
   /**
    * Mapeamento de transições válidas
@@ -215,21 +219,21 @@ export class WorkflowServiceSimplified {
         throw new Error(`Não é possível atribuir a partir do status ${previousStatus}`);
       }
 
-      const { error } = await this.supabase.client
+      // Atualizar professional_id e assigned_by_admin_id (sem mudar status ainda)
+      const { error: updateError } = await this.supabase.client
         .from("service_requests")
         .update({
           professional_id: professionalId,
           assigned_by_admin_id: adminId,
-          status: "Atribuído",
         })
         .eq("id", requestId);
 
-      if (error) throw error;
-      console.log('✅ [assignProfessional] Tabela service_requests atualizada');
+      if (updateError) throw updateError;
+      console.log('✅ [assignProfessional] Profissional e admin atribuídos');
 
-      // Registrar na tabela de histórico
-      console.log('📝 [assignProfessional] Chamando updateStatus para "Atribuído"');
-      await this.updateStatus(requestId, "Atribuído", adminId);
+      // Primeiro: Atribuído
+      console.log('📝 [assignProfessional] Mudando status para "Atribuído"');
+      await this.updateStatus(requestId, "Atribuído", adminId, `Profissional ID ${professionalId} atribuído pelo admin`);
 
       // Auditoria: Log da atribuição (Solicitado → Atribuído)
       await this.auditService.logStatusChange(
@@ -239,9 +243,9 @@ export class WorkflowServiceSimplified {
         `Profissional ID ${professionalId} atribuído pelo admin`
       );
 
-      // Atualizar status para aguardando confirmação
-      console.log('📝 [assignProfessional] Chamando updateStatus para "Aguardando Confirmação"');
-      await this.updateStatus(requestId, "Aguardando Confirmação", adminId);
+      // Segundo: Aguardando Confirmação
+      console.log('📝 [assignProfessional] Mudando status para "Aguardando Confirmação"');
+      await this.updateStatus(requestId, "Aguardando Confirmação", adminId, "Notificação enviada ao profissional");
 
       // Auditoria: Log da mudança automática (Atribuído → Aguardando Confirmação)
       await this.auditService.logStatusChange(
@@ -1107,4 +1111,111 @@ export class WorkflowServiceSimplified {
         return false;
       }
     }
+
+  /**
+   * GESTÃO DE IMAGENS
+   */
+
+  /**
+   * Profissional faz upload de imagem (antes ou depois do serviço)
+   */
+  async uploadServiceImage(
+    file: File,
+    requestId: number,
+    imageType: 'before' | 'after',
+    description?: string
+  ): Promise<ServiceRequestImage | null> {
+    try {
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const uploadData: ServiceRequestImageUpload = {
+        service_request_id: requestId,
+        image_type: imageType,
+        description,
+      };
+
+      const result = await this.imageService.uploadImage(
+        file,
+        uploadData,
+        currentUser.id
+      );
+
+      if (result) {
+        // Registrar na auditoria
+        await this.auditService.logStatusChange(
+          requestId,
+          (await this.getRequest(requestId))?.status || "Solicitado",
+          (await this.getRequest(requestId))?.status || "Solicitado",
+          `Imagem ${imageType === 'before' ? 'antes' : 'depois'} adicionada${description ? ': ' + description : ''}`,
+          { image_id: result.id, image_url: result.image_url }
+        );
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Erro ao fazer upload de imagem:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Lista imagens de uma solicitação
+   */
+  async getServiceImages(
+    requestId: number,
+    imageType?: 'before' | 'after'
+  ): Promise<ServiceRequestImage[]> {
+    return this.imageService.getImagesByRequest(requestId, imageType);
+  }
+
+  /**
+   * Deleta uma imagem
+   */
+  async deleteServiceImage(imageId: number): Promise<boolean> {
+    try {
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      return await this.imageService.deleteImage(imageId, currentUser.id);
+    } catch (error) {
+      console.error("Erro ao deletar imagem:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Atualiza descrição de uma imagem
+   */
+  async updateImageDescription(
+    imageId: number,
+    description: string
+  ): Promise<boolean> {
+    try {
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      return await this.imageService.updateImageDescription(
+        imageId,
+        description,
+        currentUser.id
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar descrição:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtém contagem de imagens de uma solicitação
+   */
+  async getImageCount(requestId: number): Promise<{ before: number; after: number; total: number }> {
+    return this.imageService.getImageCount(requestId);
+  }
 }

@@ -729,3 +729,24 @@ export interface EnderecoCompleto {
   latitude?: number | null;
   longitude?: number | null;
 }
+
+// Interface para imagens de solicitações de serviço
+export interface ServiceRequestImage {
+  id: number;
+  service_request_id: number;
+  uploaded_by: number;
+  image_url: string;
+  image_type: 'before' | 'after';
+  description?: string | null;
+  uploaded_at: string;
+  file_name?: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+}
+
+// Interface para dados de upload de imagem
+export interface ServiceRequestImageUpload {
+  service_request_id: number;
+  image_type: 'before' | 'after';
+  description?: string;
+}
