@@ -572,7 +572,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         }
 
         <!-- Service Images - Upload de Imagens -->
-        @if (currentUser().role === 'professional' && request().professional_id === currentUser().id) {
+        @if (request().professional_id) {
         <section class="bg-white rounded-lg shadow-sm border border-gray-200" role="region" [attr.aria-label]="'serviceImages' | i18n">
           <app-service-images
             [requestId]="request().id"
