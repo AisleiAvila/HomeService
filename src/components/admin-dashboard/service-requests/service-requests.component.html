@@ -373,6 +373,14 @@
                                 <i class="fas fa-credit-card"></i>
                             </button>
                             }
+                            <!-- Botão de conclusão: só admins, status 'Pagamento Feito' -->
+                            @if (currentUser() && currentUser()!.role === 'admin' && req.status === 'Pagamento Feito') {
+                            <button (click)="handleFinalizeService(req)"
+                                class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                                [title]="'finalizeService' | i18n">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                            }
                             <!-- ...ações existentes... -->
                             @if (req.status === 'Em análise') {
                             <button (click)="selectRequestForQuote(req)"

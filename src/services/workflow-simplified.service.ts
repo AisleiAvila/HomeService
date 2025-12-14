@@ -539,81 +539,18 @@ export class WorkflowServiceSimplified {
     notes?: string
   ): Promise<boolean> {
     try {
-      // Buscar status atual antes da mudança
       const request = await this.getRequest(requestId);
       if (!request) throw new Error("Solicitação não encontrada");
 
       const previousStatus = request.status;
-
-      // Validar transição
-      if (!this.canTransition(previousStatus, "Aguardando Finalização")) {
-        throw new Error(`Não é possível concluir a partir do status ${previousStatus}`);
-      }
-
-      // Validar permissão
       const currentUser = await this.getCurrentUser();
-      console.log("[DEBUG] completeExecution - Usuário:", currentUser, "Status anterior:", previousStatus, "Tentando para:", "Aguardando Finalização");
-      if (!currentUser || !this.canPerformTransition(previousStatus, "Aguardando Finalização", currentUser.role)) {
-        console.error("[DEBUG] Permissão negada para concluir execução", { currentUser, previousStatus });
-        throw new Error("Usuário não tem permissão para concluir execução");
-      }
 
-      // Validar tempo mínimo de execução (opcional, mas recomendado)
-      if (request.started_at && request.estimated_duration_minutes) {
-        const startTime = new Date(request.started_at);
-        const now = new Date();
-        const actualDuration = (now.getTime() - startTime.getTime()) / (1000 * 60); // em minutos
-        const minimumDuration = request.estimated_duration_minutes * 0.5; // 50% do tempo estimado
+      await this.validateExecutionCompletion(previousStatus, currentUser);
+      this.validateExecutionDuration(request);
 
-        if (actualDuration < minimumDuration) {
-          console.warn(
-            `Serviço concluído em ${actualDuration.toFixed(1)} minutos, abaixo do mínimo esperado de ${minimumDuration.toFixed(1)} minutos`
-          );
-        }
-      }
-
-      const { error } = await this.supabase.client
-        .from("service_requests")
-        .update({
-          status: "Aguardando Finalização",
-          completed_at: new Date().toISOString(),
-          actual_end_datetime: new Date().toISOString(),
-          admin_notes: notes
-            ? `Notas de conclusão: ${notes}`
-            : undefined,
-        })
-        .eq("id", requestId)
-        .eq("professional_id", professionalId);
-
-      if (error) throw error;
-
-      // Registrar na tabela de histórico
-      if (currentUser) {
-        await this.updateStatus(
-          requestId, 
-          "Aguardando Finalização", 
-          currentUser.id, 
-          notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução"
-        );
-      }
-
-      // Auditoria: Log da conclusão (Em Progresso → Aguardando Finalização)
-      await this.auditService.logStatusChange(
-        requestId,
-        previousStatus,
-        "Aguardando Finalização" as const,
-        notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução",
-        { actual_end: new Date().toISOString(), notes }
-      );
-
-      // Notificar admin
-      if (request.created_by_admin_id) {
-        await this.notifyAdmin(
-          request.created_by_admin_id,
-          "serviceCompleted",
-          `Serviço concluído - Solicitação #${requestId}`
-        );
-      }
+      await this.updateCompletionStatus(requestId, professionalId, notes);
+      await this.recordCompletionAudit(requestId, previousStatus, currentUser, notes);
+      await this.notifyCompletionToAdmin(request, requestId);
 
       this.notificationService.showSuccess(
         this.i18n.translate("serviceCompleted")
@@ -626,6 +563,76 @@ export class WorkflowServiceSimplified {
         error instanceof Error ? error.message : this.i18n.translate("errorCompletingService")
       );
       return false;
+    }
+  }
+
+  private async validateExecutionCompletion(previousStatus: ServiceStatus, currentUser: any): Promise<void> {
+    if (!this.canTransition(previousStatus, "Aguardando Finalização")) {
+      throw new Error(`Não é possível concluir a partir do status ${previousStatus}`);
+    }
+
+    console.log("[DEBUG] completeExecution - Usuário:", currentUser, "Status anterior:", previousStatus, "Tentando para:", "Aguardando Finalização");
+    if (!currentUser || !this.canPerformTransition(previousStatus, "Aguardando Finalização", currentUser.role)) {
+      console.error("[DEBUG] Permissão negada para concluir execução", { currentUser, previousStatus });
+      throw new Error("Usuário não tem permissão para concluir execução");
+    }
+  }
+
+  private validateExecutionDuration(request: ServiceRequest): void {
+    if (!request.started_at || !request.estimated_duration_minutes) {
+      return;
+    }
+
+    const startTime = new Date(request.started_at);
+    const now = new Date();
+    const actualDuration = (now.getTime() - startTime.getTime()) / (1000 * 60);
+    const minimumDuration = request.estimated_duration_minutes * 0.5;
+
+    if (actualDuration < minimumDuration) {
+      console.warn(
+        `Serviço concluído em ${actualDuration.toFixed(1)} minutos, abaixo do mínimo esperado de ${minimumDuration.toFixed(1)} minutos`
+      );
+    }
+  }
+
+  private async updateCompletionStatus(requestId: number, professionalId: number, notes?: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from("service_requests")
+      .update({
+        status: "Aguardando Finalização",
+        completed_at: new Date().toISOString(),
+        actual_end_datetime: new Date().toISOString(),
+        admin_notes: notes ? `Notas de conclusão: ${notes}` : undefined,
+      })
+      .eq("id", requestId)
+      .eq("professional_id", professionalId);
+
+    if (error) throw error;
+  }
+
+  private async recordCompletionAudit(requestId: number, previousStatus: ServiceStatus, currentUser: any, notes?: string): Promise<void> {
+    const auditMessage = notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução";
+
+    if (currentUser) {
+      await this.updateStatus(requestId, "Aguardando Finalização", currentUser.id, auditMessage);
+    }
+
+    await this.auditService.logStatusChange(
+      requestId,
+      previousStatus,
+      "Aguardando Finalização" as const,
+      auditMessage,
+      { actual_end: new Date().toISOString(), notes }
+    );
+  }
+
+  private async notifyCompletionToAdmin(request: ServiceRequest, requestId: number): Promise<void> {
+    if (request.created_by_admin_id) {
+      await this.notifyAdmin(
+        request.created_by_admin_id,
+        "serviceCompleted",
+        `Serviço concluído - Solicitação #${requestId}`
+      );
     }
   }
 

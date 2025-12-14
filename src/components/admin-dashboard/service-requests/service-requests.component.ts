@@ -45,6 +45,26 @@ export class ServiceRequestsComponent {
             this.requestToPay.set(req);
             this.showPaymentModal.set(true);
         }
+
+        async handleFinalizeService(req: ServiceRequest) {
+            const confirm = window.confirm(
+                this.i18n.translate('confirmFinalizeService') || 
+                'Tem certeza que deseja finalizar este serviço? Esta ação é irreversível.'
+            );
+            
+            if (!confirm) return;
+
+            const success = await this.workflowService.finalizeService(
+                req.id,
+                this.currentUser()?.id ?? 0,
+                'Serviço finalizado pelo administrador',
+                () => this.dataService.reloadServiceRequests()
+            );
+
+            if (success) {
+                await this.dataService.reloadServiceRequests();
+            }
+        }
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
