@@ -561,23 +561,34 @@ export class DataService {
       throw new Error("Only administrators can directly assign service requests");
     }
 
-    const { error } = await this.supabase.client
-      .from("service_requests")
-      .update({
-        professional_id: professionalId,
-        scheduled_start_datetime: executionDate,
-        proposed_execution_date: executionDate,
-        execution_date_approval: 'approved',
-        status: "Data Definida",
-      })
-      .eq("id", requestId);
+    // Usar o workflow correto via WorkflowServiceSimplified
+    // 1. Atribuir profissional (ficará com status "Aguardando Confirmação")
+    const assignSuccess = await this.workflowService.assignProfessional(
+      requestId,
+      professionalId,
+      currentUser.id
+    );
 
-    if (error) {
-      console.error("❌ [directAssignServiceRequest] Error:", error);
-      this.notificationService.addNotification(
-        "Error assigning professional: " + error.message
+    if (!assignSuccess) {
+      throw new Error("Failed to assign professional");
+    }
+
+    // 2. Se há data de execução, já aceitar automaticamente e definir a data
+    if (executionDate) {
+      // Aceitar a solicitação
+      await this.workflowService.respondToAssignment(
+        requestId,
+        professionalId,
+        true, // accept
+        "Aceito automaticamente via atribuição direta"
       );
-      throw error;
+
+      // Definir data de execução
+      await this.workflowService.setScheduledDate(
+        requestId,
+        professionalId,
+        executionDate
+      );
     }
 
     console.log("✅ [directAssignServiceRequest] Successfully assigned professional");

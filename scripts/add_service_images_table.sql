@@ -37,6 +37,12 @@ COMMENT ON COLUMN service_request_images.mime_type IS 'Tipo MIME do arquivo (ex:
 -- Nota: RLS desabilitado - Segurança gerenciada na camada da aplicação Angular
 -- A aplicação controla acesso através do AuthService e validações no código TypeScript
 
+-- IMPORTANTE: Desabilitar RLS na tabela
+ALTER TABLE service_request_images DISABLE ROW LEVEL SECURITY;
+
+-- IMPORTANTE: Desabilitar RLS nas políticas de Storage
+ALTER TABLE storage.objects DISABLE ROW LEVEL SECURITY;
+
 -- Criar bucket no Supabase Storage para imagens de serviços
 -- Nota: Este comando precisa ser executado via código ou console do Supabase
 -- INSERT INTO storage.buckets (id, name, public) 

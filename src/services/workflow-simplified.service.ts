@@ -6,6 +6,7 @@ import { SupabaseService } from "./supabase.service";
 import { I18nService } from "../i18n.service";
 import { StatusAuditService } from "./status-audit.service";
 import { ServiceImageService } from "./service-image.service";
+import { InAppNotificationService } from "./in-app-notification.service";
 import {
   ServiceRequest,
   ServiceStatus,
@@ -36,6 +37,7 @@ export class WorkflowServiceSimplified {
   private readonly auditService = inject(StatusAuditService);
   private readonly smsService = inject(SmsService);
   private readonly imageService = inject(ServiceImageService);
+  private readonly inAppNotificationService = inject(InAppNotificationService);
 
   /**
    * Mapeamento de transições válidas
@@ -978,17 +980,32 @@ export class WorkflowServiceSimplified {
     // Verifica se o profissional aceita receber SMS e se o telefone está presente
     if (professional.receive_sms_notifications !== false && professional.phone) {
       try {
-        await this.smsService.sendSms({
+        const smsResult = await this.smsService.sendSms({
           to: professional.phone,
           message: message,
         });
-        console.log(`SMS enviado para profissional ${professionalId}: ${professional.phone}`);
+        if (smsResult?.success) {
+          console.log(`✅ SMS enviado para profissional ${professionalId}: ${professional.phone}`);
+        } else {
+          console.warn(`⚠️ Falha ao enviar SMS para ${professionalId}: ${smsResult?.error || 'Erro desconhecido'}`);
+        }
       } catch (smsError) {
-        console.error("Erro ao enviar SMS ao profissional:", smsError);
+        console.error("❌ Erro ao enviar SMS ao profissional:", smsError);
+        // Não interrompe o fluxo - notificação in-app ainda será criada
       }
     } else {
-      console.log(`Profissional ${professionalId} não possui telefone válido ou optou por não receber SMS.`);
+      console.log(`ℹ️ Profissional ${professionalId} não possui telefone válido ou optou por não receber SMS.`);
     }
+
+    // Criar notificação in-app
+    await this.inAppNotificationService.createNotification(
+      professionalId,
+      "service_assigned",
+      this.i18n.translate("newServiceAssignedTitle"),
+      message,
+      `/professional/requests`,
+      { message_key: messageKey }
+    );
 
     // Notificação visual (NotificationService)
     console.log(`Notificando profissional ${professionalId}: ${message}`);

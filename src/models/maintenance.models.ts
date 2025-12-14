@@ -750,3 +750,17 @@ export interface ServiceRequestImageUpload {
   image_type: 'before' | 'after';
   description?: string;
 }
+
+// Interface para notificações in-app
+export interface InAppNotification {
+  id: number;
+  user_id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  link?: string | null;
+  read: boolean;
+  created_at: string;
+  read_at?: string | null;
+  metadata?: Record<string, any> | null;
+}

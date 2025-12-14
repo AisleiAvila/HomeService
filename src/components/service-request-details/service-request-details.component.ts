@@ -49,6 +49,7 @@ import { extractPtAddressParts } from "@/src/utils/address-utils";
 import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
 import { LeafletRouteMapComponent } from "../leaflet-route-map.component";
 import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
+import { ServiceImagesComponent } from "../service-images/service-images.component";
 
 @Component({
   selector: "app-service-request-details",
@@ -62,6 +63,7 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
     ServiceClarificationsComponent,
     LeafletMapViewerComponent,
     LeafletRouteMapComponent,
+    ServiceImagesComponent,
   ],
   template: `
     @if (!request()) {
@@ -566,6 +568,16 @@ import { PortugalAddressDatabaseService } from "../../services/portugal-address-
               [user]="currentUser()"
             ></app-time-control>
           </div>
+        </section>
+        }
+
+        <!-- Service Images - Upload de Imagens -->
+        @if (currentUser().role === 'professional' && request().professional_id === currentUser().id) {
+        <section class="bg-white rounded-lg shadow-sm border border-gray-200" role="region" [attr.aria-label]="'serviceImages' | i18n">
+          <app-service-images
+            [requestId]="request().id"
+            [requestStatus]="request().status"
+          ></app-service-images>
         </section>
         }
 

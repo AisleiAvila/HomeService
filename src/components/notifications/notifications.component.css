@@ -1,0 +1,47 @@
+/* Animations for notification dropdown */
+.notification-enter {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth scrolling for notification list */
+.max-h-96 {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for notification list */
+.max-h-96::-webkit-scrollbar {
+  width: 6px;
+}
+
+.max-h-96::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.max-h-96::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.max-h-96::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Dark mode scrollbar */
+.dark .max-h-96::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+.dark .max-h-96::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}

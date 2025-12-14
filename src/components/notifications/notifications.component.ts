@@ -1,0 +1,119 @@
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { I18nPipe } from '../../pipes/i18n.pipe';
+import { I18nService } from '../../i18n.service';
+import { InAppNotificationService } from '../../services/in-app-notification.service';
+import { InAppNotification } from '../../models/maintenance.models';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-notifications',
+  standalone: true,
+  imports: [CommonModule, I18nPipe],
+  templateUrl: './notifications.component.html',
+  styleUrls: ['./notifications.component.css'],
+})
+export class NotificationsComponent implements OnInit {
+  private readonly notificationService = inject(InAppNotificationService);
+  private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
+  // State management
+  isOpen = signal(false);
+  showUnreadOnly = signal(false);
+
+  // Computed properties
+  notifications = computed(() => {
+    const all = this.notificationService.notifications();
+    return this.showUnreadOnly() ? all.filter(n => !n.read) : all;
+  });
+
+  unreadCount = this.notificationService.unreadCount;
+
+  hasUnread = computed(() => this.unreadCount() > 0);
+  hasNotifications = computed(() => this.notifications().length > 0);
+
+  ngOnInit(): void {
+    // Load notifications when component initializes
+    this.notificationService.loadNotifications();
+    
+    // Subscribe to real-time updates
+    this.notificationService.subscribeToNotifications();
+  }
+
+  toggleDropdown(): void {
+    this.isOpen.update(v => !v);
+  }
+
+  closeDropdown(): void {
+    this.isOpen.set(false);
+  }
+
+  toggleUnreadFilter(): void {
+    this.showUnreadOnly.update(v => !v);
+  }
+
+  async markAsRead(notification: InAppNotification, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!notification.read) {
+      await this.notificationService.markAsRead(notification.id);
+    }
+  }
+
+  async markAllAsRead(): Promise<void> {
+    await this.notificationService.markAllAsRead();
+  }
+
+  async deleteAllRead(): Promise<void> {
+    await this.notificationService.deleteAllRead();
+  }
+
+  async handleNotificationClick(notification: InAppNotification): Promise<void> {
+    // Mark as read
+    await this.markAsRead(notification);
+
+    // Close dropdown
+    this.closeDropdown();
+
+    // Navigate if there's a link
+    if (notification.link) {
+      this.router.navigateByUrl(notification.link);
+    }
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'service_assigned':
+        return '👷';
+      case 'service_accepted':
+        return '✅';
+      case 'service_scheduled':
+        return '📅';
+      case 'service_completed':
+        return '🎉';
+      case 'payment_received':
+        return '💰';
+      default:
+        return '🔔';
+    }
+  }
+
+  formatDate(date: string): string {
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return this.i18n.translate('justNow');
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    
+    return d.toLocaleDateString(this.i18n.getCurrentLanguage());
+  }
+}

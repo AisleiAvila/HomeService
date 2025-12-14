@@ -174,6 +174,26 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectAProfessional: "Select a Professional",
     selectDate: "Select Date",
     cancel: "Cancel",
+    optional: "Optional",
+    executionDateHint: "Leave empty to only assign the professional without scheduling",
+    pleasSelectProfessional: "Please select a professional",
+    
+    // Image Upload
+    imagesBeforeService: "Images Before Service",
+    imagesAfterService: "Images After Service",
+    images: "images",
+    clickToUploadImage: "Click to Upload Image",
+    maxFileSize5MB: "Maximum file size: 5MB (JPG, PNG, GIF)",
+    uploading: "Uploading",
+    noImagesYet: "No images yet",
+    imageTooBig: "Image is too large. Maximum size is 5MB.",
+    invalidImageType: "Invalid file type. Only images are allowed (JPG, PNG, GIF).",
+    uploadImageError: "Error uploading image. Please try again.",
+    deleteImageError: "Error deleting image. Please try again.",
+    confirmDeleteImage: "Are you sure you want to delete this image?",
+    cannotUploadImagesInThisStatus: "You cannot upload images in the current service status.",
+    delete: "Delete",
+    
         // Status de pagamento
         // (mantido apenas no início do objeto)
     confirmSchedule: "Confirm Schedule",
@@ -260,7 +280,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     answer: "Answer",
     new: "New",
     by: "by",
-    delete: "Delete",
     addAnswer: "Add Answer",
     answerTitle: "Answer Title",
     answerTitlePlaceholder: "Brief summary of your answer...",
@@ -290,6 +309,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Time Control and Scheduling
     timeControl: "Time Control",
+    serviceImages: "Service Images",
     requestedDateTime: "Requested Date & Time",
     scheduledStartDateTime: "Scheduled Start Date & Time",
     estimatedDuration: "Estimated Duration",
@@ -358,6 +378,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Professional {professional} assigned to request #{id}.",
     professionalAssignedAndScheduled:
       "Professional {professional} assigned to request #{id} and scheduled for {date}.",
+    newServiceAssignedTitle: "New Service Assigned",
+    notifications: "Notifications",
+    markAllAsRead: "Mark All as Read",
+    deleteAllRead: "Delete All Read",
+    noNotifications: "No notifications",
+    unreadNotifications: "Unread notifications",
+    showAll: "Show All",
+    markAsRead: "Mark as Read",
+    justNow: "Just now",
 
     // Execution Date Management
     newExecutionDateProposed: "New Execution Date Proposed",
@@ -556,12 +585,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusCompletedEn: "Completed",
     statusPending: "Pending",
 
-    // Notifications
-    notifications: "Notifications",
-    noNewNotifications: "You have no new notifications.",
-    markAllAsRead: "Mark all as read",
-    clearAll: "Clear All",
-
     // Additional translations for missing keys
     noMessages: "No messages yet. Start the conversation!",
     typeMessage: "Type your message...",
@@ -612,7 +635,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     proposedDate: "Proposed Date",
     proposedTime: "Proposed Time",
     notesForClient: "Notes for Client",
-    optional: "Optional",
     notesForClientPlaceholder:
       "Additional information about the proposed date...",
     approvedAmount: "Approved Amount",
@@ -916,6 +938,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectOrigin: "Select the origin of the request",
     nif: "NIF",
     executionDate: "Execution Date",
+    imageUploadedSuccessfully: "Image uploaded successfully!",
    
 
   },
@@ -1090,6 +1113,26 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectAProfessional: "Selecione um Profissional",
     selectDate: "Selecionar Data",
     cancel: "Cancelar",
+    optional: "Opcional",
+    executionDateHint: "Deixe vazio para apenas atribuir o profissional sem agendar",
+    pleasSelectProfessional: "Por favor, selecione um profissional",
+    
+    // Image Upload
+    imagesBeforeService: "Imagens Antes do Serviço",
+    imagesAfterService: "Imagens Depois do Serviço",
+    images: "imagens",
+    clickToUploadImage: "Clique para Enviar Imagem",
+    maxFileSize5MB: "Tamanho máximo: 5MB (JPG, PNG, GIF)",
+    uploading: "A enviar",
+    noImagesYet: "Ainda sem imagens",
+    imageTooBig: "Imagem muito grande. Tamanho máximo é 5MB.",
+    invalidImageType: "Tipo de ficheiro inválido. Apenas imagens são permitidas (JPG, PNG, GIF).",
+    uploadImageError: "Erro ao enviar imagem. Por favor, tente novamente.",
+    deleteImageError: "Erro ao eliminar imagem. Por favor, tente novamente.",
+    confirmDeleteImage: "Tem a certeza que deseja eliminar esta imagem?",
+    cannotUploadImagesInThisStatus: "Não é possível enviar imagens no status atual do serviço.",
+    delete: "Eliminar",
+    
     confirmSchedule: "Confirmar Agendamento",
     pendingActions: "Ações Pendentes",
     request: "Solicitação",
@@ -1174,7 +1217,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     answer: "Resposta",
     new: "Novo",
     by: "por",
-    delete: "Eliminar",
     addAnswer: "Adicionar Resposta",
     answerTitle: "Título da Resposta",
     answerTitlePlaceholder: "Resumo breve da sua resposta...",
@@ -1187,6 +1229,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Time Control and Scheduling
     timeControl: "Controle de Tempo",
+    serviceImages: "Imagens do Serviço",
     requestedDateTime: "Data e Hora Solicitada",
     scheduledStartDateTime: "Data e Hora Agendada para Início",
     estimatedDuration: "Duração Estimada",
@@ -1273,6 +1316,15 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Profissional {professional} atribuído à solicitação #{id}.",
     professionalAssignedAndScheduled:
       "Profissional {professional} atribuído à solicitação #{id} e agendado para {date}.",
+    newServiceAssignedTitle: "Novo Serviço Atribuído",
+    notifications: "Notificações",
+    markAllAsRead: "Marcar Todas como Lidas",
+    deleteAllRead: "Eliminar Todas Lidas",
+    noNotifications: "Sem notificações",
+    unreadNotifications: "Notificações não lidas",
+    showAll: "Mostrar Todas",
+    markAsRead: "Marcar como Lida",
+    justNow: "Agora mesmo",
 
     // Execution Date Management
     newExecutionDateProposed: "Nova Data de Execução Proposta",
@@ -1488,12 +1540,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusCompletedEn: "Concluído",
     statusPending: "Pendente",
 
-    // Notifications
-    notifications: "Notificações",
-    noNewNotifications: "Você não tem novas notificações.",
-    markAllAsRead: "Marcar todas como lidas",
-    clearAll: "Limpar todas",
-
     // Additional translations for missing keys
     noMessages: "Ainda não há mensagens. Comece a conversa!",
     typeMessage: "Digite sua mensagem...",
@@ -1545,7 +1591,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     proposedDate: "Data Proposta",
     proposedTime: "Hora Proposta",
     notesForClient: "Observações para o Cliente",
-    optional: "Opcional",
     notesForClientPlaceholder:
       "Informações adicionais sobre a data proposta...",
     approvedAmount: "Valor Aprovado",
@@ -1837,6 +1882,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectOrigin: "Selecione a origem da solicitação",
     nif: "NIF",
     executionDate: "Data de Execução",
+    imageUploadedSuccessfully: "Imagem enviada com sucesso!",
 
   },
 };

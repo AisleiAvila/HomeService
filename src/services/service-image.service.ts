@@ -169,7 +169,7 @@ export class ServiceImageService {
     file: File,
     fileName: string
   ): Promise<string> {
-    const { data, error } = await this.supabase.client.storage
+    const { error } = await this.supabase.client.storage
       .from(this.BUCKET_NAME)
       .upload(fileName, file, {
         cacheControl: "3600",

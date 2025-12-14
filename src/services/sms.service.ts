@@ -96,70 +96,161 @@ export class SmsService {
     this._isSending.set(true);
 
     try {
-      // Validação de entrada
-      if (!params.to || !this.isValidPhoneNumber(params.to)) {
-        throw new Error(this.i18n.translate('sms_invalid_phone'));
-      }
-
-      // Construir mensagem (template ou mensagem customizada)
-      const message = params.template
-        ? this.buildMessageFromTemplate(params.template, params.variables || {})
-        : params.message;
-
-      if (!message || message.trim().length === 0) {
-        throw new Error(this.i18n.translate('sms_empty_message'));
-      }
-
-      // Enviar requisição HTTP para o backend
-      const headers = new HttpHeaders({
-        'Content-Type': 'application/json',
-      });
-      const response = await firstValueFrom(
-        this.http.post<SmsResponse>(
-          this.SMS_ENDPOINT,
-          {
-            to: params.to,
-            message: message,
-            template: params.template,
-          },
-          { headers }
-        )
-      );
-
-      if (!response?.success) {
-        throw new Error(response?.error || this.i18n.translate('sms_send_failed'));
-      }
-
-      // Adicionar ao histórico
-      this.addToHistory({
-        id: response.messageId || crypto.randomUUID(),
-        to: params.to,
-        message: message,
-        status: 'sent',
-        sent_at: new Date(),
-      });
-
-      // Notificar sucesso
-      this.notificationService.addNotification(
-        this.i18n.translate('sms_sent_success')
-      );
-
+      this.validateSmsParams(params);
+      const message = this.prepareMessage(params);
+      const response = await this.sendSmsRequest(params.to, message, params.template);
+      this.handleSuccessfulSms(response, params.to, message);
       return response;
     } catch (error) {
-      console.error('Erro ao enviar SMS:', error);
-
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : this.i18n.translate('sms_send_error');
-
-      this.notificationService.addNotification(errorMessage);
-
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      return this.handleSmsError(error);
     } finally {
       this._isSending.set(false);
+    }
+  }
+
+  /**
+   * Valida parâmetros do SMS
+   * 
+   * @param params - Parâmetros do SMS
+   * @throws Error se parâmetros inválidos
+   */
+  private validateSmsParams(params: SmsParams): void {
+    if (!params.to || !this.isValidPhoneNumber(params.to)) {
+      throw new Error(this.i18n.translate('sms_invalid_phone'));
+    }
+  }
+
+  /**
+   * Prepara mensagem a partir de parâmetros
+   * 
+   * @param params - Parâmetros do SMS
+   * @returns Mensagem preparada
+   * @throws Error se mensagem inválida
+   */
+  private prepareMessage(params: SmsParams): string {
+    const message = params.template
+      ? this.buildMessageFromTemplate(params.template, params.variables || {})
+      : params.message;
+
+    if (!message || message.trim().length === 0) {
+      throw new Error(this.i18n.translate('sms_empty_message'));
+    }
+
+    return message;
+  }
+
+  /**
+   * Envia requisição HTTP para backend
+   * 
+   * @param to - Número de telefone
+   * @param message - Mensagem
+   * @param template - Template opcional
+   * @returns Resposta do servidor
+   * @throws Error se envio falhar
+   */
+  private async sendSmsRequest(
+    to: string,
+    message: string,
+    template?: string
+  ): Promise<SmsResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+
+    const response = await firstValueFrom(
+      this.http.post<SmsResponse>(
+        this.SMS_ENDPOINT,
+        { to, message, template },
+        { headers }
+      )
+    );
+
+    if (!response?.success) {
+      throw new Error(response?.error || this.i18n.translate('sms_send_failed'));
+    }
+
+    return response;
+  }
+
+  /**
+   * Processa SMS enviado com sucesso
+   * 
+   * @param response - Resposta do servidor
+   * @param to - Número de telefone
+   * @param message - Mensagem enviada
+   */
+  private handleSuccessfulSms(
+    response: SmsResponse,
+    to: string,
+    message: string
+  ): void {
+    this.addToHistory({
+      id: response.messageId || crypto.randomUUID(),
+      to,
+      message,
+      status: 'sent',
+      sent_at: new Date(),
+    });
+
+    this.notificationService.addNotification(
+      this.i18n.translate('sms_sent_success')
+    );
+  }
+
+  /**
+   * Processa erro no envio de SMS
+   * 
+   * @param error - Erro capturado
+   * @returns Resposta de erro
+   */
+  private handleSmsError(error: unknown): SmsResponse {
+    console.error('❌ [SMS] Erro ao enviar SMS:', error);
+
+    const errorMessage = this.extractErrorMessage(error);
+    this.notifyErrorIfNeeded(errorMessage);
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+
+  /**
+   * Extrai mensagem de erro de diferentes tipos de erro
+   * 
+   * @param error - Erro capturado
+   * @returns Mensagem de erro formatada
+   */
+  private extractErrorMessage(error: unknown): string {
+    let errorMessage = this.i18n.translate('sms_send_error');
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error('❌ [SMS] Mensagem de erro:', error.message);
+    } else if (error && typeof error === 'object' && 'error' in error) {
+      const httpError = error as { error?: { message?: string } };
+      if (httpError.error?.message) {
+        errorMessage = httpError.error.message;
+      }
+      console.error('❌ [SMS] Detalhes HTTP:', httpError);
+    }
+
+    return errorMessage;
+  }
+
+  /**
+   * Notifica erro se não for erro de conexão
+   * 
+   * @param errorMessage - Mensagem de erro
+   */
+  private notifyErrorIfNeeded(errorMessage: string): void {
+    const isConnectionError = errorMessage.includes('Connection refused') || 
+                             errorMessage.includes('ECONNREFUSED');
+
+    if (isConnectionError) {
+      console.warn('⚠️ [SMS] Servidor SMS não disponível. Apenas notificação in-app será criada.');
+    } else {
+      this.notificationService.addNotification(errorMessage);
     }
   }
 

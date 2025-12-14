@@ -47,7 +47,7 @@ export class ServiceRequestsComponent {
         }
 
         async handleFinalizeService(req: ServiceRequest) {
-            const confirm = window.confirm(
+            const confirm = globalThis.confirm(
                 this.i18n.translate('confirmFinalizeService') || 
                 'Tem certeza que deseja finalizar este serviço? Esta ação é irreversível.'
             );
@@ -404,7 +404,8 @@ viewDetails = output<ServiceRequest>();
         const professionalId = this.selectedProfessionalId();
         const executionDate = this.selectedExecutionDate();
         
-        if (!request || !professionalId || !executionDate) {
+        if (!request || !professionalId) {
+            alert(this.i18n.translate('pleasSelectProfessional'));
             return;
         }
 

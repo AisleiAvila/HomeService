@@ -1,0 +1,194 @@
+<div class="space-y-6 p-4">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+      <p class="mt-2 text-gray-600">{{ 'loading' | i18n }}</p>
+    </div>
+  } @else {
+    
+    <!-- Imagens ANTES do Serviço -->
+    @if (canUploadBefore()) {
+      <div class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-camera mr-2 text-blue-600"></i>
+            {{ 'imagesBeforeService' | i18n }}
+          </h3>
+          <span class="text-sm text-gray-500">
+            {{ beforeImages().length }} {{ 'images' | i18n }}
+          </span>
+        </div>
+
+        <!-- Upload Button -->
+        <div class="mb-4">
+          <label class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            @if (uploadingBefore()) {
+              <div class="flex items-center gap-2 text-blue-600">
+                <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                <span>{{ 'uploading' | i18n }}...</span>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 text-gray-600">
+                <i class="fas fa-cloud-upload-alt text-xl"></i>
+                <span class="font-medium">{{ 'clickToUploadImage' | i18n }}</span>
+              </div>
+            }
+            <input 
+              type="file" 
+              accept="image/*" 
+              (change)="uploadImage($event, 'before')"
+              [disabled]="uploadingBefore()"
+              class="hidden"
+            />
+          </label>
+          <p class="text-xs text-gray-500 mt-1 text-center">
+            {{ 'maxFileSize5MB' | i18n }}
+          </p>
+        </div>
+
+        <!-- Image Gallery -->
+        @if (beforeImages().length > 0) {
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (image of beforeImages(); track image.id) {
+              <div class="relative group">
+                <button
+                  (click)="viewImage(image.image_url)"
+                  class="w-full focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+                  [attr.aria-label]="(image.description || 'Local antes do serviço') + ' - ' + ('clickToView' | i18n)"
+                >
+                  <img 
+                    [src]="image.image_url" 
+                    [alt]="image.description || 'Local antes do serviço'"
+                    class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                  />
+                </button>
+                
+                <!-- Overlay with actions -->
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button
+                    (click)="deleteImage(image)"
+                    class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                    title="{{ 'delete' | i18n }}"
+                  >
+                    <i class="fas fa-trash text-sm"></i>
+                  </button>
+                </div>
+
+                <!-- Image info -->
+                <div class="mt-1 text-xs text-gray-600">
+                  <div>{{ formatDate(image.uploaded_at) }}</div>
+                  @if (image.file_size) {
+                    <div class="text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-6 text-gray-500">
+            <i class="fas fa-images text-3xl mb-2"></i>
+            <p class="text-sm">{{ 'noImagesYet' | i18n }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Imagens DEPOIS do Serviço -->
+    @if (canUploadAfter()) {
+      <div class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-camera mr-2 text-green-600"></i>
+            {{ 'imagesAfterService' | i18n }}
+          </h3>
+          <span class="text-sm text-gray-500">
+            {{ afterImages().length }} {{ 'images' | i18n }}
+          </span>
+        </div>
+
+        <!-- Upload Button -->
+        <div class="mb-4">
+          <label class="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
+            @if (uploadingAfter()) {
+              <div class="flex items-center gap-2 text-green-600">
+                <div class="animate-spin rounded-full h-5 w-5 border-2 border-green-600 border-t-transparent"></div>
+                <span>{{ 'uploading' | i18n }}...</span>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 text-gray-600">
+                <i class="fas fa-cloud-upload-alt text-xl"></i>
+                <span class="font-medium">{{ 'clickToUploadImage' | i18n }}</span>
+              </div>
+            }
+            <input 
+              type="file" 
+              accept="image/*" 
+              (change)="uploadImage($event, 'after')"
+              [disabled]="uploadingAfter()"
+              class="hidden"
+            />
+          </label>
+          <p class="text-xs text-gray-500 mt-1 text-center">
+            {{ 'maxFileSize5MB' | i18n }}
+          </p>
+        </div>
+
+        <!-- Image Gallery -->
+        @if (afterImages().length > 0) {
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (image of afterImages(); track image.id) {
+              <div class="relative group">
+                <button
+                  (click)="viewImage(image.image_url)"
+                  class="w-full focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
+                  [attr.aria-label]="(image.description || 'Local depois do serviço') + ' - ' + ('clickToView' | i18n)"
+                >
+                  <img 
+                    [src]="image.image_url" 
+                    [alt]="image.description || 'Local depois do serviço'"
+                    class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                  />
+                </button>
+                
+                <!-- Overlay with actions -->
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <button
+                    (click)="deleteImage(image)"
+                    class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                    title="{{ 'delete' | i18n }}"
+                  >
+                    <i class="fas fa-trash text-sm"></i>
+                  </button>
+                </div>
+
+                <!-- Image info -->
+                <div class="mt-1 text-xs text-gray-600">
+                  <div>{{ formatDate(image.uploaded_at) }}</div>
+                  @if (image.file_size) {
+                    <div class="text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-6 text-gray-500">
+            <i class="fas fa-images text-3xl mb-2"></i>
+            <p class="text-sm">{{ 'noImagesYet' | i18n }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Info quando não pode fazer upload -->
+    @if (!canUploadBefore() && !canUploadAfter()) {
+      <div class="border border-yellow-200 bg-yellow-50 rounded-lg p-4 text-center">
+        <i class="fas fa-info-circle text-yellow-600 text-2xl mb-2"></i>
+        <p class="text-sm text-yellow-800">
+          {{ 'cannotUploadImagesInThisStatus' | i18n }}
+        </p>
+      </div>
+    }
+  }
+</div>
