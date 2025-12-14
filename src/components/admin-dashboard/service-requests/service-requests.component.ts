@@ -368,8 +368,6 @@ viewDetails = output<ServiceRequest>();
 
     // Action placeholders - these would need to emit events or call services
     selectRequestForQuote(req: ServiceRequest) { console.log('Quote', req); }
-    needsProfessionalAssignment(req: ServiceRequest): boolean { return false; } // Placeholder
-    selectRequestForAssignment(req: ServiceRequest) { console.log('Assign', req); }
     openDirectAssignmentModal(req: ServiceRequest) { 
         console.log('Direct Assign', req);
         console.log('requested_datetime:', req.requested_datetime);
