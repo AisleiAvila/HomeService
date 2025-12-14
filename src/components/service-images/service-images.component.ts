@@ -20,19 +20,20 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   requestStatus = input.required<string>();
 
   // Services
-  private workflowService = inject(WorkflowServiceSimplified);
-  private i18n = inject(I18nService);
-  private notificationService = inject(NotificationService);
+  private readonly workflowService = inject(WorkflowServiceSimplified);
+  private readonly i18n = inject(I18nService);
+  private readonly notificationService = inject(NotificationService);
 
   // ViewChild references
   videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
 
   // State
-  private allImages = signal<ServiceRequestImage[]>([]);
+  private readonly allImages = signal<ServiceRequestImage[]>([]);
   isLoading = signal(false);
   uploadingBefore = signal(false);
   uploadingAfter = signal(false);
   isCameraOpen = signal(false);
+  isVideoReady = signal(false);
   currentImageType = signal<'before' | 'after'>('before');
   
   private cameraStream: MediaStream | null = null;
@@ -56,8 +57,8 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
     return ['Em Progresso', 'Aguardando Finalização', 'Pagamento Feito', 'Concluído'].includes(status);
   });
 
-  async ngOnInit() {
-    await this.loadImages();
+  ngOnInit(): void {
+    this.loadImages();
   }
 
   ngOnDestroy() {
@@ -161,7 +162,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   }
 
   async openCamera(imageType: 'before' | 'after') {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (!navigator.mediaDevices?.getUserMedia) {
       this.notificationService.addNotification(
         this.i18n.translate('errorCameraNotSupported')
       );
@@ -181,6 +182,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
       }
 
       this.currentImageType.set(imageType);
+      this.isVideoReady.set(false);
       
       this.cameraStream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -203,6 +205,10 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
             video.play().catch((playError) => {
               console.error('Erro ao reproduzir vídeo:', playError);
             });
+          };
+
+          video.oncanplay = () => {
+            this.isVideoReady.set(true);
           };
 
           video.onerror = (error) => {
@@ -336,6 +342,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
       }
 
       this.isCameraOpen.set(false);
+      this.isVideoReady.set(false);
     } catch (error) {
       console.error('Erro ao fechar câmera:', error);
     }
