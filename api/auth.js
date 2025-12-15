@@ -10,12 +10,16 @@ app.use(express.json());
 
 const corsOptions = {
   origin: [
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    'http://localhost:4002',
+    'http://127.0.0.1:4002',
     'https://home-service-nu.vercel.app',
     /^https:\/\/home-service-.*\.vercel\.app$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 app.use(cors(corsOptions));
 

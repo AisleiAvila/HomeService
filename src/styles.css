@@ -2,6 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================
+   SISTEMA DE DESIGN - NATAN CONSTRUTORA
+   ========================================== */
+
+/* CSS Variables para suporte a tema */
+@layer base {
+  :root {
+    /* Cores da Marca - Natan Construtora */
+    --color-brand-primary: 234 84 85;    /* Vermelho coral do logo */
+    --color-brand-secondary: 51 51 51;   /* Preto/cinza escuro do logo */
+    --color-brand-accent: 158 158 158;   /* Cinza claro (CONSTRUTORA) */
+    
+    /* Cores Semânticas */
+    --color-success: 5 150 105;
+    --color-warning: 245 158 11;
+    --color-error: 220 38 38;
+    --color-info: 59 130 246;
+    
+    /* Espaçamento Base */
+    --spacing-unit: 0.25rem;
+    
+    /* Transições */
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+  }
+  
+  .dark {
+    /* Ajustes para dark mode */
+    --color-brand-primary: 252 165 165;  /* Vermelho coral mais claro */
+    --color-brand-secondary: 163 163 163; /* Cinza mais claro */
+    --color-brand-accent: 189 189 189;    /* Cinza accent mais claro */
+  }
+}
+
+/* ==========================================
+   COMPONENTES DE UI - DESIGN SYSTEM
+   ========================================== */
+
+@layer components {
+  /* Botões da Marca */
+  .btn-brand {
+    @apply px-6 py-3 rounded-brand font-medium text-white transition-all duration-200;
+    @apply bg-brand-primary-500 hover:bg-brand-primary-600 active:bg-brand-primary-700;
+    @apply shadow-brand hover:shadow-brand-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-brand-secondary {
+    @apply px-6 py-3 rounded-brand font-medium text-white transition-all duration-200;
+    @apply bg-brand-secondary-500 hover:bg-brand-secondary-600 active:bg-brand-secondary-700;
+    @apply shadow-brand hover:shadow-brand-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-secondary-500 focus:ring-offset-2;
+  }
+  
+  .btn-brand-outline {
+    @apply px-6 py-3 rounded-brand font-medium transition-all duration-200;
+    @apply border-2 border-brand-primary-500 text-brand-primary-500;
+    @apply hover:bg-brand-primary-50 active:bg-brand-primary-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-brand-ghost {
+    @apply px-6 py-3 rounded-brand font-medium transition-all duration-200;
+    @apply text-brand-primary-600 hover:bg-brand-primary-50 active:bg-brand-primary-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2;
+  }
+  
+  /* Cards da Marca */
+  .card-brand {
+    @apply bg-white rounded-brand shadow-card;
+    @apply hover:shadow-card-hover transition-shadow duration-200;
+    @apply border border-neutral-200;
+  }
+  
+  .card-brand-elevated {
+    @apply bg-white rounded-brand shadow-brand-lg;
+    @apply border border-neutral-100;
+  }
+  
+  /* Inputs da Marca */
+  .input-brand {
+    @apply w-full px-4 py-3 rounded-brand border-2 border-neutral-300;
+    @apply focus:border-brand-primary-500 focus:ring-2 focus:ring-brand-primary-500 focus:ring-opacity-20;
+    @apply transition-all duration-200;
+    @apply placeholder:text-neutral-400;
+  }
+  
+  .input-brand-error {
+    @apply border-semantic-error focus:border-semantic-error focus:ring-semantic-error;
+  }
+  
+  /* Badges da Marca */
+  .badge-brand {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-brand-primary-100 text-brand-primary-800;
+  }
+  
+  .badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-error {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-red-100 text-red-800;
+  }
+  
+  /* Gradientes da Marca */
+  .gradient-brand {
+    @apply bg-gradient-to-r from-brand-primary-500 to-brand-primary-700;
+  }
+  
+  .gradient-brand-secondary {
+    @apply bg-gradient-to-r from-brand-secondary-500 to-brand-accent-500;
+  }
+  
+  /* Skeleton Loaders */
+  .skeleton {
+    @apply animate-pulse bg-neutral-200 rounded;
+  }
+  
+  .skeleton-text {
+    @apply skeleton h-4 w-full;
+  }
+  
+  .skeleton-avatar {
+    @apply skeleton h-12 w-12 rounded-full;
+  }
+}
+
 /* Utilitários para formulários de profissionais */
 .form-label {
   font-size: 0.875rem; /* text-sm */
@@ -54,9 +190,15 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 0.875rem;
-  border-radius: 0.375rem;
-  color: #fff; /* text-white */
-  background-color: #166534; /* bg-green-800 for higher contrast */
+  border-radius: 0.75rem; /* brand radius */
+  color: #fff;
+  background-color: rgb(var(--color-brand-primary)); /* Vermelho coral */
+  transition: all 200ms ease-in-out;
+  box-shadow: 0 4px 14px 0 rgba(234, 84, 85, 0.15);
+}
+.btn-add:hover {
+  background-color: #dc2626;
+  box-shadow: 0 10px 40px 0 rgba(234, 84, 85, 0.20);
 }
 .btn-save {
   padding-left: 1rem;
@@ -64,9 +206,15 @@
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   font-size: 0.875rem;
-  border-radius: 0.375rem;
-  color: #fff; /* text-white */
-  background-color: #2563eb; /* bg-blue-600 */
+  border-radius: 0.75rem; /* brand radius */
+  color: #fff;
+  background-color: rgb(var(--color-brand-primary)); /* Vermelho coral */
+  transition: all 200ms ease-in-out;
+  box-shadow: 0 4px 14px 0 rgba(234, 84, 85, 0.15);
+}
+.btn-save:hover {
+  background-color: #dc2626;
+  box-shadow: 0 10px 40px 0 rgba(234, 84, 85, 0.20);
 }
 .feedback-box {
   padding-left: 1rem;   /* px-4 */

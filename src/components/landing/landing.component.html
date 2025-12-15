@@ -1,4 +1,4 @@
-<div class="flex flex-col min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white relative overflow-x-hidden mobile-safe">
+<div class="flex flex-col min-h-screen bg-gradient-to-br from-brand-secondary-700 via-brand-secondary-600 to-brand-primary-600 text-white relative overflow-x-hidden mobile-safe">
   <!-- Efeito de textura/padrão de fundo -->
   <div class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PHBhdGggZD0iTTM2IDEzNGgxMnYxMkgzNnoiLz48L2c+PC9nPjwvc3ZnPg==')]"></div>
 
@@ -13,12 +13,12 @@
       (error)="imgError = true"
     />
     <div *ngIf="imgError" class="flex flex-col items-center justify-center">
-      <svg class="w-20 h-20 text-blue-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 48 48" aria-hidden="true">
+      <svg class="w-20 h-20 text-brand-primary-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 48 48" aria-hidden="true">
         <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="3" fill="none" />
         <path d="M16 32l8-8 8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
         <path d="M24 16v8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
       </svg>
-      <span class="text-blue-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
+      <span class="text-brand-primary-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
     </div>
     <!-- Controles no canto superior direito: idioma + botões -->
     <div class="absolute top-2 right-2 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-row items-center gap-2">
@@ -26,11 +26,11 @@
         <ng-content select="[language-switcher]"></ng-content>
         <button
           (click)="signIn.emit()"
-          class="bg-white text-indigo-800 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 active:bg-blue-100/80 border-2 border-indigo-200 hover:shadow-xl min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0"
+          class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 hover:shadow-xl min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0"
           aria-label="{{ 'signIn' | i18n }}"
         >
           <!-- Ícone login: porta com seta -->
-          <svg class="inline-block w-5 h-5 text-blue-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="inline-block w-5 h-5 text-brand-primary-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
           </svg>
@@ -46,15 +46,15 @@
     <!-- Estatísticas -->
   <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-16 max-w-4xl mx-auto">
   <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
-        <div class="text-4xl font-bold text-blue-300 mb-2">20+</div>
+        <div class="text-4xl font-bold text-brand-accent-300 mb-2">20+</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsYears' | i18n }}</div>
       </div>
   <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
-        <div class="text-4xl font-bold text-blue-300 mb-2">500+</div>
+        <div class="text-4xl font-bold text-brand-accent-300 mb-2">500+</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsProjects' | i18n }}</div>
       </div>
   <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
-        <div class="text-4xl font-bold text-blue-300 mb-2">100%</div>
+        <div class="text-4xl font-bold text-brand-accent-300 mb-2">100%</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsSatisfaction' | i18n }}</div>
       </div>
     </section>
@@ -62,10 +62,10 @@
     <!-- Quem Somos -->
     <section 
       id="about"
-      class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-blue-500/20 hover:border-white/40 w-full"
+      class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-brand-primary-500/20 hover:border-white/40 w-full"
     >
       <h2 class="text-3xl font-serif font-bold mb-6 tracking-tight flex items-center gap-3">
-        <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="w-8 h-8 text-brand-accent-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
         </svg>
         {{ 'landingAboutTitle' | i18n }}
@@ -81,7 +81,7 @@
       <!-- Diferenciais -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
@@ -90,7 +90,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
@@ -99,7 +99,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
           </svg>
           <div>
@@ -108,7 +108,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
           <div>
@@ -201,7 +201,7 @@
   </a>
 
   <!-- Rodapé -->
-  <footer class="w-full fixed bottom-0 left-0 z-40 bg-gradient-to-r from-indigo-900/95 via-indigo-800/95 to-blue-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
+  <footer class="w-full fixed bottom-0 left-0 z-40 bg-gradient-to-r from-brand-secondary-900/95 via-brand-secondary-800/95 to-brand-primary-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
     <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
       <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-4">
         <span class="font-semibold">&copy; {{ currentYear }} Natan Construtora</span>
@@ -209,11 +209,11 @@
         <span class="text-white/70">{{ 'landingFooterTagline' | i18n }}</span>
       </div>
   <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-4">
-        <a href="#privacy" class="hover:text-blue-300 transition-colors underline">{{ 'landingFooterPrivacy' | i18n }}</a>
+        <a href="#privacy" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterPrivacy' | i18n }}</a>
         <span class="hidden sm:inline text-white/50">|</span>
-        <a href="#terms" class="hover:text-blue-300 transition-colors underline">{{ 'landingFooterTerms' | i18n }}</a>
+        <a href="#terms" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterTerms' | i18n }}</a>
         <span class="hidden sm:inline text-white/50">|</span>
-        <a href="mailto:natanconstrucoes@gmail.com" class="hover:text-blue-300 transition-colors underline">{{ 'landingFooterContact' | i18n }}</a>
+        <a href="mailto:natanconstrucoes@gmail.com" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterContact' | i18n }}</a>
       </div>
     </div>
   </footer>

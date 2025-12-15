@@ -1,14 +1,14 @@
 <div
-  class="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-100 via-white to-indigo-300 mobile-safe"
+  class="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-primary-100 via-white to-brand-primary-300 mobile-safe"
 >
   <div
-    class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-indigo-100 transition-all duration-300"
+    class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-brand-primary-100 transition-all duration-300"
   >
     <!-- Seletor de idioma no topo direito -->
     <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
-      <i class="fas fa-globe text-indigo-500 text-lg"></i>
+      <i class="fas fa-globe text-brand-primary-500 text-lg"></i>
       <select
-        class="px-2 py-1 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        class="px-2 py-1 rounded-lg border border-brand-primary-200 bg-brand-primary-50 text-brand-primary-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary-400"
         (change)="i18n.setLanguage($event.target.value)"
         [value]="i18n.language()"
         aria-label="Selecionar idioma"
@@ -24,11 +24,11 @@
         class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg mb-2"
       />
       <h1
-        class="text-3xl md:text-4xl font-extrabold text-indigo-700 drop-shadow-sm"
+        class="text-3xl md:text-4xl font-extrabold text-brand-primary-700 drop-shadow-sm"
       >
         HomeService
       </h1>
-      <p class="text-base text-indigo-400 font-medium">
+      <p class="text-base text-brand-primary-400 font-medium">
         Serviços para o seu lar
       </p>
       <h2
@@ -41,7 +41,7 @@
         <a
           href="#"
           (click)="$event.preventDefault(); switchToLogin.emit()"
-          class="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
+          class="font-semibold text-brand-primary-600 hover:text-brand-primary-500 transition-colors duration-200"
         >
           {{ "registerLoginLink" | i18n }}
         </a>
@@ -56,7 +56,7 @@
         <div>
           <label
             for="name"
-            class="block text-sm font-semibold text-indigo-700 mb-1"
+            class="block text-sm font-semibold text-brand-primary-700 mb-1"
           >
             {{ "fullName" | i18n }}
           </label>
@@ -65,7 +65,7 @@
             name="name"
             type="text"
             required
-            class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+            class="w-full px-4 py-2 border border-brand-primary-200 rounded-lg shadow-sm placeholder-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40"
             [placeholder]="'fullName' | i18n"
             [ngModel]="name()"
             (ngModelChange)="name.set($event)"
@@ -74,7 +74,7 @@
         <div>
           <label
             for="email-address"
-            class="block text-sm font-semibold text-indigo-700 mb-1"
+            class="block text-sm font-semibold text-brand-primary-700 mb-1"
           >
             {{ "emailAddress" | i18n }}
           </label>
@@ -86,7 +86,7 @@
             required
             pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
             title="Por favor, insira um e-mail válido (exemplo: usuario@email.com)"
-            class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+            class="w-full px-4 py-2 border border-brand-primary-200 rounded-lg shadow-sm placeholder-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40"
             [placeholder]="'emailAddress' | i18n"
             [ngModel]="email()"
             (ngModelChange)="email.set($event)"
@@ -95,7 +95,7 @@
         <div>
           <label
             for="password"
-            class="block text-sm font-semibold text-indigo-700 mb-1"
+            class="block text-sm font-semibold text-brand-primary-700 mb-1"
           >
             {{ "password" | i18n }}
           </label>
@@ -105,7 +105,7 @@
             type="password"
             autocomplete="new-password"
             required
-            class="w-full px-4 py-2 border border-indigo-200 rounded-lg shadow-sm placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all duration-150 bg-indigo-50/40"
+            class="w-full px-4 py-2 border border-brand-primary-200 rounded-lg shadow-sm placeholder-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40"
             [placeholder]="'password' | i18n"
             [ngModel]="password()"
             (ngModelChange)="password.set($event)"
@@ -131,7 +131,7 @@
               />
               <label
                 for="role-professional"
-                class="flex items-center justify-center w-full p-4 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-900 hover:bg-gray-50 transition-all duration-200"
+                class="flex items-center justify-center w-full p-4 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-brand-primary-600 peer-checked:bg-brand-primary-50 peer-checked:text-brand-primary-900 hover:bg-gray-50 transition-all duration-200"
               >
                 {{ "professional" | i18n }}
               </label>
@@ -152,7 +152,7 @@
         <button
           type="submit"
           [disabled]="!registerForm.valid"
-          class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-md"
+          class="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg text-white bg-gradient-to-r from-brand-primary-500 via-brand-primary-600 to-brand-primary-700 hover:from-brand-primary-600 hover:to-brand-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500 disabled:bg-brand-primary-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-md"
         >
           {{ "register" | i18n }}
         </button>

@@ -4,8 +4,8 @@ import { CreateServiceRequestComponent } from './pages/create-service-request/cr
 import { AdminCreateServiceRequestComponent } from './pages/admin-create-service-request/admin-create-service-request.component';
 import { EmailConfirmationComponent } from './components/email-confirmation.component';
 import { AdminDashboardComponent } from '../components/admin-dashboard/admin-dashboard.component';
-import { adminGuard } from './guards/admin.guard';
-
+import { adminGuard } from './guards/admin.guard';import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-showcase.component';
+import { DesignSystemShowcaseComponent } from '../components/design-system-showcase.component';
 export const routes: Routes = [
   {
     path: 'confirmar-email',
@@ -14,6 +14,16 @@ export const routes: Routes = [
   {
     path: 'reset-password',
     loadComponent: () => import('../components/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+  },
+  {
+    path: 'ui-components',
+    component: UiComponentsShowcaseComponent,
+    data: { title: 'Componentes de UI' }
+  },
+  {
+    path: 'design-system',
+    component: DesignSystemShowcaseComponent,
+    data: { title: 'Design System' }
   },
   {
     path: 'create-service-request',

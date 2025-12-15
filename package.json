@@ -52,7 +52,7 @@
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
-    "start": "concurrently \"ng serve --configuration=development --port 4200\" \"nodemon send-email.cjs\" \"nodemon scripts/custom_auth_backend.cjs\"",
+    "start": "concurrently \"ng serve --configuration=development --port 4200\" \"node send-email.cjs\" \"node ./scripts/custom_auth_backend.cjs\"",
     "sms:server": "node send-sms.cjs",
     "sms:test": "node test-sms.cjs",
     "email:server": "node send-email.cjs"
