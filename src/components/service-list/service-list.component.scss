@@ -226,10 +226,15 @@
   color: #374151; /* text-gray-700 */
   border: 1px solid #e5e7eb; /* border-gray-200 */
   border-radius: 0.5rem; /* rounded-lg */
-  font-size: 0.875rem; /* text-sm */
+  font-size: 0.75rem; /* text-xs mobile */
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
+  padding: 0.375rem 0.75rem; /* reduced padding for mobile */
+  @media (min-width: 640px) {
+    font-size: 0.875rem; /* text-sm on tablet+ */
+    padding: 0.5rem 1rem;
+  }
 }
 
 .service-list-action-secondary-chat:hover {
@@ -241,10 +246,15 @@
   color: #2563eb; /* text-blue-700 */
   border: 1px solid #bfdbfe; /* border-blue-200 */
   border-radius: 0.5rem; /* rounded-lg */
-  font-size: 0.875rem; /* text-sm */
+  font-size: 0.75rem; /* text-xs mobile */
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
+  padding: 0.375rem 0.75rem; /* reduced padding for mobile */
+  @media (min-width: 640px) {
+    font-size: 0.875rem; /* text-sm on tablet+ */
+    padding: 0.5rem 1rem;
+  }
 }
 
 .service-list-action-secondary-details:hover {
@@ -258,10 +268,11 @@
   transition-duration: 200ms;
   width: 100%;
   margin-bottom: 0.75rem;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #0f766e; /* bg-teal-700 */
@@ -275,10 +286,11 @@
   transition-duration: 200ms;
   width: 100%;
   margin-bottom: 0.75rem;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #1d4ed8; /* bg-blue-700 */
@@ -290,10 +302,11 @@
   border-radius: 0.5rem;
   transition-property: color, background-color;
   transition-duration: 200ms;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #b91c1c; /* bg-red-700 */
@@ -305,10 +318,11 @@
   border-radius: 0.5rem;
   transition-property: color, background-color;
   transition-duration: 200ms;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #15803d; /* bg-green-700 */
@@ -320,10 +334,11 @@
   border-radius: 0.5rem;
   transition-property: color, background-color;
   transition-duration: 200ms;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #b91c1c; /* bg-red-700 */
@@ -335,10 +350,11 @@
   border-radius: 0.5rem;
   transition-property: color, background-color;
   transition-duration: 200ms;
-  font-size: 0.875rem;
-  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
   @media (min-width: 640px) {
-    font-size: 1rem;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
   }
   &:hover {
     background-color: #15803d; /* bg-green-700 */

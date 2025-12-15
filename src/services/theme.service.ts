@@ -28,8 +28,8 @@ export class ThemeService {
     this.currentTheme.set(savedTheme);
     
     // Observar mudanças de preferência do sistema
-    if (window.matchMedia) {
-      const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (globalThis && 'matchMedia' in globalThis) {
+      const darkModeQuery = globalThis.matchMedia('(prefers-color-scheme: dark)');
       darkModeQuery.addEventListener('change', (e) => {
         if (this.currentTheme() === 'system') {
           this.isDarkMode.set(e.matches);
@@ -85,7 +85,9 @@ export class ThemeService {
     
     if (theme === 'system') {
       // Verificar preferência do sistema
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const prefersDark = globalThis && 'matchMedia' in globalThis 
+        ? globalThis.matchMedia('(prefers-color-scheme: dark)').matches 
+        : false;
       this.isDarkMode.set(prefersDark);
       prefersDark ? htmlElement.classList.add('dark') : htmlElement.classList.remove('dark');
     } else if (theme === 'dark') {

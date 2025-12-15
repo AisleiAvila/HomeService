@@ -506,7 +506,7 @@
             @if(request.status === 'Aguardando confirmação do profissional') {
             <button
               (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
-              class="px-4 py-2 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors flex items-center justify-center w-full sm:w-auto mb-2 sm:mb-0 sm:mr-2"
+              class="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors flex items-center justify-center w-full sm:w-auto mb-2 sm:mb-0 sm:mr-2"
               [disabled]="isLoading(request.id)"
             >
               <i
@@ -517,7 +517,7 @@
             </button>
             <button
               (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
-              class="px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center w-full sm:w-auto"
+              class="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center w-full sm:w-auto"
               [disabled]="isLoading(request.id)"
             >
               <i
@@ -566,16 +566,16 @@
               title="{{ 'viewRequestDetails' | i18n }}"
               style="display: flex; align-items: center"
             >
-              <i class="fas fa-eye mr-1"></i>
-              {{ "details" | i18n }}
+              <i class="fas fa-eye mr-1 text-xs sm:text-sm"></i>
+              <span class="text-xs sm:text-sm">{{ "details" | i18n }}</span>
             </button>
             <button
               (click)="openChat.emit(request)"
               class="service-list-action-secondary-chat"
               title="{{ 'chat' | i18n }}"
             >
-              <i class="fas fa-comments mr-1"></i>
-              {{ "chat" | i18n }}
+              <i class="fas fa-comments mr-1 text-xs sm:text-sm"></i>
+              <span class="text-xs sm:text-sm">{{ "chat" | i18n }}</span>
             </button>
           </div>
         </div>
