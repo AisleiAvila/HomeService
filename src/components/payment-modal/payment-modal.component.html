@@ -6,69 +6,69 @@
   open
   #modalContainer
 >
-  <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative">
     <button
       (click)="handleClose()"
       [disabled]="loading()"
-      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
       aria-label="{{ 'close' | i18n }}"
       type="button"
       tabindex="0"
     >
       <i class="fas fa-times" aria-hidden="true"></i>
     </button>
-    <h2 id="payment-modal-title" class="text-xl font-bold mb-4 text-gray-900">{{ "payNow" | i18n }}</h2>
+    <h2 id="payment-modal-title" class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{{ "payNow" | i18n }}</h2>
     <!-- Bloco: Informações do Serviço -->
-    <div class="mb-4 pb-4 border-b border-gray-200">
+    <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
       <!-- Serviço -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "service" | i18n }}:
         <span class="font-medium">{{ request().title | i18n }}</span>
       </div>
       <!-- Categoria -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "category" | i18n }}:
         <span class="font-medium">
           {{ (request()?.category && request().category.name) ? (request().category.name | i18n) : ('—' | i18n) }}
         </span>
         <ng-container *ngIf="request()?.category && request().category.description">
-          <span *ngIf="request().category.description.trim()" class="block text-xs text-gray-500 mt-1">{{ request().category.description | i18n }}</span>
+          <span *ngIf="request().category.description.trim()" class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().category.description | i18n }}</span>
         </ng-container>
       </div>
       <!-- Subcategoria -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "subcategory" | i18n }}:
         <span class="font-medium">
           {{ request()?.subcategory?.name ? (request().subcategory.name | i18n) : ('—' | i18n) }}
         </span>
         <ng-container *ngIf="request()?.subcategory?.description">
-          <span *ngIf="request().subcategory.description.trim()" class="block text-xs text-gray-500 mt-1">{{ request().subcategory.description | i18n }}</span>
+          <span *ngIf="request().subcategory.description.trim()" class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().subcategory.description | i18n }}</span>
         </ng-container>
       </div>
       <!-- Profissional -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "professional" | i18n }}:
         <span class="font-medium">
           {{ (request()?.professional_name && (request().professional_name + '').trim()) ? request().professional_name : ("unassigned" | i18n) }}
         </span>
       </div>
       <!-- Valor do Prestador -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "valorPrestador" | i18n }}:
-        <span class="font-semibold text-green-700">{{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
+        <span class="font-semibold text-green-700 dark:text-green-400">{{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
       </div>
       <!-- Valor Total -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "TotalValue" | i18n }}:
-        <span class="font-semibold text-brand-primary-700">{{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
+        <span class="font-semibold text-brand-primary-700 dark:text-brand-primary-400">{{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
       </div>
       <!-- Status -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "status" | i18n }}:
         <span class="font-medium">{{ request().status | i18n }}</span>
       </div>
       <!-- Período de Execução -->
-      <div class="text-sm text-gray-700 mb-2">
+      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
         {{ "executionPeriod" | i18n }}:
         <span class="font-medium">
           {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
@@ -78,8 +78,8 @@
       </div>
     </div>
     <!-- Bloco: Métodos de Pagamento -->
-    <div class="mb-4 pt-4 border-t border-gray-200">
-      <div class="block text-sm font-medium text-gray-700 mb-2">{{ "choosePaymentMethod" | i18n }}</div>
+    <div class="mb-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "choosePaymentMethod" | i18n }}</div>
       <div class="space-y-2">
         <ng-container *ngFor="let method of paymentMethods">
           <label class="flex items-center cursor-pointer group" [attr.title]="method.tooltip">
@@ -95,20 +95,20 @@
               aria-label="{{ method.label }}"
               tabindex="0"
             />
-            <span class="ml-2 flex items-center text-gray-800">
+            <span class="ml-2 flex items-center text-gray-800 dark:text-gray-200">
               <i [ngClass]="{
                 'fas fa-credit-card text-brand-primary-500': method.id === 'card',
                 'fab fa-whatsapp text-green-500': method.id === 'mbway',
                 'fas fa-university text-brand-primary-500': method.id === 'bank'
               }" class="mr-2"></i>
               {{ method.label }}
-              <span class="ml-1 text-xs text-gray-400 group-hover:text-gray-700">&#9432;</span>
+              <span class="ml-1 text-xs text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-400">&#9432;</span>
             </span>
           </label>
         </ng-container>
       </div>
       <!-- Mensagem de erro -->
-      <div *ngIf="error()" class="mt-2 text-sm text-red-600 flex items-center">
+      <div *ngIf="error()" class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
         <i class="fas fa-exclamation-circle mr-2"></i>
         {{ error() }}
       </div>
@@ -116,7 +116,7 @@
     <button
       (click)="handlePay()"
       [disabled]="!selectedMethod() || loading() || processing()"
-      class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
+      class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
       type="button"
       tabindex="0"
     >
