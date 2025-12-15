@@ -157,6 +157,7 @@ export interface User {
   receive_sms_notifications?: boolean;
   reset_token?: string | null; // Token para reset de senha
   reset_token_expiry?: string | null; // Data/hora de expiração do token de reset (ISO)
+  is_natan_employee?: boolean; // Indica se o profissional é funcionário da Natan Construtora (true) ou prestador independente (false)
 }
 
 export interface ServiceRequest {

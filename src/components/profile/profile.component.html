@@ -195,6 +195,32 @@
     </div>
   </ng-container>
 
+  <!-- Card: Vínculo com Natan Construtora (apenas para profissionais) -->
+  <ng-container *ngIf="user().role === 'professional'">
+    <div
+      class="rounded-xl border border-indigo-100 bg-white/80 shadow-sm p-4 md:p-6 mb-4 flex flex-col gap-4 w-full mobile-safe">
+      <h3 class="text-lg font-bold text-indigo-700 mb-2">
+        {{ "natanAffiliation" | i18n }}
+      </h3>
+      <div class="flex flex-col gap-3">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input 
+            type="checkbox" 
+            [checked]="isNatanEmployee()"
+            (change)="isNatanEmployee.set($any($event.target).checked); checkIfChanged()"
+            class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500"
+            aria-label="{{ 'isNatanEmployee' | i18n }}" />
+          <span class="text-sm text-gray-700 font-medium">
+            {{ "isNatanEmployee" | i18n }}
+          </span>
+        </label>
+        <p class="text-xs text-gray-500 mt-1">
+          {{ isNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
+        </p>
+      </div>
+    </div>
+  </ng-container>
+
   <div class="flex flex-col md:flex-row justify-end gap-4 mt-8 w-full">
     <button type="button" (click)="goToDashboard()"
       class="w-full md:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition">

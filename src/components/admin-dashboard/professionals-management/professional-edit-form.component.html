@@ -33,6 +33,7 @@
         @for(cat of allCategories; track cat.id) {
         <div>
           <input type="checkbox" [id]="'edit-pro-' + cat.id"
+            [checked]="isSpecialtySelected(cat)"
             (change)="onSpecialtyToggle(cat, $event)" aria-label="{{ cat.name | i18n }}" /><label [for]="'edit-pro-' + cat.id"
             class="ml-2">{{ cat.name | i18n }}</label>
         </div>

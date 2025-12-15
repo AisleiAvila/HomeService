@@ -37,6 +37,7 @@ export const routes: Routes = [
       { path: 'approvals', loadComponent: () => import('../components/admin-dashboard/pending-approvals/pending-approvals.component').then(m => m.PendingApprovalsComponent) },
       { path: 'finances', loadComponent: () => import('../components/admin-dashboard/financial-reports/financial-reports.component').then(m => m.FinancialReportsComponent) },
       { path: 'professionals', loadComponent: () => import('../components/admin-dashboard/professionals-management/professionals-management.component').then(m => m.ProfessionalsManagementComponent) },
+      { path: 'professionals/edit/:id', loadComponent: () => import('../components/admin-dashboard/professionals-management/professional-edit-page.component').then(m => m.ProfessionalEditPageComponent) },
       { path: 'clients', loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
       { path: 'categories', loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
     ]

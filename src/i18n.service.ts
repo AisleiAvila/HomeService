@@ -940,6 +940,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     nif: "NIF",
     executionDate: "Execution Date",
     imageUploadedSuccessfully: "Image uploaded successfully!",
+    isNatanEmployee: "Natan Construtora Employee",
+    natanEmployeeYes: "Yes, employee of Natan Construtora",
+    natanEmployeeNo: "No, independent service provider",
+    natanAffiliation: "Natan Construtora Affiliation",
    
 
   },
@@ -1885,6 +1889,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     nif: "NIF",
     executionDate: "Data de Execução",
     imageUploadedSuccessfully: "Imagem enviada com sucesso!",
+    isNatanEmployee: "Funcionário da Natan Construtora",
+    natanEmployeeYes: "Sim, funcionário da Natan Construtora",
+    natanEmployeeNo: "Não, prestador de serviço independente",
+    natanAffiliation: "Vínculo com a Natan Construtora",
 
   },
 };

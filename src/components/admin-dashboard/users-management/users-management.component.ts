@@ -2,7 +2,7 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { User, UserRole } from "../../../models/maintenance.models";
+import { User, UserRole, ServiceCategory } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
@@ -146,12 +146,15 @@ export class UsersManagementComponent {
     newClientEmail = signal("");
     newClientPhone = signal("");
     newClientRole = signal<UserRole>("professional");
+    newClientIsNatanEmployee = signal(false);
 
     // Edit Client
     editingClient = signal<User | null>(null);
     editingClientName = signal("");
     editingClientEmail = signal("");
     editingClientRole = signal<UserRole>("professional");
+    editingClientIsNatanEmployee = signal(false);
+    editingClientSpecialties = signal<ServiceCategory[]>([]);
 
     // View Details
     viewingClient = signal<User | null>(null);
@@ -171,6 +174,7 @@ export class UsersManagementComponent {
         this.newClientEmail.set("");
         this.newClientPhone.set("");
         this.newClientRole.set("professional");
+        this.newClientIsNatanEmployee.set(false);
         this.showAddClientForm.set(false);
     }
 
@@ -250,7 +254,8 @@ export class UsersManagementComponent {
                     role,
                     status: 'Active', // Administradores já são ativados
                     confirmation_token: token,
-                    password: tempPassword
+                    password: tempPassword,
+                    is_natan_employee: this.newClientIsNatanEmployee()
                 })
             });
 
@@ -309,6 +314,27 @@ export class UsersManagementComponent {
         this.editingClientName.set(client.name);
         this.editingClientEmail.set(client.email);
         this.editingClientRole.set(client.role);
+        this.editingClientIsNatanEmployee.set(client.is_natan_employee ?? false);
+        this.editingClientSpecialties.set(client.specialties || []);
+    }
+
+    isEditingSpecialtySelected(category: ServiceCategory): boolean {
+        return this.editingClientSpecialties().some((c) => c.id === category.id);
+    }
+
+    onEditingSpecialtyToggle(category: ServiceCategory, event: Event) {
+        const isChecked = (event.target as HTMLInputElement).checked;
+        const current = this.editingClientSpecialties();
+        
+        if (isChecked) {
+            // Adiciona a especialidade
+            if (!current.some(c => c.id === category.id)) {
+                this.editingClientSpecialties.set([...current, category]);
+            }
+        } else {
+            // Remove a especialidade
+            this.editingClientSpecialties.set(current.filter(c => c.id !== category.id));
+        }
     }
 
     async saveClientEdit() {
@@ -327,13 +353,49 @@ export class UsersManagementComponent {
         }
 
         try {
+            // Atualizar dados básicos do usuário
+            const updateData: any = { name, email, role };
+            if (role === 'professional') {
+                updateData.is_natan_employee = this.editingClientIsNatanEmployee();
+            }
             const { error } = await this.supabase.client
                 .from("users")
-                .update({ name, email, role })
+                .update(updateData)
                 .eq("id", client.id);
 
             if (error) {
                 throw error;
+            }
+
+            // Se for profissional, atualizar especialidades na tabela user_specialties
+            if (role === 'professional') {
+                // 1. Remover todas as especialidades existentes
+                const { error: deleteError } = await this.supabase.client
+                    .from("user_specialties")
+                    .delete()
+                    .eq("user_id", client.id);
+
+                if (deleteError) {
+                    console.error("Error deleting specialties:", deleteError);
+                    throw deleteError;
+                }
+
+                // 2. Adicionar novas especialidades
+                const specialtiesToInsert = this.editingClientSpecialties().map(cat => ({
+                    user_id: client.id,
+                    category_id: cat.id
+                }));
+
+                if (specialtiesToInsert.length > 0) {
+                    const { error: insertError } = await this.supabase.client
+                        .from("user_specialties")
+                        .insert(specialtiesToInsert);
+
+                    if (insertError) {
+                        console.error("Error inserting specialties:", insertError);
+                        throw insertError;
+                    }
+                }
             }
 
             this.notificationService.addNotification(
@@ -354,6 +416,8 @@ export class UsersManagementComponent {
         this.editingClientName.set("");
         this.editingClientEmail.set("");
         this.editingClientRole.set("professional");
+        this.editingClientIsNatanEmployee.set(false);
+        this.editingClientSpecialties.set([]);
     }
 
     getRoleLabel(role: UserRole): string {

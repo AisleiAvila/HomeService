@@ -26,6 +26,10 @@ export class ProfessionalEditFormComponent {
   @Output() update = new EventEmitter<void>();
   @Output() cancelEdit = new EventEmitter<void>();
 
+  isSpecialtySelected(category: ServiceCategory): boolean {
+    return this.specialties.some((c) => c.id === category.id);
+  }
+
   onSpecialtyToggle(category: ServiceCategory, event: any) {
     const checked = event.target.checked;
     let updated = [...this.specialties];

@@ -58,6 +58,7 @@ export class ProfileComponent implements OnDestroy {
   address = signal<Address>({ street: "", city: "", state: "", zip_code: "" });
   specialties = signal<ServiceCategory[]>([]);
   email = signal("");
+  isNatanEmployee = signal(false);
 
   // UI state
   isEditing = signal(false);
@@ -107,6 +108,7 @@ export class ProfileComponent implements OnDestroy {
         this.receiveSmsNotifications.set(
           currentUser.receive_sms_notifications ?? false
         );
+        this.isNatanEmployee.set(currentUser.is_natan_employee ?? false);
       }
     });
   }
@@ -155,6 +157,13 @@ export class ProfileComponent implements OnDestroy {
     ) {
       updatedUserData.receive_sms_notifications =
         this.receiveSmsNotifications();
+      hasChanges = true;
+    }
+    if (
+      this.user().role === "professional" &&
+      this.isNatanEmployee() !== (originalUser.is_natan_employee ?? false)
+    ) {
+      updatedUserData.is_natan_employee = this.isNatanEmployee();
       hasChanges = true;
     }
     // TODO: Address update needs to be implemented separately

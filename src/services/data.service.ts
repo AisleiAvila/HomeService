@@ -1530,35 +1530,41 @@ export class DataService {
       this.notificationService.addNotification(
         "Error fetching users: " + error.message
       );
-    } else {
-      // Normaliza specialties para garantir que seja array de objetos {id, name}
-      const normalized = (data || []).map((user: any) => {
-        if (Array.isArray(user.specialties)) {
-          user.specialties = user.specialties.map((cat: any) => {
-            if (typeof cat === 'number') {
-              // Se vier só o id
-              return { id: cat, name: '' };
-            }
-            if (typeof cat === 'string') {
-              // Se vier como string (ex: JSON)
-              try {
-                const obj = JSON.parse(cat);
-                if (obj && typeof obj.id === 'number') return obj;
-              } catch {}
-              return { id: Number(cat) || 0, name: '' };
-            }
-            if (cat && typeof cat.id === 'number') {
-              return cat;
-            }
-            return { id: 0, name: '' };
-          });
-        } else {
-          user.specialties = [];
-        }
-        return user;
-      });
-      this.users.set(normalized);
+      return;
     }
+
+    // Carregar especialidades de todos os usuários profissionais
+    const { data: specialtiesData, error: specialtiesError } = await this.supabase.client
+      .from("user_specialties")
+      .select("user_id, category_id");
+
+    if (specialtiesError) {
+      console.error("Error fetching user specialties:", specialtiesError);
+    }
+
+    // Criar um mapa de userId -> categoryIds
+    const userSpecialtiesMap = new Map<number, number[]>();
+    if (specialtiesData) {
+      for (const row of specialtiesData) {
+        const categoryIds = userSpecialtiesMap.get(row.user_id) || [];
+        categoryIds.push(row.category_id);
+        userSpecialtiesMap.set(row.user_id, categoryIds);
+      }
+    }
+
+    // Obter todas as categorias
+    const allCategories = this.categories();
+
+    // Normalizar usuários com especialidades carregadas da tabela user_specialties
+    const normalized = (data || []).map((user: any) => {
+      const categoryIds = userSpecialtiesMap.get(user.id) || [];
+      user.specialties = categoryIds
+        .map(catId => allCategories.find(cat => cat.id === catId))
+        .filter(cat => cat !== undefined) as ServiceCategory[];
+      return user;
+    });
+
+    this.users.set(normalized);
   }
 
   private async createClarificationNotification(

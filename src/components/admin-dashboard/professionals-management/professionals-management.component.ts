@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, signal, effect, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import { ServiceCategory, User } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
@@ -214,13 +215,11 @@ export class ProfessionalsManagementComponent implements OnInit {
         });
     }
 
+    private readonly router = inject(Router);
+
     startEditProfessional(pro: User) {
-        // Ao iniciar edição, garantir que o formulário de adição não seja exibido
-        this.showAddProfessionalForm.set(false);
-        this.editingProfessional.set(pro);
-        this.editingProfessionalName.set(pro.name);
-        this.editingProfessionalEmail.set(pro.email);
-        // Logic to set specialties would go here
+        // Navegar para a página de edição
+        this.router.navigate(['/admin/professionals/edit', pro.id]);
     }
 
     cancelEditProfessional() {
