@@ -3,19 +3,19 @@
   @if (isLoading()) {
     <div class="text-center py-8">
       <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-primary-500 border-t-transparent"></div>
-      <p class="mt-2 text-gray-600">{{ 'loading' | i18n }}</p>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">{{ 'loading' | i18n }}</p>
     </div>
   } @else {
     
     <!-- Imagens ANTES do Serviço -->
     @if (canUploadBefore() || beforeImages().length > 0) {
-      <div class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             <i class="fas fa-camera mr-2 text-brand-primary-600"></i>
             {{ 'imagesBeforeService' | i18n }}
           </h3>
-          <span class="text-sm text-gray-500">
+          <span class="text-sm text-gray-500 dark:text-gray-400">
             {{ beforeImages().length }} {{ 'images' | i18n }}
           </span>
         </div>
@@ -25,14 +25,14 @@
         <div class="mb-4 space-y-2">
           <div class="grid grid-cols-2 gap-2">
             <!-- Upload from file -->
-            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-brand-primary-500 hover:bg-brand-primary-50 transition-colors">
+            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-brand-primary-500 hover:bg-brand-primary-50 dark:hover:bg-brand-primary-900/20 transition-colors">
               @if (uploadingBefore()) {
                 <div class="flex items-center gap-2 text-brand-primary-600">
                   <div class="animate-spin rounded-full h-5 w-5 border-2 border-brand-primary-600 border-t-transparent"></div>
                   <span class="text-sm">{{ 'uploading' | i18n }}...</span>
                 </div>
               } @else {
-                <div class="flex items-center gap-2 text-gray-600">
+                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <i class="fas fa-cloud-upload-alt text-lg"></i>
                   <span class="font-medium text-sm">{{ 'uploadImage' | i18n }}</span>
                 </div>
@@ -50,9 +50,9 @@
             <button
               (click)="openCamera('before')"
               [disabled]="uploadingBefore()"
-              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-brand-primary-500 hover:bg-brand-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-brand-primary-500 hover:bg-brand-primary-50 dark:hover:bg-brand-primary-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div class="flex items-center gap-2 text-gray-600">
+              <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <i class="fas fa-camera text-lg"></i>
                 <span class="font-medium text-sm">{{ 'useCamera' | i18n }}</span>
               </div>
@@ -115,13 +115,13 @@
 
     <!-- Imagens DEPOIS do Serviço -->
     @if (canUploadAfter() || afterImages().length > 0) {
-      <div class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             <i class="fas fa-camera mr-2 text-green-600"></i>
             {{ 'imagesAfterService' | i18n }}
           </h3>
-          <span class="text-sm text-gray-500">
+          <span class="text-sm text-gray-500 dark:text-gray-400">
             {{ afterImages().length }} {{ 'images' | i18n }}
           </span>
         </div>
@@ -131,14 +131,14 @@
         <div class="mb-4 space-y-2">
           <div class="grid grid-cols-2 gap-2">
             <!-- Upload from file -->
-            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
+            <label class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
               @if (uploadingAfter()) {
                 <div class="flex items-center gap-2 text-green-600">
                   <div class="animate-spin rounded-full h-5 w-5 border-2 border-green-600 border-t-transparent"></div>
                   <span class="text-sm">{{ 'uploading' | i18n }}...</span>
                 </div>
               } @else {
-                <div class="flex items-center gap-2 text-gray-600">
+                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                   <i class="fas fa-cloud-upload-alt text-lg"></i>
                   <span class="font-medium text-sm">{{ 'uploadImage' | i18n }}</span>
                 </div>
@@ -156,15 +156,15 @@
             <button
               (click)="openCamera('after')"
               [disabled]="uploadingAfter()"
-              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div class="flex items-center gap-2 text-gray-600">
+              <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <i class="fas fa-camera text-lg"></i>
                 <span class="font-medium text-sm">{{ 'useCamera' | i18n }}</span>
               </div>
             </button>
           </div>
-          <p class="text-xs text-gray-500 text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
             {{ 'maxFileSize5MB' | i18n }}
           </p>
         </div>
@@ -233,9 +233,9 @@
   <!-- Camera Modal -->
   @if (isCameraOpen()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4">
-      <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full overflow-hidden">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full overflow-hidden">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
           <h3 class="text-lg font-semibold text-white flex items-center gap-2">
             <i class="fas fa-camera"></i>
             {{ 'capturePhoto' | i18n }}
@@ -270,7 +270,7 @@
         </div>
 
         <!-- Actions -->
-        <div class="p-4 bg-gray-50 flex items-center justify-center gap-3">
+        <div class="p-4 bg-gray-50 dark:bg-gray-700 flex items-center justify-center gap-3">
           <button
             (click)="closeCamera()"
             class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"

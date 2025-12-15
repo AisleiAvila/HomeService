@@ -1,24 +1,24 @@
-<div class="workflow-timeline bg-white rounded-lg shadow-sm border p-6">
+<div class="workflow-timeline bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
   <!-- Cabeçalho com progresso geral -->
   <div class="mb-6">
     <div class="flex items-center justify-between mb-2">
-      <h3 class="text-lg font-semibold text-gray-900">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
         {{ "workflow_progress" | i18n }}
       </h3>
-      <span class="text-sm text-gray-500">
+      <span class="text-sm text-gray-500 dark:text-gray-400">
         {{ "phase" | i18n }} {{ currentPhaseNumber() }} {{ "of" | i18n }} 4
       </span>
     </div>
 
     <!-- Barra de progresso -->
-    <div class="w-full bg-gray-200 rounded-full h-2">
+    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
       <div
         class="bg-brand-primary-500 h-2 rounded-full transition-all duration-500"
         [style.width]="progressPercentage() + '%'"
       ></div>
     </div>
     <div class="text-right mt-1">
-      <span class="text-xs text-gray-500"
+      <span class="text-xs text-gray-500 dark:text-gray-400"
         >{{ progressPercentage() | number : "1.0-0" }}%</span
       >
     </div>
@@ -35,7 +35,7 @@
               class="flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap"
               [ngClass]="{
                 'bg-brand-primary-500 text-white ring-2 ring-brand-primary-300': status.isCurrent,
-                'bg-green-100 text-green-800': !status.isCurrent
+                'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': !status.isCurrent
               }"
             >
               @if (status.isCurrent) {
@@ -46,16 +46,16 @@
               <span>{{ status.name }}</span>
             </div>
             <div class="flex flex-col items-center mt-1 space-y-0.5">
-              <span class="text-xs text-gray-500">{{ status.timestamp | date : 'dd/MM HH:mm' }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ status.timestamp | date : 'dd/MM HH:mm' }}</span>
               @if (status.userName) {
-                <span class="text-xs text-gray-600 font-medium">{{ status.userName }}</span>
+                <span class="text-xs text-gray-600 dark:text-gray-300 font-medium">{{ status.userName }}</span>
               }
             </div>
           </div>
           
           <!-- Seta conectora (exceto no último) -->
           @if (!isLast) {
-            <i class="fas fa-arrow-right text-gray-400 flex-shrink-0"></i>
+            <i class="fas fa-arrow-right text-gray-400 dark:text-gray-500 flex-shrink-0"></i>
           }
         }
       </div>
@@ -65,22 +65,22 @@
   <!-- Informações de timing -->
   @if (serviceRequest().requested_datetime ||
   serviceRequest().scheduled_start_datetime) {
-  <div class="mt-6 pt-6 border-t border-gray-200">
-    <h4 class="text-sm font-medium text-gray-700 mb-3">
+  <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
       {{ "timing_information" | i18n }}
     </h4>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
       @if (serviceRequest().requested_datetime) {
       <div>
-        <span class="text-gray-500">{{ "requested_at" | i18n }}:</span>
-        <span class="ml-2 font-medium">
+        <span class="text-gray-500 dark:text-gray-400">{{ "requested_at" | i18n }}:</span>
+        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
           {{ serviceRequest().requested_datetime | date : "dd/MM/yyyy HH:mm" }}
         </span>
       </div>
       } @if (serviceRequest().scheduled_start_datetime) {
       <div>
-        <span class="text-gray-500">{{ "scheduled_for" | i18n }}:</span>
-        <span class="ml-2 font-medium">
+        <span class="text-gray-500 dark:text-gray-400">{{ "scheduled_for" | i18n }}:</span>
+        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
           {{
             serviceRequest().scheduled_start_datetime
               | date : "dd/MM/yyyy HH:mm"
@@ -89,8 +89,8 @@
       </div>
       } @if (serviceRequest().actual_start_datetime) {
       <div>
-        <span class="text-gray-500">{{ "started_at" | i18n }}:</span>
-        <span class="ml-2 font-medium">
+        <span class="text-gray-500 dark:text-gray-400">{{ "started_at" | i18n }}:</span>
+        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
           {{
             serviceRequest().actual_start_datetime | date : "dd/MM/yyyy HH:mm"
           }}
@@ -98,8 +98,8 @@
       </div>
       } @if (serviceRequest().actual_end_datetime) {
       <div>
-        <span class="text-gray-500">{{ "completed_at" | i18n }}:</span>
-        <span class="ml-2 font-medium">
+        <span class="text-gray-500 dark:text-gray-400">{{ "completed_at" | i18n }}:</span>
+        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
           {{ serviceRequest().actual_end_datetime | date : "dd/MM/yyyy HH:mm" }}
         </span>
       </div>

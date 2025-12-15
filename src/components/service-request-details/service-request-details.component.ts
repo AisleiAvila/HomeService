@@ -74,7 +74,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
     </div>
     } @else {
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <header class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" role="banner">
+    <header class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" role="banner">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-2xl font-bold text-white flex items-center">
@@ -87,7 +87,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </div>
         <button
           (click)="logAndEmitCloseDetails()"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary-600 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-brand-primary-600 dark:text-brand-primary-400 text-sm font-medium rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg dark:shadow-gray-900"
           [attr.aria-label]="'backToList' | i18n"
         >
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
@@ -101,7 +101,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
       @if (request()) {
       <div class="space-y-6">
         <!-- Workflow Timeline -->
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'workflowTimeline' | i18n">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'workflowTimeline' | i18n">
           <app-workflow-timeline
             [serviceRequest]="request()"
             role="complementary"
@@ -110,10 +110,10 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Professional Responses / Respostas dos Profissionais -->
         @if (professionalQuotes().length > 0) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'professionalResponses' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="professional-quotes-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'professionalResponses' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="professional-quotes-title">
             {{ "professionalResponses" | i18n }}
-            <span class="text-sm font-normal text-gray-500 ml-2" aria-label="professionalResponsesCount">
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2" aria-label="professionalResponsesCount">
               ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('response' | i18n) : ('responses' | i18n) }})
             </span>
           </h3>
@@ -123,7 +123,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               class="border rounded-lg p-4 transition-all"
               [class.border-green-500]="quote.isSelected"
               [class.bg-green-50]="quote.isSelected"
+              [class.dark:bg-green-900]="quote.isSelected"
               [class.border-gray-200]="!quote.isSelected"
+              [class.dark:border-gray-700]="!quote.isSelected"
               [attr.aria-label]="'professionalQuote' | i18n : { name: quote.professional_name }"
             >
               <!-- Cabeçalho da resposta -->
@@ -142,7 +144,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                   </div>
                   }
                   <div>
-                    <h4 class="font-medium text-gray-800">
+                    <h4 class="font-medium text-gray-800 dark:text-gray-100">
                       {{ quote.professional_name || ("professional" | i18n) }}
                     </h4>
                     @if (quote.professional_rating) {
@@ -175,7 +177,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
               <!-- Botões de ação para admin - SIMPLIFICADO: apenas seleção de profissional -->
               @if (currentUser().role === "admin" && (quote.response_status === "responded" || quote.response_status === "accepted") && !quote.isSelected) {
-              <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200">
+              <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   (click)="selectSpecificProfessional(quote.professional_id)"
                   class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
@@ -193,8 +195,8 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         }
 
         <!-- Service Request Details Card -->
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'requestInformation' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="request-info-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'requestInformation' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="request-info-title">
             {{ "requestInformation" | i18n }}
           </h3>
 
@@ -202,42 +204,42 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             <!-- Left Column -->
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="title-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="title-label">
                   {{ "title" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="description-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="description-label">
                   {{ "description" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
               </div>
               @if (request().origin) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="origin-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="origin-label">
                   {{ "origin" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'origin-label'">{{ request().origin?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'origin-label'">{{ request().origin?.name || '—' }}</p>
               </div>
               }
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="category-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="category-label">
                   {{ "category" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'category-label'">{{ request().category?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'category-label'">{{ request().category?.name || '—' }}</p>
               </div>
               @if (request().subcategory) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="subcategory-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="subcategory-label">
                   {{ "subcategory" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'subcategory-label'">{{ request().subcategory?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'subcategory-label'">{{ request().subcategory?.name || '—' }}</p>
               </div>
               }
               @if (currentUser().role === "admin") {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="total-value-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="total-value-label">
                   {{ "TotalValue" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'total-value-label'">
@@ -250,7 +252,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               </div>
               }
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="professional-value-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-value-label">
                   {{ "valorPrestador" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-brand-primary-600" [attr.aria-labelledby]="'professional-value-label'">
@@ -262,7 +264,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 </p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="priority-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="priority-label">
                   {{ "priority" | i18n }}
                 </label>
                 <span [class]="getPriorityClass(request().priority)" [attr.aria-labelledby]="'priority-label'">
@@ -274,18 +276,18 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             <!-- Right Column -->
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="status-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="status-label">
                   {{ "status" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'status-label'" role="status">{{ request().status || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'status-label'" role="status">{{ request().status || '—' }}</p>
               </div>
 
               @if (request().professional_name) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="professional-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-label">
                   {{ "professionalName" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'professional-label'">
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'professional-label'">
                   {{
                     request().professional_name || ("nameNotAvailable" | i18n)
                   }}
@@ -293,7 +295,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               </div>
               } @if (request().cost) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="cost-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cost-label">
                   {{ "cost" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'cost-label'">
@@ -303,10 +305,10 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               }
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="created-at-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="created-at-label">
                   {{ "createdAt" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'created-at-label'">
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'created-at-label'">
                   @if (request().created_at) {
                     {{ request().created_at | date : "dd/MM/yyyy HH:mm" }}
                   } @else if (request().requested_date) {
@@ -319,10 +321,10 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
               @if (request().scheduled_date) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1" id="scheduled-date-label">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="scheduled-date-label">
                   {{ "scheduledDate" | i18n }}
                 </label>
-                <p class="text-gray-900" [attr.aria-labelledby]="'scheduled-date-label'">
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'scheduled-date-label'">
                   {{ request().scheduled_date | date : "short" }}
                 </p>
               </div>
@@ -333,15 +335,15 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Requester Information -->
         @if (request().client_name || request().client_phone || request().client_nif || request().email_client) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'requesterInformation' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="requester-info-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'requesterInformation' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="requester-info-title">
             {{ "requesterInformation" | i18n }}
           </h3>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-gray-900" [attr.aria-labelledby]="'requester-info-title'">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'requester-info-title'">
             @if (request().client_name) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-name-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-name-label">
                 <i class="fas fa-user text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'client' | i18n }}
               </label>
@@ -350,7 +352,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             }
             @if (request().client_phone) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-phone-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-phone-label">
                 <i class="fas fa-phone text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'phone' | i18n }}
               </label>
@@ -359,7 +361,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             }
             @if (request().client_nif) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-nif-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-nif-label">
                 <i class="fas fa-id-card text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'nif' | i18n }}
               </label>
@@ -368,7 +370,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             }
             @if (request().email_client) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="client-email-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-email-label">
                 <i class="fas fa-envelope text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'email' | i18n }}
               </label>
@@ -381,52 +383,52 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Address Information (detailed with labels) -->
         @if (hasAddress()) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'address' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="address-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'address' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="address-title">
             {{ "address" | i18n }}
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900" [attr.aria-labelledby]="'address-title'">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'address-title'">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="postal-code-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="postal-code-label">
                 {{ 'postalCode' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'postal-code-label'">{{ request().zip_code || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="street-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="street-label">
                 {{ 'logradouro' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'street-label'">{{ request().street || request().street_manual || '—' }}</p>
               @if (request().street_manual && !request().street) {
-                <span class="text-xs text-gray-500 italic">{{ 'manualEntry' | i18n }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 italic">{{ 'manualEntry' | i18n }}</span>
               }
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="number-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="number-label">
                 {{ 'number' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'number-label'">{{ request().street_number || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="complement-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="complement-label">
                 {{ 'complement' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'complement-label'">{{ request().complement || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="locality-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="locality-label">
                 {{ 'locality' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'locality-label'">{{ addressParts().locality || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="city-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="city-label">
                 {{ 'concelho' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'city-label'">{{ request().city || '—' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1" id="district-label">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="district-label">
                 {{ 'district' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'district-label'">{{ request().state || '—' }}</p>
@@ -437,9 +439,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Geolocation / Geolocalização -->
         @if (serviceLatitude() && serviceLongitude()) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'geolocation' | i18n">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'geolocation' | i18n">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800" id="geolocation-title">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100" id="geolocation-title">
               <i class="fas fa-map-marker-alt mr-2 text-brand-primary-500" aria-hidden="true"></i>
               {{ "geolocation" | i18n }}
             </h3>
@@ -458,16 +460,16 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             @if (!showRouteMap()) {
               <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <label class="block text-xs font-medium text-gray-500 mb-1" id="latitude-label">
+                  <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="latitude-label">
                     Latitude
                   </label>
-                  <p class="text-gray-900 font-mono" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-500 mb-1" id="longitude-label">
+                  <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="longitude-label">
                     Longitude
                   </label>
-                  <p class="text-gray-900 font-mono" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
                 </div>
               </div>
               <app-leaflet-map-viewer
@@ -492,17 +494,17 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Photos Gallery -->
         @if (hasPhotos()) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'photos' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="photos-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'photos' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="photos-title">
             {{ "photos" | i18n }}
-            <span class="text-sm font-normal text-gray-500 ml-2">
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
               ({{ request().photos!.length }})
             </span>
           </h3>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
             @for (photo of request().photos; track photo; let idx = $index) {
             <button 
-              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-brand-primary-500 hover:shadow-lg transition-all cursor-pointer group"
+              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-brand-primary-500 dark:hover:border-brand-primary-400 hover:shadow-lg transition-all cursor-pointer group"
               (click)="openPhotoModal(photo)"
               [attr.aria-label]="'photoOf' | i18n : { number: idx + 1 }"
               type="button"
@@ -524,10 +526,10 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Attachments -->
         @if (hasAttachments()) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'attachments' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="attachments-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'attachments' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="attachments-title">
             {{ "attachments" | i18n }}
-            <span class="text-sm font-normal text-gray-500 ml-2">
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
               ({{ request().attachments!.length }})
             </span>
           </h3>
@@ -537,7 +539,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               [href]="attachment"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-brand-primary-500 transition-colors"
+              class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-brand-primary-500 transition-colors"
               [attr.aria-label]="'attachmentLink' | i18n : { number: idx + 1 }"
             >
               <i class="fas fa-file-alt text-gray-400 text-xl mr-3" aria-hidden="true"></i>
@@ -545,7 +547,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 <p class="text-sm font-medium text-gray-900">
                   {{ "attachment" | i18n }} {{ idx + 1 }}
                 </p>
-                <p class="text-xs text-gray-500">{{ "clickToView" | i18n }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ "clickToView" | i18n }}</p>
               </div>
               <i class="fas fa-external-link-alt text-gray-400" aria-hidden="true"></i>
             </a>
@@ -558,8 +560,8 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         @if ( currentUser().role === "professional" && request().professional_id
         === currentUser().id && (request().status === "Em Progresso" ||
         request().status === "Aceito") ) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'timeControl' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4" id="time-control-title">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'timeControl' | i18n">
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="time-control-title">
             {{ "timeControl" | i18n }}
           </h3>
           <div [attr.aria-labelledby]="'time-control-title'">
@@ -573,7 +575,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
 
         <!-- Service Images - Upload de Imagens -->
         @if (request().professional_id) {
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200" role="region" [attr.aria-label]="'serviceImages' | i18n">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700" role="region" [attr.aria-label]="'serviceImages' | i18n">
           <app-service-images
             [requestId]="request().id"
             [requestStatus]="request().status"
@@ -582,7 +584,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         }
 
         <!-- Service Clarifications -->
-        <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'serviceClarifications' | i18n">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'serviceClarifications' | i18n">
           <app-service-clarifications
             [serviceRequest]="request()"
             [currentUser]="currentUser()"
@@ -593,7 +595,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         @if (availableActions().length > 0) {
         <section class="block sm:hidden">
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" role="region" [attr.aria-label]="'availableActions' | i18n">
-            <h3 class="text-sm font-medium text-gray-700 mb-3" id="mobile-actions-title">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3" id="mobile-actions-title">
               {{ "availableActions" | i18n }}
             </h3>
             <div class="space-y-2" [attr.aria-labelledby]="'mobile-actions-title'">
@@ -622,7 +624,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
       </div>
       } @else {
       <div class="flex items-center justify-center h-64" role="status" aria-live="polite">
-        <p class="text-gray-500">{{ "loadingServiceRequest" | i18n }}</p>
+        <p class="text-gray-500 dark:text-gray-400">{{ "loadingServiceRequest" | i18n }}</p>
       </div>
       }
     </main>

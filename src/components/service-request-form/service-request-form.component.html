@@ -1,4 +1,4 @@
-<form
+﻿<form
   autocomplete="off"
   (ngSubmit)="onSubmit()"
   class="w-full mobile-safe relative"
@@ -6,11 +6,11 @@
   <!-- Overlay spinner central -->
   <div
     *ngIf="isSubmitting()"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-50"
   >
     <div class="flex flex-col items-center">
       <svg
-        class="animate-spin h-12 w-12 text-brand-primary-600 mb-4"
+        class="animate-spin h-12 w-12 text-brand-primary-600 dark:text-brand-primary-400 mb-4"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -29,7 +29,7 @@
           d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
         ></path>
       </svg>
-      <span class="text-white text-lg font-semibold drop-shadow">{{
+      <span class="text-white dark:text-gray-100 text-lg font-semibold drop-shadow">{{
         "loading" | i18n
       }}</span>
     </div>
@@ -37,7 +37,7 @@
 
   <!-- Card Container -->
   <div class="bg-gradient-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden">
-    <!-- Título do Formulário -->
+    <!-- TÃ­tulo do FormulÃ¡rio -->
     <div class="px-6 py-4 border-b border-white border-opacity-20">
       <h2 class="text-2xl font-bold text-white flex items-center">
         <i class="fas fa-plus-circle mr-3"></i>
@@ -49,15 +49,15 @@
     </div>
 
     <!-- Ordem correta dos campos -->
-    <div class="p-6 bg-white">
-      <!-- Origem da Solicitação -->
+    <div class="p-6 bg-white dark:bg-gray-800">
+      <!-- Origem da SolicitaÃ§Ã£o -->
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-building text-brand-primary-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800">{{ 'requestOrigin' | i18n }}</h3>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'requestOrigin' | i18n }}</h3>
       </div>
       <div class="mb-4">
-        <label for="origin_id" class="block text-sm font-medium text-gray-700">{{ 'origin' | i18n }}</label>
-        <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
+        <label for="origin_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'origin' | i18n }}</label>
+        <select id="origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
           <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
           <ng-container *ngFor="let origin of origins()">
             <option [value]="origin.id">{{ origin.name }}</option>
@@ -65,17 +65,17 @@
         </select>
       </div>
 
-      <!-- Categoria do Serviço (Categoria/Subcategoria) -->
+      <!-- Categoria do ServiÃ§o (Categoria/Subcategoria) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <!-- Categoria -->
         <div>
-          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="category_id">
+          <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="category_id">
             <i class="fas fa-folder text-brand-primary-500 mr-2 text-xs"></i>
             {{ "category" | i18n }}
           </label>
           <select
             id="category_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [value]="category_id() || ''"
             (change)="onCategoryChange($any($event.target).value)"
             required
@@ -87,7 +87,7 @@
           </select>
           <span
             *ngIf="!validFields().category_id && category_id()"
-            class="text-xs text-red-500 flex items-center mt-1"
+            class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           >
             <i class="fas fa-exclamation-circle mr-1"></i>
             {{ "selectCategory" | i18n }}
@@ -96,13 +96,13 @@
 
         <!-- Subcategoria -->
         <div>
-          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="subcategory_id">
+          <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="subcategory_id">
             <i class="fas fa-tag text-brand-primary-500 mr-2 text-xs"></i>
             {{ "subcategory" | i18n }}
           </label>
           <select
             id="subcategory_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [value]="subcategory_id() || ''"
             (change)="updateField('subcategory_id', $any($event.target).value)"
             [disabled]="!category_id()"
@@ -115,7 +115,7 @@
           </select>
           <span
             *ngIf="!validFields().subcategory_id && subcategory_id()"
-            class="text-xs text-red-500 flex items-center mt-1"
+            class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           >
             <i class="fas fa-exclamation-circle mr-1"></i>
             {{ "selectSubcategory" | i18n }}
@@ -126,26 +126,26 @@
       <!-- Valor Total / Valor do Prestador -->
       <div class="flex gap-4 mb-4">
         <div class="w-1/2">
-          <label for="valor" class="block text-sm font-medium text-gray-700">Valor Total (€)</label>
+          <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor Total (â‚¬)</label>
           <input
             id="valor"
             type="number"
             min="0.01"
             step="0.01"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [value]="valor() ?? ''"
             (input)="updateField('valor', $event.target.value)"
             required
           />
         </div>
         <div class="w-1/2">
-          <label for="valor_prestador" class="block text-sm font-medium text-gray-700">Valor do Prestador (€)</label>
+          <label for="valor_prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do Prestador (â‚¬)</label>
           <input
             id="valor_prestador"
             type="number"
             min="0.01"
             step="0.01"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [value]="valor_prestador() ?? ''"
             (input)="updateField('valor_prestador', $event.target.value)"
             required
@@ -154,17 +154,17 @@
       </div>
   </div>
 
-  <!-- Seção de Informações do Solicitante -->
-  <div class="p-6 bg-white">
+  <!-- SeÃ§Ã£o de InformaÃ§Ãµes do Solicitante -->
+  <div class="p-6 bg-white dark:bg-gray-800">
     <div class="flex items-center gap-2 mb-4">
       <i class="fas fa-user-circle text-brand-primary-600"></i>
-      <h3 class="text-lg font-semibold text-gray-800">{{ "requesterInformation" | i18n }}</h3>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ "requesterInformation" | i18n }}</h3>
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <!-- Cliente -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_name">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="client_name">
           <i class="fas fa-user text-brand-primary-500 mr-2 text-xs"></i>
           {{ "client" | i18n }}
         </label>
@@ -172,7 +172,7 @@
           <input
             id="client_name"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.client_name
                 ? !validFields().client_name && client_name()
@@ -197,13 +197,13 @@
           />
           <span
             *ngIf="touched.client_name && validFields().client_name && client_name()"
-            class="absolute right-3 top-2.5 text-green-500"
+            class="absolute right-3 top-2.5 text-green-500 dark:text-green-400"
           >
             <i class="fas fa-check-circle"></i>
           </span>
           <span
             *ngIf="touched.client_name && !validFields().client_name && client_name()"
-            class="absolute right-3 top-2.5 text-red-500"
+            class="absolute right-3 top-2.5 text-red-500 dark:text-red-400"
           >
             <i class="fas fa-exclamation-circle"></i>
           </span>
@@ -211,7 +211,7 @@
         <span
           *ngIf="touched.client_name && !validFields().client_name && client_name()"
           id="client_name-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -221,7 +221,7 @@
 
       <!-- Telefone -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_phone">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="client_phone">
           <i class="fas fa-phone text-brand-primary-500 mr-2 text-xs"></i>
           {{ "phone" | i18n }}
         </label>
@@ -229,7 +229,7 @@
           <input
             id="client_phone"
             type="tel"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.client_phone
                 ? !validFields().client_phone && client_phone()
@@ -257,13 +257,13 @@
           />
           <span
             *ngIf="touched.client_phone && validFields().client_phone && client_phone()"
-            class="absolute right-3 top-2.5 text-green-500"
+            class="absolute right-3 top-2.5 text-green-500 dark:text-green-400"
           >
             <i class="fas fa-check-circle"></i>
           </span>
           <span
             *ngIf="touched.client_phone && !validFields().client_phone && client_phone()"
-            class="absolute right-3 top-2.5 text-red-500"
+            class="absolute right-3 top-2.5 text-red-500 dark:text-red-400"
           >
             <i class="fas fa-exclamation-circle"></i>
           </span>
@@ -271,7 +271,7 @@
         <span
           *ngIf="touched.client_phone && !validFields().client_phone && client_phone()"
           id="client_phone-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -281,7 +281,7 @@
 
       <!-- NIF (Opcional) -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_nif">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="client_nif">
           <i class="fas fa-id-card text-brand-primary-500 mr-2 text-xs"></i>
           {{ "nif" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
         </label>
@@ -289,7 +289,7 @@
           <input
             id="client_nif"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.client_nif && client_nif()
                 ? !validFields().client_nif
@@ -312,14 +312,14 @@
             "
           />
           <span
-            *ngIf="touched.client_nif && validFields().client_nif && client_nif()"
-            class="absolute right-3 top-2.5 text-green-500"
+            *ngIf="touched.client_nif && client_nif() && validFields().client_nif"
+            class="absolute right-3 top-2.5 text-green-500 dark:text-green-400"
           >
             <i class="fas fa-check-circle"></i>
           </span>
           <span
             *ngIf="touched.client_nif && client_nif() && !validFields().client_nif"
-            class="absolute right-3 top-2.5 text-red-500"
+            class="absolute right-3 top-2.5 text-red-500 dark:text-red-400"
           >
             <i class="fas fa-exclamation-circle"></i>
           </span>
@@ -327,7 +327,7 @@
         <span
           *ngIf="touched.client_nif && client_nif() && !validFields().client_nif"
           id="client_nif-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -338,7 +338,7 @@
 
     <!-- Email do Cliente (Opcional) -->
     <div class="mt-4">
-      <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="email_client">
+      <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="email_client">
         <i class="fas fa-envelope text-brand-primary-500 mr-2 text-xs"></i>
         {{ "email" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
       </label>
@@ -346,7 +346,7 @@
         <input
           id="email_client"
           type="email"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           [ngClass]="
             touched.email_client && email_client()
               ? !validFields().email_client
@@ -382,7 +382,7 @@
       <span
         *ngIf="touched.email_client && email_client() && !validFields().email_client"
         id="email_client-error"
-        class="text-xs text-red-500 flex items-center mt-1"
+        class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
         role="alert"
       >
         <i class="fas fa-info-circle mr-1"></i>
@@ -391,17 +391,17 @@
     </div>
   </div>
 
-  <!-- Seção de Detalhes do Serviço -->
-    <div class="p-6 bg-white">
+  <!-- SeÃ§Ã£o de Detalhes do ServiÃ§o -->
+    <div class="p-6 bg-white dark:bg-gray-800">
       <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-file-alt text-brand-primary-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800">{{ "serviceDetails" | i18n }}</h3>
+        <i class="fas fa-briefcase text-brand-primary-600"></i>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ "serviceDetails" | i18n }}</h3>
       </div>
     
     <div class="space-y-4">
-      <!-- Título -->
+      <!-- TÃ­tulo -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="title">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="title">
           <i class="fas fa-heading text-brand-primary-500 mr-2 text-xs"></i>
           {{ "title" | i18n }}
         </label>
@@ -409,7 +409,7 @@
           <input
             id="title"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.title
                 ? !validFields().title && title()
@@ -434,13 +434,7 @@
           />
           <span
             *ngIf="touched.title && validFields().title && title()"
-            class="absolute right-3 top-2.5 text-green-500"
-          >
-            <i class="fas fa-check-circle"></i>
-          </span>
-          <span
-            *ngIf="touched.title && !validFields().title && title()"
-            class="absolute right-3 top-2.5 text-red-500"
+            class="absolute right-3 top-2.5 text-green-500 dark:text-green-400"
           >
             <i class="fas fa-exclamation-circle"></i>
           </span>
@@ -448,7 +442,7 @@
         <span
           *ngIf="touched.title && !validFields().title && title()"
           id="title-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -456,9 +450,9 @@
         </span>
       </div>
 
-      <!-- Descrição -->
+      <!-- DescriÃ§Ã£o -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="description">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="description">
           <i class="fas fa-align-left text-brand-primary-500 mr-2 text-xs"></i>
           {{ "description" | i18n }}
         </label>
@@ -466,7 +460,7 @@
           <textarea
             id="description"
             rows="4"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all resize-none"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.description
                 ? !validFields().description && description()
@@ -508,7 +502,7 @@
         <span
           *ngIf="touched.description && !validFields().description && description()"
           id="description-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -520,7 +514,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Data/Hora solicitada -->
         <div>
-          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="requestedDateTime">
+          <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="requestedDateTime">
             <i class="fas fa-calendar-alt text-brand-primary-500 mr-2 text-xs"></i>
             {{ "preferredDateTime" | i18n }}
           </label>
@@ -528,7 +522,7 @@
             <input
               id="requestedDateTime"
               type="datetime-local"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               [ngClass]="
                 touched.requestedDateTime
                   ? !validFields().requestedDateTime && requestedDateTime()
@@ -577,7 +571,7 @@
               requestedDateTime()
             "
             id="requestedDateTime-error"
-            class="text-xs text-red-500 flex items-center mt-1"
+            class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
             role="alert"
           >
             <i class="fas fa-info-circle mr-1"></i>
@@ -587,13 +581,13 @@
 
         <!-- Prioridade -->
         <div>
-          <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="priority">
+          <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="priority">
             <i class="fas fa-exclamation-triangle text-brand-primary-500 mr-2 text-xs"></i>
             {{ "priority" | i18n }}
           </label>
           <select
             id="priority"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [value]="priority() || ''"
             (change)="updateField('priority', $any($event.target).value)"
             required
@@ -604,7 +598,7 @@
           </select>
           <span
             *ngIf="!validFields().priority && priority()"
-            class="text-xs text-red-500 flex items-center mt-1"
+            class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           >
             <i class="fas fa-exclamation-circle mr-1"></i>
             {{ "selectPriority" | i18n }}
@@ -614,17 +608,17 @@
     </div>
   </div>
 
-  <!-- Seção de Endereço -->
-    <div class="p-6 bg-white">
+  <!-- SeÃ§Ã£o de EndereÃ§o -->
+    <div class="p-6 bg-white dark:bg-gray-800">
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-map-marker-alt text-brand-primary-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800">{{ "address" | i18n }}</h3>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ "address" | i18n }}</h3>
       </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Código Postal -->
+      <!-- CÃ³digo Postal -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="zip_code">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="zip_code">
           <i class="fas fa-mail-bulk text-brand-primary-500 mr-2 text-xs"></i>
           {{ "postalCode" | i18n }}
         </label>
@@ -676,7 +670,7 @@
         <span
           *ngIf="touched.zip_code && !validFields().zip_code && zip_code()"
           id="zip_code-error"
-          class="text-xs text-red-500 flex items-center mt-1"
+          class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1"
           role="alert"
         >
           <i class="fas fa-info-circle mr-1"></i>
@@ -690,12 +684,12 @@
           <i class="fas fa-road text-brand-primary-500 mr-2 text-xs"></i>
           {{ "logradouro" | i18n }}
         </label>
-        <!-- Campo somente leitura quando há logradouro do código postal -->
+        <!-- Campo somente leitura quando hÃ¡ logradouro do cÃ³digo postal -->
         @if (hasStreetFromPostalCode()) {
           <input
             id="street"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 cursor-not-allowed text-gray-900 dark:text-gray-100"
             [value]="street()"
             readonly
             required
@@ -706,7 +700,7 @@
             aria-readonly="true"
           />
         }
-        <!-- Campo editável quando NÃO há logradouro do código postal -->
+        <!-- Campo editÃ¡vel quando NÃƒO hÃ¡ logradouro do cÃ³digo postal -->
         @else {
           <div class="relative">
             <input
@@ -731,20 +725,20 @@
               aria-label="{{ 'logradouro' | i18n }}"
             />
             @if (touched.street && street_manual() && street_manual().length > 0 && !validFields().street_manual) {
-              <i class="fas fa-exclamation-circle absolute right-3 top-3 text-red-500"></i>
+              <i class="fas fa-exclamation-circle absolute right-3 top-3 text-red-500 dark:text-red-400"></i>
             }
             @if (touched.street && validFields().street_manual && street_manual()) {
-              <i class="fas fa-check-circle absolute right-3 top-3 text-green-500"></i>
+              <i class="fas fa-check-circle absolute right-3 top-3 text-green-500 dark:text-green-400"></i>
             }
           </div>
-          <p class="text-xs text-amber-600 mt-1">
+          <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
             <i class="fas fa-info-circle mr-1"></i>
             {{ "streetManualInfo" | i18n }}
           </p>
         }
       </div>
 
-      <!-- Número -->
+      <!-- NÃºmero -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="number">
           <i class="fas fa-hashtag text-brand-primary-500 mr-2 text-xs"></i>
@@ -777,19 +771,12 @@
             "
           />
           <span
-            *ngIf="touched.number && validFields().number && number()"
-            class="absolute right-3 top-2.5 text-green-500"
+            class="absolute right-3 top-2.5 text-green-500 dark:text-green-400"
           >
             <i class="fas fa-check-circle"></i>
           </span>
           <span
-            *ngIf="
-              touched.number &&
-              number() &&
-              number().length > 0 &&
-              !validFields().number
-            "
-            class="absolute right-3 top-2.5 text-red-500"
+            class="absolute right-3 top-2.5 text-red-500 dark:text-red-400"
           >
             <i class="fas fa-exclamation-circle"></i>
           </span>
@@ -798,14 +785,14 @@
 
       <!-- Complemento -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="complement">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="complement">
           <i class="fas fa-building text-brand-primary-500 mr-2 text-xs"></i>
           {{ "complement" | i18n }}
         </label>
         <input
           id="complement"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           [value]="complement()"
           (input)="updateField('complement', $event.target.value)"
           [placeholder]="'complementPlaceholder' | i18n"
@@ -814,14 +801,14 @@
 
       <!-- Localidade -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="locality">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="locality">
           <i class="fas fa-city text-brand-primary-500 mr-2 text-xs"></i>
           {{ "locality" | i18n }}
         </label>
         <input
           id="locality"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 cursor-not-allowed text-gray-900 dark:text-gray-100"
           [value]="locality()"
           readonly
           [placeholder]="'localityPlaceholder' | i18n"
@@ -833,14 +820,14 @@
 
       <!-- Concelho -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="city">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="city">
           <i class="fas fa-map text-brand-primary-500 mr-2 text-xs"></i>
           {{ "concelho" | i18n }}
         </label>
         <input
           id="city"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 cursor-not-allowed text-gray-900 dark:text-gray-100"
           [value]="county()"
           readonly
           [placeholder]="'cityPlaceholder' | i18n"
@@ -848,7 +835,7 @@
           tabindex="0"
           aria-readonly="true"
         />
-        <span *ngIf="!validFields().city && city()" class="text-xs text-red-500 flex items-center mt-1">
+        <span *ngIf="!validFields().city && city()" class="text-xs text-red-500 dark:text-red-400 flex items-center mt-1">
           <i class="fas fa-exclamation-circle mr-1"></i>
           {{ "cityMinLength" | i18n }}
         </span>
@@ -856,14 +843,14 @@
 
       <!-- Distrito -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="district">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="district">
           <i class="fas fa-map-marked-alt text-brand-primary-500 mr-2 text-xs"></i>
           {{ "district" | i18n }}
         </label>
         <input
           id="district"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 cursor-not-allowed"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 cursor-not-allowed text-gray-900 dark:text-gray-100\"
           [value]="district()"
           readonly
           [placeholder]="'districtPlaceholder' | i18n"
@@ -911,7 +898,7 @@
     </div>
   </div>
 
-  <!-- Seção de Mensagens e Botões -->
+  <!-- SeÃ§Ã£o de Mensagens e BotÃµes -->
   <div class="p-6 bg-white">
     <!-- Mensagens de erro/sucesso -->
     <div *ngIf="formError()" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -927,9 +914,9 @@
     </div>
   </div>
 
-  <!-- Botões de Ação -->
+  <!-- BotÃµes de AÃ§Ã£o -->
   <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
-    <!-- Status de Validação -->
+    <!-- Status de ValidaÃ§Ã£o -->
     <div class="flex items-center gap-2">
       <span
         class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
@@ -940,7 +927,7 @@
       </span>
     </div>
 
-    <!-- Botões -->
+    <!-- BotÃµes -->
     <div class="flex gap-3">
       <button
         type="button"
@@ -963,5 +950,6 @@
   </div>
   </div>
 </form>
+
 
 
