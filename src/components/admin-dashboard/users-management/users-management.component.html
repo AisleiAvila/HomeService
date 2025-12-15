@@ -1,19 +1,19 @@
 <!-- Área de Gerenciamento Principal -->
 <div class="bg-white rounded-lg shadow-md" *ngIf="!editingClient()">
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500" *ngIf="!showAddClientForm()">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" *ngIf="!showAddClientForm()">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-white flex items-center">
                     <i class="fas fa-users mr-3"></i>
                     {{ "manageClients" | i18n }}
                 </h2>
-                <p class="text-indigo-100 text-sm mt-1">
+                <p class="text-brand-primary-100 text-sm mt-1">
                     {{ "manageAllClientsDesc" | i18n }}
                 </p>
             </div>
             <button (click)="toggleAddClientForm()"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-all transform hover:scale-105 shadow-lg">
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary-600 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg">
                 <i class="fas fa-plus"></i>
                 <span>{{ "addClient" | i18n }}</span>
             </button>
@@ -29,7 +29,7 @@
                         <p class="text-sm text-gray-600">{{ 'totalUsers' | i18n }}</p>
                         <p class="text-2xl font-bold text-gray-900">{{ totalUsers() }}</p>
                     </div>
-                    <i class="fas fa-users text-indigo-500 text-2xl"></i>
+                    <i class="fas fa-users text-brand-primary-500 text-2xl"></i>
                 </div>
             </div>
             <div class="bg-white p-4 rounded-lg border border-gray-200">
@@ -65,7 +65,7 @@
                     [ngModel]="searchTerm()" 
                     (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
                     [placeholder]="'searchNameEmail' | i18n"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
             </div>
 
             <!-- Filtro Role -->
@@ -75,7 +75,7 @@
                 </label>
                 <select id="filterRole" [ngModel]="filterRole()" 
                     (ngModelChange)="filterRole.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="all">{{ 'all' | i18n }}</option>
                     <option value="client">{{ 'client' | i18n }}</option>
                     <option value="admin">{{ 'admin' | i18n }}</option>
@@ -89,7 +89,7 @@
                 </label>
                 <select id="filterStatus" [ngModel]="filterStatus()" 
                     (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="all">{{ 'all' | i18n }}</option>
                     <option value="Active">{{ 'active' | i18n }}</option>
                     <option value="Inactive">{{ 'inactive' | i18n }}</option>
@@ -102,7 +102,7 @@
         @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all') {
         <div class="mt-3">
             <button (click)="clearFilters()"
-                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                class="text-sm text-brand-primary-600 hover:text-brand-primary-800 font-medium">
                 <i class="fas fa-times-circle mr-1"></i>{{ 'clearFilters' | i18n }}
             </button>
         </div>
@@ -118,7 +118,7 @@
                 <i class="fas fa-user-plus mr-3"></i>
                 {{ "addNewClient" | i18n }}
             </h2>
-            <p class="text-indigo-100 text-sm mt-1">
+            <p class="text-brand-primary-100 text-sm mt-1">
                 {{ "addNewClientDesc" | i18n }}
             </p>
         </div>
@@ -202,10 +202,10 @@
     <!-- Formulário de Edição (Tela Normal) -->
     <div class="min-h-screen bg-gray-50" *ngIf="editingClient() && !showAddClientForm()">
         <!-- Header da Tela de Edição -->
-        <div class="bg-indigo-700 text-white py-6 px-6 shadow-lg">
+        <div class="bg-brand-primary-700 text-white py-6 px-6 shadow-lg">
             <div class="max-w-4xl mx-auto">
                 <button (click)="cancelEdit()"
-                    class="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-indigo-700 bg-white rounded-lg hover:bg-indigo-50 transition-colors">
+                    class="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-brand-primary-700 bg-white rounded-lg hover:bg-brand-primary-50 transition-colors">
                     <i class="fas fa-arrow-left"></i>
                     {{ "backToList" | i18n }}
                 </button>
@@ -213,7 +213,7 @@
                     <i class="fas fa-user-edit"></i>
                     {{ "editProfessional" | i18n }}
                 </h1>
-                <p class="text-indigo-100 mt-2">{{ editingClientName() }}</p>
+                <p class="text-brand-primary-100 mt-2">{{ editingClientName() }}</p>
             </div>
         </div>
 
@@ -226,21 +226,21 @@
                         {{ "name" | i18n }}
                     </label>
                     <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
                 </div>
                 <div>
                     <label for="editClientEmail" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ "email" | i18n }}
                     </label>
                     <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
                 </div>
                 <div>
                     <label for="editClientRole" class="block text-sm font-medium text-gray-700 mb-1">
                         {{ "profileType" | i18n }}
                     </label>
                     <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                         @for(roleOption of availableRoles; track roleOption) {
                             <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                         }
@@ -259,7 +259,7 @@
                                     type="checkbox" 
                                     [checked]="isEditingSpecialtySelected(cat)"
                                     (change)="onEditingSpecialtyToggle(cat, $event)"
-                                    class="form-checkbox h-4 w-4 text-indigo-600 rounded focus:ring-indigo-500" />
+                                    class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
                                 <span class="text-sm text-gray-700">{{ cat.name }}</span>
                             </label>
                         }
@@ -273,7 +273,7 @@
                             type="checkbox" 
                             [checked]="editingClientIsNatanEmployee()"
                             (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
-                            class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500"
+                            class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
                             aria-label="{{ 'isNatanEmployee' | i18n }}" />
                         <div class="flex-1">
                             <span class="text-sm text-gray-700 font-medium block">
@@ -290,7 +290,7 @@
                     <button (click)="cancelEdit()" class="px-6 py-3 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors border border-gray-300">
                         <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
                     </button>
-                    <button (click)="saveClientEdit()" class="px-8 py-3 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg">
+                    <button (click)="saveClientEdit()" class="px-8 py-3 text-sm font-medium rounded-lg text-white bg-brand-primary-600 hover:bg-brand-primary-700 transition-colors shadow-lg">
                         <i class="fas fa-save mr-2"></i>{{ "save" | i18n }}
                     </button>
                 </div>
@@ -304,7 +304,7 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('name')" 
                         (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
@@ -313,7 +313,7 @@
                             <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                         </span>
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('email')" 
                         (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
@@ -322,7 +322,7 @@
                             <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                         </span>
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('role')" 
                         (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('role')">
@@ -331,7 +331,7 @@
                             <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                         </span>
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-indigo-700 tracking-wider cursor-pointer select-none" 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('status')" 
                         (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('status')">
@@ -377,12 +377,12 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex items-center space-x-2">
                             <button (click)="viewClientDetails(client)"
-                                class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                                class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
                                 title="{{ 'viewDetails' | i18n }}">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button (click)="startEditClient(client)"
-                                class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                                class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
                                 title="{{ 'edit' | i18n }}">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -407,8 +407,8 @@
         </table>
         
         <!-- Paginação Desktop -->
-        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-indigo-50 border-t border-indigo-200">
-            <div class="text-xs font-bold text-indigo-700 px-6 py-2">
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 border-t border-brand-primary-200">
+            <div class="text-xs font-bold text-brand-primary-700 px-6 py-2">
                 {{ 'totalRecords' | i18n }}: {{ filteredClients().length }}
             </div>
             <div class="flex items-center gap-2">
@@ -434,8 +434,8 @@
             <!-- Header with name and edit button -->
             <div class="flex justify-between items-start">
                 <div class="flex items-center flex-1">
-                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                        <i class="fas fa-user text-indigo-600"></i>
+                    <div class="h-10 w-10 rounded-full bg-brand-primary-100 flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-brand-primary-600"></i>
                     </div>
                     <div class="flex-1">
                         <h4 class="text-sm font-semibold text-gray-900">
@@ -448,12 +448,12 @@
                 </div>
                 <div class="flex items-center space-x-1">
                     <button (click)="viewClientDetails(client)"
-                        class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                        class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
                         title="{{ 'viewDetails' | i18n }}">
                         <i class="fas fa-eye text-sm"></i>
                     </button>
                     <button (click)="startEditClient(client)"
-                        class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-full transition-colors duration-200"
+                        class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
                         title="{{ 'edit' | i18n }}">
                         <i class="fas fa-edit text-sm"></i>
                     </button>
@@ -560,7 +560,7 @@
                         type="checkbox" 
                         [checked]="editingClientIsNatanEmployee()"
                         (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
-                        class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500"
+                        class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
                         aria-label="{{ 'isNatanEmployee' | i18n }}" />
                     <span class="text-sm text-gray-700 font-medium">
                         {{ "natanEmployeeYes" | i18n }}
@@ -575,7 +575,7 @@
                 <button (click)="cancelEdit()" class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
                     {{ "cancel" | i18n }}
                 </button>
-                <button (click)="saveClientEdit()" class="px-4 py-2 text-sm rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                <button (click)="saveClientEdit()" class="px-4 py-2 text-sm rounded-md text-white bg-brand-primary-600 hover:bg-brand-primary-700">
                     {{ "save" | i18n }}
                 </button>
             </div>
@@ -596,8 +596,8 @@
         <div class="space-y-4">
             <!-- User Avatar and Basic Info -->
             <div class="flex items-center space-x-4 pb-4 border-b">
-                <div class="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <i class="fas fa-user text-indigo-600 text-2xl"></i>
+                <div class="h-16 w-16 rounded-full bg-brand-primary-100 flex items-center justify-center">
+                    <i class="fas fa-user text-brand-primary-600 text-2xl"></i>
                 </div>
                 <div>
                     <h4 class="text-lg font-semibold text-gray-900">{{ viewingClient()!.name }}</h4>
@@ -642,7 +642,7 @@
                     <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'specialties' | i18n }}</div>
                     <div class="flex flex-wrap gap-2">
                         @for(specialty of viewingClient()!.specialties; track specialty) {
-                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                        <span class="px-2 py-1 bg-brand-primary-100 text-brand-primary-800 text-xs rounded-full">
                             {{ specialty | i18n }}
                         </span>
                         }

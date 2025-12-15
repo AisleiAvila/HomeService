@@ -39,7 +39,7 @@ import { DataService } from "../../services/data.service";
       <div class="p-4 space-y-4">
         <!-- Add New Question Form -->
         @if (canAddQuestion()) {
-        <div class="border border-gray-200 rounded-lg p-4 bg-blue-50">
+        <div class="border border-gray-200 rounded-lg p-4 bg-brand-primary-50">
           <h4 class="text-sm font-medium text-gray-800 mb-3">
             {{ "addNewQuestion" | i18n }}
           </h4>
@@ -54,7 +54,7 @@ import { DataService } from "../../services/data.service";
                 [(ngModel)]="newQuestionTitle"
                 name="questionTitle"
                 [placeholder]="'questionTitlePlaceholder' | i18n"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary-500 focus:border-brand-primary-500 sm:text-sm"
               />
             </div>
             <div>
@@ -67,7 +67,7 @@ import { DataService } from "../../services/data.service";
                 name="questionContent"
                 rows="3"
                 [placeholder]="'questionContentPlaceholder' | i18n"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary-500 focus:border-brand-primary-500 sm:text-sm"
               ></textarea>
             </div>
             <div class="flex justify-end space-x-2">
@@ -82,7 +82,7 @@ import { DataService } from "../../services/data.service";
                 (click)="addQuestion()"
                 [disabled]="!newQuestionTitle() || !newQuestionContent() || isSubmitting()"
                 type="button"
-                class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-3 py-2 text-sm font-medium text-white bg-brand-primary-600 border border-transparent rounded-md hover:bg-brand-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 @if (isSubmitting()) {
                 <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -194,7 +194,7 @@ import { DataService } from "../../services/data.service";
             <div class="p-4 bg-gray-50 border-t border-gray-200">
               <button
                 (click)="toggleAnswerForm(thread.question.id)"
-                class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                class="text-sm text-brand-primary-600 hover:text-brand-primary-800 font-medium"
               >
                 {{ "addAnswer" | i18n }}
               </button>
@@ -212,7 +212,7 @@ import { DataService } from "../../services/data.service";
                     type="text"
                     [(ngModel)]="newAnswerTitle"
                     [placeholder]="'answerTitlePlaceholder' | i18n"
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary-500 focus:border-brand-primary-500 sm:text-sm"
                   />
                 </div>
                 <div>
@@ -223,7 +223,7 @@ import { DataService } from "../../services/data.service";
                     [(ngModel)]="newAnswerContent"
                     rows="3"
                     [placeholder]="'answerContentPlaceholder' | i18n"
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary-500 focus:border-brand-primary-500 sm:text-sm"
                   ></textarea>
                 </div>
                 <div class="flex justify-end space-x-2">
@@ -414,3 +414,4 @@ export class ServiceClarificationsComponent {
     this.newAnswerContent.set("");
   }
 }
+

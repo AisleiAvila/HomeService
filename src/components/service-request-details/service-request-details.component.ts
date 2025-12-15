@@ -74,20 +74,20 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
     </div>
     } @else {
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <header class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500" role="banner">
+    <header class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" role="banner">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-2xl font-bold text-white flex items-center">
             <i class="fas fa-file-alt mr-3" aria-hidden="true"></i>
             {{ "serviceRequestDetails" | i18n }}
           </h2>
-          <p class="text-indigo-100 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
+          <p class="text-brand-primary-100 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
             {{ request().title }}
           </p>
         </div>
         <button
           (click)="logAndEmitCloseDetails()"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 text-sm font-medium rounded-lg hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 transition-all transform hover:scale-105 shadow-lg"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary-600 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg"
           [attr.aria-label]="'backToList' | i18n"
         >
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
@@ -137,8 +137,8 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                     loading="lazy"
                   >
                   } @else {
-                  <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center" aria-hidden="true">
-                    <i class="fas fa-user text-blue-600"></i>
+                  <div class="w-10 h-10 rounded-full bg-brand-primary-100 flex items-center justify-center" aria-hidden="true">
+                    <i class="fas fa-user text-brand-primary-600"></i>
                   </div>
                   }
                   <div>
@@ -162,7 +162,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                   </span>
                   }
                   @if (quote.isLowest && quote.hasQuote) {
-                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-brand-primary-100 text-brand-primary-800">
                     <i class="fas fa-award mr-1" aria-hidden="true"></i>
                     {{ "lowestQuote" | i18n }}
                   </span>
@@ -253,7 +253,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 <label class="block text-sm font-medium text-gray-700 mb-1" id="professional-value-label">
                   {{ "valorPrestador" | i18n }}
                 </label>
-                <p class="text-lg font-semibold text-blue-600" [attr.aria-labelledby]="'professional-value-label'">
+                <p class="text-lg font-semibold text-brand-primary-600" [attr.aria-labelledby]="'professional-value-label'">
                   @if (request().valor_prestador && request().valor_prestador > 0) {
                     €{{ request().valor_prestador | number : '1.2-2' }}
                   } @else {
@@ -342,7 +342,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             @if (request().client_name) {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" id="client-name-label">
-                <i class="fas fa-user text-indigo-500 mr-1" aria-hidden="true"></i>
+                <i class="fas fa-user text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'client' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'client-name-label'">{{ request().client_name }}</p>
@@ -351,7 +351,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             @if (request().client_phone) {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" id="client-phone-label">
-                <i class="fas fa-phone text-indigo-500 mr-1" aria-hidden="true"></i>
+                <i class="fas fa-phone text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'phone' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'client-phone-label'">{{ request().client_phone }}</p>
@@ -360,7 +360,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             @if (request().client_nif) {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" id="client-nif-label">
-                <i class="fas fa-id-card text-indigo-500 mr-1" aria-hidden="true"></i>
+                <i class="fas fa-id-card text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'nif' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'client-nif-label'">{{ request().client_nif }}</p>
@@ -369,7 +369,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
             @if (request().email_client) {
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1" id="client-email-label">
-                <i class="fas fa-envelope text-indigo-500 mr-1" aria-hidden="true"></i>
+                <i class="fas fa-envelope text-brand-primary-500 mr-1" aria-hidden="true"></i>
                 {{ 'email' | i18n }}
               </label>
               <p class="break-words" [attr.aria-labelledby]="'client-email-label'">{{ request().email_client }}</p>
@@ -440,13 +440,13 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         <section class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" role="region" [attr.aria-label]="'geolocation' | i18n">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-800" id="geolocation-title">
-              <i class="fas fa-map-marker-alt mr-2 text-blue-500" aria-hidden="true"></i>
+              <i class="fas fa-map-marker-alt mr-2 text-brand-primary-500" aria-hidden="true"></i>
               {{ "geolocation" | i18n }}
             </h3>
             @if (currentUser().role === 'professional') {
               <button
                 (click)="showRouteMap.set(!showRouteMap())"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
                 [attr.aria-label]="(showRouteMap() ? 'geolocation' : 'viewRoute') | i18n"
                 [attr.aria-pressed]="showRouteMap()">
                 <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}" aria-hidden="true"></i>
@@ -502,7 +502,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
             @for (photo of request().photos; track photo; let idx = $index) {
             <button 
-              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all cursor-pointer group"
+              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-brand-primary-500 hover:shadow-lg transition-all cursor-pointer group"
               (click)="openPhotoModal(photo)"
               [attr.aria-label]="'photoOf' | i18n : { number: idx + 1 }"
               type="button"
@@ -537,7 +537,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               [href]="attachment"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-500 transition-colors"
+              class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-brand-primary-500 transition-colors"
               [attr.aria-label]="'attachmentLink' | i18n : { number: idx + 1 }"
             >
               <i class="fas fa-file-alt text-gray-400 text-xl mr-3" aria-hidden="true"></i>
@@ -908,7 +908,7 @@ export class ServiceRequestDetailsComponent {
 
     switch (action.class) {
       case "primary":
-        return `${baseClasses} bg-blue-600 hover:bg-blue-700 text-white`;
+        return `${baseClasses} bg-brand-primary-600 hover:bg-brand-primary-700 text-white`;
       case "secondary":
         return `${baseClasses} bg-gray-600 hover:bg-gray-700 text-white`;
       case "success":
@@ -948,7 +948,7 @@ export class ServiceRequestDetailsComponent {
       case "pending":
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
       case "responded":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
+        return `${baseClasses} bg-brand-primary-100 text-brand-primary-800`;
       case "accepted":
         return `${baseClasses} bg-green-100 text-green-800`;
       case "rejected":
@@ -1070,3 +1070,6 @@ export class ServiceRequestDetailsComponent {
     this.router.navigate(["/admin/requests"]);
   }
 }
+
+
+

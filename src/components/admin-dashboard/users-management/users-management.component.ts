@@ -527,3 +527,4 @@ export class UsersManagementComponent {
         this.currentPage.set(1);
     }
 }
+

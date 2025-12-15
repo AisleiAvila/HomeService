@@ -34,7 +34,7 @@ interface RouteInfo {
       @if (loading()) {
         <div class="flex items-center justify-center p-8 bg-blue-50 rounded-lg">
           <div class="text-center">
-            <i class="fas fa-spinner fa-spin text-3xl text-blue-600 mb-2"></i>
+            <i class="fas fa-spinner fa-spin text-3xl text-brand-primary-600 mb-2"></i>
             <p class="text-sm text-gray-600">{{ 'obtainingLocation' | i18n }}</p>
           </div>
         </div>
@@ -90,7 +90,7 @@ interface RouteInfo {
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-white rounded-lg p-3 shadow-sm">
               <div class="flex items-center gap-2 mb-1">
-                <i class="fas fa-road text-blue-600"></i>
+                <i class="fas fa-road text-brand-primary-600"></i>
                 <span class="text-xs font-medium text-gray-500">
                   {{ isTracking() && routeInfo()!.remainingDistance ? 'Restante' : 'Distância' }}
                 </span>
@@ -101,7 +101,7 @@ interface RouteInfo {
             </div>
             <div class="bg-white rounded-lg p-3 shadow-sm">
               <div class="flex items-center gap-2 mb-1">
-                <i class="fas fa-clock text-blue-600"></i>
+                <i class="fas fa-clock text-brand-primary-600"></i>
                 <span class="text-xs font-medium text-gray-500">
                   {{ isTracking() && routeInfo()!.remainingTime ? 'Tempo Restante' : 'Tempo Estimado' }}
                 </span>
@@ -147,9 +147,9 @@ interface RouteInfo {
             (click)="toggleInstructions()"
             class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
             <div class="flex items-center gap-2">
-              <i class="fas fa-list-ol text-blue-600"></i>
+              <i class="fas fa-list-ol text-brand-primary-600"></i>
               <span class="font-semibold text-gray-900">{{ 'routeInstructions' | i18n }}</span>
-              <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              <span class="text-xs bg-blue-100 text-brand-primary-800 px-2 py-1 rounded-full">
                 {{ routeInfo()!.instructions.length }} {{ 'steps' | i18n }}
               </span>
             </div>
@@ -162,7 +162,7 @@ interface RouteInfo {
                 @for (instruction of routeInfo()!.instructions; track $index) {
                   <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm">
+                      <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-brand-primary-600 font-semibold text-sm">
                         {{ $index + 1 }}
                       </div>
                       <div class="flex-1">
@@ -798,3 +798,4 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
     }
   }
 }
+

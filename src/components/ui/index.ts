@@ -28,3 +28,4 @@ export const UI_COMPONENTS = [
   'LoadingComponent',
   'UiComponentsShowcaseComponent',
 ];
+

@@ -440,3 +440,4 @@ viewDetails = output<ServiceRequest>();
         this.uiState.openChat(req);
     }
 }
+

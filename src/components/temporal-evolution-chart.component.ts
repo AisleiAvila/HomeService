@@ -28,9 +28,9 @@ import { I18nService } from "../i18n.service";
         ></canvas>
       </div>
       <div class="flex flex-wrap gap-4 justify-center mt-6 w-full">
-        <div class="text-center px-4 py-2 bg-blue-50 rounded-lg border border-blue-100">
+        <div class="text-center px-4 py-2 bg-brand-primary-50 rounded-lg border border-brand-primary-100">
           <div class="text-xs font-medium text-gray-600 uppercase tracking-wide">Total</div>
-          <div class="text-xl font-bold text-blue-800">
+          <div class="text-xl font-bold text-brand-primary-800">
             {{ totalRequests() }}
           </div>
         </div>
@@ -156,7 +156,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
 
     // Desenhar área sob a linha primeiro (fundo)
     const gradient = ctx.createLinearGradient(0, margin, 0, canvas.height - margin);
-    gradient.addColorStop(0, "rgba(30, 64, 175, 0.15)"); // blue-800 com transparência
+    gradient.addColorStop(0, "rgba(234, 84, 85, 0.15)"); // brand-primary com transparência
     gradient.addColorStop(1, "rgba(30, 64, 175, 0.02)");
     
     ctx.fillStyle = gradient;
@@ -179,7 +179,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
     
-    ctx.strokeStyle = "#1e40af"; // blue-800
+    ctx.strokeStyle = "#ea5455"; // brand-primary
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
@@ -211,10 +211,11 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
       ctx.fill();
       
       // Ponto interno
-      ctx.fillStyle = "#1e40af"; // blue-800
+      ctx.fillStyle = "#ea5455"; // brand-primary
       ctx.beginPath();
       ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
       ctx.fill();
     });
   }
 }
+

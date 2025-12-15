@@ -34,3 +34,4 @@ export class NotificationCenterComponent {
     this.notificationService.notifications().some(n => !n.read)
   );
 }
+

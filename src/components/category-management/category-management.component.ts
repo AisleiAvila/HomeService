@@ -465,3 +465,4 @@ export class CategoryManagementComponent implements OnInit {
     this.loadProfessionalCounts();
   }
 }
+

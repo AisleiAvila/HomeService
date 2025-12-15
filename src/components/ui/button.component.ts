@@ -64,3 +64,4 @@ export class ButtonComponent {
     return `${baseClasses} ${sizeClasses[this.size]} ${variantClasses[this.variant]}`;
   }
 }
+

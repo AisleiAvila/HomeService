@@ -35,3 +35,4 @@ export class VerificationComponent {
     this.backToLanding.emit();
   }
 }
+

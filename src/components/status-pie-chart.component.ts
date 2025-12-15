@@ -66,16 +66,16 @@ export class StatusPieChartComponent {
     }
     
     const colors = [
-      "#1e40af", // blue-800 - Azul profissional
+      "#ea5455", // brand-primary - Vermelho Natan
       "#475569", // slate-600 - Cinza ardósia
       "#0f766e", // teal-700 - Verde-azulado
       "#7c3aed", // violet-600 - Violeta elegante
       "#0891b2", // cyan-600 - Ciano corporativo
-      "#4f46e5", // indigo-600 - Índigo sóbrio
-      "#6b7280", // gray-500 - Cinza neutro
       "#059669", // emerald-600 - Verde esmeralda
+      "#6b7280", // gray-500 - Cinza neutro
+      "#f59e0b", // amber-500 - Âmbar
       "#0369a1", // sky-700 - Azul céu escuro
-      "#4338ca", // indigo-700 - Índigo profundo
+      "#9e9e9e", // brand-accent - Cinza secundária
     ];
     let i = 0;
     return Object.entries(d).map(([status, value]) => ({
@@ -148,3 +148,4 @@ export class StatusPieChartComponent {
     });
   }
 }
+

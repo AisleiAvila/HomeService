@@ -19,6 +19,7 @@ import { WorkflowServiceSimplified } from "./services/workflow-simplified.servic
 import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 import { UiStateService } from "./services/ui-state.service";
+import { ThemeService } from "./services/theme.service";
 
 // Models
 import {
@@ -42,6 +43,7 @@ import { ServiceRequestDetailsComponent } from "./components/service-request-det
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
 import { NotificationToastComponent } from "./components/notification-toast/notification-toast.component";
+import { ThemeToggleComponent } from "./components/theme-toggle/theme-toggle.component";
 import { I18nPipe } from "./pipes/i18n.pipe";
 
 type View =
@@ -77,6 +79,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
     NotificationCenterComponent,
     LanguageSwitcherComponent,
     NotificationToastComponent,
+    ThemeToggleComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrls: ["./app.component.css"],
@@ -92,6 +95,7 @@ export class AppComponent implements OnInit {
   readonly dataService = inject(DataService);
   readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
+  readonly themeService = inject(ThemeService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly pushNotificationService = inject(PushNotificationService);
   private readonly router = inject(Router);

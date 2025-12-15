@@ -10,7 +10,7 @@
     >
       <button
         (click)="toggleFilterVisibility()"
-        class="relative flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        class="relative flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500"
         aria-label="{{ 'filter' | i18n }}"
         aria-pressed="{{ isFilterVisible() ? 'true' : 'false' }}"
       >
@@ -38,7 +38,7 @@
         <button
           id="status-filter-dropdown"
           type="button"
-          class="w-full flex justify-between items-center px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          class="w-full flex justify-between items-center px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
           (click)="toggleStatusDropdown()"
           aria-haspopup="listbox"
           aria-expanded="{{ showStatusDropdown() ? 'true' : 'false' }}"
@@ -65,7 +65,7 @@
           >
             <input
               type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"
+              class="h-4 w-4 rounded border-gray-300 text-brand-primary-600 focus:ring-brand-primary-500 mr-2"
               [checked]="isStatusVisible(status.name)"
               (change)="toggleStatusFilter(status.name)"
               aria-checked="{{
@@ -109,3 +109,5 @@
     ></full-calendar>
   </div>
 </div>
+
+

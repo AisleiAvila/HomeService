@@ -10,7 +10,7 @@
   >
     <div class="flex flex-col items-center">
       <svg
-        class="animate-spin h-12 w-12 text-indigo-600 mb-4"
+        class="animate-spin h-12 w-12 text-brand-primary-600 mb-4"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -36,7 +36,7 @@
   </div>
 
   <!-- Card Container -->
-  <div class="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-lg shadow-md overflow-hidden">
+  <div class="bg-gradient-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden">
     <!-- Título do Formulário -->
     <div class="px-6 py-4 border-b border-white border-opacity-20">
       <h2 class="text-2xl font-bold text-white flex items-center">
@@ -52,12 +52,12 @@
     <div class="p-6 bg-white">
       <!-- Origem da Solicitação -->
       <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-building text-indigo-600"></i>
+        <i class="fas fa-building text-brand-primary-600"></i>
         <h3 class="text-lg font-semibold text-gray-800">{{ 'requestOrigin' | i18n }}</h3>
       </div>
       <div class="mb-4">
         <label for="origin_id" class="block text-sm font-medium text-gray-700">{{ 'origin' | i18n }}</label>
-        <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
+        <select id="origin_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
           <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
           <ng-container *ngFor="let origin of origins()">
             <option [value]="origin.id">{{ origin.name }}</option>
@@ -70,12 +70,12 @@
         <!-- Categoria -->
         <div>
           <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="category_id">
-            <i class="fas fa-folder text-indigo-500 mr-2 text-xs"></i>
+            <i class="fas fa-folder text-brand-primary-500 mr-2 text-xs"></i>
             {{ "category" | i18n }}
           </label>
           <select
             id="category_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [value]="category_id() || ''"
             (change)="onCategoryChange($any($event.target).value)"
             required
@@ -97,12 +97,12 @@
         <!-- Subcategoria -->
         <div>
           <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="subcategory_id">
-            <i class="fas fa-tag text-indigo-500 mr-2 text-xs"></i>
+            <i class="fas fa-tag text-brand-primary-500 mr-2 text-xs"></i>
             {{ "subcategory" | i18n }}
           </label>
           <select
             id="subcategory_id"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
             [value]="subcategory_id() || ''"
             (change)="updateField('subcategory_id', $any($event.target).value)"
             [disabled]="!category_id()"
@@ -132,7 +132,7 @@
             type="number"
             min="0.01"
             step="0.01"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [value]="valor() ?? ''"
             (input)="updateField('valor', $event.target.value)"
             required
@@ -145,7 +145,7 @@
             type="number"
             min="0.01"
             step="0.01"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [value]="valor_prestador() ?? ''"
             (input)="updateField('valor_prestador', $event.target.value)"
             required
@@ -157,7 +157,7 @@
   <!-- Seção de Informações do Solicitante -->
   <div class="p-6 bg-white">
     <div class="flex items-center gap-2 mb-4">
-      <i class="fas fa-user-circle text-indigo-600"></i>
+      <i class="fas fa-user-circle text-brand-primary-600"></i>
       <h3 class="text-lg font-semibold text-gray-800">{{ "requesterInformation" | i18n }}</h3>
     </div>
     
@@ -165,14 +165,14 @@
       <!-- Cliente -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_name">
-          <i class="fas fa-user text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-user text-brand-primary-500 mr-2 text-xs"></i>
           {{ "client" | i18n }}
         </label>
         <div class="relative">
           <input
             id="client_name"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.client_name
                 ? !validFields().client_name && client_name()
@@ -222,14 +222,14 @@
       <!-- Telefone -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_phone">
-          <i class="fas fa-phone text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-phone text-brand-primary-500 mr-2 text-xs"></i>
           {{ "phone" | i18n }}
         </label>
         <div class="relative">
           <input
             id="client_phone"
             type="tel"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.client_phone
                 ? !validFields().client_phone && client_phone()
@@ -282,14 +282,14 @@
       <!-- NIF (Opcional) -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="client_nif">
-          <i class="fas fa-id-card text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-id-card text-brand-primary-500 mr-2 text-xs"></i>
           {{ "nif" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
         </label>
         <div class="relative">
           <input
             id="client_nif"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.client_nif && client_nif()
                 ? !validFields().client_nif
@@ -339,14 +339,14 @@
     <!-- Email do Cliente (Opcional) -->
     <div class="mt-4">
       <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="email_client">
-        <i class="fas fa-envelope text-indigo-500 mr-2 text-xs"></i>
+        <i class="fas fa-envelope text-brand-primary-500 mr-2 text-xs"></i>
         {{ "email" | i18n }} <span class="text-gray-400 ml-1">({{ "optional" | i18n }})</span>
       </label>
       <div class="relative">
         <input
           id="email_client"
           type="email"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
           [ngClass]="
             touched.email_client && email_client()
               ? !validFields().email_client
@@ -394,7 +394,7 @@
   <!-- Seção de Detalhes do Serviço -->
     <div class="p-6 bg-white">
       <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-file-alt text-indigo-600"></i>
+        <i class="fas fa-file-alt text-brand-primary-600"></i>
         <h3 class="text-lg font-semibold text-gray-800">{{ "serviceDetails" | i18n }}</h3>
       </div>
     
@@ -402,14 +402,14 @@
       <!-- Título -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="title">
-          <i class="fas fa-heading text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-heading text-brand-primary-500 mr-2 text-xs"></i>
           {{ "title" | i18n }}
         </label>
         <div class="relative">
           <input
             id="title"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.title
                 ? !validFields().title && title()
@@ -459,14 +459,14 @@
       <!-- Descrição -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="description">
-          <i class="fas fa-align-left text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-align-left text-brand-primary-500 mr-2 text-xs"></i>
           {{ "description" | i18n }}
         </label>
         <div class="relative">
           <textarea
             id="description"
             rows="4"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all resize-none"
             [ngClass]="
               touched.description
                 ? !validFields().description && description()
@@ -521,14 +521,14 @@
         <!-- Data/Hora solicitada -->
         <div>
           <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="requestedDateTime">
-            <i class="fas fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
+            <i class="fas fa-calendar-alt text-brand-primary-500 mr-2 text-xs"></i>
             {{ "preferredDateTime" | i18n }}
           </label>
           <div class="relative">
             <input
               id="requestedDateTime"
               type="datetime-local"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
               [ngClass]="
                 touched.requestedDateTime
                   ? !validFields().requestedDateTime && requestedDateTime()
@@ -588,12 +588,12 @@
         <!-- Prioridade -->
         <div>
           <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="priority">
-            <i class="fas fa-exclamation-triangle text-indigo-500 mr-2 text-xs"></i>
+            <i class="fas fa-exclamation-triangle text-brand-primary-500 mr-2 text-xs"></i>
             {{ "priority" | i18n }}
           </label>
           <select
             id="priority"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [value]="priority() || ''"
             (change)="updateField('priority', $any($event.target).value)"
             required
@@ -617,7 +617,7 @@
   <!-- Seção de Endereço -->
     <div class="p-6 bg-white">
       <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-map-marker-alt text-indigo-600"></i>
+        <i class="fas fa-map-marker-alt text-brand-primary-600"></i>
         <h3 class="text-lg font-semibold text-gray-800">{{ "address" | i18n }}</h3>
       </div>
     
@@ -625,14 +625,14 @@
       <!-- Código Postal -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="zip_code">
-          <i class="fas fa-mail-bulk text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-mail-bulk text-brand-primary-500 mr-2 text-xs"></i>
           {{ "postalCode" | i18n }}
         </label>
         <div class="relative">
           <input
             id="zip_code"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.zip_code
                 ? !validFields().zip_code && zip_code()
@@ -687,7 +687,7 @@
       <!-- Logradouro -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="street">
-          <i class="fas fa-road text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-road text-brand-primary-500 mr-2 text-xs"></i>
           {{ "logradouro" | i18n }}
         </label>
         <!-- Campo somente leitura quando há logradouro do código postal -->
@@ -712,7 +712,7 @@
             <input
               id="street_manual"
               type="text"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
               [ngClass]="
                 touched.street
                   ? street_manual() && street_manual().length > 0 && !validFields().street_manual
@@ -747,14 +747,14 @@
       <!-- Número -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="number">
-          <i class="fas fa-hashtag text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-hashtag text-brand-primary-500 mr-2 text-xs"></i>
           {{ "number" | i18n }}
         </label>
         <div class="relative">
           <input
             id="number"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
             [ngClass]="
               touched.number
                 ? number() && number().length > 0 && !validFields().number
@@ -799,13 +799,13 @@
       <!-- Complemento -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="complement">
-          <i class="fas fa-building text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-building text-brand-primary-500 mr-2 text-xs"></i>
           {{ "complement" | i18n }}
         </label>
         <input
           id="complement"
           type="text"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
           [value]="complement()"
           (input)="updateField('complement', $event.target.value)"
           [placeholder]="'complementPlaceholder' | i18n"
@@ -815,7 +815,7 @@
       <!-- Localidade -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="locality">
-          <i class="fas fa-city text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-city text-brand-primary-500 mr-2 text-xs"></i>
           {{ "locality" | i18n }}
         </label>
         <input
@@ -834,7 +834,7 @@
       <!-- Concelho -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="city">
-          <i class="fas fa-map text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-map text-brand-primary-500 mr-2 text-xs"></i>
           {{ "concelho" | i18n }}
         </label>
         <input
@@ -857,7 +857,7 @@
       <!-- Distrito -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="district">
-          <i class="fas fa-map-marked-alt text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-map-marked-alt text-brand-primary-500 mr-2 text-xs"></i>
           {{ "district" | i18n }}
         </label>
         <input
@@ -876,14 +876,14 @@
       <!-- Latitude -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="latitude">
-          <i class="fas fa-globe text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-globe text-brand-primary-500 mr-2 text-xs"></i>
           Latitude
         </label>
         <input
           id="latitude"
           type="number"
           step="0.000001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
           [value]="latitude()"
           (input)="updateField('latitude', $event.target.value)"
           [placeholder]="'latitude'"
@@ -894,14 +894,14 @@
       <!-- Longitude -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="longitude">
-          <i class="fas fa-globe text-indigo-500 mr-2 text-xs"></i>
+          <i class="fas fa-globe text-brand-primary-500 mr-2 text-xs"></i>
           Longitude
         </label>
         <input
           id="longitude"
           type="number"
           step="0.000001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
           [value]="longitude()"
           (input)="updateField('longitude', $event.target.value)"
           [placeholder]="'longitude'"
@@ -952,7 +952,7 @@
       </button>
       <button
         type="submit"
-        class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold hover:from-indigo-700 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2 min-w-[140px] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-brand-primary-600 to-brand-primary-500 text-white font-semibold hover:from-brand-primary-700 hover:to-brand-primary-600 transition-all duration-200 flex items-center justify-center gap-2 min-w-[140px] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         [disabled]="!isFormValid() || isSubmitting()"
       >
         <i class="fas fa-paper-plane"></i>
@@ -963,3 +963,5 @@
   </div>
   </div>
 </form>
+
+

@@ -71,3 +71,4 @@ export class FinancialReportsComponent {
         return this.dataService.users().find(u => u.id === profId)?.name || 'N/A';
     }
 }
+

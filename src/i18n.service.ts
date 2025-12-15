@@ -944,6 +944,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     natanEmployeeYes: "Yes, employee of Natan Construtora",
     natanEmployeeNo: "No, independent service provider",
     natanAffiliation: "Natan Construtora Affiliation",
+    tooManyAttempts: "Too many attempts. Please try again later.",
    
 
   },
@@ -1889,7 +1890,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     nif: "NIF",
     executionDate: "Data de Execução",
     imageUploadedSuccessfully: "Imagem enviada com sucesso!",
-    isNatanEmployee: "Funcionário da Natan Construtora",
+    tooManyAttempts: "Muitas tentativas. Por favor, tente novamente mais tarde.",
     natanEmployeeYes: "Sim, funcionário da Natan Construtora",
     natanEmployeeNo: "Não, prestador de serviço independente",
     natanAffiliation: "Vínculo com a Natan Construtora",

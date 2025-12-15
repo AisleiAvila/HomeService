@@ -66,7 +66,7 @@ export class AlertComponent implements OnInit {
       'success': 'bg-green-50 border-green-500 text-green-800',
       'error': 'bg-red-50 border-semantic-error text-semantic-error',
       'warning': 'bg-yellow-50 border-semantic-warning text-yellow-800',
-      'info': 'bg-blue-50 border-semantic-info text-blue-800',
+      'info': 'bg-brand-primary-50 border-semantic-info text-brand-primary-800',
     };
 
     return `${baseClasses} ${typeClasses[this.type]}`;
@@ -138,3 +138,4 @@ export class LoadingComponent {
     return `${baseClasses} ${fullScreenClasses} ${overlayClasses}`;
   }
 }
+

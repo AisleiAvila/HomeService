@@ -11,8 +11,8 @@
         @for (notification of notificationService.notifications(); track notification.id) {
           <li 
             class="border-b last:border-b-0 transition-colors duration-150 cursor-pointer"
-            [class.bg-blue-50]="!notification.read"
-            [class.hover:bg-blue-100]="!notification.read"
+            [class.bg-brand-primary-50]="!notification.read"
+            [class.hover:bg-brand-primary-100]="!notification.read"
             [class.bg-white]="notification.read"
             [class.hover:bg-gray-50]="notification.read"
             [class.notification-enter]="isNew(notification)"
@@ -20,7 +20,7 @@
             <div class="flex items-start space-x-3 p-3">
               <!-- Status dot -->
               <div class="w-2 h-2 mt-[5px] rounded-full flex-shrink-0"
-                   [class.bg-blue-500]="!notification.read"
+                   [class.bg-brand-primary-500]="!notification.read"
                    [class.bg-transparent]="notification.read">
               </div>
               <!-- Message content -->
@@ -46,7 +46,7 @@
   @if (notificationService.notifications().length > 0) {
     <div class="p-2 bg-gray-50 border-t text-center flex justify-around items-center">
         @if (hasUnreadNotifications()) {
-          <button (click)="notificationService.markAllAsRead()" class="text-sm text-blue-600 hover:underline">
+          <button (click)="notificationService.markAllAsRead()" class="text-sm text-brand-primary-600 hover:underline">
             {{ 'markAllAsRead' | i18n }}
           </button>
         }

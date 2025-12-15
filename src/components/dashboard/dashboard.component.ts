@@ -442,7 +442,7 @@ export class DashboardComponent implements OnInit {
         {
           label: this.i18n.translate("activeRequests"),
           value: requests.filter((r) => isActive(r.status)).length,
-          icon: "fas fa-cogs text-blue-500",
+          icon: "fas fa-cogs text-brand-primary-500",
         },
         {
           label: this.i18n.translate("completedRequests"),
@@ -461,7 +461,7 @@ export class DashboardComponent implements OnInit {
         {
           label: this.i18n.translate("activeJobs"),
           value: requests.filter((r) => isActive(r.status)).length,
-          icon: "fas fa-briefcase text-blue-500",
+          icon: "fas fa-briefcase text-brand-primary-500",
         },
         {
           label: this.i18n.translate("completedJobs"),
@@ -663,3 +663,4 @@ export class DashboardComponent implements OnInit {
     }
   }
 }
+

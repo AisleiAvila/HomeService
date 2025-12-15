@@ -12,7 +12,7 @@
           user().phone.trim().length >= 9 &&
           !user().phone_verified
         "
-        class="bg-blue-600 text-white px-4 py-2 rounded"
+        class="bg-brand-primary-600 text-white px-4 py-2 rounded"
         (click)="sendCode()"
         [disabled]="loading()"
       >
@@ -56,3 +56,4 @@
     </div>
   </div>
 </div>
+

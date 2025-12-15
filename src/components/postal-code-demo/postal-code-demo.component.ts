@@ -57,7 +57,7 @@ import {
                 (input)="onQuickTestInput()"
                 placeholder="1000-001"
                 maxlength="8"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
                 [class.border-red-500]="
                   quickTestResult && !quickTestResult.isValid
                 "
@@ -274,7 +274,7 @@ import {
             [(ngModel)]="localityQuery"
             (input)="onLocalitySearch()"
             placeholder="Digite o nome da cidade (ex: Lisboa, Porto, Coimbra)"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
           />
         </div>
 
@@ -648,3 +648,4 @@ export class PostalCodeDemoComponent implements OnInit {
     }
   }
 }
+

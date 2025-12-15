@@ -2,7 +2,7 @@
 
 <!-- Spinner global para transições (ex: login) -->
 <div *ngIf="isAppLoading()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
-  <i class="fas fa-spinner fa-spin text-indigo-600 text-5xl" aria-label="Carregando"></i>
+  <i class="fas fa-spinner fa-spin text-brand-primary-600 text-5xl" aria-label="Carregando"></i>
 </div>
 <ng-container [ngSwitch]="view()">
   <!-- Landing -->
@@ -62,19 +62,19 @@
 
   <!-- App -->
   <ng-container *ngSwitchCase="'app'">
-    <div class="flex h-screen bg-gray-100 text-gray-800 overflow-hidden mobile-safe">
+    <div class="flex h-screen bg-gray-100 dark:bg-neutral-900 text-gray-800 dark:text-neutral-50 overflow-hidden mobile-safe">
       <!-- Sidebar (desktop) -->
       <aside
-        class="hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-200 overflow-hidden"
+        class="hidden md:flex bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700 flex-col transition-all duration-200 overflow-hidden"
         [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'" aria-label="Menu lateral de navegação">
-        <div class="h-16 flex items-center px-4 border-b border-gray-200">
+        <div class="h-16 flex items-center px-4 border-b border-gray-200 dark:border-neutral-700">
           <img src="src/assets/logo-new.png" alt="HomeService" class="h-8 w-auto" />
         </div>
         <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
           <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
               currentNav() === item.id
-                ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
-                : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
+                ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 dark:bg-neutral-700 text-gray-900 dark:text-neutral-50'
+                : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-700'
             " [ngClass]="{ 'justify-center': isSidebarCollapsed() }">
             <i [class]="item.icon"></i>
             <span class="transition-all" [class.hidden]="isSidebarCollapsed()">{{ item.labelKey | i18n }}</span>
@@ -85,18 +85,18 @@
           <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
             class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
           <span *ngIf="!isSidebarCollapsed()"
-            class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
+            class="font-semibold text-sm text-gray-800 dark:text-neutral-50 text-center truncate max-w-[120px]">{{ currentUser()?.name
             }}</span>
-          <span *ngIf="!isSidebarCollapsed()" class="text-xs text-gray-500 text-center">{{ currentUser()?.role | i18n
+          <span *ngIf="!isSidebarCollapsed()" class="text-xs text-gray-500 dark:text-neutral-400 text-center">{{ currentUser()?.role | i18n
             }}</span>
         </div>
       </aside>
 
       <!-- Main column -->
       <div class="flex-1 flex flex-col min-w-0" style="overflow:visible;">
-        <header class="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-20 relative flex-shrink-0 min-h-[60px]" style="overflow:visible;">
+        <header class="bg-white dark:bg-neutral-800 shadow-sm px-4 py-3 flex items-center justify-between z-20 relative flex-shrink-0 min-h-[60px]" style="overflow:visible;">
           <div class="flex items-center gap-2">
-            <button class="p-2 rounded-md border border-gray-200" (click)="toggleSidebar()" [attr.title]="
+            <button class="p-2 rounded-md border border-gray-200 dark:border-neutral-700 dark:hover:bg-neutral-700 hover:bg-gray-50" (click)="toggleSidebar()" [attr.title]="
                 isMobile()
                   ? ('menu' | i18n)
                   : isSidebarCollapsed()
@@ -107,17 +107,18 @@
               ">
               <i class="fa-solid fa-bars"></i>
             </button>
-            <span class="hidden md:inline font-semibold">HomeService</span>
+            <span class="hidden md:inline font-semibold dark:text-neutral-50">HomeService</span>
           </div>
           <div class="flex items-center gap-2">
-            <button class="relative p-2 rounded-md hover:bg-gray-50" (click)="openNotificationCenter()"
+            <button class="relative p-2 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-700 dark:text-neutral-50" (click)="openNotificationCenter()"
               title="{{ 'notifications' | i18n }}">
               <i class="fa-solid fa-bell"></i>
               <span *ngIf="hasUnreadNotifications()"
                 class="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500"></span>
             </button>
+            <app-theme-toggle />
             <app-language-switcher [theme]="'dark'" />
-            <button class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50"
+            <button class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 dark:text-neutral-50"
               (click)="handleLogout()">
               <i class="fa-solid fa-right-from-bracket"></i>
               <span class="hidden sm:inline">{{ "logout" | i18n }}</span>
@@ -127,7 +128,7 @@
 
 
 
-        <main class="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
+        <main class="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-gray-100 dark:bg-neutral-900">
           <router-outlet (activate)="onActivate($event)" (deactivate)="onDeactivate($event)"></router-outlet>
           <ng-container *ngIf="!isRouterOutletActivated">
             <ng-container [ngSwitch]="currentNav()">

@@ -25,7 +25,7 @@
     } @else { @for (message of messages(); track message.id) {
     <div [class]="message.isCurrentUser ? 'flex justify-end' : 'flex justify-start'">
       <div [class]="message.isCurrentUser 
-        ? 'bg-blue-500 text-white max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow'
+        ? 'bg-brand-primary-500 text-white max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow'
         : 'bg-gray-100 text-gray-800 max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow'">
         @if (!message.isCurrentUser) {
         <div class="flex items-center space-x-2 mb-1">
@@ -47,7 +47,7 @@
         }
         <p class="text-sm whitespace-pre-wrap">{{ message.text }}</p>
         <p [class]="message.isCurrentUser 
-          ? 'text-xs mt-1 text-blue-100' 
+          ? 'text-xs mt-1 text-brand-primary-100' 
           : 'text-xs mt-1 text-gray-500'">
           {{ message.timestamp | date : "short" }}
         </p>
@@ -71,7 +71,7 @@
         type="text"
         [(ngModel)]="newMessageText"
         name="message"
-        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
         [placeholder]="'typeMessage' | i18n"
         [disabled]="isSending()"
         autocomplete="off"
@@ -80,7 +80,7 @@
       <button
         type="submit"
         [disabled]="!newMessageText.trim() || isSending()"
-        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        class="px-4 py-2 bg-brand-primary-500 text-white rounded-md hover:bg-brand-primary-600 focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         aria-label="{{ 'send' | i18n }}"
       >
         @if (isSending()) {
@@ -92,3 +92,4 @@
     </form>
   </div>
 </div>
+

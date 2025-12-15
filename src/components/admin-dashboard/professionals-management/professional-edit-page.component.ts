@@ -160,3 +160,4 @@ export class ProfessionalEditPageComponent implements OnInit {
         this.router.navigate(['/admin/professionals']);
     }
 }
+

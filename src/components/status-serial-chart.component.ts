@@ -18,7 +18,7 @@ import { CommonModule } from "@angular/common";
           <ng-container *ngFor="let item of chartData()">
             <div class="flex flex-col items-center justify-end h-full">
               <div
-                class="bg-blue-500 rounded-t w-8"
+                class="bg-brand-primary-500 rounded-t w-8"
                 [style.height]="item.value * scale + 'px'"
                 [title]="item.label + ': ' + item.value"
               ></div>
@@ -66,3 +66,4 @@ export class StatusSerialChartComponent {
     return max > 0 ? 100 / max : 1;
   }
 }
+

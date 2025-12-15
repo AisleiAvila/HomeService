@@ -68,3 +68,4 @@ export class ChangePasswordComponent {
         this.closeModal.emit();
     }
 }
+

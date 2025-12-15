@@ -26,3 +26,4 @@ export class LanguageSwitcherComponent {
     this.isOpen.set(false);
   }
 }
+

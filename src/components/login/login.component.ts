@@ -22,17 +22,17 @@ export interface LoginPayload {
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-primary-100 via-white to-brand-primary-300 mobile-safe"
+      class="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-primary-100 via-white to-brand-primary-300 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 mobile-safe"
       aria-label="Tela de login"
     >
       <div
-        class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl relative border border-brand-primary-100 transition-all duration-300"
+        class="w-full max-w-md md:max-w-lg lg:max-w-xl p-4 md:p-8 space-y-8 bg-white/90 dark:bg-neutral-800/90 dark:border-neutral-700 backdrop-blur-md rounded-3xl shadow-2xl relative border border-brand-primary-100 transition-all duration-300"
         role="form"
         aria-labelledby="login-title"
       >
         <button
           (click)="switchToLanding.emit()"
-          class="absolute top-3 left-3 text-brand-primary-400 hover:text-brand-primary-700 flex items-center focus:outline-none focus:ring-2 focus:ring-brand-primary-400 bg-white/80 px-2 py-1 rounded-lg shadow-sm"
+          class="absolute top-3 left-3 text-brand-primary-400 dark:text-brand-primary-500 hover:text-brand-primary-700 dark:hover:text-brand-primary-400 flex items-center focus:outline-none focus:ring-2 focus:ring-brand-primary-400 bg-white/80 dark:bg-neutral-700/80 px-2 py-1 rounded-lg shadow-sm"
           aria-label="Voltar para Home"
           tabindex="0"
         >
@@ -48,11 +48,11 @@ export interface LoginPayload {
           />
           <h1
             id="login-title"
-            class="text-3xl md:text-4xl font-extrabold text-brand-primary-700 drop-shadow-sm"
+            class="text-3xl md:text-4xl font-extrabold text-brand-primary-700 dark:text-brand-primary-400 drop-shadow-sm"
           >
             {{ "signIn" | i18n }}
           </h1>
-          <p class="mt-2 text-base text-brand-primary-400 font-medium">
+          <p class="mt-2 text-base text-brand-primary-400 dark:text-brand-primary-300 font-medium">
             {{ "welcomeBack" | i18n }}
           </p>
         </div>
@@ -65,7 +65,7 @@ export interface LoginPayload {
           @if (errorMessage()) {
           <div
             id="login-error"
-            class="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md"
+            class="p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded-md"
             role="alert"
             aria-live="assertive"
           >
@@ -79,7 +79,7 @@ export interface LoginPayload {
           <div>
             <label
               for="email"
-              class="block text-sm font-semibold text-brand-primary-700 mb-1"
+              class="block text-sm font-semibold text-brand-primary-700 dark:text-brand-primary-300 mb-1"
               >{{ "email" | i18n }}</label
             >
             <input
@@ -91,8 +91,8 @@ export interface LoginPayload {
               aria-required="true"
               [attr.aria-invalid]="emailInvalid() ? 'true' : 'false'"
               aria-describedby="email-error"
-              class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40"
-              [ngClass]="{ 'border-red-400': emailInvalid(), 'border-brand-primary-200': !emailInvalid() }"
+              class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-brand-primary-300 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40 dark:bg-neutral-600 dark:border-neutral-500 dark:text-neutral-50"
+              [ngClass]="{ 'border-red-400 dark:border-red-600': emailInvalid(), 'border-brand-primary-200 dark:border-neutral-500': !emailInvalid() }"
               [ngModel]="email()"
               (ngModelChange)="email.set($event)"
               (blur)="validateEmail()"
@@ -106,7 +106,7 @@ export interface LoginPayload {
           <div>
             <label
               for="password"
-              class="block text-sm font-semibold text-brand-primary-700 mb-1"
+              class="block text-sm font-semibold text-brand-primary-700 dark:text-brand-primary-300 mb-1"
               >{{ "password" | i18n }}</label
             >
             <div class="relative">
@@ -119,8 +119,8 @@ export interface LoginPayload {
                 aria-required="true"
                 [attr.aria-invalid]="passwordInvalid() ? 'true' : 'false'"
                 aria-describedby="password-error"
-                class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40"
-                [ngClass]="{ 'border-red-400': passwordInvalid(), 'border-brand-primary-200': !passwordInvalid() }"
+                class="w-full px-4 py-2 border rounded-lg shadow-sm placeholder-brand-primary-300 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 focus:border-brand-primary-400 transition-all duration-150 bg-brand-primary-50/40 dark:bg-neutral-600 dark:border-neutral-500 dark:text-neutral-50"
+                [ngClass]="{ 'border-red-400 dark:border-red-600': passwordInvalid(), 'border-brand-primary-200 dark:border-neutral-500': !passwordInvalid() }"
                 [ngModel]="password()"
                 (ngModelChange)="password.set($event)"
                 (blur)="validatePassword()"
@@ -129,7 +129,7 @@ export interface LoginPayload {
               <button
                 type="button"
                 (click)="toggleShowPassword()"
-                class="absolute right-2 top-2 text-brand-primary-400 hover:text-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 bg-white/80 px-2 py-1 rounded-lg"
+                class="absolute right-2 top-2 text-brand-primary-400 dark:text-brand-primary-500 hover:text-brand-primary-700 dark:hover:text-brand-primary-400 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 bg-white/80 dark:bg-neutral-700/80 px-2 py-1 rounded-lg"
                 aria-label="{{ showPassword ? 'Ocultar senha' : 'Mostrar senha' }}"
                 tabindex="3"
               >
@@ -137,7 +137,7 @@ export interface LoginPayload {
               </button>
             </div>
             @if (passwordInvalid()) {
-            <span id="password-error" class="text-xs text-red-600 mt-1 block" role="alert">{{ "invalidPassword" | i18n }}</span>
+            <span id="password-error" class="text-xs text-red-600 dark:text-red-300 mt-1 block" role="alert">{{ "invalidPassword" | i18n }}</span>
             }
           </div>
 
@@ -145,7 +145,7 @@ export interface LoginPayload {
             <button
               type="button"
               (click)="handleForgotPassword()"
-              class="text-sm font-semibold text-brand-primary-500 hover:text-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 px-2 py-1 rounded-lg"
+              class="text-sm font-semibold text-brand-primary-500 dark:text-brand-primary-400 hover:text-brand-primary-700 dark:hover:text-brand-primary-300 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 px-2 py-1 rounded-lg"
               aria-label="{{ 'forgotPassword' | i18n }}"
               tabindex="4"
             >
@@ -157,7 +157,7 @@ export interface LoginPayload {
             <button
               type="submit"
               [disabled]="!email() || !password() || isLoading() || emailInvalid() || passwordInvalid()"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-brand-primary-500 via-brand-primary-600 to-brand-primary-700 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-400 disabled:bg-brand-primary-300 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-brand-primary-500 via-brand-primary-600 to-brand-primary-700 dark:from-brand-primary-600 dark:via-brand-primary-700 dark:to-brand-primary-800 hover:shadow-lg hover:scale-[1.02] dark:hover:shadow-brand-primary-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-400 dark:focus:ring-offset-neutral-800 disabled:bg-brand-primary-300 dark:disabled:bg-brand-primary-800 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
               style="text-decoration: none !important; border-bottom: none !important; box-shadow: none !important;"
               aria-label="{{ 'login' | i18n }}"
               tabindex="5"
@@ -167,11 +167,11 @@ export interface LoginPayload {
           </div>
         </form>
 
-        <div class="mt-6 text-sm text-center text-brand-primary-500">
+        <div class="mt-6 text-sm text-center text-brand-primary-500 dark:text-brand-primary-400">
           <span>{{ "dontHaveAccount" | i18n }}</span>
           <button
             (click)="switchToRegister.emit()"
-            class="font-bold text-brand-primary-600 hover:text-brand-primary-800 ml-1 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 px-2 py-1 rounded-lg"
+            class="font-bold text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 ml-1 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 px-2 py-1 rounded-lg"
             aria-label="{{ 'createAccount' | i18n }}"
             tabindex="6"
           >
@@ -283,3 +283,4 @@ export class LoginComponent {
     this.passwordInvalid.set(pwd.length < 6);
   }
 }
+

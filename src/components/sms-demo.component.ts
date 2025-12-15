@@ -66,7 +66,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               type="tel"
               [(ngModel)]="phoneNumber"
               placeholder="+351912345678"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {{ 'phone_format_hint' | i18n }}
@@ -81,7 +81,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
             <select
               [(ngModel)]="selectedTemplate"
               (change)="onTemplateChange()"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
             >
               <option value="custom">{{ 'custom_message' | i18n }}</option>
               <option value="verification">{{ 'verification_code' | i18n }}</option>
@@ -92,8 +92,8 @@ import { I18nPipe } from '../pipes/i18n.pipe';
 
           <!-- Variáveis do template (condicional) -->
           @if (selectedTemplate() !== 'custom') {
-            <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+            <div class="mb-4 p-3 bg-brand-primary-50 dark:bg-brand-primary-900/20 rounded-lg">
+              <p class="text-sm font-medium text-brand-primary-800 dark:text-brand-primary-300 mb-2">
                 {{ 'template_variables' | i18n }}:
               </p>
               @if (selectedTemplate() === 'verification') {
@@ -101,13 +101,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   type="text"
                   [(ngModel)]="verificationCode"
                   placeholder="Código (ex: 123456)"
-                  class="w-full px-3 py-2 mb-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
                 <input
                   type="number"
                   [(ngModel)]="expiresIn"
                   placeholder="Expira em (minutos)"
-                  class="w-full px-3 py-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
               }
               @if (selectedTemplate() === 'notification') {
@@ -115,13 +115,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   type="text"
                   [(ngModel)]="requestId"
                   placeholder="ID do Pedido (ex: SR-001)"
-                  class="w-full px-3 py-2 mb-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
                 <input
                   type="text"
                   [(ngModel)]="status"
                   placeholder="Status (ex: Concluído)"
-                  class="w-full px-3 py-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
               }
               @if (selectedTemplate() === 'reminder') {
@@ -129,13 +129,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   type="text"
                   [(ngModel)]="serviceName"
                   placeholder="Nome do Serviço"
-                  class="w-full px-3 py-2 mb-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
                 <input
                   type="text"
                   [(ngModel)]="serviceDate"
                   placeholder="Data (ex: 15/01/2024 às 14:00)"
-                  class="w-full px-3 py-2 border border-blue-300 rounded-lg dark:bg-gray-700 dark:border-blue-700 dark:text-white"
+                  class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
                 />
               }
             </div>
@@ -151,7 +151,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               [disabled]="selectedTemplate() !== 'custom'"
               rows="4"
               maxlength="1600"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-700"
               placeholder="{{ 'enter_message' | i18n }}"
             ></textarea>
             <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -164,7 +164,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
           <button
             (click)="sendSms()"
             [disabled]="!phoneNumber() || !message() || smsService.isSending()"
-            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+            class="w-full bg-brand-primary-600 hover:bg-brand-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
           >
             @if (smsService.isSending()) {
               <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -198,7 +198,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                 <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4"
                      [ngClass]="{
                        'border-green-500': sms.status === 'delivered',
-                       'border-blue-500': sms.status === 'sent',
+                       'border-brand-primary-500': sms.status === 'sent',
                        'border-yellow-500': sms.status === 'pending',
                        'border-red-500': sms.status === 'failed'
                      }">
@@ -209,7 +209,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                     <span class="text-xs px-2 py-1 rounded-full"
                           [ngClass]="{
                             'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300': sms.status === 'delivered',
-                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300': sms.status === 'sent',
+                            'bg-brand-primary-100 text-brand-primary-800 dark:bg-brand-primary-900 dark:text-brand-primary-300': sms.status === 'sent',
                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300': sms.status === 'pending',
                             'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300': sms.status === 'failed'
                           }">
@@ -330,3 +330,4 @@ export class SmsDemoComponent {
     this.smsService.clearHistory();
   }
 }
+

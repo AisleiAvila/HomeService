@@ -4,7 +4,7 @@
         <button type="button"
             (click)="handleCardClick(stat.id)"
             [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsLastMonth' | i18n)"
-            class="bg-white rounded-xl shadow-sm p-4 flex items-start justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer border border-gray-100 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 min-h-[120px]">
+            class="bg-white rounded-xl shadow-sm p-4 flex items-start justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer border border-gray-100 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 min-h-[120px]">
             
             <!-- Efeito de background -->
             <div class="absolute top-0 right-0 w-20 h-20 bg-white opacity-10 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
@@ -44,7 +44,7 @@
         <!-- Gráfico de Pizza -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 w-full">
             <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>
+                <i class="fas fa-chart-pie text-brand-primary-500 mr-2"></i>
                 {{ "requestsByStatus" | i18n }}
             </h3>
             <p class="text-sm text-gray-500 mb-4 flex items-center">
@@ -62,7 +62,7 @@
         <!-- Gráfico de Barras -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 w-full">
             <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                <i class="fas fa-chart-bar text-indigo-500 mr-2"></i>
+                <i class="fas fa-chart-bar text-brand-primary-500 mr-2"></i>
                 {{ "requestsByCategory" | i18n }}
             </h3>
             <p class="text-sm text-gray-500 mb-4 flex items-center">
@@ -78,3 +78,4 @@
         </div>
     </div>
 </div>
+

@@ -118,7 +118,7 @@ export class AdminOverviewComponent {
                 label: this.i18n.translate("activeServices"),
                 value: activeServices,
                 icon: "fas fa-tools",
-                bgColor: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700",
+                bgColor: "bg-gradient-to-br from-brand-primary-100 to-brand-primary-200 text-brand-primary-700",
                 trend: trends.active,
                 trendColor: trends.active.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
@@ -138,7 +138,7 @@ export class AdminOverviewComponent {
             //     label: this.i18n.translate("activeClients"),
             //     value: clients.length,
             //     icon: "fas fa-users",
-            //     bgColor: "bg-gradient-to-br from-indigo-100 to-indigo-200 text-indigo-700",
+            //     bgColor: "bg-gradient-to-br from-brand-primary-100 to-indigo-200 text-brand-primary-700",
             //     trend: trends.clients,
             //     trendColor: trends.clients.includes("+") ? "text-green-600" : "text-red-600",
             //     badge: null,
@@ -229,3 +229,4 @@ export class AdminOverviewComponent {
         }
     }
 }
+

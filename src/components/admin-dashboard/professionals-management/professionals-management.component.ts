@@ -241,3 +241,4 @@ export class ProfessionalsManagementComponent implements OnInit {
         // Não reexibe o formulário de adição automaticamente
     }
 }
+

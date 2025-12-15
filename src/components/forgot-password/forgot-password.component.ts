@@ -99,3 +99,4 @@ export class ForgotPasswordComponent {
     this.codeRequested.emit(this.email());
   }
 }
+

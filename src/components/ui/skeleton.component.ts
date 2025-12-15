@@ -120,3 +120,4 @@ export class SkeletonGroupComponent {
     return 'w-full';
   }
 }
+

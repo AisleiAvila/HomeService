@@ -285,3 +285,4 @@ export class UiComponentsShowcaseComponent {
     }, 2000);
   }
 }
+

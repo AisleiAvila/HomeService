@@ -299,3 +299,4 @@ export class WorkflowTimelineComponent {
     return StatusUtilsService.getColor(status);
   }
 }
+

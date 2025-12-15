@@ -27,3 +27,4 @@ export class NotificationToastComponent {
   private notificationService = inject(NotificationService);
   notifications = computed(() => this.notificationService.notifications());
 }
+

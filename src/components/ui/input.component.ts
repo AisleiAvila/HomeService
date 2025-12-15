@@ -115,3 +115,4 @@ export class InputComponent implements OnInit {
     return `${baseClasses} ${leftPadding} ${rightPadding} ${borderClasses}`;
   }
 }
+

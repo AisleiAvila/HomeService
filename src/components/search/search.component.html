@@ -9,7 +9,7 @@
         <input 
           type="text" 
           id="searchTerm"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary-500 focus:ring-brand-primary-500 sm:text-sm"
           [ngModel]="searchTerm()"
           (ngModelChange)="searchTerm.set($event)"
           [placeholder]="'searchTermPlaceholder' | i18n"
@@ -20,7 +20,7 @@
         <label for="category" class="block text-sm font-medium text-gray-700">{{ 'category' | i18n }}</label>
         <select 
           id="category"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary-500 focus:ring-brand-primary-500 sm:text-sm"
           [ngModel]="categoryFilter()"
           (ngModelChange)="categoryFilter.set($event)"
         >
@@ -35,7 +35,7 @@
         <label for="status" class="block text-sm font-medium text-gray-700">{{ 'status' | i18n }}</label>
         <select 
           id="status"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-primary-500 focus:ring-brand-primary-500 sm:text-sm"
           [ngModel]="statusFilter()"
           (ngModelChange)="statusFilter.set($event)"
         >
@@ -63,3 +63,4 @@
     </div>
   }
 </div>
+

@@ -75,11 +75,11 @@
   @if (request().actual_start_datetime || request().actual_end_datetime) {
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
     <!-- Início Real -->
-    <div class="bg-blue-50 rounded-lg p-4">
-      <label class="block text-sm font-medium text-blue-600 mb-1">
+    <div class="bg-brand-primary-50 rounded-lg p-4">
+      <label class="block text-sm font-medium text-brand-primary-600 mb-1">
         {{ "actualStartDateTime" | i18n }}
       </label>
-      <p class="text-sm text-blue-900">
+      <p class="text-sm text-brand-primary-900">
         {{ formatDateTime(request().actual_start_datetime) }}
       </p>
     </div>
@@ -103,7 +103,7 @@
     @if (canStartWork()) {
     <button
       (click)="startWork()"
-      class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+      class="flex-1 bg-brand-primary-600 hover:bg-brand-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
     >
       <i class="fas fa-play"></i>
       {{ "startWork" | i18n }}
@@ -130,7 +130,7 @@
       <i class="fas fa-check-circle mr-2 text-green-600"></i>
       {{ "serviceCompleted" | i18n }}
       } @case ('In Progress') {
-      <i class="fas fa-clock mr-2 text-blue-600"></i>
+      <i class="fas fa-clock mr-2 text-brand-primary-600"></i>
       {{ "serviceInProgress" | i18n }}
       } @case ('Awaiting Schedule') {
       <i class="fas fa-calendar-times mr-2 text-yellow-600"></i>
@@ -156,3 +156,4 @@
   </div>
   }
 </div>
+
