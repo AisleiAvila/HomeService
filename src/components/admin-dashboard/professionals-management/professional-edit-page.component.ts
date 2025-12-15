@@ -35,7 +35,11 @@ export class ProfessionalEditPageComponent implements OnInit {
     // Computed signal para categorias
     categories = computed(() => this.dataService.categories());
 
-    async ngOnInit(): Promise<void> {
+    ngOnInit(): void {
+        this.loadProfessionalData();
+    }
+
+    private async loadProfessionalData(): Promise<void> {
         const id = this.route.snapshot.paramMap.get('id');
         if (!id) {
             this.router.navigate(['/admin/professionals']);
@@ -48,7 +52,7 @@ export class ProfessionalEditPageComponent implements OnInit {
         console.log('Categorias carregadas:', this.dataService.categories());
 
         // Carregar dados do profissional
-        const professionalData = this.dataService.users().find(u => u.id === parseInt(id));
+        const professionalData = this.dataService.users().find(u => u.id === Number.parseInt(id));
         if (professionalData) {
             this.professional.set(professionalData);
             this.name.set(professionalData.name);

@@ -245,10 +245,10 @@
                 </div>
 
                 <!-- Especialidades (apenas para profissionais) -->
-                <div *ngIf="editingClientRole() === 'professional'">
-                    <label class="block text-sm font-medium text-gray-700 mb-3">
+                <fieldset *ngIf="editingClientRole() === 'professional'" class="border-0 p-0 m-0">
+                    <legend class="block text-sm font-medium text-gray-700 mb-3">
                         {{ "specialties" | i18n }}
-                    </label>
+                    </legend>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg">
                         @for(cat of dataService.serviceCategories(); track cat.id) {
                             <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-100 rounded transition-colors">
@@ -261,7 +261,7 @@
                             </label>
                         }
                     </div>
-                </div>
+                </fieldset>
 
                 <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
                 <div *ngIf="editingClientRole() === 'professional'">
@@ -525,24 +525,24 @@
         <h3 class="text-xl font-semibold mb-4">{{ "editClient" | i18n }}</h3>
         <div class="space-y-4">
             <div>
-                <label for="editClientName" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientNameModal" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ "name" | i18n }}
                 </label>
-                <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
+                <input id="editClientNameModal" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
                     class="w-full p-2 border rounded-md" />
             </div>
             <div>
-                <label for="editClientEmail" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientEmailModal" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ "email" | i18n }}
                 </label>
-                <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
+                <input id="editClientEmailModal" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
                     class="w-full p-2 border rounded-md" />
             </div>
             <div>
-                <label for="editClientRole" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientRoleModal" class="block text-sm font-medium text-gray-700 mb-1">
                     {{ "profileType" | i18n }}
                 </label>
-                <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
+                <select id="editClientRoleModal" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
                     class="w-full p-2 border rounded-md">
                     @for(roleOption of availableRoles; track roleOption) {
                         <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>

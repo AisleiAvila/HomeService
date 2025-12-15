@@ -1560,7 +1560,7 @@ export class DataService {
       const categoryIds = userSpecialtiesMap.get(user.id) || [];
       user.specialties = categoryIds
         .map(catId => allCategories.find(cat => cat.id === catId))
-        .filter(cat => cat !== undefined) as ServiceCategory[];
+        .filter((cat): cat is ServiceCategory => cat !== undefined);
       return user;
     });
 
