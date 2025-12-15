@@ -686,6 +686,7 @@ export class WorkflowServiceSimplified {
           paid_by_admin_id: adminId,
           status: "Pagamento Feito",
           ispaid: true,
+          payment_status: "Paid",
         })
         .eq("id", requestId);
 
@@ -775,6 +776,7 @@ export class WorkflowServiceSimplified {
           finalized_by_admin_id: adminId,
           admin_notes: adminNotes,
           status: "Concluído",
+          completed_at: new Date().toISOString(),
         })
         .eq("id", requestId);
 

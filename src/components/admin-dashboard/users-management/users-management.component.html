@@ -113,11 +113,14 @@
     @if(showAddClientForm()) {
     <!-- Cabeçalho do Formulário -->
     <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-emerald-500">
-        <div class="flex items-center">
-            <i class="fas fa-user-plus text-white text-2xl mr-3"></i>
-            <h2 class="text-2xl font-bold text-white">
+        <div>
+            <h2 class="text-2xl font-bold text-white flex items-center">
+                <i class="fas fa-user-plus mr-3"></i>
                 {{ "addNewClient" | i18n }}
             </h2>
+            <p class="text-indigo-100 text-sm mt-1">
+                {{ "addNewClientDesc" | i18n }}
+            </p>
         </div>
     </div>
     
