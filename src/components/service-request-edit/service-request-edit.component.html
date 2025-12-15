@@ -1,10 +1,10 @@
 <div class="w-full mobile-safe relative">
   <ng-container *ngIf="loading">
-    <div class="text-center text-gray-500">{{ 'loading' | i18n }}</div>
+    <div class="text-center text-gray-500 dark:text-gray-400">{{ 'loading' | i18n }}</div>
   </ng-container>
   <ng-container *ngIf="!loading">
     <ng-container *ngIf="error">
-      <div class="text-center text-red-600">{{ error }}</div>
+      <div class="text-center text-red-600 dark:text-red-400">{{ error }}</div>
     </ng-container>
     <ng-container *ngIf="!error && request">
       <!-- Formulário Editar Solicitação de Serviço (estrutura igual à tela Nova Solicitação) -->
@@ -20,7 +20,7 @@
               {{ 'fillFormToEditRequest' | i18n }}
             </p>
           </div>
-          <div class="p-6 bg-white">
+          <div class="p-6 bg-white dark:bg-gray-800">
             <!-- Origem da Solicitação -->
             <!-- Removido título duplicado -->
             <div class="mb-4">
