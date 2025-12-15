@@ -2,16 +2,16 @@
   <!-- Feedback visual -->
   @if(feedbackMessage) {
     <div class="mb-4">
-      <div class="feedback-box"
+      <div class="feedback-box p-3 rounded-md"
         [ngClass]="{
-          'bg-green-100 text-green-800': feedbackType === 'success',
-          'bg-red-100 text-red-800': feedbackType === 'error'
+          'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': feedbackType === 'success',
+          'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': feedbackType === 'error'
         }">
         {{ feedbackMessage | i18n }}
       </div>
     </div>
   }
-  <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-bold text-white flex items-center">
@@ -25,46 +25,46 @@
     </div>
   </div>
   <div class="space-y-4">
-    <label class="form-label block mb-4" for="input-name">{{ 'name' | i18n }}</label>
+    <label class="form-label block mb-4 text-sm font-medium text-gray-700 dark:text-gray-300" for="input-name">{{ 'name' | i18n }}</label>
     <input id="input-name" type="text" [ngModel]="name" (ngModelChange)="nameChange.emit($event)"
-      [placeholder]="'name' | i18n" aria-label="{{ 'name' | i18n }}" class="form-input" />
+      [placeholder]="'name' | i18n" aria-label="{{ 'name' | i18n }}" class="form-input w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent" />
     @if(nameError) {
-      <div class="form-error">{{ nameError | i18n }}</div>
+      <div class="form-error text-sm text-red-600 dark:text-red-400">{{ nameError | i18n }}</div>
     }
-    <label class="form-label block mb-1" for="input-email">{{ 'email' | i18n }}</label>
+    <label class="form-label block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="input-email">{{ 'email' | i18n }}</label>
     <input id="input-email" type="email" [ngModel]="email" (ngModelChange)="emailChange.emit($event)"
-      [placeholder]="'email' | i18n" aria-label="{{ 'email' | i18n }}" class="form-input" />
+      [placeholder]="'email' | i18n" aria-label="{{ 'email' | i18n }}" class="form-input w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent" />
     @if(emailError) {
-      <div class="form-error">{{ emailError | i18n }}</div>
+      <div class="form-error text-sm text-red-600 dark:text-red-400">{{ emailError | i18n }}</div>
     }
-    <label class="form-label block mb-1" for="input-phone">{{ 'phone' | i18n }}</label>
+    <label class="form-label block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300" for="input-phone">{{ 'phone' | i18n }}</label>
     <input id="input-phone" type="text" [ngModel]="phone" (ngModelChange)="phoneChange.emit($event)"
-      [placeholder]="'phone' | i18n" aria-label="{{ 'phone' | i18n }}" class="form-input" maxlength="10" pattern="[0-9]{5}-[0-9]{4}|[0-9]{9}" />
+      [placeholder]="'phone' | i18n" aria-label="{{ 'phone' | i18n }}" class="form-input w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent" maxlength="10" pattern="[0-9]{5}-[0-9]{4}|[0-9]{9}" />
     @if(phoneError) {
-      <div class="form-error">{{ phoneError | i18n }}</div>
+      <div class="form-error text-sm text-red-600 dark:text-red-400">{{ phoneError | i18n }}</div>
     }
-    <fieldset>
-      <legend class="form-label">
+    <fieldset class="border-0 p-0 m-0">
+      <legend class="form-label text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
         {{ "specialties" | i18n }}
       </legend>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
         @for(cat of allCategories; track cat.id) {
         <div>
           <input type="checkbox" [id]="'new-pro-' + cat.id"
-            (change)="onSpecialtyToggle(cat, $event)" aria-label="{{ cat.name | i18n }}" /><label [for]="'new-pro-' + cat.id"
-            class="ml-2">{{ cat.name | i18n }}</label>
+            (change)="onSpecialtyToggle(cat, $event)" aria-label="{{ cat.name | i18n }}" class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500 dark:bg-gray-700 dark:border-gray-600" /><label [for]="'new-pro-' + cat.id"
+            class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ cat.name | i18n }}</label>
         </div>
         }
       </div>
       @if(specialtiesError) {
-        <div class="form-error">{{ specialtiesError | i18n }}</div>
+        <div class="form-error text-sm text-red-600 dark:text-red-400 mt-2">{{ specialtiesError | i18n }}</div>
       }
     </fieldset>
-    <div class="form-actions">
-      <button (click)="cancelAdd.emit()" class="btn-cancel">
+    <div class="form-actions flex justify-end gap-2 mt-6">
+      <button (click)="cancelAdd.emit()" class="btn-cancel px-4 py-2 text-sm font-medium rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
         {{ "cancel" | i18n }}
       </button>
-      <button (click)="validateAndAdd()" class="btn-add">
+      <button (click)="validateAndAdd()" class="btn-add px-4 py-2 text-sm font-medium rounded-md text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors">
         {{ "add" | i18n }}
       </button>
     </div>

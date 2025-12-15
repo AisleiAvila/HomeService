@@ -1,7 +1,7 @@
 <!-- Área de Gerenciamento Principal -->
-<div class="bg-white rounded-lg shadow-md" *ngIf="!editingClient()">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md" *ngIf="!editingClient()">
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" *ngIf="!showAddClientForm()">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" *ngIf="!showAddClientForm()">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-white flex items-center">
@@ -21,31 +21,31 @@
     </div>
 
     <!-- Estatísticas -->
-    <div class="p-4 border-b bg-gray-50" *ngIf="!showAddClientForm()">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="!showAddClientForm()">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white p-4 rounded-lg border border-gray-200">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">{{ 'totalUsers' | i18n }}</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ totalUsers() }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalUsers' | i18n }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ totalUsers() }}</p>
                     </div>
                     <i class="fas fa-users text-brand-primary-500 text-2xl"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-lg border border-gray-200">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">{{ 'active' | i18n }}</p>
-                        <p class="text-2xl font-bold text-green-600">{{ totalActive() }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'active' | i18n }}</p>
+                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalActive() }}</p>
                     </div>
                     <i class="fas fa-check-circle text-green-500 text-2xl"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-lg border border-gray-200">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">{{ 'inactive' | i18n }}</p>
-                        <p class="text-2xl font-bold text-gray-600">{{ totalInactive() }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'inactive' | i18n }}</p>
+                        <p class="text-2xl font-bold text-gray-600 dark:text-gray-400">{{ totalInactive() }}</p>
                     </div>
                     <i class="fas fa-ban text-gray-500 text-2xl"></i>
                 </div>
@@ -54,28 +54,28 @@
     </div>
 
     <!-- Filtros e Busca -->
-    <div class="p-4 border-b bg-gray-50" *ngIf="!showAddClientForm()">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="!showAddClientForm()">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Busca -->
             <div class="md:col-span-2">
-                <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
                 </label>
                 <input id="searchInput" type="text" 
                     [ngModel]="searchTerm()" 
                     (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
                     [placeholder]="'searchNameEmail' | i18n"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
             </div>
 
             <!-- Filtro Role -->
             <div>
-                <label for="filterRole" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="filterRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     <i class="fas fa-user-tag mr-1"></i>{{ 'profileType' | i18n }}
                 </label>
                 <select id="filterRole" [ngModel]="filterRole()" 
                     (ngModelChange)="filterRole.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="all">{{ 'all' | i18n }}</option>
                     <option value="client">{{ 'client' | i18n }}</option>
                     <option value="admin">{{ 'admin' | i18n }}</option>
@@ -84,12 +84,12 @@
 
             <!-- Filtro Status -->
             <div>
-                <label for="filterStatus" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="filterStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     <i class="fas fa-filter mr-1"></i>{{ 'status' | i18n }}
                 </label>
                 <select id="filterStatus" [ngModel]="filterStatus()" 
                     (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="all">{{ 'all' | i18n }}</option>
                     <option value="Active">{{ 'active' | i18n }}</option>
                     <option value="Inactive">{{ 'inactive' | i18n }}</option>
@@ -102,7 +102,7 @@
         @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all') {
         <div class="mt-3">
             <button (click)="clearFilters()"
-                class="text-sm text-brand-primary-600 hover:text-brand-primary-800 font-medium">
+                class="text-sm text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 font-medium">
                 <i class="fas fa-times-circle mr-1"></i>{{ 'clearFilters' | i18n }}
             </button>
         </div>
@@ -112,7 +112,7 @@
     <!-- Formulário de Cadastro -->
     @if(showAddClientForm()) {
     <!-- Cabeçalho do Formulário -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-600 to-emerald-500">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-green-600 to-emerald-500">
         <div>
             <h2 class="text-2xl font-bold text-white flex items-center">
                 <i class="fas fa-user-plus mr-3"></i>
@@ -125,28 +125,28 @@
     </div>
     
     <!-- Conteúdo do Formulário -->
-    <div class="p-6 bg-gray-50">
+    <div class="p-6 bg-gray-50 dark:bg-gray-700">
         <div class="space-y-4">
             <div>
-                <label for="newClientName" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="newClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "name" | i18n }}
                 </label>
                 <input id="newClientName" type="text" [ngModel]="newClientName()" (ngModelChange)="newClientName.set($event)"
                     [placeholder]="'name' | i18n" 
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
             </div>
             
             <div>
-                <label for="newClientEmail" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="newClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "email" | i18n }}
                 </label>
                 <input id="newClientEmail" type="email" [ngModel]="newClientEmail()" (ngModelChange)="newClientEmail.set($event)"
                     [placeholder]="'email' | i18n" 
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
             </div>
             
             <div>
-                <label for="newClientPhone" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="newClientPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "phone" | i18n }} <span class="text-red-500">*</span>
                 </label>
                 <input id="newClientPhone" type="tel" [ngModel]="newClientPhone()" (ngModelChange)="newClientPhone.set($event)"
@@ -523,30 +523,30 @@
 </div>
 
 <!-- Edit Client Modal -->
-<div *ngIf="editingClient()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h3 class="text-xl font-semibold mb-4">{{ "editClient" | i18n }}</h3>
+<div *ngIf="editingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">{{ "editClient" | i18n }}</h3>
         <div class="space-y-4">
             <div>
-                <label for="editClientNameModal" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientNameModal" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "name" | i18n }}
                 </label>
                 <input id="editClientNameModal" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
-                    class="w-full p-2 border rounded-md" />
+                    class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
             </div>
             <div>
-                <label for="editClientEmailModal" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientEmailModal" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "email" | i18n }}
                 </label>
                 <input id="editClientEmailModal" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
-                    class="w-full p-2 border rounded-md" />
+                    class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100" />
             </div>
             <div>
-                <label for="editClientRoleModal" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="editClientRoleModal" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "profileType" | i18n }}
                 </label>
                 <select id="editClientRoleModal" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                    class="w-full p-2 border rounded-md">
+                    class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
                     @for(roleOption of availableRoles; track roleOption) {
                         <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                     }
@@ -562,20 +562,20 @@
                         (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
                         class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
                         aria-label="{{ 'isNatanEmployee' | i18n }}" />
-                    <span class="text-sm text-gray-700 font-medium">
+                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {{ "natanEmployeeYes" | i18n }}
                     </span>
                 </label>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {{ editingClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
                 </p>
             </div>
 
             <div class="flex justify-end space-x-2 mt-6">
-                <button (click)="cancelEdit()" class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
+                <button (click)="cancelEdit()" class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                     {{ "cancel" | i18n }}
                 </button>
-                <button (click)="saveClientEdit()" class="px-4 py-2 text-sm rounded-md text-white bg-brand-primary-600 hover:bg-brand-primary-700">
+                <button (click)="saveClientEdit()" class="px-4 py-2 text-sm rounded-md text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600">
                     {{ "save" | i18n }}
                 </button>
             </div>
@@ -584,47 +584,47 @@
 </div>
 
 <!-- View Details Modal -->
-<div *ngIf="viewingClient()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+<div *ngIf="viewingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold">{{ 'viewDetails' | i18n }}</h3>
-            <button (click)="closeDetails()" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'viewDetails' | i18n }}</h3>
+            <button (click)="closeDetails()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
         
         <div class="space-y-4">
             <!-- User Avatar and Basic Info -->
-            <div class="flex items-center space-x-4 pb-4 border-b">
-                <div class="h-16 w-16 rounded-full bg-brand-primary-100 flex items-center justify-center">
-                    <i class="fas fa-user text-brand-primary-600 text-2xl"></i>
+            <div class="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="h-16 w-16 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center">
+                    <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-2xl"></i>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-gray-900">{{ viewingClient()!.name }}</h4>
-                    <p class="text-sm text-gray-500">{{ viewingClient()!.email }}</p>
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ viewingClient()!.name }}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ viewingClient()!.email }}</p>
                 </div>
             </div>
 
             <!-- Details Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'profileType' | i18n }}</div>
+                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'profileType' | i18n }}</div>
                     <span class="px-3 py-1 text-sm rounded-full inline-block" 
                         [ngClass]="{
-                            'bg-purple-100 text-purple-800': viewingClient()!.role === 'professional',
-                            'bg-red-100 text-red-800': viewingClient()!.role === 'admin'
+                            'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': viewingClient()!.role === 'professional',
+                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': viewingClient()!.role === 'admin'
                         }">
                         {{ getRoleLabel(viewingClient()!.role) }}
                     </span>
                 </div>
                 
                 <div>
-                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'status' | i18n }}</div>
+                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'status' | i18n }}</div>
                     <span class="px-3 py-1 text-sm rounded-full inline-block"
                         [ngClass]="{
-                            'bg-green-100 text-green-800': viewingClient()!.status === 'Active',
-                            'bg-gray-100 text-gray-800': viewingClient()!.status === 'Inactive',
-                            'bg-yellow-100 text-yellow-800': viewingClient()!.status === 'Pending'
+                            'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': viewingClient()!.status === 'Active',
+                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': viewingClient()!.status === 'Inactive',
+                            'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': viewingClient()!.status === 'Pending'
                         }">
                         {{ viewingClient()!.status }}
                     </span>
@@ -632,17 +632,17 @@
 
                 @if(viewingClient()!.phone) {
                 <div>
-                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'phone' | i18n }}</div>
-                    <p class="text-gray-900">{{ viewingClient()!.phone }}</p>
+                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'phone' | i18n }}</div>
+                    <p class="text-gray-900 dark:text-gray-100">{{ viewingClient()!.phone }}</p>
                 </div>
                 }
 
                 @if(viewingClient()!.specialties && viewingClient()!.specialties.length > 0) {
                 <div class="md:col-span-2">
-                    <div class="block text-sm font-medium text-gray-500 mb-1">{{ 'specialties' | i18n }}</div>
+                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'specialties' | i18n }}</div>
                     <div class="flex flex-wrap gap-2">
                         @for(specialty of viewingClient()!.specialties; track specialty) {
-                        <span class="px-2 py-1 bg-brand-primary-100 text-brand-primary-800 text-xs rounded-full">
+                        <span class="px-2 py-1 bg-brand-primary-100 dark:bg-brand-primary-900 text-brand-primary-800 dark:text-brand-primary-200 text-xs rounded-full">
                             {{ specialty | i18n }}
                         </span>
                         }
@@ -654,7 +654,7 @@
 
         <div class="flex justify-end mt-6">
             <button (click)="closeDetails()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
+                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                 {{ 'cancel' | i18n }}
             </button>
         </div>
@@ -662,26 +662,26 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div *ngIf="deletingClient()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+<div *ngIf="deletingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
         <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
             </div>
-            <h3 class="ml-4 text-xl font-semibold text-gray-900">{{ 'confirmDeactivateClient' | i18n }}</h3>
+            <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmDeactivateClient' | i18n }}</h3>
         </div>
         
-        <p class="text-gray-600 mb-6">
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
             {{ 'areYouSureDeactivate' | i18n }} <strong>{{ deletingClient()!.name }}</strong>?
         </p>
 
         <div class="flex justify-end space-x-3">
             <button (click)="cancelDelete()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
+                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                 {{ 'cancel' | i18n }}
             </button>
             <button (click)="deleteClient()" 
-                class="px-4 py-2 text-sm rounded-md text-white bg-red-600 hover:bg-red-700">
+                class="px-4 py-2 text-sm rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600">
                 {{ 'deactivate' | i18n }}
             </button>
         </div>
@@ -689,26 +689,26 @@
 </div>
 
 <!-- Reactivate Confirmation Modal -->
-<div *ngIf="reactivatingClient()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+<div *ngIf="reactivatingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
         <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-xl"></i>
             </div>
-            <h3 class="ml-4 text-xl font-semibold text-gray-900">{{ 'confirmActivateClient' | i18n }}</h3>
+            <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmActivateClient' | i18n }}</h3>
         </div>
         
-        <p class="text-gray-600 mb-6">
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
             {{ 'areYouSureActivate' | i18n }} <strong>{{ reactivatingClient()!.name }}</strong>?
         </p>
 
         <div class="flex justify-end space-x-3">
             <button (click)="cancelReactivate()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300">
+                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
                 {{ 'cancel' | i18n }}
             </button>
             <button (click)="reactivateClient()" 
-                class="px-4 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700">
+                class="px-4 py-2 text-sm rounded-md text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600">
                 {{ 'activate' | i18n }}
             </button>
         </div>

@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg shadow-md">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <!-- Toast de feedback visual -->
         @if(feedbackMessage()) {
             <div class="fixed top-4 right-4 z-50">
@@ -16,7 +16,7 @@
             </div>
         }
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" *ngIf="!showAddProfessionalForm()">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" *ngIf="!showAddProfessionalForm()">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-2xl font-bold text-white flex items-center">
@@ -36,22 +36,22 @@
     </div>
 
     <!-- Filtros rápidos e avançados -->
-    <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-gray-50 to-white space-y-4" *ngIf="!showAddProfessionalForm()">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 dark:from-gray-700 to-white dark:to-gray-800 space-y-4" *ngIf="!showAddProfessionalForm()">
 
         <!-- Filtros avançados -->
-        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-sliders-h text-brand-primary-600"></i>
-                <span class="text-sm font-semibold text-gray-800">{{ "advancedFilters" | i18n }}</span>
+                <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ "advancedFilters" | i18n }}</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                    <label for="filterSpecialtySelect" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterSpecialtySelect" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "specialties" | i18n }}
                     </label>
                     <select id="filterSpecialtySelect" [ngModel]="filterSpecialty()" (ngModelChange)="filterSpecialty.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                        class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                         <option [ngValue]="''">{{ 'allSpecialties' | i18n }}</option>
                         @for(cat of allCategories(); track cat.id) {
                             <option [ngValue]="cat.name">{{ cat.name }}</option>
@@ -62,17 +62,17 @@
             <!-- Barra de pesquisa -->
             <div class="flex flex-col sm:flex-row gap-3 mt-4">
                 <div class="flex-1">
-                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-search text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "search" | i18n }}
                     </label>
                     <input type="text" id="searchInput" [ngModel]="searchTerm()"
                         (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchNameEmailSpecialty' | i18n }}"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
+                        class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all" />
                 </div>
                 <div class="flex items-end">
                     <button (click)="searchTerm.set(''); filterSpecialty.set('')"
-                        class="px-6 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 border border-gray-300">
+                        class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600">
                         <i class="fas fa-times-circle"></i>
                         {{ "clearFilters" | i18n }}
                     </button>
@@ -80,7 +80,7 @@
             </div>
         </div>
     </div>
-    <div class="p-4 border-b bg-gray-50" *ngIf="showAddProfessionalForm() && !editingProfessional()">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="showAddProfessionalForm() && !editingProfessional()">
         <app-professional-form
             [allCategories]="allCategories()"
             [name]="newProfessionalName()"
@@ -99,7 +99,7 @@
     </div>
 
     <!-- Formulário de edição -->
-    <div class="p-4 border-b bg-gray-50" *ngIf="editingProfessional() && !showAddProfessionalForm()">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="editingProfessional() && !showAddProfessionalForm()">
         <app-professional-edit-form
             [allCategories]="allCategories"
             [name]="editingProfessionalName()"
@@ -120,51 +120,51 @@
         @if (isLoadingProfessionals()) {
             <div class="flex justify-center items-center py-8">
                 <span class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-brand-primary-500 border-t-transparent"></span>
-                <span class="ml-2">{{ 'loading' | i18n }}</span>
+                <span class="ml-2 text-gray-700 dark:text-gray-300">{{ 'loading' | i18n }}</span>
             </div>
         }
         @else if(paginatedProfessionals().length === 0) {
-            <div class="py-8 text-center text-gray-500 text-sm">
+            <div class="py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                 {{ 'noProfessionalsFound' | i18n }}
             </div>
         }
         @else {
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr class="bg-brand-primary-50">
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('name')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr class="bg-brand-primary-50 dark:bg-gray-700">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-300 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('name')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
                             {{ "name" | i18n }}
                             <span *ngIf="sortColumn() === 'name'">
                                 <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                             </span>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('email')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-300 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('email')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
                             {{ "email" | i18n }}
                             <span *ngIf="sortColumn() === 'email'">
                                 <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                             </span>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('specialties')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('specialties')">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-300 tracking-wider cursor-pointer select-none" tabindex="0" (click)="setSort('specialties')" (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('specialties')">
                             {{ "specialties" | i18n }}
                             <span *ngIf="sortColumn() === 'specialties'">
                                 <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                             </span>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider">
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-300 tracking-wider">
                             {{ "action" | i18n }}
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     @for (pro of paginatedProfessionals(); track pro.id) {
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                 {{ pro.name }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 {{ pro.email }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 @if(pro.specialties && pro.specialties.length > 0) {
                                     @for(s of pro.specialties; track typeof s === 'string' ? s : s.name) {
                                         <span>{{ typeof s === 'string' ? s : s.name }}</span>@if(!$last){<span>, </span>}
@@ -173,7 +173,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <button (click)="startEditProfessional(pro)"
-                                    class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                                    class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-brand-primary-50 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
                                     title="{{ 'edit' | i18n }}" aria-label="{{ 'edit' | i18n }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -183,14 +183,14 @@
                 </tbody>
             </table>
             <!-- Rodapé destacado com total de registros e paginação -->
-            <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 border-t border-indigo-200">
-                <div class="text-xs font-bold text-brand-primary-700 px-6 py-2">
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 dark:bg-gray-700 border-t border-indigo-200 dark:border-gray-600">
+                <div class="text-xs font-bold text-brand-primary-700 dark:text-brand-primary-300 px-6 py-2">
                     {{ 'totalRecords' | i18n }}: {{ filteredProfessionals().length }}
                 </div>
                 <div class="flex items-center gap-2">
-                    <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
-                    <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
-                    <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+                    <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50">&lt;</button>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ currentPage() }} / {{ totalPages() }}</span>
+                    <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50">&gt;</button>
                 </div>
             </div>
         }
@@ -199,24 +199,24 @@
     <!-- Mobile Card View -->
     <div class="lg:hidden p-4 space-y-4" *ngIf="!showAddProfessionalForm() && !editingProfessional()">
         @for(pro of paginatedProfessionals(); track pro.id) {
-            <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+            <div class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg p-4 space-y-3">
                 <!-- Header with name and edit button -->
                 <div class="flex justify-between items-start">
                     <div class="flex items-center flex-1">
-                        <div class="h-10 w-10 rounded-full bg-brand-primary-100 flex items-center justify-center mr-3">
-                            <i class="fas fa-user-tie text-brand-primary-600"></i>
+                        <div class="h-10 w-10 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center mr-3">
+                            <i class="fas fa-user-tie text-brand-primary-600 dark:text-brand-primary-300"></i>
                         </div>
                         <div class="flex-1">
-                            <h4 class="text-sm font-semibold text-gray-900">
+                            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                 {{ pro.name }}
                             </h4>
-                            <p class="text-xs text-gray-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
                                 {{ "professional" | i18n }}
                             </p>
                         </div>
                     </div>
                     <button (click)="startEditProfessional(pro)"
-                        class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                        class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-brand-primary-50 dark:hover:bg-gray-600 rounded-full transition-colors duration-200"
                         title="{{ 'edit' | i18n }}">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -224,19 +224,19 @@
                 <!-- Contact info -->
                 <div class="space-y-2 text-sm">
                     <div class="flex items-center">
-                        <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
-                        <span class="text-gray-900">{{ pro.email }}</span>
+                        <i class="fas fa-envelope text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
+                        <span class="text-gray-900 dark:text-gray-100">{{ pro.email }}</span>
                     </div>
                 </div>
                 <!-- Specialties -->
                 @if(pro.specialties && pro.specialties.length > 0) {
                     <div>
-                            <p class="text-xs font-medium text-gray-600 mb-2">
+                            <p class="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">
                                 {{ "specialties" | i18n }}:
                             </p>
                         <div class="flex flex-wrap gap-1">
                             @for(specialty of pro.specialties; track specialty) {
-                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                                <span class="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-full">
                                     {{ specialty | i18n }}
                                 </span>
                             }
@@ -247,9 +247,9 @@
         }
         <!-- Paginação -->
         <div class="flex justify-center items-center gap-2 py-4">
-            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200">&lt;</button>
-            <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
-            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200">&gt;</button>
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="btn-base bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50">&lt;</button>
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="btn-base bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50">&gt;</button>
         </div>
 
 <!-- Fim do componente, duplicações e resíduos removidos -->

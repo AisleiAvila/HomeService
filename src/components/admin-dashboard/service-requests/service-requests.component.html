@@ -1,14 +1,14 @@
 <!-- Modal Editar Solicitação -->
 @if (showEditRequestModal()) {
-<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-    <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+<div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <i class="fas fa-edit mr-2 text-yellow-600"></i>
                 {{ "editRequest" | i18n }}
             </h3>
-            <button (click)="closeEditRequestModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+            <button (click)="closeEditRequestModal()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
@@ -19,51 +19,51 @@
             <div class="space-y-4">
                 <!-- Endereço: Rua -->
                 <div>
-                    <label for="edit-street" class="block text-sm font-medium text-gray-700 mb-2">{{ "street" | i18n }}</label>
-                    <input id="edit-street" type="text" name="street" [(ngModel)]="request.street" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-street" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "street" | i18n }}</label>
+                    <input id="edit-street" type="text" name="street" [(ngModel)]="request.street" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Endereço: Cidade -->
                 <div>
-                    <label for="edit-city" class="block text-sm font-medium text-gray-700 mb-2">{{ "city" | i18n }}</label>
-                    <input id="edit-city" type="text" name="city" [(ngModel)]="request.city" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "city" | i18n }}</label>
+                    <input id="edit-city" type="text" name="city" [(ngModel)]="request.city" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Endereço: Distrito -->
                 <div>
-                    <label for="edit-state" class="block text-sm font-medium text-gray-700 mb-2">{{ "state" | i18n }}</label>
-                    <input id="edit-state" type="text" name="state" [(ngModel)]="request.state" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-state" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "state" | i18n }}</label>
+                    <input id="edit-state" type="text" name="state" [(ngModel)]="request.state" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Endereço: Código Postal -->
                 <div>
-                    <label for="edit-zip-code" class="block text-sm font-medium text-gray-700 mb-2">{{ "zipCode" | i18n }}</label>
-                    <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-zip-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "zipCode" | i18n }}</label>
+                    <input id="edit-zip-code" type="text" name="zip_code" [(ngModel)]="request.zip_code" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Descrição -->
                 <div>
-                    <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-2">{{ "description" | i18n }}</label>
-                    <textarea id="edit-description" name="description" [(ngModel)]="request.description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                    <label for="edit-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "description" | i18n }}</label>
+                    <textarea id="edit-description" name="description" [(ngModel)]="request.description" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
                 </div>
                 <!-- Data Prevista -->
                 <div>
-                    <label for="edit-scheduled-date" class="block text-sm font-medium text-gray-700 mb-2">{{ "scheduledDate" | i18n }}</label>
-                    <input id="edit-scheduled-date" type="datetime-local" name="scheduled_start_datetime" [(ngModel)]="request.scheduled_start_datetime" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-scheduled-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "scheduledDate" | i18n }}</label>
+                    <input id="edit-scheduled-date" type="datetime-local" name="scheduled_start_datetime" [(ngModel)]="request.scheduled_start_datetime" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Duração Estimada -->
                 <div>
-                    <label for="edit-estimated-duration" class="block text-sm font-medium text-gray-700 mb-2">{{ "estimatedDuration" | i18n }}</label>
-                    <input id="edit-estimated-duration" type="number" name="estimated_duration_minutes" [(ngModel)]="request.estimated_duration_minutes" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                    <label for="edit-estimated-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "estimatedDuration" | i18n }}</label>
+                    <input id="edit-estimated-duration" type="number" name="estimated_duration_minutes" [(ngModel)]="request.estimated_duration_minutes" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <!-- Notas Administrativas -->
                 <div>
-                    <label for="edit-admin-notes" class="block text-sm font-medium text-gray-700 mb-2">{{ "adminNotes" | i18n }}</label>
-                    <textarea id="edit-admin-notes" name="admin_notes" [(ngModel)]="request.admin_notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+                    <label for="edit-admin-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "adminNotes" | i18n }}</label>
+                    <textarea id="edit-admin-notes" name="admin_notes" [(ngModel)]="request.admin_notes" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
                 </div>
             </div>
             <!-- Actions -->
             <div class="flex gap-3 mt-6">
-                <button type="button" (click)="closeEditRequestModal()" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <button type="button" (click)="closeEditRequestModal()" class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     {{ "cancel" | i18n }}
                 </button>
-                <button type="submit" class="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                <button type="submit" class="flex-1 px-4 py-2 bg-yellow-600 dark:bg-yellow-700 text-white rounded-lg hover:bg-yellow-700 dark:hover:bg-yellow-800 transition-colors">
                     <i class="fas fa-save mr-2"></i>
                     {{ "save" | i18n }}
                 </button>
@@ -75,13 +75,13 @@
 }
 <!-- Spinner de loading global/local -->
 @if (isLoading()) {
-    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
         <i class="fas fa-spinner fa-spin text-brand-primary-500 text-5xl" aria-label="Carregando"></i>
     </div>
 }
-<div class="bg-white rounded-lg shadow-md overflow-hidden">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
     <!-- Título da Seção -->
-    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-white flex items-center">
@@ -104,24 +104,24 @@
     </div>
 
     <!-- Filtros Avançados e Pesquisa -->
-    <div class="p-6 border-b border-gray-200 bg-gradient-to-br from-gray-50 to-white space-y-4">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-br from-gray-50 dark:from-gray-800 to-white dark:to-gray-750 space-y-4">
 
         <!-- Filtros Avançados -->
-        <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fas fa-sliders-h text-brand-primary-500"></i>
-                <span class="text-sm font-semibold text-gray-800">{{ "advancedFilters" | i18n }}</span>
+                <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ "advancedFilters" | i18n }}</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <!-- Filtro de Status (Dropdown) -->
                 <div>
-                    <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "status" | i18n }}
                     </label>
                     <select id="filterStatus" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
                         <option value="">{{ "all" | i18n }}</option>
                         @for(status of statusOptions(); track status.value) {
                         <option [value]="status.value">{{ status.label }}</option>
@@ -131,13 +131,13 @@
 
                 <!-- Filtro por Distrito -->
                 <div>
-                    <label for="filterDistrict" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterDistrict" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-map-marker-alt text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "district" | i18n }}
                     </label>
                     <select id="filterDistrict" [ngModel]="filterDistrict()"
                         (ngModelChange)="filterDistrict.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
                         <option value="">{{ "all" | i18n }}</option>
                         @for(district of districtOptions; track district) {
                         <option [value]="district">{{ district }}</option>
@@ -147,13 +147,13 @@
 
                 <!-- Filtro por Profissional -->
                 <div>
-                    <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-user-tie text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "professional" | i18n }}
                     </label>
                     <select id="filterProfessional" [ngModel]="filterProfessional()"
                         (ngModelChange)="filterProfessional.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
                         <option value="">{{ "all" | i18n }}</option>
                         @for(prof of professionalOptions(); track prof.id) {
                         <option [value]="prof.id">{{ prof.name }}</option>
@@ -163,41 +163,41 @@
 
                 <!-- Filtro por Período - Data Inicial -->
                 <div>
-                    <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-calendar text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "startDate" | i18n }}
                     </label>
                     <input type="date" id="filterStartDate" [ngModel]="filterStartDate()"
                         (ngModelChange)="filterStartDate.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
                 </div>
 
                 <!-- Filtro por Período - Data Final -->
                 <div>
-                    <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "endDate" | i18n }}
                     </label>
                     <input type="date" id="filterEndDate" [ngModel]="filterEndDate()"
                         (ngModelChange)="filterEndDate.set($event)"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
                 </div>
             </div>
 
             <!-- Barra de Pesquisa e Botão Limpar -->
             <div class="flex flex-col sm:flex-row gap-3 mt-4">
                 <div class="flex-1">
-                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 mb-2">
+                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <i class="fas fa-search text-brand-primary-500 mr-1 text-xs"></i>
                         {{ "search" | i18n }}
                     </label>
                     <input type="text" id="searchInput" [ngModel]="searchTerm()"
                         (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchPlaceholder' | i18n }}"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
                 </div>
                 <div class="flex items-end">
                     <button (click)="clearFilters()"
-                        class="px-6 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2 border border-gray-300">
+                        class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600">
                         <i class="fas fa-times-circle"></i>
                         {{ "clearFilters" | i18n }}
                     </button>
@@ -338,16 +338,16 @@
                     </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
                 @for(req of filteredPaginatedRequests(); track req.id) {
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                         {{ req.title }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ req.client_name || "—" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ getProfessionalName(req.professional_id) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -559,7 +559,7 @@
     <!-- Pagination Controls -->
     @if(filteredRequests().length > 0) {
     <div
-        class="bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 space-y-3 sm:space-y-0">
+        class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
         <!-- Items per page selector -->
         <div class="flex items-center space-x-2">
             <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
@@ -594,7 +594,7 @@
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <!-- Previous button -->
                 <button (click)="previousPage()" [disabled]="currentPage() === 1"
-                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-chevron-left"></i>
                     <span class="sr-only">Previous</span>
                 </button>
@@ -604,14 +604,14 @@
                     @for(page of pageNumbers; track page) { @if(page === -1) {
                     <!-- Ellipsis -->
                     <span
-                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
                         ...
                     </span>
                     } @else {
                     <button (click)="goToPage(page)" [class]="
               page === currentPage()
-                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-brand-primary-50 text-sm font-medium text-brand-primary-500'
-                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-400'
+                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
             ">
                         {{ page }}
                     </button>
@@ -620,13 +620,13 @@
 
                 <!-- Mobile page indicator -->
                 <div
-                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
                     {{ currentPage() }} / {{ totalPages() }}
                 </div>
 
                 <!-- Next button -->
                 <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
-                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fas fa-chevron-right"></i>
                     <span class="sr-only">Next</span>
                 </button>
@@ -638,36 +638,36 @@
 
 <!-- Modal de Direcionamento para Profissional -->
 @if (showDirectAssignmentModal()) {
-<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+<div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 <i class="fas fa-user-check mr-2 text-brand-primary-500"></i>
                 {{ "directAssignmentTitle" | i18n }}
             </h3>
             <button (click)="closeDirectAssignmentModal()" 
-                class="text-gray-400 hover:text-gray-600 transition-colors">
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
         <!-- Informações da Solicitação -->
         @if (requestToAssign(); as request) {
-        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p class="font-medium text-gray-900">{{request.title}}</p>
-            <p class="text-sm text-gray-600 mt-1">{{request.description}}</p>
+        <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <p class="font-medium text-gray-900 dark:text-gray-100">{{request.title}}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{request.description}}</p>
         </div>
 
         <!-- Formulário -->
         <div class="space-y-4">
             <!-- Seleção de Profissional -->
             <div>
-                <label for="professional-select" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="professional-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {{ "selectProfessional" | i18n }} *
                 </label>
                 <select id="professional-select" [(ngModel)]="selectedProfessionalId" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="">{{ "selectProfessional" | i18n }}</option>
                     @for (prof of professionalOptions(); track prof.id) {
                         <option [value]="prof.id">{{prof.name}}</option>
@@ -677,7 +677,7 @@
 
             <!-- Data de Execução -->
             <div>
-                <label for="execution-date-input" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="execution-date-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {{ "executionDate" | i18n }} <span class="text-gray-500 text-xs">({{ "optional" | i18n }})</span>
                 </label>
                 <input id="execution-date-input" type="datetime-local" [(ngModel)]="selectedExecutionDate"
