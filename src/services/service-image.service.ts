@@ -22,7 +22,7 @@ export class ServiceImageService {
   private readonly authService = inject(AuthService);
 
   private readonly BUCKET_NAME = "service-images";
-  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
   private readonly ALLOWED_MIME_TYPES = [
     "image/jpeg",
     "image/jpg",
