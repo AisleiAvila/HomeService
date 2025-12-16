@@ -94,6 +94,12 @@ export class ProfileComponent implements OnDestroy {
           this.initialUserState = { ...currentUser };
         }
 
+        console.log("👤 Profile component - User data updated:");
+        console.log("   Email:", currentUser.email);
+        console.log("   Name:", currentUser.name);
+        console.log("   Avatar URL:", currentUser.avatar_url);
+        console.log("   Role:", currentUser.role);
+
         this.name.set(currentUser.name);
         this.phone.set(currentUser.phone || "");
         this.address.set(
@@ -114,7 +120,9 @@ export class ProfileComponent implements OnDestroy {
         // Monitorar mudanças no avatar e resetar imageLoadFailed quando a URL muda
         if (currentUser.avatar_url) {
           this.imageLoadFailed.set(false);
-          console.log("📷 Avatar URL detected:", currentUser.avatar_url);
+          console.log("📷 Avatar URL detectado:", currentUser.avatar_url);
+        } else {
+          console.warn("⚠️ Avatar URL vazio ou não definido");
         }
       }
     });

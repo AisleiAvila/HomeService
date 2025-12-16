@@ -33,6 +33,8 @@ export class AuthService {
         // Persistir sessão no localStorage para recuperar após refresh
         this.saveSessionToStorage(user);
         console.log("✅ Usuário autenticado e sessão salva:", user.email);
+        console.log("📷 Avatar URL recebido do backend:", user.avatar_url);
+        console.log("👤 Nome recebido do backend:", user.name);
         return user;
       } else {
         this.notificationService.addNotification(result.error || 'Credenciais inválidas');
@@ -52,6 +54,8 @@ export class AuthService {
     try {
       localStorage.setItem("homeservice_user_session", JSON.stringify(user));
       console.log("💾 Sessão salva no localStorage:", user.email);
+      console.log("📷 Avatar URL no localStorage:", user.avatar_url);
+      console.log("👤 Nome no localStorage:", user.name);
     } catch (err) {
       console.error("❌ Erro ao salvar sessão no localStorage:", err);
     }
@@ -67,6 +71,10 @@ export class AuthService {
         const user = JSON.parse(sessionData) as User;
         console.log("🔄 Sessão recuperada do localStorage:", user.email);
         this.appUser.set(user);
+        
+        // Refrescar os dados do usuário para obter o avatar_url mais recente
+        console.log("🔄 Refrescando dados do perfil do servidor...");
+        await this.refreshAppUser(user.email);
       } else {
         console.log("ℹ️ Nenhuma sessão encontrada no localStorage");
         this.appUser.set(null);
@@ -125,10 +133,10 @@ export class AuthService {
    */
   private async fetchAppUser(userId: string, isAutomatic: boolean): Promise<void> {
     try {
-      // Buscar perfil pelo email, pois id não é UUID
+      // Buscar perfil completo incluindo avatar_url, name e outras informações
       const { data: user, error } = await this.supabase.client
         .from("users")
-        .select("email, role, status")
+        .select("*")
         .eq("email", userId)
         .single();
 
@@ -153,6 +161,8 @@ export class AuthService {
       this.pendingEmailConfirmation.set(null);
       this.appUser.set(user as User);
       console.log("✅ Perfil do usuário carregado com sucesso:", user.email);
+      console.log("📷 Avatar URL:", user.avatar_url);
+      console.log("👤 Nome:", user.name);
     } catch (err) {
       console.error("❌ Erro inesperado ao buscar perfil do usuário:", err);
       this.appUser.set(null);
@@ -995,7 +1005,10 @@ export class AuthService {
 
       if (data) {
         this.appUser.set(data as User);
+        // Atualizar localStorage com dados do usuário atualizados
+        this.saveSessionToStorage(data as User);
         console.log("✅ Avatar URL updated successfully");
+        console.log("📷 New Avatar URL:", data.avatar_url);
       }
     } catch (error: any) {
       console.error("Unexpected error updating avatar:", error);
