@@ -47,6 +47,18 @@ export class DataService {
       }
     }
   }
+
+  /**
+   * Recarrega a lista de usuários
+   */
+  async reloadUsers(): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      await this.fetchUsers();
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
           /**
            * Subscrição em tempo real para mensagens do chat de uma solicitação de serviço
            */

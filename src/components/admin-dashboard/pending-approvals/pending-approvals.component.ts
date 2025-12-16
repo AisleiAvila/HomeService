@@ -1,6 +1,6 @@
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
@@ -13,10 +13,15 @@ import { NotificationService } from "../../../services/notification.service";
     templateUrl: "./pending-approvals.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PendingApprovalsComponent {
+export class PendingApprovalsComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly notificationService = inject(NotificationService);
+
+    ngOnInit() {
+        console.log('[PendingApprovalsComponent] Inicializando - recarregando dados de usuários');
+        this.dataService.reloadUsers();
+    }
 
     pendingRegistrations = computed(() =>
         this.dataService.users().filter(

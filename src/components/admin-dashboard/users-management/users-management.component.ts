@@ -1,6 +1,6 @@
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { User, UserRole, ServiceCategory } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -16,11 +16,16 @@ import { SupabaseService } from "../../../services/supabase.service";
     templateUrl: "./users-management.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UsersManagementComponent {
+export class UsersManagementComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
+
+    ngOnInit() {
+        console.log('[UsersManagementComponent] Inicializando - recarregando dados de usuários');
+        this.dataService.reloadUsers();
+    }
 
     // Helper para usar no template
     readonly Math = Math;

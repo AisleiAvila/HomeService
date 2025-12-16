@@ -1,7 +1,7 @@
 import { UiStateService } from "../../../services/ui-state.service";
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
@@ -19,10 +19,17 @@ import { WorkflowServiceSimplified } from "../../../services/workflow-simplified
     templateUrl: "./service-requests.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestsComponent {
+export class ServiceRequestsComponent implements OnInit {
     // Signal de loading local, sincronizado com o DataService
     isLoading = computed(() => this.dataService.isLoading());
-            async processPayment(request: ServiceRequest) {
+
+    ngOnInit() {
+        // Recarrega a lista de solicitações quando o componente é inicializado
+        console.log('[ServiceRequestsComponent] Inicializando - recarregando dados de solicitações');
+        this.dataService.reloadServiceRequests();
+    }
+
+    async processPayment(request: ServiceRequest) {
                 // Chama serviço para registrar pagamento via injeção
                 await this.workflowService.registerPayment(
                     request.id,

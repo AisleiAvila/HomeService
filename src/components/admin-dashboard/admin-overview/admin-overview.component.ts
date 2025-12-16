@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -19,10 +19,15 @@ import { StatusPieChartComponent } from '../../status-pie-chart.component';
     templateUrl: "./admin-overview.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminOverviewComponent {
+export class AdminOverviewComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
+
+    ngOnInit() {
+        console.log('[AdminOverviewComponent] Inicializando - recarregando dados');
+        this.dataService.loadInitialData();
+    }
 
     stats = computed(() => {
         const requests = this.dataService.serviceRequests();

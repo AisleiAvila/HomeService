@@ -1,6 +1,6 @@
 
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
 import { ServiceRequest } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
@@ -13,9 +13,14 @@ import { I18nService } from "../../../i18n.service";
     templateUrl: "./financial-reports.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FinancialReportsComponent {
+export class FinancialReportsComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
+
+    ngOnInit() {
+        console.log('[FinancialReportsComponent] Inicializando - recarregando dados de solicitações');
+        this.dataService.reloadServiceRequests();
+    }
 
     completedRequests = computed(() =>
         this.dataService.serviceRequests().filter(

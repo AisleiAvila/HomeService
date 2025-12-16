@@ -40,7 +40,8 @@ export class ProfessionalsManagementComponent implements OnInit {
             }
 
             ngOnInit(): void {
-                this.dataService.loadInitialData();
+                console.log('[ProfessionalsManagementComponent] Inicializando - recarregando dados de profissionais');
+                this.dataService.reloadUsers();
             }
         // Paginação: total de páginas
         totalPages = computed(() => {
