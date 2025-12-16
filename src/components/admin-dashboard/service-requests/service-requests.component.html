@@ -458,24 +458,24 @@
                     {{ req.title }}
                 </h4>
                 <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    {{ "status" | i18n }}: <span [class]="statusClass(req.status)">{{ req.status }}</span>
+                    <span class="font-bold">{{ "status" | i18n }}:</span> <span [class]="statusClass(req.status)">{{ req.status }}</span>
                 </p>
             </div>
 
             <!-- Client and Professional info -->
-            <div class="space-y-2 text-sm">
+            <div class="space-y-2 text-xs">
                 <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "client" | i18n }}:</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "client" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">{{ req.client_name || "—" }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "professional" | i18n }}:</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "professional" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">{{
                         getProfessionalName(req.professional_id)
                         }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "value" | i18n }}:</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "value" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100 font-semibold">
                         {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </span>
