@@ -1,19 +1,19 @@
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
   <!-- Cabeçalho com gradiente, ícone e título -->
-  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
-    <div class="flex items-center justify-between">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-white flex items-center">
           <i class="fas fa-tags mr-3"></i>
           {{ "serviceCategories" | i18n }}
         </h2>
-        <p class="text-brand-primary-100 text-sm mt-1">
+        <p class="text-brand-primary-200 text-sm mt-1">
           {{ "manageCategoriesAndSubcategories" | i18n }}
         </p>
       </div>
       <button
         (click)="showAddCategoryModal.set(true)"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-white text-brand-primary-600 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full"
       >
         <i class="fas fa-plus"></i>
         <span>{{ "addNewCategory" | i18n }}</span>
