@@ -258,6 +258,87 @@ export class AdminOverviewComponent implements OnInit {
         return sortedCounts;
     });
 
+    // Tempo médio de conclusão por tipo de serviço
+    avgCompletionTimeByService = computed(() => {
+        const requests = this.dataService.serviceRequests();
+        const completedRequests = requests.filter(r => 
+            r.status === 'Concluído' && 
+            r.actual_start_datetime && 
+            r.actual_end_datetime
+        );
+
+        const timeByCategory: Record<string, { total: number; count: number }> = {};
+
+        completedRequests.forEach(request => {
+            const categoryName = request.category?.name || 'Outros';
+            const start = new Date(request.actual_start_datetime!).getTime();
+            const end = new Date(request.actual_end_datetime!).getTime();
+            const durationHours = (end - start) / (1000 * 60 * 60); // em horas
+
+            if (!timeByCategory[categoryName]) {
+                timeByCategory[categoryName] = { total: 0, count: 0 };
+            }
+            timeByCategory[categoryName].total += durationHours;
+            timeByCategory[categoryName].count += 1;
+        });
+
+        // Retornar média em horas com rótulo formatado
+        const result: Record<string, number> = {};
+        Object.entries(timeByCategory).forEach(([category, data]) => {
+            const avgHours = data.total / data.count;
+            result[category] = Math.round(avgHours * 10) / 10; // 1 casa decimal
+        });
+
+        return result;
+    });
+
+    // Receita por categoria
+    revenueByCategory = computed(() => {
+        const requests = this.dataService.serviceRequests();
+        const paidRequests = requests.filter(r => 
+            r.payment_status === 'Paid' && r.valor
+        );
+
+        const revenueByCategory: Record<string, number> = {};
+
+        paidRequests.forEach(request => {
+            const categoryName = request.category?.name || 'Outros';
+            const revenue = this.validateCost(request.valor);
+
+            if (!revenueByCategory[categoryName]) {
+                revenueByCategory[categoryName] = 0;
+            }
+            revenueByCategory[categoryName] += revenue;
+        });
+
+        return revenueByCategory;
+    });
+
+    // Receita por profissional
+    revenueByProfessional = computed(() => {
+        const requests = this.dataService.serviceRequests();
+        const users = this.dataService.users();
+        
+        const paidRequests = requests.filter(r => 
+            r.payment_status === 'Paid' && r.professional_id && r.valor
+        );
+
+        const revenueByPro: Record<string, number> = {};
+
+        paidRequests.forEach(request => {
+            const professional = users.find(u => u.id === request.professional_id);
+            const proName = professional ? professional.name : 'Desconhecido';
+            const revenue = this.validateCost(request.valor);
+
+            if (!revenueByPro[proName]) {
+                revenueByPro[proName] = 0;
+            }
+            revenueByPro[proName] += revenue;
+        });
+
+        return revenueByPro;
+    });
+
     /**
      * Validates and returns a safe cost value
      */

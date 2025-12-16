@@ -234,7 +234,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
     const barSpacing = isMobile ? 6 : 8;
     const minBarWidth = isMobile ? 30 : 40;
-    const actualBarWidth = Math.max(barWidth - barSpacing, minBarWidth);
+    const maxBarWidth = barWidth - barSpacing; // Garantir que não ultrapasse o espaço disponível
+    const actualBarWidth = Math.min(Math.max(maxBarWidth, minBarWidth), barWidth * 0.8); // Máximo 80% do espaço
     const topMargin = isMobile ? 25 : 35;
     const bottomMargin = isMobile ? 50 : 80;
     const chartHeight = canvas.height - topMargin - bottomMargin;
@@ -243,6 +244,15 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
     // Aplicar progresso de animação
     const progress = this.animationProgress();
+    
+    // Debug: Log para verificar dados
+    console.log('[CategoryBarChart] Renderizando:', {
+      dataLength: data.length,
+      canvasWidth: canvas.width,
+      barWidth,
+      actualBarWidth,
+      data: data.map(d => ({ label: d.label, value: d.value }))
+    });
 
     // Draw bars
     let index = 0;

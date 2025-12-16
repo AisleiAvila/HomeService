@@ -149,7 +149,7 @@
             </div>
         </div>
         
-        <!-- Gráfico de Barras -->
+        <!-- Gráfico de Barras - Solicitações por Categoria -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
             <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
                 <i class="fas fa-chart-bar text-brand-primary-500 mr-2"></i>
@@ -165,6 +165,71 @@
                 <app-category-bar-chart 
                     [data]="ordersByCategory()" 
                     [title]="'requestsByCategory' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+    </div>
+    
+    <!-- Segunda linha de gráficos -->
+    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2')">
+        <!-- Gráfico - Tempo Médio de Conclusão -->
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+                <i class="fas fa-clock text-brand-primary-500 mr-2"></i>
+                {{ "avgCompletionTimeByService" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-hourglass-half text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "hours" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="avgCompletionTimeByService()" 
+                    [title]="'avgCompletionTimeByService' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+        
+        <!-- Gráfico - Receita por Categoria -->
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+                <i class="fas fa-euro-sign text-brand-primary-500 mr-2"></i>
+                {{ "revenueByCategory" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-money-bill-wave text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "total" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="revenueByCategory()" 
+                    [title]="'revenueByCategory' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terceira linha - Receita por Profissional (largura total) -->
+    <div class="w-full">
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+                <i class="fas fa-user-tie text-brand-primary-500 mr-2"></i>
+                {{ "revenueByProfessional" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-chart-line text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "total" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="revenueByProfessional()" 
+                    [title]="'revenueByProfessional' | i18n"
                     class="w-full h-full" />
             </div>
         </div>
