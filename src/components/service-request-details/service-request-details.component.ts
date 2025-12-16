@@ -74,20 +74,20 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
     </div>
     } @else {
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <header class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500" role="banner">
-      <div class="flex items-center justify-between">
+    <header class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600" role="banner">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold text-white flex items-center">
             <i class="fas fa-file-alt mr-3" aria-hidden="true"></i>
             {{ "serviceRequestDetails" | i18n }}
           </h2>
-          <p class="text-brand-primary-100 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
+          <p class="text-brand-primary-200 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
             {{ request().title }}
           </p>
         </div>
         <button
           (click)="logAndEmitCloseDetails()"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-brand-primary-600 dark:text-brand-primary-400 text-sm font-medium rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-600 transition-all transform hover:scale-105 shadow-lg dark:shadow-gray-900"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-brand-primary-500 dark:text-brand-primary-400 text-sm font-medium rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg dark:shadow-gray-900 sm:w-auto w-full"
           [attr.aria-label]="'backToList' | i18n"
         >
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
