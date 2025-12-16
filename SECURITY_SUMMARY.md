@@ -9,6 +9,7 @@
 ## ✅ Respostas às Suas Perguntas
 
 ### 1️⃣ "É possível acessar com senha inválida?"
+
 **Resposta:** ❌ **NÃO**
 
 - Backend valida credenciais comparando hash SHA256
@@ -16,6 +17,7 @@
 - Frontend valida localmente antes de enviar ao servidor
 
 **Comprovação:**
+
 ```javascript
 // API retorna erro para credenciais inválidas
 POST /api/login
@@ -25,29 +27,31 @@ POST /api/login
 ---
 
 ### 2️⃣ "Sem senha consegue acessar?"
+
 **Resposta:** ❌ **NÃO**
 
 - Campo de senha é obrigatório (validado em frontend e backend)
 - Senha vazia é rejeitada com erro `400 Bad Request`
 
 ```javascript
-if (!email || !password) 
-  return res.status(400).json({ error: 'Email e senha obrigatórios.' });
+if (!email || !password)
+  return res.status(400).json({ error: "Email e senha obrigatórios." });
 ```
 
 ---
 
 ### 3️⃣ "Todas as URLs da aplicação precisam de senha?"
+
 **Resposta:** ⚠️ **NÃO - HÁ UM PROBLEMA**
 
-| Rota | Precisa Senha | Status |
-|------|--------------|--------|
-| `/` (Landing) | ❌ Não | ✅ Correto |
-| `/confirmar-email` | ❌ Não | ✅ Correto |
-| `/reset-password` | ❌ Não | ✅ Correto |
-| `/create-service-request` | ✅ SIM | 🔴 **MAS NÃO TEM PROTEÇÃO** |
-| `/admin-create-service-request` | ✅ SIM | 🔴 **MAS NÃO TEM PROTEÇÃO** |
-| `/admin/*` | ✅ SIM | ✅ Protegido com Guard |
+| Rota                            | Precisa Senha | Status                      |
+| ------------------------------- | ------------- | --------------------------- |
+| `/` (Landing)                   | ❌ Não        | ✅ Correto                  |
+| `/confirmar-email`              | ❌ Não        | ✅ Correto                  |
+| `/reset-password`               | ❌ Não        | ✅ Correto                  |
+| `/create-service-request`       | ✅ SIM        | 🔴 **MAS NÃO TEM PROTEÇÃO** |
+| `/admin-create-service-request` | ✅ SIM        | 🔴 **MAS NÃO TEM PROTEÇÃO** |
+| `/admin/*`                      | ✅ SIM        | ✅ Protegido com Guard      |
 
 ---
 
@@ -76,10 +80,11 @@ UI quebra OU mostra dados que não deveria
 ```
 
 **Exemplo de Ataque:**
+
 ```javascript
 // 1. Usuário abre DevTools
 // 2. Digita na consola:
-localStorage.clear();  // Apaga a sessão
+localStorage.clear(); // Apaga a sessão
 
 // 3. Agora pode acessar:
 // http://app.com/create-service-request
@@ -110,11 +115,11 @@ localStorage.clear();  // Apaga a sessão
 
 ## 💰 Impacto de Negócio
 
-| Risco | Severidade | Impacto | Usuários Afetados |
-|-------|-----------|--------|------------------|
-| Acesso a formulário sem autenticação | 🔴 CRÍTICA | Dados expostos | Até 100% |
-| Brute force no login | 🟡 MÉDIA | Conta comprometida | 1-10 por dia |
-| Session hijacking | 🔴 CRÍTICA | Identidade roubada | 0 - quando ocorre |
+| Risco                                | Severidade | Impacto            | Usuários Afetados |
+| ------------------------------------ | ---------- | ------------------ | ----------------- |
+| Acesso a formulário sem autenticação | 🔴 CRÍTICA | Dados expostos     | Até 100%          |
+| Brute force no login                 | 🟡 MÉDIA   | Conta comprometida | 1-10 por dia      |
+| Session hijacking                    | 🔴 CRÍTICA | Identidade roubada | 0 - quando ocorre |
 
 **Recomendação:** Implementar proteção HOJE antes de produção.
 
@@ -130,15 +135,15 @@ localStorage.clear();  // Apaga a sessão
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+
   if (!authService.appUser()) {
-    router.navigate(['/'], { 
-      queryParams: { returnUrl: state.url } 
+    router.navigate(["/"], {
+      queryParams: { returnUrl: state.url },
     });
-    return false;  // Bloqueia acesso
+    return false; // Bloqueia acesso
   }
-  
-  return true;  // Permite acesso
+
+  return true; // Permite acesso
 };
 ```
 
@@ -167,10 +172,10 @@ export const authGuard: CanActivateFn = (route, state) => {
 **Arquivo:** `api/auth.js`
 
 ```javascript
-const csrf = require('csurf');
+const csrf = require("csurf");
 const csrfProtection = csrf({ cookie: true });
 
-app.post('/api/login', csrfProtection, async (req, res) => {
+app.post("/api/login", csrfProtection, async (req, res) => {
   // ... validar credenciais
 });
 ```
@@ -215,7 +220,7 @@ Acesso sem Autenticação:
 └────────┬────────────┘
          ↓
     BLOQUEADO
-    
+
 Redireciona para: /
 Mostra: Tela de Login
 ```
@@ -225,17 +230,20 @@ Mostra: Tela de Login
 ## 📈 Prioridades
 
 ### 🔴 CRÍTICA (Fazer HOJE)
+
 - [ ] Implementar `authGuard`
 - [ ] Adicionar `canActivate: [authGuard]` nas 2 rotas
 - [ ] Testar em localhost
 - [ ] Deploy em staging
 
 ### 🟡 MÉDIA (Esta Semana)
+
 - [ ] Adicionar CSRF protection
 - [ ] Implementar rate limiting
 - [ ] Adicionar audit logging
 
 ### 🟢 BAIXA (Próximo Mês)
+
 - [ ] Migrar para JWT
 - [ ] Implementar 2FA
 - [ ] Adicionar session timeout
@@ -263,7 +271,7 @@ A aplicação tem **validação de credenciais adequada**, mas **falta proteçã
 ## 📞 Questões?
 
 Para maiores detalhes, consulte:
+
 - `SECURITY_ANALYSIS.md` - Análise completa
 - `SECURITY_IMPLEMENTATION_GUIDE.md` - Código pronto para copiar/colar
 - `src/app/guards/admin.guard.ts` - Exemplo de implementação existente
-

@@ -3,6 +3,7 @@
 ## 📋 Resumo Executivo
 
 **Resposta às suas perguntas:**
+
 - ❌ **NÃO é possível acessar com senha inválida** - Validação no backend rejeita credenciais incorretas
 - ⚠️ **NÃO todas as URLs precisam de senha** - Há um problema de segurança: rotas desprotegidas são acessíveis sem autenticação
 - 🔴 **RISCO CRÍTICO IDENTIFICADO** - Várias rotas podem ser acessadas sem autenticação
@@ -14,34 +15,36 @@
 ### 1. Validação de Credenciais (SEGURO ✅)
 
 **Backend - `/api/login` (auth.js:60-73)**
+
 ```javascript
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   // ✅ Valida email obrigatório
-  if (!email || !password) 
-    return res.status(400).json({ error: 'Email e senha obrigatórios.' });
-  
+  if (!email || !password)
+    return res.status(400).json({ error: "Email e senha obrigatórios." });
+
   // ✅ Cria hash SHA256 da senha
-  const hash = crypto.createHash('sha256').update(password).digest('hex');
-  
+  const hash = crypto.createHash("sha256").update(password).digest("hex");
+
   // ✅ Consulta no banco comparando hash
   const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .eq('password_hash', hash)
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .eq("password_hash", hash)
     .single();
-  
+
   // ✅ Rejeita se não encontrar match
   if (error || !data) {
-    return res.status(401).json({ error: 'Credenciais inválidas.' });
+    return res.status(401).json({ error: "Credenciais inválidas." });
   }
-  
+
   res.json({ success: true, user: data });
 });
 ```
 
 **Frontend - Validação (login.component.ts:211-244)**
+
 ```typescript
 login() {
   // ✅ Valida email
@@ -49,13 +52,13 @@ login() {
     this.errorMessage.set('invalidEmail');
     return;
   }
-  
+
   // ✅ Valida senha (mínimo 6 caracteres)
   if (!this.validatePassword()) {
     this.errorMessage.set('invalidPassword');
     return;
   }
-  
+
   // ✅ Chamada para backend com credenciais
   this.authService.loginCustom(this.email(), this.password())
     .then((user) => {
@@ -75,6 +78,7 @@ login() {
 ## 🚨 Rotas DESPROTEGIDAS (Sem Autenticação Obrigatória)
 
 ### Rotas Públicas (Corretas - Sem Proteção Necessária)
+
 ```
 /                          → Landing Page
 /confirmar-email           → Confirmação de Email
@@ -88,6 +92,7 @@ login() {
 ### ⚠️ PROBLEMA: Falta de Guarda de Autenticação Geral
 
 **Situação Atual:**
+
 ```typescript
 // ✅ Guarda APENAS na rota /admin
 {
@@ -109,10 +114,11 @@ login() {
 ```
 
 **Fluxo de Acesso Não Autenticado:**
+
 ```
 1. Usuário acessa http://app.com/create-service-request sem login
 2. Router carrega CreateServiceRequestComponent
-3. Componente tenta acessar authService.appUser() 
+3. Componente tenta acessar authService.appUser()
 4. Se vazio → Pode causar erro ou comportamento indefinido
 ```
 
@@ -130,22 +136,23 @@ effect(() => {
   const pendingEmail = this.pendingEmailConfirmation();
 
   if (pendingEmail) {
-    this.view.set("verification");  // Email pendente
+    this.view.set("verification"); // Email pendente
   } else if (user) {
     if (user.status === "Active") {
-      this.view.set("app");  // Usuário autenticado
-      if (user.role === 'admin') {
-        this.router.navigate(['/admin']);  // Redireciona admin
+      this.view.set("app"); // Usuário autenticado
+      if (user.role === "admin") {
+        this.router.navigate(["/admin"]); // Redireciona admin
       }
     }
   } else {
-    this.view.set("landing");  // Sem usuário = landing
+    this.view.set("landing"); // Sem usuário = landing
     this.dataService.clearData();
   }
 });
 ```
 
-**Problema:** 
+**Problema:**
+
 - Essa proteção é **reativa**, não preventiva
 - Usuário pode acessar rotas antes do effect executar
 - Não há guarda de rota verificando autenticação ANTES do componente carregar
@@ -155,12 +162,15 @@ effect(() => {
 ## 🔴 Vulnerabilidades Identificadas
 
 ### 1. Rotas Sem Guarda de Autenticação
+
 **Severidade:** 🔴 CRÍTICA
+
 - `/create-service-request` - Acessível sem login
 - `/admin-create-service-request` - Acessível sem login
 - Router outlet em app.component.html - Pode renderizar conteúdo não autorizado
 
 **Impacto:**
+
 ```
 - Usuário não autenticado acessa: http://app.com/create-service-request
 - Componente carrega mesmo sem appUser
@@ -169,13 +179,17 @@ effect(() => {
 ```
 
 ### 2. Falta de Verificação no Bootstrap
+
 **Severidade:** 🟡 MÉDIA
+
 - `restoreSessionFromStorage()` é chamado, mas há delay
 - Janela de tempo onde usuário não autenticado pode navegar
 - localStorage pode ser manipulado
 
 ### 3. Recuperação de Sessão Vulnerável
+
 **Severidade:** 🟡 MÉDIA
+
 ```typescript
 // Em auth.service.ts:61-79
 async restoreSessionFromStorage(): Promise<void> {
@@ -190,7 +204,9 @@ async restoreSessionFromStorage(): Promise<void> {
 **Risco:** localStorage é acessível a scripts - se XSS acontecer, sessão comprometida
 
 ### 4. Sem CSRF Protection
+
 **Severidade:** 🟡 MÉDIA
+
 - `/api/login` aceita POST sem verificação de CSRF token
 - `/api/change-password` também sem proteção
 
@@ -211,73 +227,78 @@ async restoreSessionFromStorage(): Promise<void> {
 ### CRÍTICA (Implementar IMEDIATAMENTE)
 
 #### 1. Criar Guarda de Autenticação Geral
+
 ```typescript
 // src/app/guards/auth.guard.ts
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  
+
   const currentUser = authService.appUser();
-  
+
   if (!currentUser) {
-    console.warn('[AuthGuard] Usuário não autenticado. Redirecionando para login.');
-    router.navigate(['/'], { 
-      queryParams: { returnUrl: state.url } 
+    console.warn(
+      "[AuthGuard] Usuário não autenticado. Redirecionando para login."
+    );
+    router.navigate(["/"], {
+      queryParams: { returnUrl: state.url },
     });
     return false;
   }
-  
+
   return true;
 };
 ```
 
 #### 2. Proteger Rotas que Exigem Autenticação
+
 ```typescript
 // src/app/app.routes.ts
 export const routes: Routes = [
   // Rotas Públicas (sem proteção)
-  { path: '', component: LandingComponent },
-  { path: 'confirmar-email', component: EmailConfirmationComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
-  
+  { path: "", component: LandingComponent },
+  { path: "confirmar-email", component: EmailConfirmationComponent },
+  { path: "reset-password", component: ResetPasswordComponent },
+
   // ✅ Rotas Protegidas (COM GUARDA)
   {
-    path: 'create-service-request',
+    path: "create-service-request",
     component: CreateServiceRequestComponent,
-    canActivate: [authGuard]  // ← ADICIONAR
+    canActivate: [authGuard], // ← ADICIONAR
   },
   {
-    path: 'admin-create-service-request',
+    path: "admin-create-service-request",
     component: AdminCreateServiceRequestComponent,
-    canActivate: [authGuard]  // ← ADICIONAR
+    canActivate: [authGuard], // ← ADICIONAR
   },
-  
+
   // Admin (já protegido)
   {
-    path: 'admin',
+    path: "admin",
     component: AdminDashboardComponent,
-    canActivate: [adminGuard]
-  }
+    canActivate: [adminGuard],
+  },
 ];
 ```
 
 #### 3. Validar Sessão no Servidor
+
 ```javascript
 // Middleware para proteger rotas
 const authMiddleware = async (req, res, next) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
-  
+  const token = req.headers.authorization?.split("Bearer ")[1];
+
   if (!token) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ error: "Unauthorized" });
   }
-  
+
   // Verificar token JWT/sessão no servidor
   try {
     const user = await verifyToken(token);
     req.user = user;
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: "Invalid token" });
   }
 };
 ```
@@ -285,50 +306,57 @@ const authMiddleware = async (req, res, next) => {
 ### MÉDIA (Implementar em Sprint Próximo)
 
 #### 1. Adicionar CSRF Protection
-```javascript
-const csrf = require('csurf');
-const session = require('express-session');
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  httpOnly: true,
-  secure: true // HTTPS apenas
-}));
+```javascript
+const csrf = require("csurf");
+const session = require("express-session");
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    httpOnly: true,
+    secure: true, // HTTPS apenas
+  })
+);
 
 app.use(csrf());
-app.post('/api/login', csrf(), (req, res) => { /* ... */ });
+app.post("/api/login", csrf(), (req, res) => {
+  /* ... */
+});
 ```
 
 #### 2. Implementar JWT em vez de localStorage simples
+
 ```javascript
 // Backend
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 if (res.ok && result.success && user) {
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: "7d" }
   );
-  
-  res.json({ 
-    success: true, 
+
+  res.json({
+    success: true,
     user: data,
-    token: token  // ← Enviar JWT
+    token: token, // ← Enviar JWT
   });
 }
 ```
 
 #### 3. Validar Sessão ao Restaurar
+
 ```typescript
 // auth.service.ts
 async restoreSessionFromStorage(): Promise<void> {
   const sessionData = localStorage.getItem("homeservice_user_session");
   if (sessionData) {
     const user = JSON.parse(sessionData);
-    
+
     // ✅ Validar no servidor que sessão ainda é válida
     try {
       const isValid = await this.validateSessionOnServer(user.id);
@@ -346,11 +374,12 @@ async restoreSessionFromStorage(): Promise<void> {
 ```
 
 #### 4. HTTPS Obrigatório
+
 ```javascript
 // Redirecionar HTTP para HTTPS
 app.use((req, res, next) => {
-  if (req.header('x-forwarded-proto') !== 'https') {
-    res.redirect(`https://${req.header('host')}${req.url}`);
+  if (req.header("x-forwarded-proto") !== "https") {
+    res.redirect(`https://${req.header("host")}${req.url}`);
   } else {
     next();
   }
@@ -369,16 +398,16 @@ app.use((req, res, next) => {
 
 ## 📊 Tabela de Segurança de Rotas
 
-| Rota | Componente | Autenticação | Guarda | Status |
-|------|-----------|--------------|--------|--------|
-| `/` | Landing | ❌ Não | ❌ Não | ✅ OK |
-| `/confirmar-email` | EmailConfirmation | ❌ Não | ❌ Não | ✅ OK |
-| `/reset-password` | ResetPassword | ❌ Não | ❌ Não | ✅ OK |
-| `/create-service-request` | CreateServiceRequest | ✅ Sim | ❌ **NÃO** | 🔴 **INSEGURO** |
-| `/admin-create-service-request` | AdminCreateServiceRequest | ✅ Sim | ❌ **NÃO** | 🔴 **INSEGURO** |
-| `/admin/*` | AdminDashboard | ✅ Sim | ✅ adminGuard | ✅ Seguro |
-| `/ui-components` | UiComponentsShowcase | ❌ Não | ❌ Não | ✅ OK |
-| `/design-system` | DesignSystemShowcase | ❌ Não | ❌ Não | ✅ OK |
+| Rota                            | Componente                | Autenticação | Guarda        | Status          |
+| ------------------------------- | ------------------------- | ------------ | ------------- | --------------- |
+| `/`                             | Landing                   | ❌ Não       | ❌ Não        | ✅ OK           |
+| `/confirmar-email`              | EmailConfirmation         | ❌ Não       | ❌ Não        | ✅ OK           |
+| `/reset-password`               | ResetPassword             | ❌ Não       | ❌ Não        | ✅ OK           |
+| `/create-service-request`       | CreateServiceRequest      | ✅ Sim       | ❌ **NÃO**    | 🔴 **INSEGURO** |
+| `/admin-create-service-request` | AdminCreateServiceRequest | ✅ Sim       | ❌ **NÃO**    | 🔴 **INSEGURO** |
+| `/admin/*`                      | AdminDashboard            | ✅ Sim       | ✅ adminGuard | ✅ Seguro       |
+| `/ui-components`                | UiComponentsShowcase      | ❌ Não       | ❌ Não        | ✅ OK           |
+| `/design-system`                | DesignSystemShowcase      | ❌ Não       | ❌ Não        | ✅ OK           |
 
 ---
 
@@ -393,6 +422,6 @@ app.use((req, res, next) => {
 
 ## 📝 Conclusão
 
-A aplicação tem **validação básica de credenciais**, mas **falta proteção em nível de rota**. Um usuário consegue navegar para URLs protegidas antes do sistema impedir, criando uma **janela de vulnerabilidade**. 
+A aplicação tem **validação básica de credenciais**, mas **falta proteção em nível de rota**. Um usuário consegue navegar para URLs protegidas antes do sistema impedir, criando uma **janela de vulnerabilidade**.
 
 **Recomendação Urgente:** Implementar `authGuard` nas 2 rotas desprotegidas identificadas.

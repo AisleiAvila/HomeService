@@ -99,7 +99,7 @@ QUANDO BLOQUEADO (Nenhum appUser):
          └─► Redireciona para: /
              Mostra: Tela de Login
              Salva: ?returnUrl=/create-service-request
-             
+
 (Usuário faz login → Redireciona para /create-service-request automaticamente)
 ```
 
@@ -192,7 +192,7 @@ Usuário clica: Logout
        │
        └─► Redireciona para: /
            Mostra: Landing/Login
-           
+
 Agora:
 - appUser = null
 - Todas as rotas protegidas bloqueadas
@@ -292,6 +292,7 @@ Usuário tenta fazer login 6 vezes seguidas
 ## 🔟 Comparação: 3 Estados da Aplicação
 
 ### Estado 1: Não Autenticado
+
 ```
 appUser = null
 localStorage = {}
@@ -306,6 +307,7 @@ Acesso:
 ```
 
 ### Estado 2: Autenticado (Profissional)
+
 ```
 appUser = { id: 1, email: "prof@test.com", role: "professional", status: "Active" }
 localStorage = { homeservice_user_session: {...} }
@@ -318,6 +320,7 @@ Acesso:
 ```
 
 ### Estado 3: Autenticado (Admin)
+
 ```
 appUser = { id: 2, email: "admin@test.com", role: "admin", status: "Active" }
 localStorage = { homeservice_user_session: {...} }
@@ -334,24 +337,23 @@ Acesso:
 
 ## 🔐 Tabela de Decisão - Permitir Acesso?
 
-| Condicção | Resultado | Ação |
-|-----------|-----------|------|
-| `appUser == null` | ❌ Bloqueado | Redireciona para / |
-| `appUser != null && status != 'Active'` | ❌ Bloqueado | Redireciona para / |
-| `appUser != null && route = '/admin' && role != 'admin'` | ❌ Bloqueado | Redireciona para / |
+| Condicção                                                                      | Resultado    | Ação               |
+| ------------------------------------------------------------------------------ | ------------ | ------------------ |
+| `appUser == null`                                                              | ❌ Bloqueado | Redireciona para / |
+| `appUser != null && status != 'Active'`                                        | ❌ Bloqueado | Redireciona para / |
+| `appUser != null && route = '/admin' && role != 'admin'`                       | ❌ Bloqueado | Redireciona para / |
 | `appUser != null && status == 'Active' && role == 'admin' && route = '/admin'` | ✅ Permitido | Carrega componente |
-| `appUser != null && status == 'Active' && route = '/create-service-request'` | ✅ Permitido | Carrega componente |
+| `appUser != null && status == 'Active' && route = '/create-service-request'`   | ✅ Permitido | Carrega componente |
 
 ---
 
 ## 📝 Legenda
 
-| Símbolo | Significado |
-|---------|------------|
-| ✅ | Permitido / Seguro / Sucesso |
-| ❌ | Bloqueado / Inseguro / Falha |
-| ⚠️ | Aviso / Em Progresso |
-| 🔴 | Crítico |
-| 🟡 | Média Prioridade |
-| 🟢 | Baixa Prioridade |
-
+| Símbolo | Significado                  |
+| ------- | ---------------------------- |
+| ✅      | Permitido / Seguro / Sucesso |
+| ❌      | Bloqueado / Inseguro / Falha |
+| ⚠️      | Aviso / Em Progresso         |
+| 🔴      | Crítico                      |
+| 🟡      | Média Prioridade             |
+| 🟢      | Baixa Prioridade             |
