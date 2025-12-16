@@ -84,6 +84,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalEarnings: "Total Earnings",
 
     // Admin
+    total: "Total",
     totalRevenue: "Total Revenue",
     pendingApprovals: "Pending Approvals",
     activeServices: "Active Services",
@@ -610,7 +611,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     financialDetails: "Financial Details",
     date: "Date",
     // Removed duplicate 'payment'
-    total: "Total",
     action: "Action",
     generateInvoice: "Generate Invoice",
     manageProfessionals: "Manage Professionals",
@@ -1027,6 +1027,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalEarnings: "Ganhos Totais",
 
     // Admin
+    total: "Total",
     totalRevenue: "Receita Total",
     pendingApprovals: "Aprovações Pendentes",
     activeServices: "Serviços Ativos",
@@ -1573,7 +1574,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     financialDetails: "Detalhes Financeiros",
     date: "Data",
     // Removido duplicata 'payment'
-    total: "Total",
     action: "Ação",
     generateInvoice: "Gerar Fatura",
     manageProfessionals: "Gerenciar Profissionais",
