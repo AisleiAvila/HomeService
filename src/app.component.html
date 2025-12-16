@@ -209,15 +209,6 @@
               <span>{{ item.labelKey | i18n }}</span>
             </button>
           </nav>
-          <!-- Botão Nova Solicitação (apenas para administradores) -->
-          <div class="p-4 border-t border-gray-200" *ngIf="currentUser()?.role === 'admin'">
-            <button
-              class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-              (click)="openNewRequestForm(); toggleSidebar()">
-              <i class="fa-solid fa-plus"></i>
-              <span>{{ "createServiceRequest" | i18n }}</span>
-            </button>
-          </div>
           <!-- Bloco de perfil do usuário (mobile) -->
           <div class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100">
             <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
