@@ -25,9 +25,13 @@ export class UsersManagementComponent implements OnInit {
     ngOnInit() {
         console.log('[UsersManagementComponent] Inicializando - recarregando dados de usuários');
         this.dataService.reloadUsers();
+        // Garante que as categorias estejam carregadas para especialidades
+        this.dataService.fetchCategories();
     }
 
-    // Helper para usar no template
+
+    // Computed para acessar categorias igual à tela de profissionais
+    categories = computed(() => this.dataService.categories());
     readonly Math = Math;
 
     // Filtros e Busca
