@@ -40,14 +40,15 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         </select>
       </div>
       
-      <!-- Canvas com scroll horizontal - melhorado para mobile -->
+      <!-- Canvas com scroll horizontal - otimizado para mobile -->
       <div class="w-full overflow-x-auto overflow-y-hidden -mx-3 sm:mx-0 px-3 sm:px-0" style="max-width: 100%;">
-        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-2">
+        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1 sm:py-2">
           <canvas
             #barCanvas
-            class="max-h-64 sm:max-h-80"
             [width]="canvasWidth()"
             [height]="canvasHeight()"
+            class="w-full"
+            [style.height.px]="canvasHeight()"
           ></canvas>
         </div>
       </div>
@@ -145,7 +146,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   // Altura do canvas responsiva
   canvasHeight = computed(() => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-    return isMobile ? 250 : 320;
+    return isMobile ? 180 : 320;
   });
 
   ngAfterViewInit() {
@@ -234,10 +235,10 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const barSpacing = isMobile ? 6 : 8;
     const minBarWidth = isMobile ? 30 : 40;
     const actualBarWidth = Math.max(barWidth - barSpacing, minBarWidth);
-    const bottomMargin = isMobile ? 60 : 80; // Menos margem em mobile
+    const bottomMargin = isMobile ? 50 : 80;
     const chartHeight = canvas.height - bottomMargin;
-    const chartTop = isMobile ? 20 : 30;
-    const chartBottom = canvas.height - (isMobile ? 40 : 50);
+    const chartTop = isMobile ? 15 : 30;
+    const chartBottom = canvas.height - (isMobile ? 35 : 50);
 
     // Aplicar progresso de animação
     const progress = this.animationProgress();
