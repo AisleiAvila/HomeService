@@ -79,9 +79,11 @@
           <th class="service-list-header text-left">
             {{ "professional" | i18n }}
           </th>
+          @if (shouldShowValueColumn()) {
           <th class="service-list-header">
             {{ "value" | i18n }}
           </th>
+          }
           <th class="service-list-header text-center">
             {{ "actions" | i18n }}
           </th>
@@ -151,6 +153,7 @@
               }}
             </div>
           </td>
+          @if (shouldShowValueColumn()) {
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             @if (request.valor_prestador && request.valor_prestador > 0) {
               <span class="text-green-600 font-medium">
@@ -164,6 +167,7 @@
               <span class="text-gray-400">—</span>
             }
           </td>
+          }
           <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
             <div class="flex gap-2 items-center">
               <!-- Always Available Actions -->

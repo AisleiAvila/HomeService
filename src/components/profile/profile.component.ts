@@ -24,6 +24,7 @@ import { AuthService } from "../../services/auth.service";
 import { NotificationService } from "../../services/notification.service";
 import { I18nService } from "../../i18n.service";
 import { DataService } from "../../services/data.service";
+import { SupabaseService } from "../../services/supabase.service";
 import { ChangePasswordComponent } from '../../components/change-password/change-password.component';
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
@@ -42,6 +43,7 @@ export class ProfileComponent implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
   private readonly dataService = inject(DataService);
+  private readonly supabase = inject(SupabaseService);
   private readonly smsVerificationService = inject(SmsVerificationService);
   readonly i18n = inject(I18nService);
   private readonly appComponent = inject(AppComponent);
@@ -153,22 +155,29 @@ export class ProfileComponent implements OnDestroy {
   }
 
   toggleSpecialty(category: ServiceCategory) {
-    this.specialties.update((current) =>
-      current.includes(category)
-        ? current.filter((c) => c !== category)
-        : [...current, category]
-    );
+    this.specialties.update((current) => {
+      const hasCategory = current.some(c => c.id === category.id);
+      return hasCategory
+        ? current.filter((c) => c.id !== category.id)
+        : [...current, category];
+    });
   }
 
   isSpecialtyChecked(category: ServiceCategory): boolean {
-    return this.specialties().includes(category);
+    return this.specialties().some(c => c.id === category.id);
   }
 
   onSpecialtyChange(category: ServiceCategory, event: Event): void {
     const isChecked = (event.target as HTMLInputElement).checked;
-    this.specialties.update((current) =>
-      isChecked ? [...current, category] : current.filter((c) => c !== category)
-    );
+    this.specialties.update((current) => {
+      const hasCategory = current.some(c => c.id === category.id);
+      if (isChecked && !hasCategory) {
+        return [...current, category];
+      } else if (!isChecked && hasCategory) {
+        return current.filter((c) => c.id !== category.id);
+      }
+      return current;
+    });
   }
 
   async saveChanges() {
@@ -176,6 +185,7 @@ export class ProfileComponent implements OnDestroy {
     const originalUser = this.user();
     const updatedUserData: Partial<User> = {};
     let hasChanges = false;
+    let specialtiesChanged = false;
 
     if (this.name() !== originalUser.name) {
       updatedUserData.name = this.name();
@@ -214,14 +224,61 @@ export class ProfileComponent implements OnDestroy {
       JSON.stringify(this.specialties()) !==
       JSON.stringify(originalUser.specialties || [])
     ) {
-      updatedUserData.specialties = this.specialties();
+      specialtiesChanged = true;
       hasChanges = true;
     }
 
     if (hasChanges) {
       console.log("📝 Saving profile changes:", updatedUserData);
       try {
-        await this.authService.updateUserProfile(updatedUserData);
+        // 1. Atualizar dados básicos do usuário
+        if (Object.keys(updatedUserData).length > 0) {
+          await this.authService.updateUserProfile(updatedUserData);
+        }
+
+        // 2. Se for profissional e as especialidades mudaram, atualizar tabela user_specialties
+        if (this.user().role === "professional" && specialtiesChanged) {
+          console.log("🔄 Atualizando especialidades na tabela user_specialties");
+          console.log("📋 Especialidades atuais:", this.specialties());
+          
+          // 2.1. Remover todas as especialidades existentes
+          const { error: deleteError } = await this.supabase.client
+            .from("user_specialties")
+            .delete()
+            .eq("user_id", originalUser.id);
+
+          if (deleteError) {
+            console.error("❌ Erro ao remover especialidades:", deleteError);
+            throw deleteError;
+          }
+
+          // 2.2. Inserir novas especialidades (filtrar apenas categorias com id válido)
+          const specialtiesToInsert = this.specialties()
+            .filter(cat => cat && cat.id != null)
+            .map(cat => ({
+              user_id: originalUser.id,
+              category_id: cat.id
+            }));
+
+          console.log("📤 Especialidades a inserir:", specialtiesToInsert);
+
+          if (specialtiesToInsert.length > 0) {
+            const { error: insertError } = await this.supabase.client
+              .from("user_specialties")
+              .insert(specialtiesToInsert);
+
+            if (insertError) {
+              console.error("❌ Erro ao inserir especialidades:", insertError);
+              throw insertError;
+            }
+          }
+
+          console.log("✅ Especialidades atualizadas com sucesso");
+        }
+
+        // 3. Recarregar dados do usuário para sincronizar com o banco
+        await this.dataService.fetchUsers();
+        
         // Reset initial state after successful save
         this.initialUserState = { ...this.user() };
         this.isEditing.set(false);
