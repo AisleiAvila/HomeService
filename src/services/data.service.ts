@@ -1533,6 +1533,7 @@ export class DataService {
   }
 
   async fetchUsers() {
+    // Buscar todos os campos exceto 'specialties' que pode conter dados corrompidos
     const { data, error } = await this.supabase.client
       .from("users")
       .select("*")
@@ -1544,6 +1545,8 @@ export class DataService {
       );
       return;
     }
+
+    console.log("🔍 [DataService] Sample user data from DB:", data?.[0]);
 
     // Carregar especialidades de todos os usuários profissionais
     const { data: specialtiesData, error: specialtiesError } = await this.supabase.client
@@ -1570,9 +1573,22 @@ export class DataService {
     // Normalizar usuários com especialidades carregadas da tabela user_specialties
     const normalized = (data || []).map((user: any) => {
       const categoryIds = userSpecialtiesMap.get(user.id) || [];
-      user.specialties = categoryIds
+      
+      // Mapear category IDs para objetos ServiceCategory completos
+      const specialtiesObjects = categoryIds
         .map(catId => allCategories.find(cat => cat.id === catId))
         .filter((cat): cat is ServiceCategory => cat !== undefined);
+      
+      console.log(`📊 [DataService] User ${user.name} (ID: ${user.id}):`, {
+        categoryIds,
+        specialtiesObjects,
+        oldSpecialties: user.specialties
+      });
+      
+      // REMOVER completamente o campo specialties antigo e substituir com objetos corretos
+      delete user.specialties;
+      user.specialties = specialtiesObjects;
+      
       return user;
     });
 

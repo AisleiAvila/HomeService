@@ -91,28 +91,41 @@ export class ProfileComponent implements OnDestroy {
     effect(() => {
       const currentUser = this.user();
       if (currentUser) {
+        // Buscar usuário atualizado do DataService para garantir dados corretos
+        const userFromDataService = this.dataService.users().find(u => u.id === currentUser.id);
+        const userData = userFromDataService || currentUser;
+        
         // Store initial state for change detection
         if (!this.initialUserState) {
-          this.initialUserState = { ...currentUser };
+          this.initialUserState = { ...userData };
         }
 
         console.log("👤 Profile component - User data updated:");
-        console.log("   Email:", currentUser.email);
-        console.log("   Name:", currentUser.name);
-        console.log("   Avatar URL:", currentUser.avatar_url);
-        console.log("   Role:", currentUser.role);
+        console.log("   Email:", userData.email);
+        console.log("   Name:", userData.name);
+        console.log("   Avatar URL:", userData.avatar_url);
+        console.log("   Role:", userData.role);
+        console.log("   Specialties (raw):", userData.specialties);
 
-        this.name.set(currentUser.name);
-        this.phone.set(currentUser.phone || "");
+        this.name.set(userData.name);
+        this.phone.set(userData.phone || "");
         this.address.set(
-          currentUser.address || {
+          userData.address || {
             street: "",
             city: "",
             state: "",
             zip_code: "",
           }
         );
-        this.specialties.set(currentUser.specialties || []);
+        
+        // Usar especialidades diretamente se já forem objetos válidos
+        const specialtiesArray = userData.specialties || [];
+        const normalizedSpecialties = Array.isArray(specialtiesArray) 
+          ? specialtiesArray.filter((item: any) => typeof item === 'object' && item !== null && item.id != null)
+          : [];
+        
+        console.log("✅ Specialties signal set to (normalized):", normalizedSpecialties);
+        this.specialties.set(normalizedSpecialties);
         this.email.set(currentUser.email || "");
         this.receiveSmsNotifications.set(
           currentUser.receive_sms_notifications ?? false
@@ -164,7 +177,10 @@ export class ProfileComponent implements OnDestroy {
   }
 
   isSpecialtyChecked(category: ServiceCategory): boolean {
-    return this.specialties().some(c => c.id === category.id);
+    const currentSpecialties = this.specialties();
+    const isChecked = currentSpecialties.some(c => c.id === category.id);
+    console.log(`🔍 Checking specialty ${category.name} (ID: ${category.id}):`, isChecked, "Current specialties:", currentSpecialties);
+    return isChecked;
   }
 
   onSpecialtyChange(category: ServiceCategory, event: Event): void {
