@@ -321,6 +321,7 @@ export class UsersManagementComponent implements OnInit {
         this.editingClientRole.set(client.role);
         this.editingClientIsNatanEmployee.set(client.is_natan_employee ?? false);
         this.editingClientSpecialties.set(client.specialties || []);
+        console.log('[Editar Usuário] Papel:', client.role, '| editingClientRole:', this.editingClientRole());
     }
 
     isEditingSpecialtySelected(category: ServiceCategory): boolean {
