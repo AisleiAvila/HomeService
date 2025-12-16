@@ -130,10 +130,10 @@
 
 <!-- Charts Section - Grid responsivo melhorado -->
 <div class="w-full space-y-6 mb-8 px-0">
-    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2')">
+    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2')">
         <!-- Gráfico de Pizza -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-chart-pie text-brand-primary-500 mr-2"></i>
                 {{ "requestsByStatus" | i18n }}
             </h3>
@@ -143,7 +143,7 @@
                     {{ "currentMonth" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-status-pie-chart 
                     [data]="statusPieChartData()" 
                     [title]="'requestsByStatus' | i18n"
@@ -153,7 +153,7 @@
         
         <!-- Gráfico de Barras - Solicitações por Categoria -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-chart-bar text-brand-primary-500 mr-2"></i>
                 {{ "requestsByCategory" | i18n }}
             </h3>
@@ -163,7 +163,7 @@
                     {{ "currentMonth" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="ordersByCategory()" 
                     [title]="'requestsByCategory' | i18n"
@@ -173,10 +173,10 @@
     </div>
     
     <!-- Segunda linha de gráficos -->
-    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2')">
+    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2')">
         <!-- Gráfico - Tempo Médio de Conclusão -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-clock text-brand-primary-500 mr-2"></i>
                 {{ "avgCompletionTimeByService" | i18n }}
             </h3>
@@ -186,7 +186,7 @@
                     {{ "hours" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="avgCompletionTimeByService()" 
                     [title]="'avgCompletionTimeByService' | i18n"
@@ -196,7 +196,7 @@
         
         <!-- Gráfico - Receita por Categoria -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-euro-sign text-brand-primary-500 mr-2"></i>
                 {{ "revenueByCategory" | i18n }}
             </h3>
@@ -206,7 +206,7 @@
                     {{ "total" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="revenueByCategory()" 
                     [title]="'revenueByCategory' | i18n"
@@ -218,7 +218,7 @@
     <!-- Terceira linha - Receita por Profissional (largura total) -->
     <div class="w-full">
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-base' : 'text-lg')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-user-tie text-brand-primary-500 mr-2"></i>
                 {{ "revenueByProfessional" | i18n }}
             </h3>
@@ -228,7 +228,7 @@
                     {{ "total" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-48' : 'h-80')">
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="revenueByProfessional()" 
                     [title]="'revenueByProfessional' | i18n"
