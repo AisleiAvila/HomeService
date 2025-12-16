@@ -602,7 +602,7 @@ export class AppComponent implements OnInit {
   handlePasswordResetComplete() {
     this.emailForPasswordReset.set("");
     this.view.set("login");
-    this.notificationService.show("Senha alterada com sucesso! Faça login com sua nova senha.", "success");
+    this.notificationService.showSuccess("Senha alterada com sucesso! Faça login com sua nova senha.");
   }
 
   ngOnInit() {
