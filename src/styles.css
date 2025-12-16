@@ -224,6 +224,48 @@
     @apply text-neutral-300;
   }
 
+  /* Dark mode para escalas de cinza - Melhora de contraste */
+  .dark .text-gray-600 {
+    @apply text-gray-400;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+
+  .dark .text-slate-600 {
+    @apply text-slate-400;
+  }
+
+  .dark .text-slate-700 {
+    @apply text-slate-300;
+  }
+
+  .dark .bg-gray-50 {
+    @apply dark:bg-gray-700;
+  }
+
+  .dark .bg-gray-100 {
+    @apply dark:bg-gray-600;
+  }
+
+  /* Borders cinzas em dark mode */
+  .dark .border-gray-100 {
+    @apply border-gray-700;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-gray-600;
+  }
+
+  .dark .border-gray-300 {
+    @apply border-gray-500;
+  }
+
   /* Cards da Marca */
   .card-brand {
     @apply bg-white rounded-brand shadow-card;
