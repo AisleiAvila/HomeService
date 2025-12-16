@@ -235,10 +235,11 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const barSpacing = isMobile ? 6 : 8;
     const minBarWidth = isMobile ? 30 : 40;
     const actualBarWidth = Math.max(barWidth - barSpacing, minBarWidth);
+    const topMargin = isMobile ? 25 : 35;
     const bottomMargin = isMobile ? 50 : 80;
-    const chartHeight = canvas.height - bottomMargin;
-    const chartTop = isMobile ? 15 : 30;
-    const chartBottom = canvas.height - (isMobile ? 35 : 50);
+    const chartHeight = canvas.height - topMargin - bottomMargin;
+    const chartTop = topMargin;
+    const chartBottom = canvas.height - bottomMargin;
 
     // Aplicar progresso de animação
     const progress = this.animationProgress();

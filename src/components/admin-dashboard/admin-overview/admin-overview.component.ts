@@ -169,7 +169,7 @@ export class AdminOverviewComponent implements OnInit {
                 bgColor: "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700",
                 trend: trends.approvals,
                 trendColor: trends.approvals.includes("+") ? "text-green-600" : "text-red-600",
-                badge: pendingProfessionals.length > 0 ? this.i18n.translate("new") : null,
+                badge: null,
                 sparklineData: [],
             },
             {
