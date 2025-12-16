@@ -424,12 +424,14 @@
                                             <i class="fas fa-eye w-5 mr-2"></i>
                                             {{ "viewDetails" | i18n }}
                                         </a>
+                                        @if (req.status !== 'Concluído') {
                                         <a href="#" (click)="openEditRequestModal(req); $event.preventDefault()"
                                             class="flex items-center px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-100"
                                             role="menuitem">
                                             <i class="fas fa-edit w-5 mr-2"></i>
                                             {{ "editRequest" | i18n }}
                                         </a>
+                                        }
                                         <a href="#" (click)="handleOpenChat(req); $event.preventDefault()"
                                             class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                             role="menuitem">
@@ -527,10 +529,12 @@
                             class="flex-1 px-3 py-2 text-sm font-medium text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-eye"></i>
                         </button>
+                        @if (req.status !== 'Concluído') {
                         <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
                             class="flex-1 px-3 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-edit"></i>
                         </button>
+                        }
                         <button (click)="handleOpenChat(req)" title="{{ 'chat' | i18n }}"
                             class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-comments"></i>
