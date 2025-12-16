@@ -1,0 +1,117 @@
+/* FullCalendar Dark Mode Styles */
+:host-context(.dark) ::ng-deep .fc {
+  --fc-bg-color: #1f2937;
+  --fc-border-color: #374151;
+  --fc-button-bg-color: #4b5563;
+  --fc-button-border-color: #4b5563;
+  --fc-button-hover-bg-color: #5a6a7f;
+  --fc-button-hover-border-color: #5a6a7f;
+  --fc-button-active-bg-color: #1f2937;
+  --fc-button-active-border-color: #3b82f6;
+  --fc-highlight-color: rgba(59, 130, 246, 0.1);
+  --fc-neutral-bg-color: #111827;
+  --fc-neutral-text-color: #d1d5db;
+  --fc-text-color: #e5e7eb;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-button-primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-button-primary:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+:host-context(.dark) ::ng-deep .fc th {
+  background-color: #111827;
+  color: #e5e7eb;
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc td {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day {
+  background-color: #1f2937;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day:hover {
+  background-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day.fc-day-other {
+  background-color: #111827;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day-number {
+  color: #d1d5db;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-day-frame {
+  background-color: #1f2937;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-col-header-cell {
+  background-color: #111827;
+  color: #d1d5db;
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-body {
+  background-color: #1f2937;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-event {
+  background-color: #3b82f6;
+  border-color: #2563eb;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-event-title {
+  color: white;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-daygrid-event-harness {
+  filter: brightness(1.1);
+}
+
+:host-context(.dark) ::ng-deep .fc-popover {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc-popover-header {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+:host-context(.dark) ::ng-deep .fc-daygrid-day-frame {
+  position: relative;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-timegrid-slot {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-timegrid-slot > span {
+  color: #9ca3af;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-axis {
+  background-color: #111827;
+  color: #d1d5db;
+}
+
+:host-context(.dark) ::ng-deep .fc .fc-scrollgrid {
+  border-color: #374151;
+}

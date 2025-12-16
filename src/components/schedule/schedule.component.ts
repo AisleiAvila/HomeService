@@ -45,6 +45,7 @@ import { I18nService } from "@/src/i18n.service";
   standalone: true,
   imports: [CommonModule, FullCalendarModule, I18nPipe],
   templateUrl: "./schedule.component.html",
+  styleUrls: ["./schedule.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: "block h-full font-sans",
