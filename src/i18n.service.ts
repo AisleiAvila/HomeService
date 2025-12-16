@@ -1922,6 +1922,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     myProfile: "Meu Perfil",
     updateProfileInformation: "Atualize as informações do seu perfil",
     confirmPaymentMessage: "Você está prestes a pagar {amount} para a solicitação #{id}. Deseja continuar?",
+    emailPlaceholder: "Digite o e-mail do cliente"
 
   },
 };
