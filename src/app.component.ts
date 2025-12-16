@@ -54,7 +54,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request";
+type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "professionals" | "clients" | "categories";
 
 @Component({
   selector: "app-root",
@@ -141,21 +141,71 @@ export class AppComponent implements OnInit {
   });
 
   navItems = computed(() => {
-    const items: { id: Nav; labelKey: string; icon: string }[] = [
-      {
-        id: "dashboard",
-        labelKey: "dashboard",
-        icon: "fa-solid fa-table-columns",
-      },
-      {
-        id: "schedule",
-        labelKey: "schedule",
-        icon: "fa-solid fa-calendar-days",
-      },
-      { id: 'profile', labelKey: 'profile', icon: 'fa-solid fa-user' },
-    ];
-    // REMOVIDO: Cliente não é mais um papel válido no sistema
-    // Apenas admin e profissional podem acessar a aplicação
+    const currentUser = this.currentUser();
+    const isAdmin = currentUser?.role === 'admin';
+    
+    const items: { id: Nav; labelKey: string; icon: string }[] = [];
+    
+    // Items for professionals
+    if (!isAdmin) {
+      items.push(
+        {
+          id: "dashboard",
+          labelKey: "dashboard",
+          icon: "fa-solid fa-table-columns",
+        },
+        {
+          id: "schedule",
+          labelKey: "schedule",
+          icon: "fa-solid fa-calendar-days",
+        }
+      );
+    }
+    
+    // Admin items
+    if (isAdmin) {
+      items.push(
+        {
+          id: "overview",
+          labelKey: "overview",
+          icon: "fa-solid fa-tachometer-alt",
+        },
+        {
+          id: "requests",
+          labelKey: "requests",
+          icon: "fa-solid fa-list",
+        },
+        {
+          id: "approvals",
+          labelKey: "approvals",
+          icon: "fa-solid fa-user-check",
+        },
+        {
+          id: "finances",
+          labelKey: "finances",
+          icon: "fa-solid fa-chart-line",
+        },
+        {
+          id: "professionals",
+          labelKey: "professionals",
+          icon: "fa-solid fa-users",
+        },
+        {
+          id: "clients",
+          labelKey: "clients",
+          icon: "fa-solid fa-user-friends",
+        },
+        {
+          id: "categories",
+          labelKey: "categories",
+          icon: "fa-solid fa-tags",
+        }
+      );
+    }
+    
+    // Profile item for everyone
+    items.push({ id: 'profile', labelKey: 'profile', icon: 'fa-solid fa-user' });
+    
     return items;
   });
 
@@ -263,15 +313,17 @@ export class AppComponent implements OnInit {
       this.router.navigate(['/create-service-request']);
     } else if (nav === 'admin-create-service-request') {
       this.router.navigate(['/admin-create-service-request']);
-    } else if (nav === 'dashboard' && user?.role === 'admin') {
-      console.log('[AppComponent] Redirecionando admin para /admin');
-      this.router.navigate(['/admin']);
-      this.currentNav.set(nav);
-    } else if (nav === 'dashboard' && user?.role !== 'admin') {
-      console.log('[AppComponent] Navegando usuário não-admin para dashboard normal');
+    } else if (nav === 'profile') {
+      // Profile is available for everyone
       this.router.navigate(['/']);
       this.currentNav.set(nav);
+    } else if (user?.role === 'admin') {
+      // Admin navigation
+      console.log('[AppComponent] Navegação de admin para:', nav);
+      this.router.navigate(['/admin', nav]);
     } else {
+      // Professional navigation
+      console.log('[AppComponent] Navegação de profissional para:', nav);
       this.router.navigate(['/']);
       this.currentNav.set(nav);
     }
