@@ -37,7 +37,7 @@
 
   <!-- Card Container -->
   <div class="bg-gradient-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden">
-    <!-- TÃ­tulo do FormulÃ¡rio -->
+    <!-- Título do Formulário -->
     <div class="px-6 py-4 border-b border-white border-opacity-20">
       <h2 class="text-2xl font-bold text-white flex items-center">
         <i class="fas fa-plus-circle mr-3"></i>
@@ -50,7 +50,7 @@
 
     <!-- Ordem correta dos campos -->
     <div class="p-6 bg-white dark:bg-gray-800">
-      <!-- Origem da SolicitaÃ§Ã£o -->
+      <!-- Origem da Solicitação -->
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-building text-brand-primary-600"></i>
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'requestOrigin' | i18n }}</h3>
@@ -65,7 +65,7 @@
         </select>
       </div>
 
-      <!-- Categoria do ServiÃ§o (Categoria/Subcategoria) -->
+      <!-- Categoria do Serviço (Categoria/Subcategoria) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <!-- Categoria -->
         <div>
@@ -126,7 +126,7 @@
       <!-- Valor Total / Valor do Prestador -->
       <div class="flex gap-4 mb-4">
         <div class="w-1/2">
-          <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor Total (â‚¬)</label>
+          <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor Total (€)</label>
           <input
             id="valor"
             type="number"
@@ -139,7 +139,7 @@
           />
         </div>
         <div class="w-1/2">
-          <label for="valor_prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do Prestador (â‚¬)</label>
+          <label for="valor_prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do Prestador (€)</label>
           <input
             id="valor_prestador"
             type="number"
@@ -154,7 +154,7 @@
       </div>
   </div>
 
-  <!-- SeÃ§Ã£o de InformaÃ§Ãµes do Solicitante -->
+  <!-- Seção de Informações do Solicitante -->
   <div class="p-6 bg-white dark:bg-gray-800">
     <div class="flex items-center gap-2 mb-4">
       <i class="fas fa-user-circle text-brand-primary-600"></i>
@@ -391,7 +391,7 @@
     </div>
   </div>
 
-  <!-- SeÃ§Ã£o de Detalhes do ServiÃ§o -->
+  <!-- Seção de Detalhes do Serviço -->
     <div class="p-6 bg-white dark:bg-gray-800">
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-briefcase text-brand-primary-600"></i>
@@ -399,7 +399,7 @@
       </div>
     
     <div class="space-y-4">
-      <!-- TÃ­tulo -->
+      <!-- Título -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="title">
           <i class="fas fa-heading text-brand-primary-500 mr-2 text-xs"></i>
@@ -450,7 +450,7 @@
         </span>
       </div>
 
-      <!-- DescriÃ§Ã£o -->
+      <!-- Descrição -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="description">
           <i class="fas fa-align-left text-brand-primary-500 mr-2 text-xs"></i>
@@ -608,7 +608,7 @@
     </div>
   </div>
 
-  <!-- SeÃ§Ã£o de EndereÃ§o -->
+  <!-- Seção de Endereço -->
     <div class="p-6 bg-white dark:bg-gray-800">
       <div class="flex items-center gap-2 mb-4">
         <i class="fas fa-map-marker-alt text-brand-primary-600"></i>
@@ -616,7 +616,7 @@
       </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- CÃ³digo Postal -->
+      <!-- Código Postal -->
       <div>
         <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="zip_code">
           <i class="fas fa-mail-bulk text-brand-primary-500 mr-2 text-xs"></i>
@@ -626,7 +626,7 @@
           <input
             id="zip_code"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.zip_code
                 ? !validFields().zip_code && zip_code()
@@ -680,11 +680,11 @@
 
       <!-- Logradouro -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="street">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="street">
           <i class="fas fa-road text-brand-primary-500 mr-2 text-xs"></i>
           {{ "logradouro" | i18n }}
         </label>
-        <!-- Campo somente leitura quando hÃ¡ logradouro do cÃ³digo postal -->
+        <!-- Campo somente leitura quando há logradouro do código postal -->
         @if (hasStreetFromPostalCode()) {
           <input
             id="street"
@@ -700,13 +700,13 @@
             aria-readonly="true"
           />
         }
-        <!-- Campo editÃ¡vel quando NÃƒO hÃ¡ logradouro do cÃ³digo postal -->
+        <!-- Campo editável quando NÃO há logradouro do código postal -->
         @else {
           <div class="relative">
             <input
               id="street_manual"
               type="text"
-              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               [ngClass]="
                 touched.street
                   ? street_manual() && street_manual().length > 0 && !validFields().street_manual
@@ -738,9 +738,9 @@
         }
       </div>
 
-      <!-- NÃºmero -->
+      <!-- Número -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="number">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="number">
           <i class="fas fa-hashtag text-brand-primary-500 mr-2 text-xs"></i>
           {{ "number" | i18n }}
         </label>
@@ -748,7 +748,7 @@
           <input
             id="number"
             type="text"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             [ngClass]="
               touched.number
                 ? number() && number().length > 0 && !validFields().number
@@ -866,7 +866,7 @@
 
       <!-- Latitude -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="latitude">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="latitude">
           <i class="fas fa-globe text-brand-primary-500 mr-2 text-xs"></i>
           Latitude
         </label>
@@ -874,7 +874,7 @@
           id="latitude"
           type="number"
           step="0.000001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           [value]="latitude()"
           (input)="updateField('latitude', $event.target.value)"
           [placeholder]="'latitude'"
@@ -884,7 +884,7 @@
 
       <!-- Longitude -->
       <div>
-        <label class="flex items-center text-sm font-semibold text-gray-700 mb-2" for="longitude">
+        <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="longitude">
           <i class="fas fa-globe text-brand-primary-500 mr-2 text-xs"></i>
           Longitude
         </label>
@@ -892,7 +892,7 @@
           id="longitude"
           type="number"
           step="0.000001"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           [value]="longitude()"
           (input)="updateField('longitude', $event.target.value)"
           [placeholder]="'longitude'"
@@ -902,40 +902,40 @@
     </div>
   </div>
 
-  <!-- SeÃ§Ã£o de Mensagens e BotÃµes -->
-  <div class="p-6 bg-white">
+  <!-- Seção de Mensagens e Botões -->
+    <div class="p-6 bg-white dark:bg-gray-800">
     <!-- Mensagens de erro/sucesso -->
-    <div *ngIf="formError()" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-      <div class="flex items-center text-red-800">
+    <div *ngIf="formError()" class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
+      <div class="flex items-center text-red-800 dark:text-red-200">
         <i class="fas fa-exclamation-triangle mr-2"></i>
         <span class="text-sm font-medium">{{ formError() }}</span>
       </div>
     </div>
-  <div *ngIf="formSuccess()" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-    <div class="flex items-center text-green-800">
+  <div *ngIf="formSuccess()" class="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-4 mb-6">
+    <div class="flex items-center text-green-800 dark:text-green-200">
       <i class="fas fa-check-circle mr-2"></i>
       <span class="text-sm font-medium">{{ formSuccess() }}</span>
     </div>
   </div>
 
-  <!-- BotÃµes de AÃ§Ã£o -->
-  <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200">
-    <!-- Status de ValidaÃ§Ã£o -->
+  <!-- Botões de Ação -->
+  <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+    <!-- Status de Validação -->
     <div class="flex items-center gap-2">
       <span
         class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
-        [ngClass]="isFormValid() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+        [ngClass]="isFormValid() ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'"
       >
         <i [class]="isFormValid() ? 'fas fa-check-circle mr-1' : 'fas fa-times-circle mr-1'"></i>
         {{ isFormValid() ? ("formValid" | i18n) : ("formInvalid" | i18n) }}
       </span>
     </div>
 
-    <!-- BotÃµes -->
+    <!-- Botões -->
     <div class="flex gap-3">
       <button
         type="button"
-        class="px-6 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
+        class="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 flex items-center gap-2"
         (click)="onCancelClick()"
       >
         <i class="fas fa-times"></i>
