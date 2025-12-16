@@ -38,7 +38,7 @@ import { RegisterComponent, RegisterPayload } from "./components/register/regist
 import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
 import { ScheduleComponent } from "./components/schedule/schedule.component";
 import { SchedulerComponent } from "./components/scheduler/scheduler.component";
-import { SearchComponent } from "./components/search/search.component";
+
 import { ServiceRequestDetailsComponent } from "./components/service-request-details/service-request-details.component";
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
@@ -54,7 +54,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create-service-request" | "admin-create-service-request";
+type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request";
 
 @Component({
   selector: "app-root",
@@ -71,7 +71,7 @@ type Nav = "dashboard" | "schedule" | "search" | "profile" | "details" | "create
     ResetPasswordComponent,
     DashboardComponent,
     ScheduleComponent,
-    SearchComponent,
+
     ProfileComponent,
     ServiceRequestDetailsComponent,
     SchedulerComponent,
@@ -151,11 +151,6 @@ export class AppComponent implements OnInit {
         id: "schedule",
         labelKey: "schedule",
         icon: "fa-solid fa-calendar-days",
-      },
-      {
-        id: "search",
-        labelKey: "search",
-        icon: "fa-solid fa-magnifying-glass",
       },
       { id: 'profile', labelKey: 'profile', icon: 'fa-solid fa-user' },
     ];

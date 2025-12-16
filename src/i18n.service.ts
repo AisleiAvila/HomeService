@@ -589,9 +589,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Additional translations for missing keys
     noMessages: "No messages yet. Start the conversation!",
     typeMessage: "Type your message...",
-    searchServiceRequests: "Search Service Requests",
-    searchTerm: "Search Term",
-    searchTermPlaceholder: "Enter search term...",
     completedRequests: "Completed Requests",
     fullName: "Full Name",
 
@@ -968,7 +965,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     logout: "Sair",
     dashboard: "Painel",
     schedule: "Agenda",
-    search: "Buscar",
+
     profile: "Perfil",
     language: "Idioma",
     english: "English",
@@ -1552,9 +1549,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // Additional translations for missing keys
     noMessages: "Ainda não há mensagens. Comece a conversa!",
     typeMessage: "Digite sua mensagem...",
-    searchServiceRequests: "Buscar Solicitações de Serviço",
-    searchTerm: "Termo de Busca",
-    searchTermPlaceholder: "Digite o termo de busca...",
     completedRequests: "Solicitações Concluídas",
     fullName: "Nome Completo",
 
