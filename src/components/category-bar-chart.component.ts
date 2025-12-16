@@ -21,17 +21,17 @@ import { I18nPipe } from "../pipes/i18n.pipe";
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col"
+      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mobile-safe flex flex-col"
     >
       <!-- Filtro de Período -->
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">
           {{ title() }}
         </h3>
         <select
           [(ngModel)]="selectedPeriod"
           (ngModelChange)="onPeriodChange()"
-          class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
+          class="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
         >
           <option value="all">{{ 'allTime' | i18n }}</option>
           <option value="7">{{ 'last7Days' | i18n }}</option>
@@ -40,23 +40,23 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         </select>
       </div>
       
-      <!-- Canvas com scroll horizontal -->
-      <div class="w-full overflow-x-auto overflow-y-hidden" [style.max-width]="'100%'">
-        <div [style.min-width]="canvasMinWidth() + 'px'" class="flex justify-center items-center">
+      <!-- Canvas com scroll horizontal - melhorado para mobile -->
+      <div class="w-full overflow-x-auto overflow-y-hidden -mx-3 sm:mx-0 px-3 sm:px-0" style="max-width: 100%;">
+        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-2">
           <canvas
             #barCanvas
-            class="max-h-80"
+            class="max-h-64 sm:max-h-80"
             [width]="canvasWidth()"
-            [height]="300"
+            [height]="canvasHeight()"
           ></canvas>
         </div>
       </div>
       
-      <!-- Legendas com valores -->
-      <div class="flex flex-wrap gap-2 justify-center mt-6 w-full">
+      <!-- Legendas com valores - responsivo -->
+      <div class="flex flex-wrap gap-1.5 sm:gap-2 justify-center mt-4 sm:mt-6 w-full">
         <ng-container *ngFor="let item of sortedChartData()">
           <span
-            class="px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default"
+            class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default"
             [style.background]="item.color"
             [style.color]="'white'"
           >
@@ -132,12 +132,20 @@ export class CategoryBarChartComponent implements AfterViewInit {
   // Largura mínima do canvas baseada no número de categorias
   canvasMinWidth = computed(() => {
     const count = this.sortedChartData().length;
-    return Math.max(400, count * 80); // Mínimo 80px por barra
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    // Mobile: 60px por barra, mínimo 300px / Desktop: 80px por barra, mínimo 400px
+    return isMobile ? Math.max(300, count * 60) : Math.max(400, count * 80);
   });
   
   // Largura do canvas ajustada
   canvasWidth = computed(() => {
     return this.canvasMinWidth();
+  });
+  
+  // Altura do canvas responsiva
+  canvasHeight = computed(() => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    return isMobile ? 250 : 320;
   });
 
   ngAfterViewInit() {
@@ -222,11 +230,14 @@ export class CategoryBarChartComponent implements AfterViewInit {
     };
 
     const barWidth = canvas.width / data.length;
-    const barSpacing = 8;
-    const actualBarWidth = Math.max(barWidth - barSpacing, 40); // Mínimo 40px por barra
-    const chartHeight = canvas.height - 80; // Margem para labels
-    const chartTop = 30;
-    const chartBottom = canvas.height - 50;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const barSpacing = isMobile ? 6 : 8;
+    const minBarWidth = isMobile ? 30 : 40;
+    const actualBarWidth = Math.max(barWidth - barSpacing, minBarWidth);
+    const bottomMargin = isMobile ? 60 : 80; // Menos margem em mobile
+    const chartHeight = canvas.height - bottomMargin;
+    const chartTop = isMobile ? 20 : 30;
+    const chartBottom = canvas.height - (isMobile ? 40 : 50);
 
     // Aplicar progresso de animação
     const progress = this.animationProgress();
@@ -273,7 +284,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
       // Desenhar valor numérico ao final da barra (sempre visível)
       if (progress >= 1) {
-        ctx.font = "bold 13px sans-serif";
+        const fontSize = isMobile ? 11 : 13;
+        ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.fillStyle = "#111827"; // gray-900
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
@@ -281,8 +293,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
         // Fundo branco semi-transparente para melhor legibilidade
         const text = item.value.toString();
         const textMetrics = ctx.measureText(text);
-        const textHeight = 16;
-        const padding = 4;
+        const textHeight = isMobile ? 14 : 16;
+        const padding = isMobile ? 3 : 4;
         
         ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
         this.roundRect(
@@ -305,20 +317,22 @@ export class CategoryBarChartComponent implements AfterViewInit {
         ctx.save();
         ctx.translate(x + actualBarWidth / 2, chartBottom + 10);
         
-        // Se houver muitas categorias, rotacionar o texto
-        if (data.length > 6) {
+        // Se houver muitas categorias ou mobile, rotacionar o texto
+        const shouldRotate = data.length > 6 || isMobile;
+        if (shouldRotate) {
           ctx.rotate(-Math.PI / 4); // -45 graus
           ctx.textAlign = "right";
         } else {
           ctx.textAlign = "center";
         }
         
-        ctx.font = "11px sans-serif";
+        const labelFontSize = isMobile ? 9 : 11;
+        ctx.font = `${labelFontSize}px sans-serif`;
         ctx.fillStyle = "#4b5563"; // gray-600
         ctx.textBaseline = "top";
         
         // Truncar label se muito longo
-        const maxLength = 15;
+        const maxLength = isMobile ? 12 : 15;
         const label = item.label.length > maxLength 
           ? item.label.substring(0, maxLength) + '...' 
           : item.label;
