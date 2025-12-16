@@ -425,47 +425,47 @@
 </div>
 
 <!-- Formulário de Edição (Tela Normal) -->
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900" *ngIf="editingClient() && !showAddClientForm()">
-    <!-- Header da Tela de Edição -->
-    <div class="bg-brand-primary-700 dark:bg-brand-primary-900 text-white py-6 px-6 shadow-lg">
-        <div class="max-w-4xl mx-auto">
-            <button (click)="cancelEdit()"
-                class="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-brand-primary-700 dark:text-brand-primary-400 bg-white dark:bg-gray-800 rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-700 transition-colors">
-                <i class="fas fa-arrow-left"></i>
-                {{ "backToList" | i18n }}
-            </button>
-            <h1 class="text-3xl font-bold flex items-center gap-3">
-                <i class="fas fa-user-edit"></i>
-                {{ "editClient" | i18n }}
-            </h1>
-            <p class="text-brand-primary-100 dark:text-brand-primary-300 mt-2">{{ editingClientName() }}</p>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md" *ngIf="editingClient() && !showAddClientForm()">
+    <!-- Cabeçalho do Formulário -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    {{ "editClient" | i18n }}
+                </h2>
+                <p class="text-brand-primary-200 text-sm mt-1">{{ editingClientName() }}</p>
+            </div>
         </div>
     </div>
-
-    <!-- Formulário -->
-    <div class="max-w-4xl mx-auto py-8 px-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+    
+    <!-- Conteúdo do Formulário -->
+    <div class="p-6 bg-gray-50 dark:bg-gray-700">
         <div class="space-y-4">
             <div>
                 <label for="editClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "name" | i18n }}
                 </label>
                 <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
-                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+                    [placeholder]="'name' | i18n"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
             </div>
+            
             <div>
                 <label for="editClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "email" | i18n }}
                 </label>
                 <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
-                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+                    [placeholder]="'email' | i18n"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
             </div>
+            
             <div>
                 <label for="editClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "profileType" | i18n }}
                 </label>
                 <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     @for(roleOption of availableRoles; track roleOption) {
                         <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                     }
@@ -477,9 +477,9 @@
                 <legend class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     {{ "specialties" | i18n }}
                 </legend>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
                     @for(cat of dataService.serviceCategories(); track cat.id) {
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors">
+                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
                             <input 
                                 type="checkbox" 
                                 [checked]="isEditingSpecialtySelected(cat)"
@@ -493,34 +493,33 @@
 
             <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
             <div *ngIf="editingClientRole() === 'professional'">
-                <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <label class="flex items-center gap-3 cursor-pointer">
                     <input 
                         type="checkbox" 
                         [checked]="editingClientIsNatanEmployee()"
                         (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
                         class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
                         aria-label="{{ 'isNatanEmployee' | i18n }}" />
-                    <div class="flex-1">
-                        <span class="text-sm text-gray-700 dark:text-gray-300 font-medium block">
-                            {{ "natanEmployeeYes" | i18n }}
-                        </span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {{ editingClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
-                        </p>
-                    </div>
+                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                        {{ "natanEmployeeYes" | i18n }}
+                    </span>
                 </label>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {{ editingClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
+                </p>
             </div>
-
-            <div class="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700 mt-8">
-                <button (click)="cancelEdit()" class="px-6 py-3 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600">
+            
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+                <button (click)="cancelEdit()" 
+                    class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                     <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
                 </button>
-                <button (click)="saveClientEdit()" class="px-8 py-3 text-sm font-medium rounded-lg text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors shadow-lg">
+                <button (click)="saveClientEdit()" 
+                    class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors shadow-md">
                     <i class="fas fa-save mr-2"></i>{{ "save" | i18n }}
                 </button>
             </div>
         </div>
-    </div>
     </div>
 </div>
 
