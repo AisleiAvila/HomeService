@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -23,10 +23,55 @@ export class AdminOverviewComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
+    
+    // Signals para animação de contagem
+    private animatedValues = signal<Record<string, number>>({});
+    
+    // Signal para dados de sparkline
+    sparklineData = computed(() => {
+        const requests = this.dataService.serviceRequests();
+        const now = new Date();
+        const last7Days: Record<string, number[]> = {
+            totalRevenue: [],
+            pendingApprovals: [],
+            activeServices: [],
+            totalProfessionals: [],
+        };
+        
+        // Gerar dados dos últimos 7 dias
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            // Receita por dia
+            const dayRevenue = requests
+                .filter(r => r.payment_status === "Paid" && r.completed_at?.startsWith(dateStr))
+                .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+            last7Days.totalRevenue.push(dayRevenue);
+            
+            // Serviços ativos por dia
+            const dayActive = requests.filter(r => 
+                r.status !== "Concluído" && r.status !== "Cancelado" && 
+                r.created_at?.startsWith(dateStr)
+            ).length;
+            last7Days.activeServices.push(dayActive);
+        }
+        
+        return last7Days;
+    });
 
     ngOnInit() {
         console.log('[AdminOverviewComponent] Inicializando - recarregando dados');
         this.dataService.loadInitialData();
+        
+        // Iniciar animação de contagem dos valores
+        effect(() => {
+            const stats = this.stats();
+            stats.forEach(stat => {
+                this.animateValue(stat.id, stat.rawValue || 0);
+            });
+        });
     }
 
     stats = computed(() => {
@@ -102,41 +147,49 @@ export class AdminOverviewComponent implements OnInit {
                 id: "totalRevenue",
                 label: this.i18n.translate("totalRevenue"),
                 value: this.formatCost(totalRevenue),
+                rawValue: totalRevenue,
                 icon: "fas fa-euro-sign",
                 bgColor: "bg-gradient-to-br from-green-100 to-green-200 text-green-700",
                 trend: trends.revenue,
                 trendColor: trends.revenue.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
+                sparklineData: this.sparklineData().totalRevenue,
             },
             {
                 id: "pendingApprovals",
                 label: this.i18n.translate("pendingApprovals"),
                 value: pendingProfessionals.length,
+                rawValue: pendingProfessionals.length,
                 icon: "fas fa-user-clock",
                 bgColor: "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-700",
                 trend: trends.approvals,
                 trendColor: trends.approvals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: pendingProfessionals.length > 0 ? this.i18n.translate("new") : null,
+                sparklineData: [],
             },
             {
                 id: "activeServices",
                 label: this.i18n.translate("activeServices"),
                 value: activeServices,
+                rawValue: activeServices,
                 icon: "fas fa-tools",
                 bgColor: "bg-gradient-to-br from-brand-primary-100 to-brand-primary-200 text-brand-primary-700",
                 trend: trends.active,
                 trendColor: trends.active.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
+                sparklineData: this.sparklineData().activeServices,
             },
             {
                 id: "totalProfessionals",
                 label: this.i18n.translate("totalProfessionals"),
                 value: activeProfessionals.length,
+                rawValue: activeProfessionals.length,
                 icon: "fas fa-user-tie",
                 bgColor: "bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700",
                 trend: trends.professionals,
                 trendColor: trends.professionals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
+                sparklineData: [],
             },
             // {
             //     id: "activeClients",
@@ -232,6 +285,93 @@ export class AdminOverviewComponent implements OnInit {
                 this.router.navigate(['/admin/clients']);
                 break;
         }
+    }
+    
+    // Animação de contagem dos valores
+    private animateValue(statId: string, targetValue: number) {
+        const duration = 1500; // ms
+        const startValue = this.animatedValues()[statId] || 0;
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function (ease-out cubic)
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            const currentValue = startValue + (targetValue - startValue) * easedProgress;
+            
+            this.animatedValues.update(values => ({
+                ...values,
+                [statId]: Math.round(currentValue)
+            }));
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+    
+    // Obter valor animado para um stat
+    getAnimatedValue(statId: string): number {
+        return this.animatedValues()[statId] || 0;
+    }
+    
+    // Desenhar mini gráfico sparkline
+    drawSparkline(canvasId: string, data: number[], color: string) {
+        setTimeout(() => {
+            const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 2;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (data.length === 0) return;
+            
+            const max = Math.max(...data, 1);
+            const min = Math.min(...data, 0);
+            const range = max - min || 1;
+            
+            // Desenhar linha
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            data.forEach((value, index) => {
+                const x = padding + (index / (data.length - 1)) * (width - padding * 2);
+                const y = height - padding - ((value - min) / range) * (height - padding * 2);
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Área preenchida
+            ctx.lineTo(width - padding, height - padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.closePath();
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, color + '40'); // 25% opacity
+            gradient.addColorStop(1, color + '00'); // 0% opacity
+            
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }, 100);
     }
 }
 

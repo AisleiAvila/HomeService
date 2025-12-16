@@ -1,39 +1,69 @@
 <!-- Stats Cards - Layout expandido -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 w-full px-0">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8 w-full px-0">
     @for (stat of stats(); track stat.label) {
         <button type="button"
             (click)="handleCardClick(stat.id)"
             [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsLastMonth' | i18n)"
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 min-h-[120px]">
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 flex flex-col transform transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 min-h-[160px]">
             
             <!-- Efeito de background -->
-            <div class="absolute top-0 right-0 w-20 h-20 bg-white dark:bg-gray-900 opacity-10 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white to-transparent dark:from-gray-900 dark:to-transparent opacity-20 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
             
-            <!-- Conteúdo principal -->
-            <div class="flex-1 min-w-0 mr-3">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 truncate">{{ stat.label | i18n }}</p>
-                <p class="text-xl font-bold text-gray-800 dark:text-gray-100 truncate">{{ stat.value }}</p>
-                <div class="flex items-center mt-1 flex-wrap">
-                    <span [class]="'text-xs font-medium ' + stat.trendColor">
+            <!-- Header com label e ícone -->
+            <div class="flex items-start justify-between mb-3 relative z-10">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400 truncate flex-1 pr-2">
+                    {{ stat.label | i18n }}
+                </p>
+                <div [class]="'p-2.5 rounded-lg flex-shrink-0 ' + stat.bgColor + ' shadow-sm'">
+                    <i [class]="stat.icon + ' text-base'"></i>
+                </div>
+            </div>
+            
+            <!-- Valor principal com animação -->
+            <div class="mb-3 relative z-10">
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {{ stat.value }}
+                </p>
+            </div>
+            
+            <!-- Mini gráfico sparkline -->
+            @if (stat.sparklineData && stat.sparklineData.length > 0) {
+                <div class="mb-3 relative z-10 h-10">
+                    <canvas 
+                        [id]="'sparkline-' + stat.id"
+                        width="200" 
+                        height="40"
+                        class="w-full h-full"
+                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, stat.sparklineData, stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : stat.bgColor.includes('purple') ? '#a855f7' : '#ea5455')">
+                    </canvas>
+                </div>
+            }
+            
+            <!-- Tendência e comparação -->
+            <div class="flex items-center justify-between mt-auto relative z-10">
+                <div class="flex items-center">
+                    <span [class]="'text-xs font-semibold px-2 py-1 rounded-md ' + (stat.trend.includes('+') ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')">
                         <i class="fas mr-1" [class.fa-arrow-up]="stat.trend.includes('+')"
                             [class.fa-arrow-down]="stat.trend.includes('-')"></i>
                         {{ stat.trend }}
                     </span>
-                    <span class="text-xs text-gray-400 dark:text-gray-500 ml-1 whitespace-nowrap">{{ "vsLastMonth" | i18n }}</span>
                 </div>
-            </div>
-            
-            <!-- Ícone -->
-            <div [class]="'p-3 rounded-full flex-shrink-0 ' + stat.bgColor + ' shadow-inner'">
-                <i [class]="stat.icon + ' text-lg'"></i>
+                <span class="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">
+                    {{ "vsLastMonth" | i18n }}
+                </span>
             </div>
             
             <!-- Badge -->
             @if (stat.badge) {
-                <span class="absolute top-2 right-2 px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
+                <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg animate-pulse z-20">
                     {{ stat.badge }}
                 </span>
             }
+            
+            <!-- Indicador de clicável -->
+            <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                <i class="fas fa-arrow-right text-brand-primary-500 text-sm"></i>
+            </div>
         </button>
     }
 </div>
