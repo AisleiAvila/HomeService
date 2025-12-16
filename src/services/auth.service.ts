@@ -30,6 +30,9 @@ export class AuthService {
       const user = result.user;
       if (res.ok && result.success && user) {
         this.appUser.set(user);
+        // Persistir sessão no localStorage para recuperar após refresh
+        this.saveSessionToStorage(user);
+        console.log("✅ Usuário autenticado e sessão salva:", user.email);
         return user;
       } else {
         this.notificationService.addNotification(result.error || 'Credenciais inválidas');
@@ -39,6 +42,52 @@ export class AuthService {
       console.error("Erro ao conectar ao servidor de login:", err);
       this.notificationService.addNotification('Erro ao conectar ao servidor de login.');
       return null;
+    }
+  }
+
+  /**
+   * Salva a sessão do usuário no localStorage
+   */
+  private saveSessionToStorage(user: User): void {
+    try {
+      localStorage.setItem("homeservice_user_session", JSON.stringify(user));
+      console.log("💾 Sessão salva no localStorage:", user.email);
+    } catch (err) {
+      console.error("❌ Erro ao salvar sessão no localStorage:", err);
+    }
+  }
+
+  /**
+   * Recupera a sessão do usuário do localStorage no bootstrap
+   */
+  async restoreSessionFromStorage(): Promise<void> {
+    try {
+      const sessionData = localStorage.getItem("homeservice_user_session");
+      if (sessionData) {
+        const user = JSON.parse(sessionData) as User;
+        console.log("🔄 Sessão recuperada do localStorage:", user.email);
+        this.appUser.set(user);
+      } else {
+        console.log("ℹ️ Nenhuma sessão encontrada no localStorage");
+        this.appUser.set(null);
+      }
+    } catch (err) {
+      console.error("❌ Erro ao recuperar sessão do localStorage:", err);
+      // Se houver erro ao recuperar, limpar a sessão corrompida
+      localStorage.removeItem("homeservice_user_session");
+      this.appUser.set(null);
+    }
+  }
+
+  /**
+   * Remove a sessão do localStorage ao fazer logout
+   */
+  private clearSessionFromStorage(): void {
+    try {
+      localStorage.removeItem("homeservice_user_session");
+      console.log("🗑️ Sessão removida do localStorage");
+    } catch (err) {
+      console.error("❌ Erro ao remover sessão do localStorage:", err);
     }
   }
   async confirmEmailCustom(email: string, token: string): Promise<boolean> {
@@ -90,7 +139,12 @@ export class AuthService {
       }
 
       if (!user) {
-        this.notificationService.addNotification("Perfil não encontrado para o usuário. Verifique se o cadastro está correto.");
+        const message = "Perfil não encontrado para o usuário. Verifique se o cadastro está correto.";
+        console.warn("⚠️", message);
+        // Apenas mostrar notificação se não for uma chamada automática
+        if (!isAutomatic) {
+          this.notificationService.addNotification(message);
+        }
         this.appUser.set(null);
         return;
       }
@@ -98,6 +152,7 @@ export class AuthService {
       // Definir usuário na signal apenas com email e role
       this.pendingEmailConfirmation.set(null);
       this.appUser.set(user as User);
+      console.log("✅ Perfil do usuário carregado com sucesso:", user.email);
     } catch (err) {
       console.error("❌ Erro inesperado ao buscar perfil do usuário:", err);
       this.appUser.set(null);
@@ -106,15 +161,10 @@ export class AuthService {
 
 
   constructor() {
-    effect(async () => {
-      const sUser = this.supabaseUser();
-      console.log("🔍 AuthService effect triggered. sUser:", sUser?.email);
-      if (sUser?.email) {
-        console.log("👤 Usuário autenticado, buscando perfil...");
-        await this.fetchAppUser(sUser.email, true); // true = chamada automática
-      }
-    });
-    }
+    // AuthService agora usa autenticação customizada (não Supabase Auth)
+    // A sessão é restaurada via restoreSessionFromStorage() chamado no bootstrap
+    console.log("✅ AuthService inicializado (autenticação customizada)");
+  }
 
   private async handleUnverifiedEmail(
     user: User,
@@ -845,6 +895,10 @@ export class AuthService {
 
       // Sempre limpar o estado do usuário
       this.appUser.set(null);
+      
+      // Limpar sessão do localStorage (autenticação customizada)
+      this.clearSessionFromStorage();
+      
       console.log("✅ Estado do usuário limpo");
     } catch (error) {
       console.error("❌ Erro durante logout, limpando localmente:", error);
