@@ -1,4 +1,3 @@
-
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
@@ -156,6 +155,8 @@ export class UsersManagementComponent implements OnInit {
     newClientPhone = signal("");
     newClientRole = signal<UserRole>("professional");
     newClientIsNatanEmployee = signal(false);
+    // Especialidades selecionadas ao adicionar novo usuário
+    newClientSpecialties = signal<ServiceCategory[]>([]);
 
     // Edit Client
     editingClient = signal<User | null>(null);
@@ -514,6 +515,22 @@ export class UsersManagementComponent implements OnInit {
 
     cancelReactivate() {
         this.reactivatingClient.set(null);
+    }
+
+    isNewSpecialtySelected(category: ServiceCategory): boolean {
+        return this.newClientSpecialties().some((c) => c.id === category.id);
+    }
+
+    onNewSpecialtyToggle(category: ServiceCategory, event: Event) {
+        const isChecked = (event.target as HTMLInputElement).checked;
+        const current = this.newClientSpecialties();
+        if (isChecked) {
+            if (!current.some(c => c.id === category.id)) {
+                this.newClientSpecialties.set([...current, category]);
+            }
+        } else {
+            this.newClientSpecialties.set(current.filter(c => c.id !== category.id));
+        }
     }
 
     // Pagination

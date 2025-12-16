@@ -170,7 +170,30 @@
             </div>
 
             <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
+
             <div *ngIf="newClientRole() === 'professional'">
+                <!-- Especialidades -->
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {{ 'specialties' | i18n }}
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                    <ng-container *ngIf="categories() && categories().length > 0; else noCategoriesAdd">
+                        <ng-container *ngFor="let cat of categories(); trackBy: trackByCategoryId">
+                            <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <input 
+                                    type="checkbox" 
+                                    [checked]="isNewSpecialtySelected(cat)"
+                                    (change)="onNewSpecialtyToggle(cat, $event)"
+                                    class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                            </label>
+                        </ng-container>
+                    </ng-container>
+                    <ng-template #noCategoriesAdd>
+                        <span class="text-sm text-gray-400">{{ 'noCategoriesAvailable' | i18n }}</span>
+                    </ng-template>
+                </div>
+                <!-- Campo de vínculo com Natan Construtora -->
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input 
                         type="checkbox" 
