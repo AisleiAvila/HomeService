@@ -77,7 +77,7 @@
                     (ngModelChange)="filterRole.set($event); currentPage.set(1)"
                     class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                     <option value="all">{{ 'all' | i18n }}</option>
-                    <option value="client">{{ 'client' | i18n }}</option>
+                    <option value="professional">{{ 'professional' | i18n }}</option>
                     <option value="admin">{{ 'admin' | i18n }}</option>
                 </select>
             </div>
@@ -488,7 +488,8 @@
                     {{ "profileType" | i18n }}
                 </label>
                 <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    disabled
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md cursor-not-allowed opacity-60">
                     @for(roleOption of availableRoles; track roleOption) {
                         <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                     }
