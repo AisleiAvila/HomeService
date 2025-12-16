@@ -112,15 +112,17 @@
     <!-- Formulário de Cadastro -->
     @if(showAddClientForm()) {
     <!-- Cabeçalho do Formulário -->
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-green-600 to-emerald-500">
-        <div>
-            <h2 class="text-2xl font-bold text-white flex items-center">
-                <i class="fas fa-user-plus mr-3"></i>
-                {{ "addNewClient" | i18n }}
-            </h2>
-            <p class="text-brand-primary-100 text-sm mt-1">
-                {{ "addNewClientDesc" | i18n }}
-            </p>
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-user-plus mr-3"></i>
+                    {{ "addNewClient" | i18n }}
+                </h2>
+                <p class="text-brand-primary-200 text-sm mt-1">
+                    {{ "addNewClientDesc" | i18n }}
+                </p>
+            </div>
         </div>
     </div>
     
@@ -151,16 +153,16 @@
                 </label>
                 <input id="newClientPhone" type="tel" [ngModel]="newClientPhone()" (ngModelChange)="newClientPhone.set($event)"
                     [placeholder]="'+351 96000-3323' | i18n" 
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
-                <p class="text-xs text-gray-500 mt-1">{{ 'phoneFormatPortugal' | i18n }}</p>
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ 'phoneFormatPortugal' | i18n }}</p>
             </div>
             
             <div>
-                <label for="newClientRole" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="newClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ "profileType" | i18n }}
                 </label>
                 <select id="newClientRole" [ngModel]="newClientRole()" (ngModelChange)="newClientRole.set($event)"
-                    class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
                     @for(roleOption of availableRoles; track roleOption) {
                         <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                     }
@@ -176,22 +178,22 @@
                         (change)="newClientIsNatanEmployee.set($any($event.target).checked)"
                         class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
                         aria-label="{{ 'isNatanEmployee' | i18n }}" />
-                    <span class="text-sm text-gray-700 font-medium">
+                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {{ "natanEmployeeYes" | i18n }}
                     </span>
                 </label>
-                <p class="text-xs text-gray-500 mt-1">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {{ newClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
                 </p>
             </div>
             
             <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
                 <button (click)="resetNewClientForm()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">
+                    class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                     <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
                 </button>
                 <button (click)="addClient()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md">
+                    class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 transition-colors shadow-md">
                     <i class="fas fa-save mr-2"></i>{{ "add" | i18n }}
                 </button>
             </div>
@@ -200,12 +202,12 @@
     }
 
     <!-- Formulário de Edição (Tela Normal) -->
-    <div class="min-h-screen bg-gray-50" *ngIf="editingClient() && !showAddClientForm()">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900" *ngIf="editingClient() && !showAddClientForm()">
         <!-- Header da Tela de Edição -->
-        <div class="bg-brand-primary-700 text-white py-6 px-6 shadow-lg">
+        <div class="bg-brand-primary-700 dark:bg-brand-primary-900 text-white py-6 px-6 shadow-lg">
             <div class="max-w-4xl mx-auto">
                 <button (click)="cancelEdit()"
-                    class="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-brand-primary-700 bg-white rounded-lg hover:bg-brand-primary-50 transition-colors">
+                    class="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-brand-primary-700 dark:text-brand-primary-400 bg-white dark:bg-gray-800 rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-700 transition-colors">
                     <i class="fas fa-arrow-left"></i>
                     {{ "backToList" | i18n }}
                 </button>
@@ -213,34 +215,34 @@
                     <i class="fas fa-user-edit"></i>
                     {{ "editProfessional" | i18n }}
                 </h1>
-                <p class="text-brand-primary-100 mt-2">{{ editingClientName() }}</p>
+                <p class="text-brand-primary-100 dark:text-brand-primary-300 mt-2">{{ editingClientName() }}</p>
             </div>
         </div>
 
         <!-- Formulário -->
         <div class="max-w-4xl mx-auto py-8 px-6">
-            <div class="bg-white rounded-lg shadow-md p-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
             <div class="space-y-4">
                 <div>
-                    <label for="editClientName" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="editClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         {{ "name" | i18n }}
                     </label>
                     <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
                 </div>
                 <div>
-                    <label for="editClientEmail" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="editClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         {{ "email" | i18n }}
                     </label>
                     <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
                 </div>
                 <div>
-                    <label for="editClientRole" class="block text-sm font-medium text-gray-700 mb-1">
+                    <label for="editClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         {{ "profileType" | i18n }}
                     </label>
                     <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                        class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
                         @for(roleOption of availableRoles; track roleOption) {
                             <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
                         }
@@ -249,18 +251,18 @@
 
                 <!-- Especialidades (apenas para profissionais) -->
                 <fieldset *ngIf="editingClientRole() === 'professional'" class="border-0 p-0 m-0">
-                    <legend class="block text-sm font-medium text-gray-700 mb-3">
+                    <legend class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                         {{ "specialties" | i18n }}
                     </legend>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         @for(cat of dataService.serviceCategories(); track cat.id) {
-                            <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-100 rounded transition-colors">
+                            <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors">
                                 <input 
                                     type="checkbox" 
                                     [checked]="isEditingSpecialtySelected(cat)"
                                     (change)="onEditingSpecialtyToggle(cat, $event)"
                                     class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
-                                <span class="text-sm text-gray-700">{{ cat.name }}</span>
+                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
                             </label>
                         }
                     </div>
@@ -268,7 +270,7 @@
 
                 <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
                 <div *ngIf="editingClientRole() === 'professional'">
-                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <input 
                             type="checkbox" 
                             [checked]="editingClientIsNatanEmployee()"
@@ -276,21 +278,21 @@
                             class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
                             aria-label="{{ 'isNatanEmployee' | i18n }}" />
                         <div class="flex-1">
-                            <span class="text-sm text-gray-700 font-medium block">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium block">
                                 {{ "natanEmployeeYes" | i18n }}
                             </span>
-                            <p class="text-xs text-gray-500 mt-1">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {{ editingClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
                             </p>
                         </div>
                     </label>
                 </div>
 
-                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200 mt-8">
-                    <button (click)="cancelEdit()" class="px-6 py-3 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors border border-gray-300">
+                <div class="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700 mt-8">
+                    <button (click)="cancelEdit()" class="px-6 py-3 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors border border-gray-300 dark:border-gray-600">
                         <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
                     </button>
-                    <button (click)="saveClientEdit()" class="px-8 py-3 text-sm font-medium rounded-lg text-white bg-brand-primary-600 hover:bg-brand-primary-700 transition-colors shadow-lg">
+                    <button (click)="saveClientEdit()" class="px-8 py-3 text-sm font-medium rounded-lg text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors shadow-lg">
                         <i class="fas fa-save mr-2"></i>{{ "save" | i18n }}
                     </button>
                 </div>
@@ -301,10 +303,10 @@
 
     <!-- Desktop Table View -->
     <div class="hidden lg:block" *ngIf="!showAddClientForm()">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('name')" 
                         (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
@@ -345,20 +347,20 @@
                     </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                 @for(client of clients(); track client.id) {
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                         {{ client.name }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                         {{ client.email }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <span class="px-2 py-1 text-xs rounded-full" 
                             [ngClass]="{
-                                'bg-purple-100 text-purple-800': client.role === 'professional',
-                                'bg-red-100 text-red-800': client.role === 'admin'
+                                'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional',
+                                'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
                             }">
                             {{ getRoleLabel(client.role) }}
                         </span>
@@ -366,10 +368,10 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <span class="px-2 py-1 text-xs rounded-full" 
                             [ngClass]="{
-                                'bg-green-100 text-green-800': client.status === 'Active',
-                                'bg-gray-100 text-gray-800': client.status === 'Inactive',
-                                'bg-yellow-100 text-yellow-800': client.status === 'Pending',
-                                'bg-red-100 text-red-800': client.status === 'Rejected'
+                                'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': client.status === 'Active',
+                                'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': client.status === 'Inactive',
+                                'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': client.status === 'Pending',
+                                'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.status === 'Rejected'
                             }">
                             {{ client.status }}
                         </span>
@@ -407,20 +409,20 @@
         </table>
         
         <!-- Paginação Desktop -->
-        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 border-t border-brand-primary-200">
-            <div class="text-xs font-bold text-brand-primary-700 px-6 py-2">
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 dark:bg-gray-800 border-t border-brand-primary-200 dark:border-gray-700">
+            <div class="text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 px-6 py-2">
                 {{ 'totalRecords' | i18n }}: {{ filteredClients().length }}
             </div>
             <div class="flex items-center gap-2">
                 <button (click)="prevPage()" 
                     [disabled]="currentPage() === 1" 
-                    class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                    class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
                     &lt;
                 </button>
-                <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+                <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
                 <button (click)="nextPage()" 
                     [disabled]="currentPage() === totalPages()" 
-                    class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                    class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
                     &gt;
                 </button>
             </div>
@@ -430,18 +432,18 @@
     <!-- Mobile Card View -->
     <div class="lg:hidden p-4 space-y-4" *ngIf="!showAddClientForm()">
         @for(client of clients(); track client.id) {
-        <div class="border border-gray-200 rounded-lg p-4 space-y-3">
+        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
             <!-- Header with name and edit button -->
             <div class="flex justify-between items-start">
                 <div class="flex items-center flex-1">
-                    <div class="h-10 w-10 rounded-full bg-brand-primary-100 flex items-center justify-center mr-3">
-                        <i class="fas fa-user text-brand-primary-600"></i>
+                    <div class="h-10 w-10 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400"></i>
                     </div>
                     <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-gray-900">
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                             {{ client.name }}
                         </h4>
-                        <p class="text-xs text-gray-500">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
                             {{ getRoleLabel(client.role) }}
                         </p>
                     </div>
@@ -476,27 +478,27 @@
             <!-- Contact info -->
             <div class="space-y-2 text-sm">
                 <div class="flex items-center">
-                    <i class="fas fa-envelope text-gray-400 w-4 mr-2"></i>
-                    <span class="text-gray-900">{{ client.email }}</span>
+                    <i class="fas fa-envelope text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
+                    <span class="text-gray-900 dark:text-gray-100">{{ client.email }}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fas fa-user-tag text-gray-400 w-4 mr-2"></i>
+                    <i class="fas fa-user-tag text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
                     <span class="px-2 py-1 text-xs rounded-full" 
                         [ngClass]="{
-                            'bg-purple-100 text-purple-800': client.role === 'professional',
-                            'bg-red-100 text-red-800': client.role === 'admin'
+                            'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional',
+                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
                         }">
                         {{ getRoleLabel(client.role) }}
                     </span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fas fa-circle-dot text-gray-400 w-4 mr-2"></i>
+                    <i class="fas fa-circle-dot text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
                     <span class="px-2 py-1 text-xs rounded-full" 
                         [ngClass]="{
-                            'bg-green-100 text-green-800': client.status === 'Active',
-                            'bg-gray-100 text-gray-800': client.status === 'Inactive',
-                            'bg-yellow-100 text-yellow-800': client.status === 'Pending',
-                            'bg-red-100 text-red-800': client.status === 'Rejected'
+                            'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': client.status === 'Active',
+                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': client.status === 'Inactive',
+                            'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': client.status === 'Pending',
+                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.status === 'Rejected'
                         }">
                         {{ client.status }}
                     </span>
@@ -509,13 +511,13 @@
         <div class="flex justify-center items-center gap-2 py-4">
             <button (click)="prevPage()" 
                 [disabled]="currentPage() === 1" 
-                class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
                 &lt;
             </button>
-            <span class="text-sm">{{ currentPage() }} / {{ totalPages() }}</span>
+            <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
             <button (click)="nextPage()" 
                 [disabled]="currentPage() === totalPages()" 
-                class="px-3 py-1 bg-gray-200 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300">
+                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
                 &gt;
             </button>
         </div>
