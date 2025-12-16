@@ -473,13 +473,15 @@
             </div>
 
             <!-- Especialidades (apenas para profissionais) -->
-            <fieldset *ngIf="editingClientRole() === 'professional'" class="border-0 p-0 m-0">
-                <legend class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    {{ "specialties" | i18n }}
-                </legend>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600">
-                    @for(cat of dataService.serviceCategories(); track cat.id) {
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+
+            <!-- Especialidades (apenas para profissionais) -->
+            <div *ngIf="editingClientRole() === 'professional'">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {{ 'specialties' | i18n }}
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    @for(cat of dataService.serviceCategories; track cat.id) {
+                        <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                             <input 
                                 type="checkbox" 
                                 [checked]="isEditingSpecialtySelected(cat)"
@@ -489,7 +491,7 @@
                         </label>
                     }
                 </div>
-            </fieldset>
+            </div>
 
             <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
             <div *ngIf="editingClientRole() === 'professional'">
@@ -498,14 +500,14 @@
                         type="checkbox" 
                         [checked]="editingClientIsNatanEmployee()"
                         (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
-                        class="form-checkbox h-5 w-5 text-brand-primary-600 rounded focus:ring-brand-primary-500"
+                        class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
                         aria-label="{{ 'isNatanEmployee' | i18n }}" />
                     <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {{ "natanEmployeeYes" | i18n }}
+                        {{ 'natanEmployeeYes' | i18n }}
                     </span>
                 </label>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ editingClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
+                    {{ editingClientIsNatanEmployee() ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
                 </p>
             </div>
             
