@@ -4,7 +4,9 @@ import { CreateServiceRequestComponent } from './pages/create-service-request/cr
 import { AdminCreateServiceRequestComponent } from './pages/admin-create-service-request/admin-create-service-request.component';
 import { EmailConfirmationComponent } from './components/email-confirmation.component';
 import { AdminDashboardComponent } from '../components/admin-dashboard/admin-dashboard.component';
-import { adminGuard } from './guards/admin.guard';import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-showcase.component';
+import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
+import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-showcase.component';
 import { DesignSystemShowcaseComponent } from '../components/design-system-showcase.component';
 export const routes: Routes = [
   {
@@ -28,10 +30,12 @@ export const routes: Routes = [
   {
     path: 'create-service-request',
     component: CreateServiceRequestComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'admin-create-service-request',
     component: AdminCreateServiceRequestComponent,
+    canActivate: [authGuard],
   },
   // (Removido rota antiga de confirmação)
   {
