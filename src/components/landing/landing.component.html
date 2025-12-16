@@ -21,12 +21,12 @@
       <span class="text-brand-primary-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
     </div>
     <!-- Controles no canto superior direito: idioma + botões -->
-    <div class="absolute top-2 right-2 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-row items-center gap-2">
-      <div class="flex flex-row items-center gap-2 flex-nowrap max-w-full overflow-x-auto min-w-0 justify-end sm:justify-start w-full">
+    <div class="absolute top-2 right-2 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-row items-center gap-2 overflow-hidden max-w-full">
+      <div class="flex flex-row items-center gap-2 flex-nowrap overflow-hidden min-w-0 justify-end sm:justify-start">
         <ng-content select="[language-switcher]"></ng-content>
         <button
           (click)="signIn.emit()"
-          class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 hover:shadow-xl min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0"
+          class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0 flex-shrink-0"
           aria-label="{{ 'signIn' | i18n }}"
         >
           <!-- Ícone login: porta com seta -->
