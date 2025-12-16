@@ -1,17 +1,17 @@
 <div class="relative z-50">
   <button
     (click)="isOpen.set(!isOpen())"
-    class="flex items-center space-x-2 p-2 rounded-full transition-colors duration-200 focus:outline-none bg-white shadow-sm border border-gray-300"
+    class="flex items-center space-x-2 p-2 rounded-full transition-colors duration-200 focus:outline-none bg-white dark:bg-gray-800 shadow-sm border border-gray-300 dark:border-gray-700"
   >
     <i
-      class="fas fa-globe text-black"
+      class="fas fa-globe text-black dark:text-white"
       style="
         font-size: 1.5rem;
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
       "
     ></i>
     <span
-      class="uppercase text-sm font-semibold tracking-wide text-black"
+      class="uppercase text-sm font-semibold tracking-wide text-black dark:text-white"
       style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1)"
     >
       {{ i18n.language() }}
@@ -19,18 +19,18 @@
   </button>
   @if (isOpen()) {
   <div
-    class="fixed" style="top:60px; right:32px; width:8rem; background:white; border-radius:0.375rem; box-shadow:0 4px 16px rgba(0,0,0,0.12); padding-top:0.25rem; padding-bottom:0.25rem; z-index:9999; border:1px solid #e5e7eb;"
+    class="fixed dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" style="top:60px; right:32px; width:8rem; background:white; border-radius:0.375rem; box-shadow:0 4px 16px rgba(0,0,0,0.12); padding-top:0.25rem; padding-bottom:0.25rem; z-index:9999; border:1px solid #e5e7eb;"
   >
     <a
       href="#"
       (click)="$event.preventDefault(); setLanguage('pt')"
-      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+      class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
       >{{ "portuguese" | i18n }}</a
     >
     <a
       href="#"
       (click)="$event.preventDefault(); setLanguage('en')"
-      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+      class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
       >{{ "english" | i18n }}</a
     >
   </div>
