@@ -16,11 +16,21 @@
 <div class="flex flex-col items-center justify-start w-full mb-6 mobile-safe">
   <!-- Container do Avatar -->
   <div class="relative group mb-4">
-    <img class="h-28 w-28 md:h-36 md:w-36 rounded-full object-cover shadow-lg ring-4 ring-indigo-100" 
-      [src]="user().avatar_url"
-      alt=""
-      aria-label="{{ 'profileAvatar' | i18n }}"
-    />
+    @if (user().avatar_url) {
+      <img class="h-28 w-28 md:h-36 md:w-36 rounded-full object-cover shadow-lg ring-4 ring-indigo-100" 
+        [src]="user().avatar_url"
+        [alt]="user().name"
+        loading="lazy"
+        decoding="async"
+        (error)="onImageError()"
+        (load)="onImageLoaded()"
+        aria-label="{{ 'profileAvatar' | i18n }}"
+      />
+    } @else {
+      <div class="h-28 w-28 md:h-36 md:w-36 rounded-full bg-gradient-to-br from-brand-primary-400 to-brand-primary-600 shadow-lg ring-4 ring-indigo-100 flex items-center justify-center">
+        <i class="fas fa-user text-3xl md:text-4xl text-white"></i>
+      </div>
+    }
     <div
       class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
       <div class="flex space-x-4 md:space-x-6">

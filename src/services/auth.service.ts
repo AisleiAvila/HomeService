@@ -1096,8 +1096,11 @@ export class AuthService {
         .getPublicUrl(filePath);
 
       if (data) {
-        console.log(`📷 Public URL: ${data.publicUrl}`);
-        await this.updateAvatarUrl(data.publicUrl);
+        // Adicionar timestamp como query parameter para cache-busting
+        // Isso garante que a imagem seja recarregada mesmo se estiver em cache
+        const avatarUrlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
+        console.log(`📷 Public URL: ${avatarUrlWithCacheBust}`);
+        await this.updateAvatarUrl(avatarUrlWithCacheBust);
         this.notificationService.addNotification(
           "Photo uploaded successfully!"
         );

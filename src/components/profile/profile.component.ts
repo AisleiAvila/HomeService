@@ -64,6 +64,7 @@ export class ProfileComponent implements OnDestroy {
   isEditing = signal(false);
   isEditingName = signal(false);
   isCameraOpen = signal(false);
+  imageLoadFailed = signal(false);
   initialUserState: User | null = null;
 
   // Toast state for save feedback
@@ -109,6 +110,12 @@ export class ProfileComponent implements OnDestroy {
           currentUser.receive_sms_notifications ?? false
         );
         this.isNatanEmployee.set(currentUser.is_natan_employee ?? false);
+
+        // Monitorar mudanças no avatar e resetar imageLoadFailed quando a URL muda
+        if (currentUser.avatar_url) {
+          this.imageLoadFailed.set(false);
+          console.log("📷 Avatar URL detected:", currentUser.avatar_url);
+        }
       }
     });
   }
@@ -116,6 +123,25 @@ export class ProfileComponent implements OnDestroy {
   ngOnDestroy() {
     // Garantir que a câmera seja fechada quando o componente for destruído
     this.closeCamera();
+  }
+
+  onImageLoaded() {
+    console.log("✅ Avatar image loaded successfully");
+    this.imageLoadFailed.set(false);
+  }
+
+  onImageError() {
+    console.warn("⚠️ Failed to load avatar image from URL:", this.user().avatar_url);
+    this.imageLoadFailed.set(true);
+    
+    // Se a imagem falhar ao carregar, tenta recarregar os dados do utilizador
+    // em caso de que a URL pública tenha expirado ou se mudou
+    const currentUser = this.user();
+    if (currentUser?.avatar_url) {
+      console.log("🔄 Avatar URL:", currentUser.avatar_url);
+      console.log("💡 Sugestão: Verifique se a URL do Supabase Storage está acessível");
+      console.log("💡 Tente fazer re-upload da imagem se o problema persistir");
+    }
   }
 
   toggleSpecialty(category: ServiceCategory) {
