@@ -945,6 +945,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     natanEmployeeNo: "No, independent service provider",
     natanAffiliation: "Natan Construtora Affiliation",
     tooManyAttempts: "Too many attempts. Please try again later.",
+    myProfile: "My Profile",
+    updateProfileInformation: "Update your profile information and email address",
    
 
   },
@@ -1894,6 +1896,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     natanEmployeeYes: "Sim, funcionário da Natan Construtora",
     natanEmployeeNo: "Não, prestador de serviço independente",
     natanAffiliation: "Vínculo com a Natan Construtora",
+    myProfile: "Meu Perfil",
+    updateProfileInformation: "Atualize as informações do seu perfil",
 
   },
 };

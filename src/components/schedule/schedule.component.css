@@ -25,7 +25,10 @@
   border-color: #2563eb;
 }
 
-:host-context(.dark) ::ng-deep .fc .fc-button-primary:not(:disabled).fc-button-active {
+:host-context(.dark)
+  ::ng-deep
+  .fc
+  .fc-button-primary:not(:disabled).fc-button-active {
   background-color: #1e40af;
   border-color: #1e40af;
 }
