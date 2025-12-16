@@ -22,12 +22,12 @@
     <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
       <!-- Serviço -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "service" | i18n }}:
-        <span class="font-medium">{{ request().title | i18n }}</span>
+        <span class="font-bold">{{ "service" | i18n }}:</span>
+        <span class="font-medium"> {{ request().title | i18n }}</span>
       </div>
       <!-- Categoria -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "category" | i18n }}:
+        <span class="font-bold">{{ "category" | i18n }}:</span>
         <span class="font-medium">
           {{ (request()?.category && request().category.name) ? (request().category.name | i18n) : ('—' | i18n) }}
         </span>
@@ -37,7 +37,7 @@
       </div>
       <!-- Subcategoria -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "subcategory" | i18n }}:
+        <span class="font-bold">{{ "subcategory" | i18n }}:</span>
         <span class="font-medium">
           {{ request()?.subcategory?.name ? (request().subcategory.name | i18n) : ('—' | i18n) }}
         </span>
@@ -47,29 +47,29 @@
       </div>
       <!-- Profissional -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "professional" | i18n }}:
+        <span class="font-bold">{{ "professional" | i18n }}:</span>
         <span class="font-medium">
           {{ (request()?.professional_name && (request().professional_name + '').trim()) ? request().professional_name : ("unassigned" | i18n) }}
         </span>
       </div>
       <!-- Valor do Prestador -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "valorPrestador" | i18n }}:
-        <span class="font-semibold text-green-700 dark:text-green-400">{{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
+        <span class="font-bold">{{ "valorPrestador" | i18n }}:</span>
+        <span class="font-semibold text-green-700 dark:text-green-400"> {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
       </div>
       <!-- Valor Total -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "TotalValue" | i18n }}:
-        <span class="font-semibold text-brand-primary-700 dark:text-brand-primary-400">{{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
+        <span class="font-bold">{{ "TotalValue" | i18n }}:</span>
+        <span class="font-semibold text-blue-600 dark:text-blue-400"> {{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
       </div>
       <!-- Status -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "status" | i18n }}:
-        <span class="font-medium">{{ request().status | i18n }}</span>
+        <span class="font-bold">{{ "status" | i18n }}:</span>
+        <span class="font-medium"> {{ request().status | i18n }}</span>
       </div>
       <!-- Período de Execução -->
       <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        {{ "executionPeriod" | i18n }}:
+        <span class="font-bold">{{ "executionPeriod" | i18n }}:</span>
         <span class="font-medium">
           {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
           —
@@ -77,36 +77,17 @@
         </span>
       </div>
     </div>
-    <!-- Bloco: Métodos de Pagamento -->
+    <!-- Mensagem de confirmação de pagamento -->
     <div class="mb-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ "choosePaymentMethod" | i18n }}</div>
-      <div class="space-y-2">
-        <ng-container *ngFor="let method of paymentMethods">
-          <label class="flex items-center cursor-pointer group" [attr.title]="method.tooltip">
-            <input
-              type="radio"
-              name="paymentMethod"
-              [value]="method.id"
-              [checked]="selectedMethod() === method.id"
-              (change)="selectedMethod.set(method.id)"
-              class="form-radio text-green-600"
-              [disabled]="loading() || processing()"
-              aria-checked="{{selectedMethod() === method.id}}"
-              aria-label="{{ method.label }}"
-              tabindex="0"
-            />
-            <span class="ml-2 flex items-center text-gray-800 dark:text-gray-200">
-              <i [ngClass]="{
-                'fas fa-credit-card text-brand-primary-500': method.id === 'card',
-                'fab fa-whatsapp text-green-500': method.id === 'mbway',
-                'fas fa-university text-brand-primary-500': method.id === 'bank'
-              }" class="mr-2"></i>
-              {{ method.label }}
-              <span class="ml-1 text-xs text-gray-400 group-hover:text-gray-700 dark:text-gray-500 dark:group-hover:text-gray-400">&#9432;</span>
-            </span>
-          </label>
-        </ng-container>
-      </div>
+      <p class="text-sm text-gray-700 dark:text-gray-300">
+        {{ "confirmPayment" | i18n }}: 
+        <span class="font-semibold">{{ request().title }}</span>
+        <br />
+        {{ "value" | i18n }}: 
+        <span class="font-semibold text-green-700 dark:text-green-400">
+          {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}
+        </span>
+      </p>
       <!-- Mensagem de erro -->
       <div *ngIf="error()" class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
         <i class="fas fa-exclamation-circle mr-2"></i>
@@ -115,7 +96,7 @@
     </div>
     <button
       (click)="handlePay()"
-      [disabled]="!selectedMethod() || loading() || processing()"
+      [disabled]="loading() || processing()"
       class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
       type="button"
       tabindex="0"

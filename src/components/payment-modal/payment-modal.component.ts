@@ -26,7 +26,7 @@ export class PaymentModalComponent implements AfterViewChecked {
   loading = input<boolean>(false);
   // Estado local de spinner
   processing = signal<boolean>(false);
-  onPay = output<{ request: ServiceRequest; method: string }>();
+  onPay = output<ServiceRequest>();
   onClose = output<void>();
 
   // Estado de erro/feedback
@@ -37,41 +37,13 @@ export class PaymentModalComponent implements AfterViewChecked {
 
   private readonly i18n = inject(I18nService);
 
-  selectedMethod = signal<string>("");
-
-  paymentMethods = [
-    {
-      id: "card",
-      label: this.i18n.translate("creditCard"),
-      tooltip: this.i18n.translate("creditCardTooltip") || "Pagamento com cartão de crédito ou débito."
-    },
-    {
-      id: "mbway",
-      label: this.i18n.translate("mbway"),
-      tooltip: this.i18n.translate("mbwayTooltip") || "Pagamento instantâneo via MB WAY."
-    },
-    {
-      id: "bank",
-      label: this.i18n.translate("bankTransfer"),
-      tooltip: this.i18n.translate("bankTransferTooltip") || "Transferência bancária tradicional."
-    },
-  ];
-
   handlePay() {
     if (this.loading()) return;
     this.error.set("");
-    if (!this.selectedMethod()) {
-      this.error.set(this.i18n.translate("selectPaymentMethodError") || "Selecione um método de pagamento.");
-      return;
-    }
     // Ativa spinner local
     this.processing.set(true);
     // Emite evento para o pai processar pagamento
-    this.onPay.emit({
-      request: this.request(),
-      method: this.selectedMethod(),
-    });
-
+    this.onPay.emit(this.request());
   }
 
   // Método para ser chamado pelo pai em caso de erro

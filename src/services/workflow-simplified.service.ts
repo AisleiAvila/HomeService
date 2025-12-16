@@ -654,7 +654,7 @@ export class WorkflowServiceSimplified {
     adminId: number,
     paymentData: {
       amount: number;
-      method: "Dinheiro" | "Transferência" | "PIX" | "Cheque";
+      method: "Dinheiro" | "Transferência" | "PIX" | "Cheque" | "Confirmado Manualmente";
       notes?: string;
     }
   ): Promise<boolean> {

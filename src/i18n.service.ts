@@ -944,6 +944,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     tooManyAttempts: "Too many attempts. Please try again later.",
     myProfile: "My Profile",
     updateProfileInformation: "Update your profile information and email address",
+    confirmPaymentMessage: "Are you sure you want to confirm the payment for this request?",
    
 
   },
@@ -1892,6 +1893,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     natanAffiliation: "Vínculo com a Natan Construtora",
     myProfile: "Meu Perfil",
     updateProfileInformation: "Atualize as informações do seu perfil",
+    confirmPaymentMessage: "Você está prestes a pagar {amount} para a solicitação #{id}. Deseja continuar?",
 
   },
 };

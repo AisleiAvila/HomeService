@@ -22,16 +22,15 @@ import { WorkflowServiceSimplified } from "../../../services/workflow-simplified
 export class ServiceRequestsComponent {
     // Signal de loading local, sincronizado com o DataService
     isLoading = computed(() => this.dataService.isLoading());
-            async processPayment(event: { request: ServiceRequest; method: string }) {
-                const req = event.request;
+            async processPayment(request: ServiceRequest) {
                 // Chama serviço para registrar pagamento via injeção
                 await this.workflowService.registerPayment(
-                    req.id,
+                    request.id,
                     this.currentUser()?.id ?? 0,
                     {
-                        amount: req.valor_prestador ?? req.valor ?? 0,
-                        method: event.method as any,
-                        notes: 'Pagamento realizado via painel admin',
+                        amount: request.valor_prestador ?? request.valor ?? 0,
+                        method: "Confirmado Manualmente",
+                        notes: 'Pagamento confirmado manualmente via painel admin',
                     }
                 );
                 // Atualiza lista e fecha modal

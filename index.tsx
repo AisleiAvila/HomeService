@@ -3,7 +3,7 @@ import "@angular/compiler";
 import { provideRouter } from "@angular/router";
 import { routes } from "./src/app/app.routes";
 
-import { provideZonelessChangeDetection, LOCALE_ID, APP_INITIALIZER } from "@angular/core";
+import { provideZonelessChangeDetection, LOCALE_ID, provideAppInitializer, inject } from "@angular/core";
 import { provideHttpClient, withFetch } from "@angular/common/http";
 import { bootstrapApplication } from "@angular/platform-browser";
 import { registerLocaleData } from "@angular/common";
@@ -26,17 +26,11 @@ try {
       provideZonelessChangeDetection(),
       provideHttpClient(withFetch()), // Enable HTTP client with fetch API
       { provide: LOCALE_ID, useValue: "de" }, // German locale for Euro
-      {
-        provide: APP_INITIALIZER,
-        useFactory: (authService: AuthService) => {
-          return () => {
-            console.log("🔄 Recuperando sessão autenticada do localStorage...");
-            return authService.restoreSessionFromStorage();
-          };
-        },
-        deps: [AuthService],
-        multi: true,
-      },
+      provideAppInitializer(() => {
+        const authService = inject(AuthService);
+        console.log("🔄 Recuperando sessão autenticada do localStorage...");
+        return authService.restoreSessionFromStorage();
+      }),
     ],
   });
 } catch (err) {
