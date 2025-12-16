@@ -62,9 +62,9 @@
 
   .dark {
     /* Ajustes para dark mode */
-    --color-brand-primary: 252 165 165; /* Vermelho coral mais claro */
-    --color-brand-secondary: 163 163 163; /* Cinza mais claro */
-    --color-brand-accent: 189 189 189; /* Cinza accent mais claro */
+    --color-brand-primary: 255 200 200; /* Vermelho coral mais luminoso */
+    --color-brand-secondary: 200 200 200; /* Cinza mais claro */
+    --color-brand-accent: 220 220 220; /* Cinza accent mais luminoso */
   }
 }
 
@@ -181,19 +181,19 @@
   }
 
   .dark body {
-    @apply bg-neutral-900 text-neutral-50;
+    @apply bg-neutral-800 text-neutral-50;
   }
 
   .dark input,
   .dark textarea,
   .dark select {
-    @apply bg-neutral-600 border-neutral-500 text-neutral-50;
+    @apply bg-neutral-700 border-neutral-600 text-neutral-50;
   }
 
   .dark input:focus,
   .dark textarea:focus,
   .dark select:focus {
-    @apply bg-neutral-600 border-brand-primary-500 ring-2 ring-brand-primary-500/30 text-white;
+    @apply bg-neutral-700 border-brand-primary-500 ring-2 ring-brand-primary-500/30 text-white;
   }
 
   .dark button {
@@ -206,16 +206,16 @@
 
   /* Dark mode para Cards */
   .dark .card-brand {
-    @apply bg-neutral-800 border-neutral-600 text-neutral-50;
+    @apply bg-neutral-700 border-neutral-600 text-neutral-50;
   }
 
   .dark .card-brand-elevated {
-    @apply bg-neutral-800 border-neutral-600 text-neutral-50;
+    @apply bg-neutral-700 border-neutral-600 text-neutral-50;
   }
 
   /* Dark mode para Inputs */
   .dark .input-brand {
-    @apply bg-neutral-600 border-neutral-500 text-white;
+    @apply bg-neutral-700 border-neutral-600 text-white;
     @apply focus:border-brand-primary-500;
   }
 
