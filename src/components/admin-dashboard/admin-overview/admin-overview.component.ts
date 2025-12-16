@@ -4,6 +4,7 @@ import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
+import { NotificationService } from "../../../services/notification.service";
 import { CategoryBarChartComponent } from "../../category-bar-chart.component";
 import { StatusPieChartComponent } from '../../status-pie-chart.component';
 
@@ -23,9 +24,13 @@ export class AdminOverviewComponent implements OnInit {
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
+    private readonly notificationService = inject(NotificationService);
     
     // Signals para animação de contagem
     private animatedValues = signal<Record<string, number>>({});
+    
+    // Signal para modo de visualização compacto
+    compactMode = signal(false);
     
     // Signal para dados de sparkline
     sparklineData = computed(() => {
@@ -372,6 +377,250 @@ export class AdminOverviewComponent implements OnInit {
             ctx.fillStyle = gradient;
             ctx.fill();
         }, 100);
+    }
+    
+    // Toggle modo compacto
+    toggleCompactMode() {
+        this.compactMode.update(mode => !mode);
+    }
+    
+    // Exportar dados como CSV
+    async exportToCSV() {
+        try {
+            const requests = this.dataService.serviceRequests();
+            const stats = this.stats();
+            
+            // Cabeçalhos CSV
+            let csv = 'Estatísticas Gerais\n\n';
+            csv += 'Métrica,Valor,Tendência\n';
+            
+            stats.forEach(stat => {
+                const label = this.i18n.translate(stat.label);
+                csv += `"${label}","${stat.value}","${stat.trend}"\n`;
+            });
+            
+            csv += '\n\nSolicitações por Status\n\n';
+            csv += 'Status,Quantidade\n';
+            Object.entries(this.statusPieChartData()).forEach(([status, count]) => {
+                csv += `"${status}","${count}"\n`;
+            });
+            
+            csv += '\n\nSolicitações por Categoria\n\n';
+            csv += 'Categoria,Quantidade\n';
+            Object.entries(this.ordersByCategory()).forEach(([category, count]) => {
+                csv += `"${category}","${count}"\n`;
+            });
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().split('T')[0];
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `relatorio-overview-${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.notificationService.addNotification(
+                this.i18n.translate('exportSuccessCSV') || 'Relatório CSV exportado com sucesso!'
+            );
+        } catch (error) {
+            console.error('Erro ao exportar CSV:', error);
+            this.notificationService.addNotification(
+                this.i18n.translate('exportError') || 'Erro ao exportar relatório'
+            );
+        }
+    }
+    
+    // Exportar dados como PDF
+    async exportToPDF() {
+        try {
+            const stats = this.stats();
+            
+            // Criar HTML para impressão
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Relatório Overview - ${new Date().toLocaleDateString('pt-PT')}</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            color: #333;
+                        }
+                        h1 {
+                            color: #ea5455;
+                            border-bottom: 3px solid #ea5455;
+                            padding-bottom: 10px;
+                        }
+                        h2 {
+                            color: #475569;
+                            margin-top: 30px;
+                            border-bottom: 2px solid #e5e7eb;
+                            padding-bottom: 5px;
+                        }
+                        .stats-grid {
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 20px;
+                            margin: 20px 0;
+                        }
+                        .stat-card {
+                            border: 1px solid #e5e7eb;
+                            border-radius: 8px;
+                            padding: 15px;
+                            background: #f9fafb;
+                        }
+                        .stat-label {
+                            font-size: 14px;
+                            color: #6b7280;
+                            margin-bottom: 5px;
+                        }
+                        .stat-value {
+                            font-size: 24px;
+                            font-weight: bold;
+                            color: #111827;
+                            margin-bottom: 5px;
+                        }
+                        .stat-trend {
+                            font-size: 12px;
+                            font-weight: 600;
+                        }
+                        .trend-positive { color: #059669; }
+                        .trend-negative { color: #dc2626; }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                        }
+                        th, td {
+                            border: 1px solid #e5e7eb;
+                            padding: 12px;
+                            text-align: left;
+                        }
+                        th {
+                            background: #f3f4f6;
+                            font-weight: 600;
+                        }
+                        .footer {
+                            margin-top: 40px;
+                            text-align: center;
+                            color: #6b7280;
+                            font-size: 12px;
+                            border-top: 1px solid #e5e7eb;
+                            padding-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>📊 Relatório de Visão Geral - HomeService</h1>
+                    <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-PT', { 
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                    })}</p>
+                    
+                    <h2>📈 Estatísticas Principais</h2>
+                    <div class="stats-grid">
+            `;
+            
+            stats.forEach(stat => {
+                const trendClass = stat.trend.includes('+') ? 'trend-positive' : 'trend-negative';
+                html += `
+                    <div class="stat-card">
+                        <div class="stat-label">${this.i18n.translate(stat.label)}</div>
+                        <div class="stat-value">${stat.value}</div>
+                        <div class="stat-trend ${trendClass}">
+                            ${stat.trend} vs Mês Anterior
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                    
+                    <h2>📋 Solicitações por Status</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            Object.entries(this.statusPieChartData()).forEach(([status, count]) => {
+                html += `
+                    <tr>
+                        <td>${status}</td>
+                        <td><strong>${count}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <h2>🏷️ Solicitações por Categoria</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            Object.entries(this.ordersByCategory()).forEach(([category, count]) => {
+                html += `
+                    <tr>
+                        <td>${category}</td>
+                        <td><strong>${count}</strong></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p>Relatório gerado automaticamente pelo sistema HomeService</p>
+                        <p>© ${new Date().getFullYear()} HomeService - Natan Construtora</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Abrir em nova janela para impressão/salvamento como PDF
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(html);
+                printWindow.document.close();
+                
+                // Aguardar carregamento e abrir diálogo de impressão
+                printWindow.onload = () => {
+                    printWindow.focus();
+                    printWindow.print();
+                };
+                
+                this.notificationService.addNotification(
+                    this.i18n.translate('exportSuccessPDF') || 'Relatório PDF aberto para impressão!'
+                );
+            }
+        } catch (error) {
+            console.error('Erro ao exportar PDF:', error);
+            this.notificationService.addNotification(
+                this.i18n.translate('exportError') || 'Erro ao exportar relatório'
+            );
+        }
     }
 }
 
