@@ -589,6 +589,22 @@ export class AppComponent implements OnInit {
     }
   }
 
+  handleForgotPassword(email: string) {
+    this.emailForPasswordReset.set(email);
+    this.view.set("forgot-password");
+  }
+
+  handleForgotPasswordCodeRequested(email: string) {
+    this.emailForPasswordReset.set(email);
+    this.view.set("reset-password");
+  }
+
+  handlePasswordResetComplete() {
+    this.emailForPasswordReset.set("");
+    this.view.set("login");
+    this.notificationService.show("Senha alterada com sucesso! Faça login com sua nova senha.", "success");
+  }
+
   ngOnInit() {
     if (globalThis.window !== undefined) {
       this.isSidebarOpen.set(globalThis.window.innerWidth >= 768);
