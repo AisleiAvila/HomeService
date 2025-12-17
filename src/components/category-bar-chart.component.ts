@@ -57,15 +57,16 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       <!-- Legendas com valores - Grid responsivo melhorado -->
       <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
         <ng-container *ngFor="let item of sortedChartData()">
-          <div
-            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-default inline-flex items-center gap-2 whitespace-nowrap text-white border-2 shadow-lg"
-            [style.background]="item.color"
-            [style.border-color]="item.color"
-            [style.box-shadow]="'0 4px 12px ' + item.color + '60'"
-          >
-            <span class="font-bold">●</span>
-            <span>{{ item.label }}: {{ item.value }}</span>
-          </div>
+          @if (item.value > 0) {
+            <span
+              class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full text-white"
+              [style.background]="item.color"
+              [style.color]="'white'"
+            >
+              <span class="font-bold">●</span>
+              <span>{{ item.label }}: {{ item.value }}</span>
+            </span>
+          }
         </ng-container>
       </div>
     </div>
