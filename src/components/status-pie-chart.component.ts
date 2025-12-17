@@ -20,12 +20,12 @@ import { I18nService } from "../i18n.service";
     <div
       class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
     >
-      <div class="w-full mx-auto flex justify-center items-center relative">
+      <div class="w-full mx-auto flex justify-center items-center relative max-w-full">
         <canvas
           #pieCanvas
-          class="w-full h-auto aspect-square cursor-pointer"
-          width="700"
-          height="700"
+          class="w-full h-auto aspect-square cursor-pointer sm:max-w-2xl"
+          width="500"
+          height="500"
           (mousemove)="onMouseMove($event)"
           (mouseleave)="onMouseLeave()"
         ></canvas>
@@ -184,8 +184,8 @@ export class StatusPieChartComponent {
     const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
     
     // Verificar se está dentro do anel do donut
-    const outerRadius = 170;
-    const innerRadius = 105;
+    const outerRadius = 110;
+    const innerRadius = 68;
     
     if (distance >= innerRadius && distance <= outerRadius) {
       // Encontrar segmento correspondente
@@ -245,8 +245,8 @@ export class StatusPieChartComponent {
     
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const outerRadius = 170;
-    const innerRadius = 105; // Criar efeito donut
+    const outerRadius = 110;
+    const innerRadius = 68; // Criar efeito donut
     
     if (total === 0) {
       // Desenha donut cinza indicando ausência de dados
@@ -306,18 +306,18 @@ export class StatusPieChartComponent {
     
     // Desenhar total no centro do donut
     if (progress >= 1) {
-      // Background semi-transparente para melhor contraste
+      // Background semi-transparente menor para mobile
       ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 45, 0, 2 * Math.PI);
+      ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Número total em branco brilhante
-      ctx.font = "bold 32px sans-serif";
+      // Número total em branco brilhante - menor no mobile
+      ctx.font = "bold 24px sans-serif";
       ctx.fillStyle = "#FFFFFF"; // Branco puro para melhor visibilidade
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(total.toString(), centerX, centerY - 8);
+      ctx.fillText(total.toString(), centerX, centerY - 6);
       
       // Label "Total" em branco com menor opacidade
       ctx.font = "12px sans-serif";
