@@ -53,15 +53,16 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         </div>
       </div>
       
-      <!-- Legendas com valores - responsivo -->
-      <div class="flex flex-wrap gap-1.5 sm:gap-2 justify-center mt-4 sm:mt-6 w-full">
+      <!-- Legendas com valores - Grid responsivo melhorado -->
+      <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
         <ng-container *ngFor="let item of sortedChartData()">
           <span
-            class="px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default"
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full"
             [style.background]="item.color"
             [style.color]="'white'"
           >
-            {{ item.label }}: {{ item.value }}
+            <span class="font-bold">●</span>
+            <span>{{ item.label }}: {{ item.value }}</span>
           </span>
         </ng-container>
       </div>
@@ -83,6 +84,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
     // Log para depuração do valor do título
     effect(() => {
       console.log("[BarChart] Título recebido:", this.title());
+      console.log("[BarChart] Dados recebidos:", this.data());
+      console.log("[BarChart] Dados processados:", this.chartData());
       this.renderBarChart();
     });
   }

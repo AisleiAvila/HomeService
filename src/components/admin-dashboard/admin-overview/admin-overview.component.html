@@ -163,16 +163,6 @@
         
         <!-- Gráfico de Barras - Solicitações por Categoria -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
-                <i class="fas fa-chart-bar text-brand-primary-500 mr-2"></i>
-                {{ "requestsByCategory" | i18n }}
-            </h3>
-            @if (!compactMode()) {
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                    <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 mr-2"></i>
-                    {{ "currentMonth" | i18n }}
-                </p>
-            }
             <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="ordersByCategory()" 
@@ -186,16 +176,6 @@
     <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2')">
         <!-- Gráfico - Tempo Médio de Conclusão -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
-                <i class="fas fa-clock text-brand-primary-500 mr-2"></i>
-                {{ "avgCompletionTimeByService" | i18n }}
-            </h3>
-            @if (!compactMode()) {
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                    <i class="fas fa-hourglass-half text-gray-400 dark:text-gray-500 mr-2"></i>
-                    {{ "hours" | i18n }}
-                </p>
-            }
             <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="avgCompletionTimeByService()" 
@@ -206,16 +186,6 @@
         
         <!-- Gráfico - Receita por Categoria -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
-                <i class="fas fa-euro-sign text-brand-primary-500 mr-2"></i>
-                {{ "revenueByCategory" | i18n }}
-            </h3>
-            @if (!compactMode()) {
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                    <i class="fas fa-money-bill-wave text-gray-400 dark:text-gray-500 mr-2"></i>
-                    {{ "total" | i18n }}
-                </p>
-            }
             <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="revenueByCategory()" 
@@ -228,16 +198,6 @@
     <!-- Terceira linha - Receita por Profissional (largura total) -->
     <div class="w-full">
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
-            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
-                <i class="fas fa-user-tie text-brand-primary-500 mr-2"></i>
-                {{ "revenueByProfessional" | i18n }}
-            </h3>
-            @if (!compactMode()) {
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                    <i class="fas fa-chart-line text-gray-400 dark:text-gray-500 mr-2"></i>
-                    {{ "total" | i18n }}
-                </p>
-            }
             <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="revenueByProfessional()" 
