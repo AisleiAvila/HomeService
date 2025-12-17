@@ -163,8 +163,8 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
 
     // Desenhar área sob a linha primeiro (fundo)
     const gradient = ctx.createLinearGradient(0, margin, 0, rect.height - margin);
-    gradient.addColorStop(0, "rgba(234, 84, 85, 0.15)"); // brand-primary com transparência
-    gradient.addColorStop(1, "rgba(30, 64, 175, 0.02)");
+    gradient.addColorStop(0, "rgba(255, 56, 56, 0.2)"); // Vermelho vibrante com transparência
+    gradient.addColorStop(1, "rgba(255, 56, 56, 0.05)");
     
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -182,11 +182,11 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
 
     // Desenhar linha de evolução com sombra
     ctx.save();
-    ctx.shadowColor = 'rgba(30, 64, 175, 0.3)';
+    ctx.shadowColor = 'rgba(255, 56, 56, 0.3)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
     
-    ctx.strokeStyle = "#ea5455"; // brand-primary
+    ctx.strokeStyle = "#FF3838"; // Vermelho vibrante
     ctx.lineWidth = lineWidth;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
@@ -218,7 +218,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
       ctx.fill();
       
       // Ponto interno
-      ctx.fillStyle = "#ea5455"; // brand-primary
+      ctx.fillStyle = "#FF3838"; // Vermelho vibrante
       ctx.beginPath();
       ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
       ctx.fill();

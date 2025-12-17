@@ -18,8 +18,9 @@ import { CommonModule } from "@angular/common";
           <ng-container *ngFor="let item of chartData()">
             <div class="flex flex-col items-center justify-end h-full">
               <div
-                class="bg-brand-primary-500 rounded-t w-8"
-                [style.height]="item.value * scale + 'px'"
+              class="bg-red-500 rounded-t w-8"
+              [style.height]="item.value * scale + 'px'"
+              [style.background]="'#FF3838'"
                 [title]="item.label + ': ' + item.value"
               ></div>
               <span class="text-xs mt-1 text-center break-words max-w-[64px]">{{

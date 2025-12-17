@@ -102,18 +102,18 @@ export class CategoryBarChartComponent implements AfterViewInit {
       return [];
     }
     
-    // Cores da identidade visual da marca (baseado no Design System Natan)
+    // Cores vibrantes da identidade visual
     const colors = [
-      "#ea5455", // brand-primary - Vermelho Natan
-      "#0f766e", // teal-700 - Verde-azulado
-      "#7c3aed", // violet-600 - Violeta elegante
-      "#0891b2", // cyan-600 - Ciano corporativo
-      "#f59e0b", // amber-500 - Âmbar
-      "#059669", // emerald-600 - Verde esmeralda
-      "#475569", // slate-600 - Cinza ardósia
-      "#ef4444", // red-500 - Vermelho
-      "#0369a1", // sky-700 - Azul céu escuro
-      "#9e9e9e", // brand-accent - Cinza secundária
+      "#FF3838", // Vermelho vibrante
+      "#00D4A6", // Teal vibrante
+      "#6B5FFF", // Roxo vibrante
+      "#00B8E6", // Ciano vibrante
+      "#FFA500", // Laranja vibrante
+      "#00C853", // Verde vibrante
+      "#34495E", // Cinza escuro
+      "#FF4757", // Vermelho coral vibrante
+      "#0084FF", // Azul vibrante
+      "#95A5A6", // Cinza neutral
     ];
     
     let i = 0;
