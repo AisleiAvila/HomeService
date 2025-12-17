@@ -5,6 +5,7 @@ import {
   input,
   effect,
   signal,
+  computed,
   inject,
   viewChild,
   ElementRef,
@@ -71,6 +72,39 @@ export class ProfileComponent implements OnDestroy {
   specialties = signal<ServiceCategory[]>([]);
   email = signal("");
   isNatanEmployee = signal(false);
+  
+  // Computed signal que sempre pega o avatar mais atualizado
+  avatarUrl = computed(() => {
+    const currentUser = this.user();
+    
+    if (!currentUser) {
+      console.log("🎯 Avatar: sem usuário");
+      return undefined;
+    }
+    
+    // Primeiro tenta buscar do DataService (dados mais completos)
+    const userFromDataService = this.dataService.users().find(u => u.id === currentUser.id);
+    if (userFromDataService?.avatar_url) {
+      console.log("🎯 Avatar do DataService:", userFromDataService.avatar_url);
+      return userFromDataService.avatar_url;
+    }
+    
+    // Depois tenta do AuthService
+    const authUser = this.authService.appUser();
+    if (authUser && authUser.id === currentUser.id && authUser.avatar_url) {
+      console.log("🎯 Avatar do AuthService:", authUser.avatar_url);
+      return authUser.avatar_url;
+    }
+    
+    // Fallback: input do componente
+    if (currentUser.avatar_url) {
+      console.log("🎯 Avatar do input:", currentUser.avatar_url);
+      return currentUser.avatar_url;
+    }
+    
+    console.log("🎯 Avatar: nenhuma fonte disponível");
+    return undefined;
+  });
 
   // UI state
   isEditing = signal(false);
@@ -142,10 +176,11 @@ export class ProfileComponent implements OnDestroy {
         );
         this.isNatanEmployee.set(currentUser.is_natan_employee ?? false);
 
-        // Monitorar mudanças no avatar e resetar imageLoadFailed quando a URL muda
-        if (currentUser.avatar_url) {
+        // Avatar URL é computed, então não precisa setar aqui
+        // Apenas resetar imageLoadFailed
+        if (this.avatarUrl()) {
           this.imageLoadFailed.set(false);
-          console.log("📷 Avatar URL detectado:", currentUser.avatar_url);
+          console.log("📷 Avatar URL detectado:", this.avatarUrl());
         } else {
           console.warn("⚠️ Avatar URL vazio ou não definido");
         }
