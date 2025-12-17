@@ -173,9 +173,9 @@
 
             <div *ngIf="newClientRole() === 'professional'">
                 <!-- Especialidades -->
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ 'specialties' | i18n }}
-                </label>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                     <ng-container *ngIf="categories() && categories().length > 0; else noCategoriesAdd">
                         <ng-container *ngFor="let cat of categories(); trackBy: trackByCategoryId">
@@ -499,10 +499,10 @@
 
             <!-- Especialidades (apenas para profissionais) -->
             <div *ngIf="editingClientRole() === 'professional'">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div id="editingSpecialties" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {{ 'specialties' | i18n }}
-                </label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" aria-labelledby="editingSpecialties">
                     <ng-container *ngIf="categories() && categories().length > 0; else noCategories">
                         <ng-container *ngFor="let cat of categories(); trackBy: trackByCategoryId">
                             <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -523,8 +523,9 @@
 
             <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
             <div *ngIf="editingClientRole() === 'professional'">
-                <label class="flex items-center gap-3 cursor-pointer">
+                <label for="editingClientIsNatanEmployee" class="flex items-center gap-3 cursor-pointer">
                     <input 
+                        id="editingClientIsNatanEmployee"
                         type="checkbox" 
                         [checked]="editingClientIsNatanEmployee()"
                         (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
