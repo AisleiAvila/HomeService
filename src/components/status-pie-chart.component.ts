@@ -20,18 +20,18 @@ import { I18nPipe } from "../pipes/i18n.pipe";
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
+      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
     >
       <!-- Filtro de Período -->
-      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
-          <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400 mr-2"></i>
+      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-3">
+        <h3 class="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center shrink-0">
+          <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400 mr-1.5 text-xs sm:text-sm"></i>
           {{ title() }}
         </h3>
         <select
           [(ngModel)]="selectedPeriod"
           (ngModelChange)="onPeriodChange()"
-          class="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
+          class="w-full sm:w-auto px-2 py-1 text-xs sm:text-xs md:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
         >
           <option value="all">{{ 'allTime' | i18n }}</option>
           <option value="7">{{ 'last7Days' | i18n }}</option>
@@ -40,10 +40,10 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         </select>
       </div>
 
-      <div class="w-full mx-auto flex justify-center items-center relative max-w-full">
+      <div class="w-full mx-auto flex justify-center items-center relative max-w-full overflow-auto">
         <canvas
           #pieCanvas
-          class="w-full h-auto aspect-square cursor-pointer sm:max-w-2xl"
+          class="w-full h-auto aspect-square cursor-pointer max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl"
           width="500"
           height="500"
           (mousemove)="onMouseMove($event)"
@@ -66,16 +66,16 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       </div>
       
       <!-- Legendas com percentuais - Grid responsivo melhorado -->
-      <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
+      <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1.5 sm:gap-2 justify-items-center mt-1.5">
         <ng-container *ngFor="let item of chartData()">
           @if (item.value > 0) {
             <span
-              class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full"
+              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words text-white line-clamp-2"
               [style.background]="item.color"
               [style.color]="'white'"
             >
-              <span class="font-bold">●</span>
-              <span>{{ item.label }}: {{ item.value }} ({{ item.percentage }}%)</span>
+              <span class="font-bold text-xs sm:text-xs md:text-sm">●</span>
+              <span class="text-xs sm:text-xs md:text-sm">{{ item.label }}: {{ item.value }} ({{ item.percentage }}%)</span>
             </span>
           }
         </ng-container>
@@ -276,8 +276,10 @@ export class StatusPieChartComponent {
     
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const outerRadius = 110;
-    const innerRadius = 68; // Criar efeito donut
+    // Responsive raio baseado no tamanho
+    const isSmallScreen = rect.width < 300;
+    const outerRadius = isSmallScreen ? 80 : 110;
+    const innerRadius = isSmallScreen ? 50 : 68;
     
     if (total === 0) {
       // Desenha donut cinza indicando ausência de dados
@@ -340,20 +342,23 @@ export class StatusPieChartComponent {
       // Background semi-transparente menor para mobile
       ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
+      const bgRadius = isSmallScreen ? 24 : 32;
+      ctx.arc(centerX, centerY, bgRadius, 0, 2 * Math.PI);
       ctx.fill();
       
       // Número total em branco brilhante - menor no mobile
-      ctx.font = "bold 24px sans-serif";
+      const fontSize = isSmallScreen ? "18px" : "24px";
+      ctx.font = `bold ${fontSize} sans-serif`;
       ctx.fillStyle = "#FFFFFF"; // Branco puro para melhor visibilidade
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(total.toString(), centerX, centerY - 6);
+      ctx.fillText(total.toString(), centerX, centerY - (isSmallScreen ? 4 : 6));
       
       // Label "Total" em branco com menor opacidade
-      ctx.font = "12px sans-serif";
+      const labelSize = isSmallScreen ? "9px" : "12px";
+      ctx.font = `${labelSize} sans-serif`;
       ctx.fillStyle = "#E0E0E0"; // Branco levemente acinzentado
-      ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + 12);
+      ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + (isSmallScreen ? 8 : 12));
     }
   }
 }

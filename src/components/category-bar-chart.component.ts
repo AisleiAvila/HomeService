@@ -21,18 +21,18 @@ import { I18nPipe } from "../pipes/i18n.pipe";
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
+      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
     >
       <!-- Filtro de Período -->
-      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
-          <i [class]="icon() + ' text-brand-primary-500 mr-2'"></i>
+      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-3">
+        <h3 class="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center shrink-0">
+          <i [class]="icon() + ' text-brand-primary-500 mr-1.5 text-xs sm:text-sm'"></i>
           {{ title() }}
         </h3>
         <select
           [(ngModel)]="selectedPeriod"
           (ngModelChange)="onPeriodChange()"
-          class="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
+          class="w-full sm:w-auto px-2 py-1 text-xs sm:text-xs md:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
         >
           <option value="all">{{ 'allTime' | i18n }}</option>
           <option value="7">{{ 'last7Days' | i18n }}</option>
@@ -42,8 +42,8 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       </div>
       
       <!-- Canvas com scroll horizontal - otimizado para mobile -->
-      <div class="w-full overflow-x-auto overflow-y-hidden -mx-4 sm:mx-0 px-4 sm:px-0" style="max-width: 100%;">
-        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1 sm:py-2">
+      <div class="w-full overflow-x-auto overflow-y-hidden" style="max-width: 100%; margin: 0 -12px; padding: 0 12px;">
+        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1">
           <canvas
             #barCanvas
             [width]="canvasWidth()"
@@ -55,16 +55,16 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       </div>
       
       <!-- Legendas com valores - Grid responsivo melhorado -->
-      <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
+      <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1.5 sm:gap-2 justify-items-center mt-1.5">
         <ng-container *ngFor="let item of sortedChartData()">
           @if (item.value > 0) {
             <span
-              class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full text-white"
+              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words text-white line-clamp-2"
               [style.background]="item.color"
               [style.color]="'white'"
             >
-              <span class="font-bold">●</span>
-              <span>{{ item.label }}: {{ item.value }}</span>
+              <span class="font-bold text-xs sm:text-xs md:text-sm">●</span>
+              <span class="text-xs sm:text-xs md:text-sm">{{ item.label }}: {{ item.value }}</span>
             </span>
           }
         </ng-container>
@@ -141,8 +141,11 @@ export class CategoryBarChartComponent implements AfterViewInit {
   canvasMinWidth = computed(() => {
     const count = this.sortedChartData().length;
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
-    // Mobile: 50px por barra, mínimo 250px / Desktop: 50px por barra, mínimo 300px (proporcional)
-    return isMobile ? Math.max(250, count * 50) : Math.max(300, count * 50);
+    const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
+    // Mobile: 45px por barra / Tablet: 50px / Desktop: 55px
+    const barSize = isMobile ? 45 : isTablet ? 50 : 55;
+    const minWidth = isMobile ? 240 : isTablet ? 280 : 320;
+    return Math.max(minWidth, count * barSize);
   });
   
   // Largura do canvas ajustada
@@ -153,7 +156,9 @@ export class CategoryBarChartComponent implements AfterViewInit {
   // Altura do canvas responsiva
   canvasHeight = computed(() => {
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
-    return isMobile ? 180 : 320;
+    const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
+    // Mobile: 140px / Tablet: 200px / Desktop: 320px
+    return isMobile ? 140 : isTablet ? 200 : 320;
   });
 
   ngAfterViewInit() {
@@ -257,8 +262,9 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
   private calculateChartDimensions(displayWidth: number, displayHeight: number) {
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
-    const topMargin = isMobile ? 25 : 35;
-    const bottomMargin = isMobile ? 50 : 80;
+    const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
+    const topMargin = isMobile ? 15 : isTablet ? 25 : 35;
+    const bottomMargin = isMobile ? 40 : isTablet ? 60 : 80;
     
     return {
       isMobile,
@@ -271,9 +277,10 @@ export class CategoryBarChartComponent implements AfterViewInit {
   }
 
   private calculateBarDimensions(displayWidth: number, dataLength: number, isMobile: boolean) {
+    const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
     const barWidth = displayWidth / dataLength;
-    const barSpacing = isMobile ? 6 : 8;
-    const minBarWidth = isMobile ? 30 : 40;
+    const barSpacing = isMobile ? 4 : isTablet ? 5 : 8;
+    const minBarWidth = isMobile ? 24 : isTablet ? 30 : 40;
     const maxBarWidth = barWidth - barSpacing;
     const actualBarWidth = Math.min(Math.max(maxBarWidth, minBarWidth), barWidth * 0.8);
     
@@ -361,7 +368,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     barWidth: number,
     isMobile: boolean
   ) {
-    const fontSize = isMobile ? 11 : 13;
+    const fontSize = isMobile ? 9 : 11;
     ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.fillStyle = "#111827";
     ctx.textAlign = "center";
@@ -369,22 +376,22 @@ export class CategoryBarChartComponent implements AfterViewInit {
     
     const text = value.toString();
     const textMetrics = ctx.measureText(text);
-    const textHeight = isMobile ? 14 : 16;
-    const padding = isMobile ? 3 : 4;
+    const textHeight = isMobile ? 12 : 14;
+    const padding = isMobile ? 2 : 3;
     
     ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
     this.roundRect(
       ctx,
       x + barWidth / 2 - textMetrics.width / 2 - padding,
-      y - textHeight - padding - 4,
+      y - textHeight - padding - 3,
       textMetrics.width + padding * 2,
       textHeight + padding,
-      4
+      3
     );
     ctx.fill();
     
     ctx.fillStyle = "#111827";
-    ctx.fillText(text, x + barWidth / 2, y - 6);
+    ctx.fillText(text, x + barWidth / 2, y - 4);
   }
 
   private drawBarLabel(
@@ -397,7 +404,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     dataLength: number
   ) {
     ctx.save();
-    ctx.translate(x + barDimensions.actualBarWidth / 2, chartDimensions.chartBottom + 10);
+    ctx.translate(x + barDimensions.actualBarWidth / 2, chartDimensions.chartBottom + 8);
     
     const shouldRotate = dataLength > 6 || barDimensions.isMobile;
     if (shouldRotate) {
@@ -407,7 +414,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
       ctx.textAlign = "center";
     }
     
-    const labelFontSize = barDimensions.isMobile ? 9 : 11;
+    const labelFontSize = barDimensions.isMobile ? 7.5 : 9;
     ctx.font = `bold ${labelFontSize}px sans-serif`;
     
     // Detectar dark mode e ajustar cor do texto
@@ -416,7 +423,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     ctx.fillStyle = isDarkMode ? "#d1d5db" : "#4b5563";
     ctx.textBaseline = "top";
     
-    const maxLength = barDimensions.isMobile ? 12 : 15;
+    const maxLength = barDimensions.isMobile ? 10 : 13;
     const truncatedLabel = label.length > maxLength 
       ? label.substring(0, maxLength) + '...' 
       : label;
@@ -433,11 +440,12 @@ export class CategoryBarChartComponent implements AfterViewInit {
   ) {
     const maxValue = Math.max(...data.map((item) => item.value));
     const progress = this.animationProgress();
+    const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     
     ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.5;
     
-    const gridLines = 5;
+    const gridLines = isMobile ? 3 : 5;
     for (let i = 0; i <= gridLines; i++) {
       const y = chartDimensions.chartTop + (chartDimensions.chartHeight * i / gridLines);
       ctx.beginPath();
@@ -447,11 +455,12 @@ export class CategoryBarChartComponent implements AfterViewInit {
       
       if (progress >= 1) {
         const value = Math.round(maxValue * (1 - i / gridLines));
-        ctx.font = "10px sans-serif";
+        const fontSize = isMobile ? 7.5 : 9;
+        ctx.font = `${fontSize}px sans-serif`;
         ctx.fillStyle = "#6b7280";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(value.toString(), displayWidth - 5, y);
+        ctx.fillText(value.toString(), displayWidth - 3, y);
       }
     }
   }
