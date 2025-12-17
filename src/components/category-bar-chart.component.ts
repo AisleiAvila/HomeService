@@ -21,11 +21,12 @@ import { I18nPipe } from "../pipes/i18n.pipe";
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mobile-safe flex flex-col"
+      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
     >
       <!-- Filtro de Período -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100">
+      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+          <i [class]="icon() + ' text-brand-primary-500 mr-2'"></i>
           {{ title() }}
         </h3>
         <select
@@ -41,7 +42,7 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       </div>
       
       <!-- Canvas com scroll horizontal - otimizado para mobile -->
-      <div class="w-full overflow-x-auto overflow-y-hidden -mx-3 sm:mx-0 px-3 sm:px-0" style="max-width: 100%;">
+      <div class="w-full overflow-x-auto overflow-y-hidden -mx-4 sm:mx-0 px-4 sm:px-0" style="max-width: 100%;">
         <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1 sm:py-2">
           <canvas
             #barCanvas
@@ -56,14 +57,15 @@ import { I18nPipe } from "../pipes/i18n.pipe";
       <!-- Legendas com valores - Grid responsivo melhorado -->
       <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
         <ng-container *ngFor="let item of sortedChartData()">
-          <span
-            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full"
+          <div
+            class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-xl cursor-default inline-flex items-center gap-2 whitespace-nowrap text-white border-2 shadow-lg"
             [style.background]="item.color"
-            [style.color]="'white'"
+            [style.border-color]="item.color"
+            [style.box-shadow]="'0 4px 12px ' + item.color + '60'"
           >
             <span class="font-bold">●</span>
             <span>{{ item.label }}: {{ item.value }}</span>
-          </span>
+          </div>
         </ng-container>
       </div>
     </div>
@@ -91,6 +93,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   }
 
   title = input.required<string>();
+  icon = input<string>('fas fa-chart-bar'); // Ícone padrão
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
   createdDates = input<Record<string, string[]>>(); // Datas de criação por categoria para filtro

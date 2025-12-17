@@ -79,7 +79,7 @@
             
             <!-- Header com label e ícone -->
             <div class="flex items-start justify-between mb-2 relative z-10">
-                <p [class]="'font-medium truncate flex-1 pr-2 ' + (compactMode() ? 'text-xs' : 'text-sm') + ' text-gray-600 dark:text-gray-400'">
+                <p [class]="'font-medium truncate flex-1 pr-2 ' + (compactMode() ? 'text-xs' : 'text-sm') + ' text-gray-700 dark:text-gray-200'">
                     {{ stat.label | i18n }}
                 </p>
                 <div [class]="'rounded-lg flex-shrink-0 shadow-sm ' + stat.bgColor + (compactMode() ? ' p-1.5' : ' p-2.5')">
@@ -89,7 +89,7 @@
             
             <!-- Valor principal -->
             <div [class]="'relative z-10 ' + (compactMode() ? 'mb-1' : 'mb-3')">
-                <p [class]="'font-bold text-gray-900 dark:text-gray-100 truncate ' + (compactMode() ? 'text-lg' : 'text-2xl')">
+                <p [class]="'font-bold text-gray-900 dark:text-white truncate ' + (compactMode() ? 'text-lg' : 'text-2xl')">
                     {{ stat.value }}
                 </p>
             </div>
@@ -143,7 +143,7 @@
         <!-- Gráfico de Pizza -->
         <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
             <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
-                <i class="fas fa-chart-pie text-brand-primary-500 mr-2"></i>
+                <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400 mr-2"></i>
                 {{ "requestsByStatus" | i18n }}
             </h3>
             @if (!compactMode()) {
@@ -167,6 +167,7 @@
                 <app-category-bar-chart 
                     [data]="ordersByCategory()" 
                     [title]="'requestsByCategory' | i18n"
+                    [icon]="'fas fa-list'"
                     class="w-full h-full" />
             </div>
         </div>
@@ -180,6 +181,7 @@
                 <app-category-bar-chart 
                     [data]="avgCompletionTimeByService()" 
                     [title]="'avgCompletionTimeByService' | i18n"
+                    [icon]="'fas fa-clock'"
                     class="w-full h-full" />
             </div>
         </div>
@@ -190,6 +192,7 @@
                 <app-category-bar-chart 
                     [data]="revenueByCategory()" 
                     [title]="'revenueByCategory' | i18n"
+                    [icon]="'fas fa-euro-sign'"
                     class="w-full h-full" />
             </div>
         </div>
@@ -202,6 +205,7 @@
                 <app-category-bar-chart 
                     [data]="revenueByProfessional()" 
                     [title]="'revenueByProfessional' | i18n"
+                    [icon]="'fas fa-user-tie'"
                     class="w-full h-full" />
             </div>
         </div>
