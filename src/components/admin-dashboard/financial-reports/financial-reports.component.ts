@@ -1,10 +1,9 @@
 
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
-import { ServiceRequest } from "../../../models/maintenance.models";
+import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
-import { I18nService } from "../../../i18n.service";
 
 @Component({
     selector: "app-financial-reports",

@@ -77,7 +77,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   
   // Signal para controle de período
   selectedPeriod = signal<'all' | '7' | '30' | '90'>('all');
-  private animationProgress = signal(0);
+  private readonly animationProgress = signal(0);
   
   constructor() {
     // Log para depuração do valor do título
@@ -133,7 +133,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   // Largura mínima do canvas baseada no número de categorias
   canvasMinWidth = computed(() => {
     const count = this.sortedChartData().length;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     // Mobile: 60px por barra, mínimo 300px / Desktop: 80px por barra, mínimo 400px
     return isMobile ? Math.max(300, count * 60) : Math.max(400, count * 80);
   });
@@ -145,7 +145,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   
   // Altura do canvas responsiva
   canvasHeight = computed(() => {
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     return isMobile ? 180 : 320;
   });
 
@@ -199,184 +199,248 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const data = this.sortedChartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
 
+    this.setupCanvasResolution(canvas, ctx);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (total === 0) {
-      // Desenha mensagem de ausência de dados
-      ctx.font = "bold 18px sans-serif";
-      ctx.fillStyle = "#6b7280"; // gray-500
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const i18nText = this.i18n.translate("noDataAvailable") || "Sem dados";
-      ctx.fillText(i18nText, canvas.width / 2, canvas.height / 2);
+      this.drawNoDataMessage(ctx, canvas.width, canvas.height);
       return;
     }
 
-    // Usar escala logarítmica ajustada para melhor visualização
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    const chartDimensions = this.calculateChartDimensions(displayWidth, displayHeight);
+    const normalizeValue = this.getNormalizeFunction(data);
+    const barDimensions = this.calculateBarDimensions(displayWidth, data.length, chartDimensions.isMobile);
+
+    console.log('[CategoryBarChart] Renderizando:', {
+      dataLength: data.length,
+      displayWidth,
+      barWidth: barDimensions.barWidth,
+      actualBarWidth: barDimensions.actualBarWidth,
+      data: data.map(d => ({ label: d.label, value: d.value }))
+    });
+
+    this.drawBars(ctx, data, normalizeValue, barDimensions, chartDimensions);
+    this.drawGridLines(ctx, data, chartDimensions, displayWidth);
+  }
+
+  private setupCanvasResolution(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    const dpr = globalThis.window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    
+    if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
+      canvas.width = displayWidth * dpr;
+      canvas.height = displayHeight * dpr;
+      ctx.scale(dpr, dpr);
+    }
+  }
+
+  private drawNoDataMessage(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillStyle = "#6b7280";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const i18nText = this.i18n.translate("noDataAvailable") || "Sem dados";
+    ctx.fillText(i18nText, width / 2, height / 2);
+  }
+
+  private calculateChartDimensions(displayWidth: number, displayHeight: number) {
+    const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
+    const topMargin = isMobile ? 25 : 35;
+    const bottomMargin = isMobile ? 50 : 80;
+    
+    return {
+      isMobile,
+      topMargin,
+      bottomMargin,
+      chartHeight: displayHeight - topMargin - bottomMargin,
+      chartTop: topMargin,
+      chartBottom: displayHeight - bottomMargin,
+    };
+  }
+
+  private calculateBarDimensions(displayWidth: number, dataLength: number, isMobile: boolean) {
+    const barWidth = displayWidth / dataLength;
+    const barSpacing = isMobile ? 6 : 8;
+    const minBarWidth = isMobile ? 30 : 40;
+    const maxBarWidth = barWidth - barSpacing;
+    const actualBarWidth = Math.min(Math.max(maxBarWidth, minBarWidth), barWidth * 0.8);
+    
+    return { barWidth, barSpacing, actualBarWidth, isMobile };
+  }
+
+  private getNormalizeFunction(data: any[]) {
     const maxValue = Math.max(...data.map((item) => item.value));
     const minValue = Math.min(...data.map((item) => item.value));
-    
-    // Se a diferença é muito grande, usar escala logarítmica
     const useLogScale = maxValue / Math.max(minValue, 1) > 10;
     
-    const normalizeValue = (value: number): number => {
+    return (value: number): number => {
       if (useLogScale && value > 0) {
-        // Escala logarítmica: log(value + 1) para evitar log(0)
         const logMax = Math.log(maxValue + 1);
         const logValue = Math.log(value + 1);
         return logValue / logMax;
       }
-      // Escala linear normal
       return value / maxValue;
     };
+  }
 
-    const barWidth = canvas.width / data.length;
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-    const barSpacing = isMobile ? 6 : 8;
-    const minBarWidth = isMobile ? 30 : 40;
-    const maxBarWidth = barWidth - barSpacing; // Garantir que não ultrapasse o espaço disponível
-    const actualBarWidth = Math.min(Math.max(maxBarWidth, minBarWidth), barWidth * 0.8); // Máximo 80% do espaço
-    const topMargin = isMobile ? 25 : 35;
-    const bottomMargin = isMobile ? 50 : 80;
-    const chartHeight = canvas.height - topMargin - bottomMargin;
-    const chartTop = topMargin;
-    const chartBottom = canvas.height - bottomMargin;
-
-    // Aplicar progresso de animação
+  private drawBars(
+    ctx: CanvasRenderingContext2D,
+    data: any[],
+    normalizeValue: (value: number) => number,
+    barDimensions: any,
+    chartDimensions: any
+  ) {
     const progress = this.animationProgress();
-    
-    // Debug: Log para verificar dados
-    console.log('[CategoryBarChart] Renderizando:', {
-      dataLength: data.length,
-      canvasWidth: canvas.width,
-      barWidth,
-      actualBarWidth,
-      data: data.map(d => ({ label: d.label, value: d.value }))
-    });
-
-    // Draw bars
     let index = 0;
+
     for (const item of data) {
       const normalizedValue = normalizeValue(item.value);
-      const barHeight = normalizedValue * chartHeight * progress;
-      const x = index * barWidth + barSpacing / 2;
-      const y = chartBottom - barHeight;
+      const barHeight = normalizedValue * chartDimensions.chartHeight * progress;
+      const x = index * barDimensions.barWidth + barDimensions.barSpacing / 2;
+      const y = chartDimensions.chartBottom - barHeight;
 
-      // Desenhar barra com gradiente vertical
-      ctx.save();
+      this.drawBar(ctx, item, x, y, barDimensions.actualBarWidth, barHeight);
       
-      // Sombra sutil para profundidade
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      
-      // Criar gradiente vertical vibrante
-      const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
-      gradient.addColorStop(0, item.color);
-      
-      // Tom mais escuro no fundo (+20% de escurecimento)
-      const darkerColor = this.darkenColor(item.color, 20);
-      gradient.addColorStop(1, darkerColor);
-      
-      // Desenhar barra com cantos arredondados
-      this.roundRect(ctx, x, y, actualBarWidth, barHeight, 6);
-      ctx.fillStyle = gradient;
-      ctx.fill();
-      
-      ctx.restore();
-      
-      // Borda superior brilhante para destaque
-      ctx.strokeStyle = this.lightenColor(item.color, 10);
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x + 3, y);
-      ctx.lineTo(x + actualBarWidth - 3, y);
-      ctx.stroke();
-
-      // Desenhar valor numérico ao final da barra (sempre visível)
       if (progress >= 1) {
-        const fontSize = isMobile ? 11 : 13;
-        ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.fillStyle = "#111827"; // gray-900
-        ctx.textAlign = "center";
-        ctx.textBaseline = "bottom";
-        
-        // Fundo branco semi-transparente para melhor legibilidade
-        const text = item.value.toString();
-        const textMetrics = ctx.measureText(text);
-        const textHeight = isMobile ? 14 : 16;
-        const padding = isMobile ? 3 : 4;
-        
-        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-        this.roundRect(
-          ctx,
-          x + actualBarWidth / 2 - textMetrics.width / 2 - padding,
-          y - textHeight - padding - 4,
-          textMetrics.width + padding * 2,
-          textHeight + padding,
-          4
-        );
-        ctx.fill();
-        
-        // Desenhar texto
-        ctx.fillStyle = "#111827";
-        ctx.fillText(text, x + actualBarWidth / 2, y - 6);
-      }
-
-      // Desenhar label da categoria abaixo da barra (rotacionada se necessário)
-      if (progress >= 1) {
-        ctx.save();
-        ctx.translate(x + actualBarWidth / 2, chartBottom + 10);
-        
-        // Se houver muitas categorias ou mobile, rotacionar o texto
-        const shouldRotate = data.length > 6 || isMobile;
-        if (shouldRotate) {
-          ctx.rotate(-Math.PI / 4); // -45 graus
-          ctx.textAlign = "right";
-        } else {
-          ctx.textAlign = "center";
-        }
-        
-        const labelFontSize = isMobile ? 9 : 11;
-        ctx.font = `${labelFontSize}px sans-serif`;
-        ctx.fillStyle = "#4b5563"; // gray-600
-        ctx.textBaseline = "top";
-        
-        // Truncar label se muito longo
-        const maxLength = isMobile ? 12 : 15;
-        const label = item.label.length > maxLength 
-          ? item.label.substring(0, maxLength) + '...' 
-          : item.label;
-        
-        ctx.fillText(label, 0, 0);
-        ctx.restore();
+        this.drawBarValue(ctx, item.value, x, y, barDimensions.actualBarWidth, barDimensions.isMobile);
+        this.drawBarLabel(ctx, item.label, x, y, barDimensions, chartDimensions, data.length);
       }
       
       index++;
     }
+  }
 
-    // Draw Y-axis com grid lines
-    ctx.strokeStyle = "#e5e7eb"; // gray-200
+  private drawBar(
+    ctx: CanvasRenderingContext2D,
+    item: any,
+    x: number,
+    y: number,
+    barWidth: number,
+    barHeight: number
+  ) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    
+    const gradient = ctx.createLinearGradient(x, y, x, y + barHeight);
+    gradient.addColorStop(0, item.color);
+    gradient.addColorStop(1, this.darkenColor(item.color, 20));
+    
+    this.roundRect(ctx, x, y, barWidth, barHeight, 6);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.restore();
+    
+    ctx.strokeStyle = this.lightenColor(item.color, 10);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + 3, y);
+    ctx.lineTo(x + barWidth - 3, y);
+    ctx.stroke();
+  }
+
+  private drawBarValue(
+    ctx: CanvasRenderingContext2D,
+    value: number,
+    x: number,
+    y: number,
+    barWidth: number,
+    isMobile: boolean
+  ) {
+    const fontSize = isMobile ? 11 : 13;
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.fillStyle = "#111827";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    
+    const text = value.toString();
+    const textMetrics = ctx.measureText(text);
+    const textHeight = isMobile ? 14 : 16;
+    const padding = isMobile ? 3 : 4;
+    
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    this.roundRect(
+      ctx,
+      x + barWidth / 2 - textMetrics.width / 2 - padding,
+      y - textHeight - padding - 4,
+      textMetrics.width + padding * 2,
+      textHeight + padding,
+      4
+    );
+    ctx.fill();
+    
+    ctx.fillStyle = "#111827";
+    ctx.fillText(text, x + barWidth / 2, y - 6);
+  }
+
+  private drawBarLabel(
+    ctx: CanvasRenderingContext2D,
+    label: string,
+    x: number,
+    y: number,
+    barDimensions: any,
+    chartDimensions: any,
+    dataLength: number
+  ) {
+    ctx.save();
+    ctx.translate(x + barDimensions.actualBarWidth / 2, chartDimensions.chartBottom + 10);
+    
+    const shouldRotate = dataLength > 6 || barDimensions.isMobile;
+    if (shouldRotate) {
+      ctx.rotate(-Math.PI / 4);
+      ctx.textAlign = "right";
+    } else {
+      ctx.textAlign = "center";
+    }
+    
+    const labelFontSize = barDimensions.isMobile ? 9 : 11;
+    ctx.font = `${labelFontSize}px sans-serif`;
+    ctx.fillStyle = "#4b5563";
+    ctx.textBaseline = "top";
+    
+    const maxLength = barDimensions.isMobile ? 12 : 15;
+    const truncatedLabel = label.length > maxLength 
+      ? label.substring(0, maxLength) + '...' 
+      : label;
+    
+    ctx.fillText(truncatedLabel, 0, 0);
+    ctx.restore();
+  }
+
+  private drawGridLines(
+    ctx: CanvasRenderingContext2D,
+    data: any[],
+    chartDimensions: any,
+    displayWidth: number
+  ) {
+    const maxValue = Math.max(...data.map((item) => item.value));
+    const progress = this.animationProgress();
+    
+    ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
     
-    // Grid horizontal lines
     const gridLines = 5;
     for (let i = 0; i <= gridLines; i++) {
-      const y = chartTop + (chartHeight * i / gridLines);
+      const y = chartDimensions.chartTop + (chartDimensions.chartHeight * i / gridLines);
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
+      ctx.lineTo(displayWidth, y);
       ctx.stroke();
       
-      // Valores do eixo Y
       if (progress >= 1) {
         const value = Math.round(maxValue * (1 - i / gridLines));
         ctx.font = "10px sans-serif";
-        ctx.fillStyle = "#6b7280"; // gray-500
+        ctx.fillStyle = "#6b7280";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
-        ctx.fillText(value.toString(), canvas.width - 5, y);
+        ctx.fillText(value.toString(), displayWidth - 5, y);
       }
     }
   }
@@ -405,7 +469,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   
   // Função para escurecer uma cor
   private darkenColor(color: string, percent: number): string {
-    const num = parseInt(color.replace("#", ""), 16);
+    const num = Number.parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = Math.max((num >> 16) - amt, 0);
     const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
@@ -415,7 +479,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   
   // Função para clarear uma cor
   private lightenColor(color: string, percent: number): string {
-    const num = parseInt(color.replace("#", ""), 16);
+    const num = Number.parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
     const R = Math.min((num >> 16) + amt, 255);
     const G = Math.min((num >> 8 & 0x00FF) + amt, 255);

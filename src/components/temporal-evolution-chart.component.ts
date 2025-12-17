@@ -23,8 +23,8 @@ import { I18nService } from "../i18n.service";
           id="temporalCanvas"
           #temporalCanvas
           class="w-full h-auto max-h-64 aspect-square"
-          width="220"
-          height="220"
+          width="440"
+          height="440"
         ></canvas>
       </div>
       <div class="flex flex-wrap gap-4 justify-center mt-6 w-full">
@@ -117,10 +117,17 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
       return;
     }
 
+    // Aplicar devicePixelRatio para melhorar nitidez em displays de alta densidade
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
     const data = this.data();
     const total = this.totalRequests();
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, rect.width, rect.height);
 
     if (total === 0) {
       ctx.font = "bold 18px sans-serif";
@@ -137,10 +144,10 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     );
     const maxValue = Math.max(...entries.map(([, value]) => value));
 
-    // Configurações do gráfico
+    // Configurações do gráfico (usar dimensões CSS, não canvas.width)
     const margin = 20;
-    const chartWidth = canvas.width - 2 * margin;
-    const chartHeight = canvas.height - 2 * margin;
+    const chartWidth = rect.width - 2 * margin;
+    const chartHeight = rect.height - 2 * margin;
     const pointRadius = 4;
     const lineWidth = 2.5;
 
@@ -149,27 +156,27 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(margin, margin);
-    ctx.lineTo(margin, canvas.height - margin);
-    ctx.moveTo(margin, canvas.height - margin);
-    ctx.lineTo(canvas.width - margin, canvas.height - margin);
+    ctx.lineTo(margin, rect.height - margin);
+    ctx.moveTo(margin, rect.height - margin);
+    ctx.lineTo(rect.width - margin, rect.height - margin);
     ctx.stroke();
 
     // Desenhar área sob a linha primeiro (fundo)
-    const gradient = ctx.createLinearGradient(0, margin, 0, canvas.height - margin);
+    const gradient = ctx.createLinearGradient(0, margin, 0, rect.height - margin);
     gradient.addColorStop(0, "rgba(234, 84, 85, 0.15)"); // brand-primary com transparência
     gradient.addColorStop(1, "rgba(30, 64, 175, 0.02)");
     
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.moveTo(margin, canvas.height - margin);
+    ctx.moveTo(margin, rect.height - margin);
 
     entries.forEach(([date, value], index) => {
       const x = margin + (index / (entries.length - 1)) * chartWidth;
-      const y = canvas.height - margin - (value / maxValue) * chartHeight;
+      const y = rect.height - margin - (value / maxValue) * chartHeight;
       ctx.lineTo(x, y);
     });
 
-    ctx.lineTo(canvas.width - margin, canvas.height - margin);
+    ctx.lineTo(rect.width - margin, rect.height - margin);
     ctx.closePath();
     ctx.fill();
 
@@ -187,7 +194,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
 
     entries.forEach(([date, value], index) => {
       const x = margin + (index / (entries.length - 1)) * chartWidth;
-      const y = canvas.height - margin - (value / maxValue) * chartHeight;
+      const y = rect.height - margin - (value / maxValue) * chartHeight;
 
       if (index === 0) {
         ctx.moveTo(x, y);
@@ -202,7 +209,7 @@ export class TemporalEvolutionChartComponent implements AfterViewInit {
     // Desenhar pontos com borda branca
     entries.forEach(([date, value], index) => {
       const x = margin + (index / (entries.length - 1)) * chartWidth;
-      const y = canvas.height - margin - (value / maxValue) * chartHeight;
+      const y = rect.height - margin - (value / maxValue) * chartHeight;
 
       // Borda branca
       ctx.fillStyle = "#ffffff";

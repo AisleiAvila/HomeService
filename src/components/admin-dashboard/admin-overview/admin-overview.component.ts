@@ -30,14 +30,13 @@ export class AdminOverviewComponent implements OnInit {
     readonly isLoading = computed(() => this.dataService.isLoading());
     
     // Signals para animação de contagem
-    private animatedValues = signal<Record<string, number>>({});
+    private readonly animatedValues = signal<Record<string, number>>({});
     
     // Signal para modo de visualização compacto
     compactMode = signal(false);
     
     // Signal para dados de sparkline
     sparklineData = computed(() => {
-        const requests = this.dataService.serviceRequests();
         const now = new Date();
         const last7Days: Record<string, number[]> = {
             totalRevenue: [],
@@ -53,13 +52,13 @@ export class AdminOverviewComponent implements OnInit {
             const dateStr = date.toISOString().split('T')[0];
             
             // Receita por dia
-            const dayRevenue = requests
+            const dayRevenue = this.dataService.serviceRequests()
                 .filter(r => r.payment_status === "Paid" && r.completed_at?.startsWith(dateStr))
                 .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
             last7Days.totalRevenue.push(dayRevenue);
             
             // Serviços ativos por dia
-            const dayActive = requests.filter(r => 
+            const dayActive = this.dataService.serviceRequests().filter(r => 
                 r.status !== "Concluído" && r.status !== "Cancelado" && 
                 r.created_at?.startsWith(dateStr)
             ).length;
@@ -222,21 +221,40 @@ export class AdminOverviewComponent implements OnInit {
     });
 
     statusPieChartData = computed(() => {
-        const requests = this.dataService.serviceRequests();
         const counts: Record<string, number> = {};
-        for (const r of requests) {
+        for (const r of this.dataService.serviceRequests()) {
             const status = r.status || 'Unknown';
             counts[status] = (counts[status] || 0) + 1;
         }
-        return counts;
+        // Filtrar apenas status com contagem > 0 para evitar segmentos vazios no gráfico
+        return Object.fromEntries(
+            Object.entries(counts).filter(([_, count]) => count > 0)
+        );
+    });
+
+    statusLabels = computed(() => {
+        return {
+            'Solicitado': this.i18n.translate('statusRequested'),
+            'Atribuído': this.i18n.translate('statusAssigned'),
+            'Aguardando Confirmação': this.i18n.translate('statusAwaitingConfirmation'),
+            'Aceito': this.i18n.translate('statusAccepted'),
+            'Recusado': this.i18n.translate('statusRejected'),
+            'Data Definida': this.i18n.translate('statusScheduled'),
+            'Em Progresso': this.i18n.translate('in_progress'),
+            'Aguardando Finalização': this.i18n.translate('statusAwaitingFinalization'),
+            'Pagamento Feito': this.i18n.translate('statusPaid'),
+            'Concluído': this.i18n.translate('statusCompleted'),
+            'Cancelado': this.i18n.translate('statusCancelled'),
+            'In Progress': this.i18n.translate('in_progress'),
+            'Unknown': 'Unknown'
+        };
     });
 
     ordersByCategory = computed(() => {
-        const requests = this.dataService.serviceRequests();
         const categories = this.dataService.categories();
         const counts: Record<string, number> = {};
 
-        for (const r of requests) {
+        for (const r of this.dataService.serviceRequests()) {
             if (r.category_id) {
                 const category = categories.find(c => c.id === r.category_id);
                 const categoryName = category?.name || `Category ${r.category_id}`;
@@ -283,8 +301,8 @@ export class AdminOverviewComponent implements OnInit {
 
         completedRequests.forEach(request => {
             const categoryName = request.category?.name || 'Outros';
-            const start = new Date(request.actual_start_datetime!).getTime();
-            const end = new Date(request.actual_end_datetime!).getTime();
+            const start = new Date(request.actual_start_datetime).getTime();
+            const end = new Date(request.actual_end_datetime).getTime();
             const durationHours = (end - start) / (1000 * 60 * 60); // em horas
 
             if (!timeByCategory[categoryName]) {
@@ -426,8 +444,15 @@ export class AdminOverviewComponent implements OnInit {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
             
-            const width = canvas.width;
-            const height = canvas.height;
+            // Aplicar devicePixelRatio para melhorar nitidez
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            const width = rect.width;
+            const height = rect.height;
             const padding = 2;
             
             ctx.clearRect(0, 0, width, height);
@@ -480,7 +505,6 @@ export class AdminOverviewComponent implements OnInit {
     // Exportar dados como CSV
     async exportToCSV() {
         try {
-            const requests = this.dataService.serviceRequests();
             const stats = this.stats();
             
             // Cabeçalhos CSV
@@ -515,7 +539,7 @@ export class AdminOverviewComponent implements OnInit {
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+            link.remove();
             
             this.notificationService.addNotification(
                 this.i18n.translate('exportSuccessCSV') || 'Relatório CSV exportado com sucesso!'
@@ -695,14 +719,15 @@ export class AdminOverviewComponent implements OnInit {
             // Abrir em nova janela para impressão/salvamento como PDF
             const printWindow = window.open('', '_blank');
             if (printWindow) {
-                printWindow.document.write(html);
+                printWindow.document.open();
+                printWindow.document.documentElement.innerHTML = html;
                 printWindow.document.close();
                 
                 // Aguardar carregamento e abrir diálogo de impressão
-                printWindow.onload = () => {
+                setTimeout(() => {
                     printWindow.focus();
                     printWindow.print();
-                };
+                }, 250);
                 
                 this.notificationService.addNotification(
                     this.i18n.translate('exportSuccessPDF') || 'Relatório PDF aberto para impressão!'

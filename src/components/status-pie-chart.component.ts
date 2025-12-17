@@ -18,14 +18,14 @@ import { I18nService } from "../i18n.service";
   imports: [CommonModule],
   template: `
     <div
-      class="w-full max-w-xs md:max-w-md bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
+      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
     >
-      <div class="w-full flex justify-center items-center relative">
+      <div class="w-full mx-auto flex justify-center items-center relative">
         <canvas
           #pieCanvas
-          class="w-full h-auto max-h-64 aspect-square cursor-pointer"
-          width="240"
-          height="240"
+          class="w-full h-auto aspect-square cursor-pointer"
+          width="700"
+          height="700"
           (mousemove)="onMouseMove($event)"
           (mouseleave)="onMouseLeave()"
         ></canvas>
@@ -45,16 +45,18 @@ import { I18nService } from "../i18n.service";
         }
       </div>
       
-      <!-- Legendas com percentuais -->
-      <div class="flex flex-wrap gap-2 justify-center mt-6 w-full">
+      <!-- Legendas com percentuais - Grid responsivo compacto -->
+      <div class="w-full grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 justify-items-center px-1">
         <ng-container *ngFor="let item of chartData()">
-          <span
-            class="px-3 py-1.5 rounded-md text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default"
-            [style.background]="item.color"
-            [style.color]="'white'"
-          >
-            {{ item.label }}: {{ item.value }} ({{ item.percentage }}%)
-          </span>
+          @if (item.value > 0) {
+            <span
+              class="px-2 py-1 rounded text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default whitespace-nowrap"
+              [style.background]="item.color"
+              [style.color]="'white'"
+            >
+              {{ item.label }}: {{ item.value }} ({{ item.percentage }}%)
+            </span>
+          }
         </ng-container>
       </div>
     </div>
@@ -69,7 +71,7 @@ export class StatusPieChartComponent {
   // Signals para controle de hover e tooltip
   hoveredSegment = signal<{label: string; value: number; percentage: string; color: string} | null>(null);
   tooltipPosition = signal<{x: number; y: number}>({x: 0, y: 0});
-  private animationProgress = signal(0);
+  private readonly animationProgress = signal(0);
   private segments: Array<{startAngle: number; endAngle: number; item: any}> = [];
 
   constructor() {
@@ -94,33 +96,38 @@ export class StatusPieChartComponent {
       return [];
     }
     
-    // Cores da identidade visual da marca (baseado no Design System Natan)
-    const colors = [
-      "#ea5455", // brand-primary - Vermelho Natan (principal)
-      "#475569", // slate-600 - Cinza ardósia (neutro)
-      "#0f766e", // teal-700 - Verde-azulado (sucesso/completado)
-      "#f59e0b", // amber-500 - Âmbar (pendente/atenção)
-      "#7c3aed", // violet-600 - Violeta (em progresso)
-      "#0891b2", // cyan-600 - Ciano (informação)
-      "#059669", // emerald-600 - Verde esmeralda (aprovado)
-      "#ef4444", // red-500 - Vermelho (cancelado)
-      "#6b7280", // gray-500 - Cinza neutro
-      "#9e9e9e", // brand-accent - Cinza secundária
-    ];
+    // Mapa de cores específico para cada status (garante consistência)
+    const statusColorMap: Record<string, string> = {
+      'Solicitado': '#FF3838', // Vermelho vibrante
+      'Atribuído': '#FFA500', // Laranja vibrante
+      'Aguardando Confirmação': '#6B5FFF', // Roxo vibrante
+      'Aceito': '#00D4A6', // Teal vibrante
+      'Recusado': '#FF4757', // Vermelho coral vibrante
+      'Data Definida': '#00B8E6', // Ciano vibrante
+      'Em Progresso': '#9B59B6', // Roxo magenta vibrante
+      'Aguardando Finalização': '#34495E', // Cinza escuro
+      'Pagamento Feito': '#00C853', // Verde vibrante
+      'Concluído': '#26A69A', // Teal claro vibrante
+      'Cancelado': '#E74C3C', // Vermelho escuro vibrante
+      'In Progress': '#9B59B6', // Roxo magenta vibrante
+      'Unknown': '#95A5A6' // Cinza neutral
+    };
     
     // Calcular total para percentuais
     const total = Object.values(d).reduce((sum, val) => sum + val, 0);
     
-    let i = 0;
-    return Object.entries(d).map(([status, value]) => {
+    const result = Object.entries(d).map(([status, value]) => {
       const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+      const color = statusColorMap[status] || '#9e9e9e'; // Cor padrão se status não for reconhecido
       return {
         label: providedLabels?.[status] || this.i18n.translate(status) || status,
         value,
         percentage,
-        color: colors[i++ % colors.length],
+        color,
       };
     });
+    
+    return result;
   });
 
   ngAfterViewInit() {
@@ -172,13 +179,13 @@ export class StatusPieChartComponent {
     // Calcular distância e ângulo do centro
     const dx = canvasX - centerX;
     const dy = canvasY - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const distance = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
     const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
     
     // Verificar se está dentro do anel do donut
-    const outerRadius = 100;
-    const innerRadius = 60;
+    const outerRadius = 170;
+    const innerRadius = 105;
     
     if (distance >= innerRadius && distance <= outerRadius) {
       // Encontrar segmento correspondente
@@ -222,16 +229,24 @@ export class StatusPieChartComponent {
       return;
     }
     
+    // Aplicar devicePixelRatio para melhorar nitidez em displays de alta densidade
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    // Reset do estado do contexto
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    
     // Usa todos os itens da legenda, mesmo com valor zero
     const data = this.chartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const outerRadius = 100;
-    const innerRadius = 60; // Criar efeito donut
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const outerRadius = 170;
+    const innerRadius = 105; // Criar efeito donut
     
     if (total === 0) {
       // Desenha donut cinza indicando ausência de dados
@@ -257,7 +272,11 @@ export class StatusPieChartComponent {
     let startAngle = -Math.PI / 2; // Começar no topo
     this.segments = [];
     
-    data.forEach((item, index) => {
+    // Filtrar apenas itens com valor > 0 para evitar lacunas no donut
+    const visibleData = data.filter(item => item.value > 0);
+    
+    // Renderizar segmentos do donut
+    visibleData.forEach((item) => {
       const sliceAngle = (item.value / total) * 2 * Math.PI * progress;
       const endAngle = startAngle + sliceAngle;
       
@@ -272,46 +291,37 @@ export class StatusPieChartComponent {
       const isHovered = this.hoveredSegment()?.label === item.label;
       const currentOuterRadius = isHovered ? outerRadius + 5 : outerRadius;
       
-      // Desenhar segmento do donut com sombra sutil
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      
+      // Desenhar segmento do donut
       ctx.beginPath();
       ctx.arc(centerX, centerY, currentOuterRadius, startAngle, endAngle);
       ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
       ctx.closePath();
       
-      // Gradiente sutil para cada segmento
-      const gradient = ctx.createRadialGradient(centerX, centerY, innerRadius, centerX, centerY, currentOuterRadius);
-      gradient.addColorStop(0, item.color);
-      gradient.addColorStop(1, item.color + 'dd'); // Adicionar transparência sutil
-      
-      ctx.fillStyle = gradient;
+      // Cores sólidas para cada segmento
+      ctx.fillStyle = item.color;
       ctx.fill();
-      
-      ctx.restore();
-      
-      // Adicionar borda branca fina entre fatias para separação visual
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3;
-      ctx.stroke();
       
       startAngle = endAngle;
     });
     
     // Desenhar total no centro do donut
     if (progress >= 1) {
-      ctx.font = "bold 24px sans-serif";
-      ctx.fillStyle = "#111827"; // gray-900 para light mode
+      // Background semi-transparente para melhor contraste
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 45, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Número total em branco brilhante
+      ctx.font = "bold 32px sans-serif";
+      ctx.fillStyle = "#FFFFFF"; // Branco puro para melhor visibilidade
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(total.toString(), centerX, centerY - 8);
       
+      // Label "Total" em branco com menor opacidade
       ctx.font = "12px sans-serif";
-      ctx.fillStyle = "#6b7280"; // gray-500
+      ctx.fillStyle = "#E0E0E0"; // Branco levemente acinzentado
       ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + 12);
     }
   }

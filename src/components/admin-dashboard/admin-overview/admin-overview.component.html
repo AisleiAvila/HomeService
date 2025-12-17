@@ -152,11 +152,12 @@
                     {{ "currentMonth" | i18n }}
                 </p>
             }
-            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
+            <div class="w-full flex flex-col items-center justify-start">
                 <app-status-pie-chart 
                     [data]="statusPieChartData()" 
+                    [labels]="statusLabels()"
                     [title]="'requestsByStatus' | i18n"
-                    class="w-full h-full" />
+                    class="w-full" />
             </div>
         </div>
         
