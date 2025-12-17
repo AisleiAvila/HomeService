@@ -26,6 +26,9 @@ export class AdminOverviewComponent implements OnInit {
     private readonly router = inject(Router);
     private readonly notificationService = inject(NotificationService);
     
+    // Signal para estado de loading
+    readonly isLoading = computed(() => this.dataService.isLoading());
+    
     // Signals para animação de contagem
     private animatedValues = signal<Record<string, number>>({});
     
@@ -66,17 +69,26 @@ export class AdminOverviewComponent implements OnInit {
         return last7Days;
     });
 
-    ngOnInit() {
-        console.log('[AdminOverviewComponent] Inicializando - recarregando dados');
-        this.dataService.loadInitialData();
-        
-        // Iniciar animação de contagem dos valores
+    constructor() {
+        // Iniciar animação de contagem dos valores (effect deve estar no construtor)
         effect(() => {
             const stats = this.stats();
             stats.forEach(stat => {
                 this.animateValue(stat.id, stat.rawValue || 0);
             });
         });
+    }
+
+    ngOnInit() {
+        console.log('[AdminOverviewComponent] Inicializando - recarregando dados');
+        console.log('[AdminOverviewComponent] Service requests:', this.dataService.serviceRequests().length);
+        console.log('[AdminOverviewComponent] Users:', this.dataService.users().length);
+        
+        // Força recarregamento apenas se não houver dados
+        if (this.dataService.serviceRequests().length === 0 || this.dataService.users().length === 0) {
+            console.log('[AdminOverviewComponent] Dados vazios - forçando reload');
+            this.dataService.loadInitialData();
+        }
     }
 
     stats = computed(() => {

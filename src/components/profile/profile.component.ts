@@ -10,7 +10,7 @@ import {
   ElementRef,
   OnDestroy,
 } from "@angular/core";
-// import { Router, RouterModule } from "@angular/router";
+import { Router } from "@angular/router";
 import { AppComponent } from "../../app.component";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -47,8 +47,18 @@ export class ProfileComponent implements OnDestroy {
   private readonly smsVerificationService = inject(SmsVerificationService);
   readonly i18n = inject(I18nService);
   private readonly appComponent = inject(AppComponent);
+  private readonly router = inject(Router);
+  
   goToDashboard() {
-    this.appComponent.currentNav.set("dashboard");
+    const currentUser = this.user();
+    if (currentUser.role === 'admin') {
+      // Admin: navegar para a rota /admin/overview
+      this.router.navigate(['/admin', 'overview']);
+    } else {
+      // Client/Professional: usar navegação interna do app
+      this.appComponent.currentNav.set('dashboard');
+      this.router.navigate(['/']);
+    }
   }
 
   fileInput = viewChild<ElementRef<HTMLInputElement>>("fileInput");

@@ -48,7 +48,7 @@ export class NotificationService {
       this.notifications.update((all) =>
         all.filter((n) => n.id !== newNotification.id)
       );
-    }, 5000);
+    }, 2000);
   }
 
   showSuccess(message: string) {
