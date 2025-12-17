@@ -134,8 +134,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
   canvasMinWidth = computed(() => {
     const count = this.sortedChartData().length;
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
-    // Mobile: 60px por barra, mínimo 300px / Desktop: 80px por barra, mínimo 400px
-    return isMobile ? Math.max(300, count * 60) : Math.max(400, count * 80);
+    // Mobile: 50px por barra, mínimo 250px / Desktop: 50px por barra, mínimo 300px (proporcional)
+    return isMobile ? Math.max(250, count * 50) : Math.max(300, count * 50);
   });
   
   // Largura do canvas ajustada

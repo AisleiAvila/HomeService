@@ -45,16 +45,17 @@ import { I18nService } from "../i18n.service";
         }
       </div>
       
-      <!-- Legendas com percentuais - Grid responsivo compacto -->
-      <div class="w-full grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 justify-items-center px-1">
+      <!-- Legendas com percentuais - Grid responsivo melhorado -->
+      <div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 justify-items-center px-2 mt-2">
         <ng-container *ngFor="let item of chartData()">
           @if (item.value > 0) {
             <span
-              class="px-2 py-1 rounded text-xs font-semibold shadow-sm border border-opacity-20 border-gray-700 transition-transform hover:scale-105 cursor-default whitespace-nowrap"
+              class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-2 whitespace-normal break-words max-w-full"
               [style.background]="item.color"
               [style.color]="'white'"
             >
-              {{ item.label }}: {{ item.value }} ({{ item.percentage }}%)
+              <span class="font-bold">●</span>
+              <span>{{ item.label }}: {{ item.value }} ({{ item.percentage }}%)</span>
             </span>
           }
         </ng-container>
