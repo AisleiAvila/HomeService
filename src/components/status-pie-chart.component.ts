@@ -10,16 +10,36 @@ import {
   ViewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { I18nService } from "../i18n.service";
+import { I18nPipe } from "../pipes/i18n.pipe";
 
 @Component({
   selector: "app-status-pie-chart",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
       class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mobile-safe flex flex-col items-center gap-2"
     >
+      <!-- Filtro de Período -->
+      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <h3 class="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center">
+          <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400 mr-2"></i>
+          {{ title() }}
+        </h3>
+        <select
+          [(ngModel)]="selectedPeriod"
+          (ngModelChange)="onPeriodChange()"
+          class="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
+        >
+          <option value="all">{{ 'allTime' | i18n }}</option>
+          <option value="7">{{ 'last7Days' | i18n }}</option>
+          <option value="30">{{ 'last30Days' | i18n }}</option>
+          <option value="90">{{ 'last90Days' | i18n }}</option>
+        </select>
+      </div>
+
       <div class="w-full mx-auto flex justify-center items-center relative max-w-full">
         <canvas
           #pieCanvas
@@ -74,6 +94,9 @@ export class StatusPieChartComponent {
   tooltipPosition = signal<{x: number; y: number}>({x: 0, y: 0});
   private readonly animationProgress = signal(0);
   private segments: Array<{startAngle: number; endAngle: number; item: any}> = [];
+  
+  // Signal para controle de período
+  selectedPeriod = signal<'all' | '7' | '30' | '90'>('all');
 
   constructor() {
     // Log para depuração do valor do título
@@ -86,6 +109,7 @@ export class StatusPieChartComponent {
   title = input.required<string>();
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
+  createdDates = input<Record<string, string[]>>(); // Datas de criação por status para filtro
 
   chartData = computed(() => {
     const d = this.data();
@@ -133,6 +157,12 @@ export class StatusPieChartComponent {
 
   ngAfterViewInit() {
     // Iniciar animação suave ao carregar
+    this.animateChart();
+  }
+  
+  onPeriodChange() {
+    // Quando o período muda, animar novamente
+    this.animationProgress.set(0);
     this.animateChart();
   }
   
