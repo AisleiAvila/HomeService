@@ -407,8 +407,12 @@ export class CategoryBarChartComponent implements AfterViewInit {
     }
     
     const labelFontSize = barDimensions.isMobile ? 9 : 11;
-    ctx.font = `${labelFontSize}px sans-serif`;
-    ctx.fillStyle = "#4b5563";
+    ctx.font = `bold ${labelFontSize}px sans-serif`;
+    
+    // Detectar dark mode e ajustar cor do texto
+    const isDarkMode = globalThis.window && 
+      globalThis.document?.documentElement?.classList?.contains('dark');
+    ctx.fillStyle = isDarkMode ? "#d1d5db" : "#4b5563";
     ctx.textBaseline = "top";
     
     const maxLength = barDimensions.isMobile ? 12 : 15;
