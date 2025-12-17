@@ -72,11 +72,11 @@
                 <button
                   (click)="viewImage(image.image_url)"
                   class="w-full focus:outline-none focus:ring-2 focus:ring-brand-primary-500 rounded-lg"
-                  [attr.aria-label]="(image.description || 'Local antes do serviço') + ' - ' + ('clickToView' | i18n)"
+                  [attr.aria-label]="(image.description || 'Antes do serviço') + ' - ' + ('clickToView' | i18n)"
                 >
                   <img 
                     [src]="image.image_url" 
-                    [alt]="image.description || 'Local antes do serviço'"
+                    [alt]="getImageAlt(image)"
                     class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
                   />
                 </button>
@@ -95,10 +95,15 @@
                 }
 
                 <!-- Image info -->
-                <div class="mt-1 text-xs text-gray-600">
+                <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                   <div>{{ formatDate(image.uploaded_at) }}</div>
                   @if (image.file_size) {
-                    <div class="text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                    <div class="text-gray-500 dark:text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                  }
+                  @if (image.description) {
+                    <div class="text-gray-700 dark:text-gray-300 font-medium mt-1 line-clamp-2">
+                      {{ image.description }}
+                    </div>
                   }
                 </div>
               </div>
@@ -178,11 +183,11 @@
                 <button
                   (click)="viewImage(image.image_url)"
                   class="w-full focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
-                  [attr.aria-label]="(image.description || 'Local depois do serviço') + ' - ' + ('clickToView' | i18n)"
+                  [attr.aria-label]="(image.description || 'Depois do serviço') + ' - ' + ('clickToView' | i18n)"
                 >
                   <img 
                     [src]="image.image_url" 
-                    [alt]="image.description || 'Local depois do serviço'"
+                    [alt]="getImageAlt(image)"
                     class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
                   />
                 </button>
@@ -201,10 +206,15 @@
                 }
 
                 <!-- Image info -->
-                <div class="mt-1 text-xs text-gray-600">
+                <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                   <div>{{ formatDate(image.uploaded_at) }}</div>
                   @if (image.file_size) {
-                    <div class="text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                    <div class="text-gray-500 dark:text-gray-500">{{ formatFileSize(image.file_size) }}</div>
+                  }
+                  @if (image.description) {
+                    <div class="text-gray-700 dark:text-gray-300 font-medium mt-1 line-clamp-2">
+                      {{ image.description }}
+                    </div>
                   }
                 </div>
               </div>
@@ -289,6 +299,65 @@
       </div>
     </div>
   }
-</div>
 
+  <!-- Modal de Descrição da Imagem -->
+  @if (showDescriptionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-md w-full">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-600 to-brand-primary-500">
+          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+            <i class="fas fa-image"></i>
+            {{ 'imageDescription' | i18n }}
+          </h3>
+          <button
+            (click)="closeDescriptionModal()"
+            class="text-white hover:text-gray-200 transition-colors"
+            [attr.aria-label]="'close' | i18n"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
 
+        <!-- Content -->
+        <div class="p-6">
+          <label for="imageDescriptionInput" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+            {{ 'describeImage' | i18n }}
+          </label>
+          <textarea
+            id="imageDescriptionInput"
+            [(ngModel)]="imageDescriptionInput"
+            placeholder="{{ 'enterImageDescription' | i18n }}"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 resize-none"
+            rows="4"
+          ></textarea>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ 'descriptionOptional' | i18n }}
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="p-6 bg-gray-50 dark:bg-gray-700 flex items-center justify-end gap-3 rounded-b-lg">
+          <button
+            (click)="closeDescriptionModal()"
+            class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+          >
+            {{ 'cancel' | i18n }}
+          </button>
+          <button
+            (click)="submitImageUpload()"
+            class="px-6 py-2 bg-brand-primary-600 hover:bg-brand-primary-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="uploadingBefore() || uploadingAfter()"
+          >
+            @if (uploadingBefore() || uploadingAfter()) {
+              <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              <span>{{ 'uploading' | i18n }}...</span>
+            } @else {
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>{{ 'upload' | i18n }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }

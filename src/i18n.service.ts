@@ -211,7 +211,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     deleteImageError: "Error deleting image. Please try again.",
     confirmDeleteImage: "Are you sure you want to delete this image?",
     cannotUploadImagesInThisStatus: "You cannot upload images in the current service status.",
-    delete: "Delete",
+    imageDescription: "Image Description",
+    describeImage: "Describe this image",
+    enterImageDescription: "Enter a description for this image (optional)...",
+    descriptionOptional: "Image description is optional but recommended.",
+    imageUploadedSuccessfully: "Image uploaded successfully!",
+    imageDescriptionUpdated: "Image description updated successfully!",
+    errorUpdatingDescription: "Error updating image description. Please try again.",
+    deleteImage: "Delete Image",
     
         // Status de pagamento
         // (mantido apenas no início do objeto)
@@ -950,7 +957,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectOrigin: "Select the origin of the request",
     nif: "NIF",
     executionDate: "Execution Date",
-    imageUploadedSuccessfully: "Image uploaded successfully!",
     isNatanEmployee: "Natan Construtora Employee",
     natanEmployeeYes: "Yes, employee of Natan Construtora",
     natanEmployeeNo: "No, independent service provider",
@@ -959,7 +965,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     myProfile: "My Profile",
     updateProfileInformation: "Update your profile information and email address",
     confirmPaymentMessage: "Are you sure you want to confirm the payment for this request?",
-   
 
   },
   pt: {
@@ -1170,6 +1175,14 @@ const allTranslations: Record<Language, Record<string, string>> = {
     deleteImageError: "Erro ao eliminar imagem. Por favor, tente novamente.",
     confirmDeleteImage: "Tem a certeza que deseja eliminar esta imagem?",
     cannotUploadImagesInThisStatus: "Não é possível enviar imagens no status atual do serviço.",
+    imageDescription: "Descrição da Imagem",
+    describeImage: "Descreva esta imagem",
+    enterImageDescription: "Introduza uma descrição para esta imagem (opcional)...",
+    descriptionOptional: "A descrição da imagem é opcional mas recomendada.",
+    imageUploadedSuccessfully: "Imagem enviada com sucesso!",
+    imageDescriptionUpdated: "Descrição da imagem atualizada com sucesso!",
+    errorUpdatingDescription: "Erro ao atualizar descrição da imagem. Por favor, tente novamente.",
+    deleteImage: "Eliminar Imagem",
     delete: "Eliminar",
     
     confirmSchedule: "Confirmar Agendamento",
@@ -1914,7 +1927,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     selectOrigin: "Selecione a origem da solicitação",
     nif: "NIF",
     executionDate: "Data de Execução",
-    imageUploadedSuccessfully: "Imagem enviada com sucesso!",
     tooManyAttempts: "Muitas tentativas. Por favor, tente novamente mais tarde.",
     natanEmployeeYes: "Sim, funcionário da Natan Construtora",
     natanEmployeeNo: "Não, prestador de serviço independente",

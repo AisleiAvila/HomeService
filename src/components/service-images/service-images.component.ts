@@ -36,6 +36,12 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   isVideoReady = signal(false);
   currentImageType = signal<'before' | 'after'>('before');
   
+  // Modal para descrição da imagem
+  showDescriptionModal = signal(false);
+  imageDescriptionInput = signal('');
+  pendingFile: File | null = null;
+  pendingImageType: 'before' | 'after' = 'before';
+  
   private cameraStream: MediaStream | null = null;
 
   // Computed
@@ -95,29 +101,57 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const loadingSignal = imageType === 'before' ? this.uploadingBefore : this.uploadingAfter;
+    // Armazenar arquivo e tipo para uso no modal
+    this.pendingFile = file;
+    this.pendingImageType = imageType;
+    
+    // Limpar input de descrição anterior
+    this.imageDescriptionInput.set('');
+    
+    // Abrir modal para descrição
+    this.showDescriptionModal.set(true);
+    
+    // Limpar input do file
+    input.value = '';
+  }
+
+  async submitImageUpload() {
+    if (!this.pendingFile) return;
+
+    const loadingSignal = this.pendingImageType === 'before' ? this.uploadingBefore : this.uploadingAfter;
     loadingSignal.set(true);
 
     try {
+      const description = this.imageDescriptionInput();
       const result = await this.workflowService.uploadServiceImage(
-        file,
+        this.pendingFile,
         this.requestId(),
-        imageType,
-        '' // Descrição opcional
+        this.pendingImageType,
+        description
       );
 
       if (result) {
         console.log('✅ Imagem enviada com sucesso:', result);
         await this.loadImages();
+        this.notificationService.addNotification(
+          this.i18n.translate('imageUploadedSuccessfully')
+        );
       }
     } catch (error) {
       console.error('❌ Erro ao fazer upload da imagem:', error);
-      alert(this.i18n.translate('uploadImageError'));
+      this.notificationService.addNotification(
+        this.i18n.translate('uploadImageError')
+      );
     } finally {
       loadingSignal.set(false);
-      // Limpar input
-      input.value = '';
+      this.closeDescriptionModal();
     }
+  }
+
+  closeDescriptionModal() {
+    this.showDescriptionModal.set(false);
+    this.imageDescriptionInput.set('');
+    this.pendingFile = null;
   }
 
   async deleteImage(image: ServiceRequestImage) {
@@ -141,6 +175,10 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
 
   viewImage(imageUrl: string) {
     window.open(imageUrl, '_blank');
+  }
+
+  getImageAlt(image: ServiceRequestImage): string {
+    return image.description ? image.description : `Image #${image.id}`;
   }
 
   formatFileSize(bytes?: number | null): string {
@@ -280,39 +318,24 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
               type: 'image/jpeg',
             });
 
-            const imageType = this.currentImageType();
-            const loadingSignal = imageType === 'before' ? this.uploadingBefore : this.uploadingAfter;
-            loadingSignal.set(true);
-
-            try {
-              const result = await this.workflowService.uploadServiceImage(
-                file,
-                this.requestId(),
-                imageType,
-                ''
-              );
-
-              if (result) {
-                console.log('✅ Foto capturada e enviada com sucesso:', result);
-                await this.loadImages();
-                this.notificationService.addNotification(
-                  this.i18n.translate('photoUploadedSuccessfully')
-                );
-              }
-            } catch (error) {
-              console.error('❌ Erro ao fazer upload da foto:', error);
-              this.notificationService.addNotification(
-                this.i18n.translate('uploadImageError')
-              );
-            } finally {
-              loadingSignal.set(false);
-            }
+            // Armazenar arquivo e tipo para uso no modal
+            this.pendingFile = file;
+            this.pendingImageType = this.currentImageType();
+            
+            // Limpar input de descrição anterior
+            this.imageDescriptionInput.set('');
+            
+            // Fechar câmera
+            this.closeCamera();
+            
+            // Abrir modal para descrição
+            this.showDescriptionModal.set(true);
           } else {
             this.notificationService.addNotification(
               this.i18n.translate('errorCapturingPhoto')
             );
+            this.closeCamera();
           }
-          this.closeCamera();
         },
         'image/jpeg',
         0.9
