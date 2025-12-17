@@ -57,11 +57,6 @@ export class FinancialReportsComponent implements OnInit {
         }).format(cost);
     }
 
-    generateInvoice(req: ServiceRequest) {
-        console.log("Generate invoice for:", req);
-        // Implement invoice generation logic
-    }
-
     exportToCSV() {
         console.log("Export to CSV");
         // Implement CSV export logic

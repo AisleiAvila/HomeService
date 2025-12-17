@@ -82,9 +82,6 @@
                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
                         {{ "total" | i18n }}
                     </th>
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "action" | i18n }}
-                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -111,13 +108,6 @@
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
                         {{ formatCost(req.cost) }}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
-                        <button (click)="generateInvoice(req)"
-                            class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-brand-primary-50 dark:hover:bg-gray-700 rounded-full transition-colors duration-200"
-                            title="{{ 'generateInvoice' | i18n }}">
-                            <i class="fas fa-file-invoice"></i>
-                        </button>
                     </td>
                 </tr>
                 }
@@ -173,15 +163,6 @@
                         formatCost(req.cost)
                         }}</span>
                 </div>
-            </div>
-
-            <!-- Action -->
-            <div class="pt-3 border-t border-gray-100 dark:border-gray-600">
-                <button (click)="generateInvoice(req)"
-                    class="w-full px-4 py-2 text-sm font-medium text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 rounded-md transition-colors duration-200 flex items-center justify-center">
-                    <i class="fas fa-file-invoice mr-2"></i>
-                    {{ "generateInvoice" | i18n }}
-                </button>
             </div>
         </div>
         }
