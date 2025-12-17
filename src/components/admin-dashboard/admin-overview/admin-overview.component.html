@@ -1,57 +1,149 @@
-<!-- Stats Cards - Layout expandido -->
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 w-full px-0">
+<!-- Cabeçalho com controles -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    {{ "overview" | i18n }}
+                </h2>
+                <p class="text-brand-primary-200 text-sm mt-1">
+                    {{ "dashboardOverviewSubtitle" | i18n }}
+                </p>
+            </div>
+            
+            <!-- Controles de visualização e exportação -->
+            <div class="flex flex-wrap gap-2">
+                <!-- Toggle modo compacto -->
+                <button
+                    (click)="toggleCompactMode()"
+                    [attr.aria-label]="(compactMode() ? 'expandedView' : 'compactView') | i18n"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
+                           bg-white dark:bg-gray-800 border-white/20 dark:border-gray-600
+                           text-brand-primary-600 dark:text-gray-300 hover:bg-brand-primary-50 dark:hover:bg-gray-700
+                           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500
+                           flex items-center gap-2 shadow-lg">
+                    <i [class]="compactMode() ? 'fas fa-expand' : 'fas fa-compress'"></i>
+                    <span class="hidden sm:inline">{{ (compactMode() ? "expandedView" : "compactView") | i18n }}</span>
+                </button>
+                
+                <!-- Exportar CSV -->
+                <button
+                    (click)="exportToCSV()"
+                    [attr.aria-label]="'exportCSV' | i18n"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
+                           bg-white dark:bg-gray-800 border-white/20 dark:border-gray-600
+                           text-brand-primary-600 dark:text-gray-300 hover:bg-brand-primary-50 dark:hover:bg-gray-700
+                           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500
+                           flex items-center gap-2 shadow-lg">
+                    <i class="fas fa-file-csv"></i>
+                    <span class="hidden sm:inline">CSV</span>
+                </button>
+                
+                <!-- Exportar PDF -->
+                <button
+                    (click)="exportToPDF()"
+                    [attr.aria-label]="'exportPDF' | i18n"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
+                           bg-white dark:bg-gray-800 border-white/20 dark:border-gray-600
+                           text-brand-primary-600 dark:text-gray-300 hover:bg-brand-primary-50 dark:hover:bg-gray-700
+                           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500
+                           flex items-center gap-2 shadow-lg">
+                    <i class="fas fa-file-pdf"></i>
+                    <span class="hidden sm:inline">PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards - Grid responsivo melhorado -->
+<div [class]="'grid gap-4 mb-8 w-full px-0 ' + (compactMode() ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4')">
     @for (stat of stats(); track stat.label) {
         <button type="button"
             (click)="handleCardClick(stat.id)"
             [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsLastMonth' | i18n)"
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 flex items-start justify-between transform transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 min-h-[120px]">
+            [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm flex flex-col transform transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 ' + (compactMode() ? 'p-3 min-h-[120px]' : 'p-5 min-h-[160px]')">
             
             <!-- Efeito de background -->
-            <div class="absolute top-0 right-0 w-20 h-20 bg-white dark:bg-gray-900 opacity-10 rounded-full -mr-6 -mt-6 transition-transform group-hover:scale-150"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white to-transparent dark:from-gray-900 dark:to-transparent opacity-20 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
             
-            <!-- Conteúdo principal -->
-            <div class="flex-1 min-w-0 mr-3">
-                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 truncate">{{ stat.label | i18n }}</p>
-                <p class="text-xl font-bold text-gray-800 dark:text-gray-100 truncate">{{ stat.value }}</p>
-                <div class="flex items-center mt-1 flex-wrap">
-                    <span [class]="'text-xs font-medium ' + stat.trendColor">
-                        <i class="fas mr-1" [class.fa-arrow-up]="stat.trend.includes('+')"
-                            [class.fa-arrow-down]="stat.trend.includes('-')"></i>
-                        {{ stat.trend }}
-                    </span>
-                    <span class="text-xs text-gray-400 dark:text-gray-500 ml-1 whitespace-nowrap">{{ "vsLastMonth" | i18n }}</span>
+            <!-- Header com label e ícone -->
+            <div class="flex items-start justify-between mb-2 relative z-10">
+                <p [class]="'font-medium truncate flex-1 pr-2 ' + (compactMode() ? 'text-xs' : 'text-sm') + ' text-gray-600 dark:text-gray-400'">
+                    {{ stat.label | i18n }}
+                </p>
+                <div [class]="'rounded-lg flex-shrink-0 shadow-sm ' + stat.bgColor + (compactMode() ? ' p-1.5' : ' p-2.5')">
+                    <i [class]="stat.icon + (compactMode() ? ' text-sm' : ' text-base')"></i>
                 </div>
             </div>
             
-            <!-- Ícone -->
-            <div [class]="'p-3 rounded-full flex-shrink-0 ' + stat.bgColor + ' shadow-inner'">
-                <i [class]="stat.icon + ' text-lg'"></i>
+            <!-- Valor principal -->
+            <div [class]="'relative z-10 ' + (compactMode() ? 'mb-1' : 'mb-3')">
+                <p [class]="'font-bold text-gray-900 dark:text-gray-100 truncate ' + (compactMode() ? 'text-lg' : 'text-2xl')">
+                    {{ stat.value }}
+                </p>
+            </div>
+            
+            <!-- Mini gráfico sparkline (apenas em modo expandido) -->
+            @if (stat.sparklineData && stat.sparklineData.length > 0 && !compactMode()) {
+                <div class="mb-3 relative z-10 h-10">
+                    <canvas 
+                        [id]="'sparkline-' + stat.id"
+                        width="200" 
+                        height="40"
+                        class="w-full h-full"
+                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, stat.sparklineData, stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : stat.bgColor.includes('purple') ? '#a855f7' : '#ea5455')">
+                    </canvas>
+                </div>
+            }
+            
+            <!-- Tendência e comparação -->
+            <div class="flex items-center justify-between mt-auto relative z-10">
+                <div class="flex items-center">
+                    <span [class]="'font-semibold rounded-md ' + (compactMode() ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2 py-1') + ' ' + (stat.trend.includes('+') ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400')">
+                        <i [class]="'fas mr-1 ' + (stat.trend.includes('+') ? 'fa-arrow-up' : 'fa-arrow-down')"></i>
+                        {{ stat.trend }}
+                    </span>
+                </div>
+                @if (!compactMode()) {
+                    <span class="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">
+                        {{ "vsLastMonth" | i18n }}
+                    </span>
+                }
             </div>
             
             <!-- Badge -->
             @if (stat.badge) {
-                <span class="absolute top-2 right-2 px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
+                <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg animate-pulse z-20">
                     {{ stat.badge }}
                 </span>
             }
+            
+            <!-- Indicador de clicável -->
+            <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                <i class="fas fa-arrow-right text-brand-primary-500 text-sm"></i>
+            </div>
         </button>
     }
 </div>
 
-<!-- Charts Section - Container expandido -->
+<!-- Charts Section - Grid responsivo melhorado -->
 <div class="w-full space-y-6 mb-8 px-0">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2')">
         <!-- Gráfico de Pizza -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center">
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-chart-pie text-brand-primary-500 mr-2"></i>
                 {{ "requestsByStatus" | i18n }}
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 mr-2"></i>
-                {{ "currentMonth" | i18n }}
-            </p>
-            <div class="h-80 w-full flex items-center justify-center">
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "currentMonth" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-status-pie-chart 
                     [data]="statusPieChartData()" 
                     [title]="'requestsByStatus' | i18n"
@@ -59,20 +151,87 @@
             </div>
         </div>
         
-        <!-- Gráfico de Barras -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center">
+        <!-- Gráfico de Barras - Solicitações por Categoria -->
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
                 <i class="fas fa-chart-bar text-brand-primary-500 mr-2"></i>
                 {{ "requestsByCategory" | i18n }}
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
-                <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 mr-2"></i>
-                {{ "currentMonth" | i18n }}
-            </p>
-            <div class="h-80 w-full flex items-center justify-center">
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-calendar-alt text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "currentMonth" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
                 <app-category-bar-chart 
                     [data]="ordersByCategory()" 
                     [title]="'requestsByCategory' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+    </div>
+    
+    <!-- Segunda linha de gráficos -->
+    <div [class]="'grid gap-6 w-full ' + (compactMode() ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2')">
+        <!-- Gráfico - Tempo Médio de Conclusão -->
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
+                <i class="fas fa-clock text-brand-primary-500 mr-2"></i>
+                {{ "avgCompletionTimeByService" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-hourglass-half text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "hours" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="avgCompletionTimeByService()" 
+                    [title]="'avgCompletionTimeByService' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+        
+        <!-- Gráfico - Receita por Categoria -->
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
+                <i class="fas fa-euro-sign text-brand-primary-500 mr-2"></i>
+                {{ "revenueByCategory" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-money-bill-wave text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "total" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="revenueByCategory()" 
+                    [title]="'revenueByCategory' | i18n"
+                    class="w-full h-full" />
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terceira linha - Receita por Profissional (largura total) -->
+    <div class="w-full">
+        <div [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow duration-300 w-full ' + (compactMode() ? 'p-4' : 'p-6')">
+            <h3 [class]="'font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center ' + (compactMode() ? 'text-sm' : 'text-lg')">
+                <i class="fas fa-user-tie text-brand-primary-500 mr-2"></i>
+                {{ "revenueByProfessional" | i18n }}
+            </h3>
+            @if (!compactMode()) {
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center">
+                    <i class="fas fa-chart-line text-gray-400 dark:text-gray-500 mr-2"></i>
+                    {{ "total" | i18n }}
+                </p>
+            }
+            <div [class]="'w-full flex items-center justify-center ' + (compactMode() ? 'h-56' : 'h-80')">
+                <app-category-bar-chart 
+                    [data]="revenueByProfessional()" 
+                    [title]="'revenueByProfessional' | i18n"
                     class="w-full h-full" />
             </div>
         </div>

@@ -8,10 +8,9 @@
   <!-- Landing -->
   <ng-container *ngSwitchCase="'landing'">
     <div class="relative w-full h-full mobile-safe">
-      <div class="absolute top-4 right-4 z-10">
-        <app-language-switcher [theme]="authTheme()" />
-      </div>
-      <app-landing (signIn)="showLogin()" (createAccount)="showRegister()" />
+      <app-landing (signIn)="showLogin()" (createAccount)="showRegister()">
+        <app-language-switcher [theme]="authTheme()" language-switcher />
+      </app-landing>
     </div>
   </ng-container>
 

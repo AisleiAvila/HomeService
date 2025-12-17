@@ -242,18 +242,42 @@ export class ServiceRequestEditComponent implements OnInit {
         client_phone: this.request.client_phone,
         client_nif: this.request.client_nif,
         email_client: this.request.email_client,
+        title: this.request.title,
+        valor: this.request.valor,
+        valor_prestador: this.request.valor_prestador,
       };
-      await this.supabaseService.client
+      
+      console.log('Dados sendo salvos:', updates);
+      console.log('ID da solicitação:', this.request.id);
+      console.log('Número do endereço especificamente:', updates.street_number);
+      
+      const { data, error } = await this.supabaseService.client
         .from('service_requests')
         .update(updates)
-        .eq('id', this.request.id);
+        .eq('id', this.request.id)
+        .select();
+      
+      if (error) {
+        console.error('Erro retornado do Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Dados atualizados no Supabase:', data);
+      
       await this.dataService.reloadServiceRequests();
+      
+      // Verificar se os dados foram realmente atualizados
+      const updatedRequest = this.dataService.getServiceRequestById(this.request.id);
+      console.log('Dados após reload:', updatedRequest);
+      
       this.router.navigate(['/admin/requests']);
     } catch (e) {
-      console.error(e);
+      console.error('Erro ao salvar:', e);
       this.error = 'Erro ao salvar alterações';
+      this.cdr.markForCheck();
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 

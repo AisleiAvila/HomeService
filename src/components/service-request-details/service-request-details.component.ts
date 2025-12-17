@@ -251,6 +251,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 </p>
               </div>
               }
+              @if (shouldShowProviderValue()) {
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-value-label">
                   {{ "valorPrestador" | i18n }}
@@ -263,6 +264,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                   }
                 </p>
               </div>
+              }
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="priority-label">
                   {{ "priority" | i18n }}
@@ -829,6 +831,16 @@ export class ServiceRequestDetailsComponent {
   hasAttachments = computed(() => {
     const attachments = this.request().attachments;
     return attachments && attachments.length > 0;
+  });
+
+  // Verifica se deve mostrar o valor do prestador (ocultar para funcionários da Natan)
+  shouldShowProviderValue = computed(() => {
+    const user = this.currentUser();
+    // Oculta para profissionais que são funcionários da Natan
+    if (user.role === 'professional' && user.is_natan_employee === true) {
+      return false;
+    }
+    return true;
   });
 
   // Outputs para eventos

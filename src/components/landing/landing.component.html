@@ -21,22 +21,20 @@
       <span class="text-brand-primary-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
     </div>
     <!-- Controles no canto superior direito: idioma + botões -->
-    <div class="absolute top-2 right-2 sm:top-4 sm:right-16 lg:right-24 z-20 flex flex-row items-center gap-2">
-      <div class="flex flex-row items-center gap-2 flex-nowrap max-w-full overflow-x-auto min-w-0 justify-end sm:justify-start w-full">
-        <ng-content select="[language-switcher]"></ng-content>
-        <button
-          (click)="signIn.emit()"
-          class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 hover:shadow-xl min-h-12 h-12 flex items-center justify-center whitespace-nowrap align-middle ml-auto sm:ml-0"
-          aria-label="{{ 'signIn' | i18n }}"
-        >
+    <div class="absolute top-2 right-2 left-2 sm:left-auto sm:right-16 lg:right-24 z-50 flex flex-row items-center justify-end gap-2">
+      <ng-content select="[language-switcher]"></ng-content>
+      <button
+        (click)="signIn.emit()"
+        class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 h-12 flex items-center justify-center whitespace-nowrap flex-shrink-0"
+        aria-label="{{ 'signIn' | i18n }}"
+      >
           <!-- Ícone login: porta com seta -->
           <svg class="inline-block w-5 h-5 text-brand-primary-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
           </svg>
           <span class="ml-2 text-base font-semibold">{{ "signIn" | i18n }}</span>
-        </button>
-      </div>
+      </button>
     </div>
   </div>
 

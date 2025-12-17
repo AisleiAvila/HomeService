@@ -83,8 +83,8 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
 
     if (!file) return;
 
-    // Validar tamanho (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validar tamanho (15MB)
+    if (file.size > 15 * 1024 * 1024) {
       alert(this.i18n.translate('imageTooBig'));
       return;
     }

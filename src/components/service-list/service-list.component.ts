@@ -219,6 +219,16 @@ export class ServiceListComponent {
   // Computed property to get all users for lookup
   allUsers = this.dataService.users;
 
+  // Verifica se deve mostrar a coluna de valor (ocultar para funcionários da Natan)
+  shouldShowValueColumn = computed(() => {
+    const user = this.currentUser();
+    // Oculta para profissionais que são funcionários da Natan
+    if (user.role === 'professional' && user.is_natan_employee === true) {
+      return false;
+    }
+    return true;
+  });
+
   formatAddress(src: ServiceRequest | Address): string {
     return formatPtAddress(src);
   }
