@@ -54,7 +54,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "professionals" | "clients" | "categories";
+type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "clients" | "categories";
 
 @Component({
   selector: "app-root",
@@ -184,11 +184,6 @@ export class AppComponent implements OnInit {
           id: "finances",
           labelKey: "finances",
           icon: "fa-solid fa-chart-line",
-        },
-        {
-          id: "professionals",
-          labelKey: "professionals",
-          icon: "fa-solid fa-users",
         },
         {
           id: "clients",
