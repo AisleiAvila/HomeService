@@ -18,14 +18,35 @@ declare const L: any;
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full h-96 rounded-lg overflow-hidden border border-gray-200">
-      @if (latitude && longitude) {
-        <div #mapContainer class="w-full h-full"></div>
-      } @else {
-        <div class="flex items-center justify-center h-full text-gray-500">
-          Localização não disponível
+    <div class="w-full space-y-3">
+      <!-- Botões de Ação -->
+      @if (latitude && longitude && currentLocation()) {
+        <div class="flex gap-2">
+          <button
+            (click)="openInGoogleMaps()"
+            class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700">
+            <i class="fab fa-google mr-2"></i>
+            Google Maps
+          </button>
+          <button
+            (click)="openInWaze()"
+            class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700">
+            <i class="fas fa-map-marked-alt mr-2"></i>
+            Waze
+          </button>
         </div>
       }
+      
+      <!-- Mapa -->
+      <div class="w-full h-96 rounded-lg overflow-hidden border border-gray-200">
+        @if (latitude && longitude) {
+          <div #mapContainer class="w-full h-full"></div>
+        } @else {
+          <div class="flex items-center justify-center h-full text-gray-500">
+            Localização não disponível
+          </div>
+        }
+      </div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +63,7 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
   private connectingLine: any = null; // Linha de conexão
   private distanceLabel: any = null; // Label de distância
   private readonly mapInitialized = signal(false);
-  private readonly currentLocation = signal<{ lat: number; lng: number } | null>(null);
+  readonly currentLocation = signal<{ lat: number; lng: number } | null>(null);
 
   constructor() {
     // Effect para atualizar o mapa quando as coordenadas mudarem
@@ -330,6 +351,36 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
       return `${Math.round(km * 1000)} m`;
     }
     return `${km.toFixed(1)} km`;
+  }
+
+  /**
+   * Abre o Google Maps com a rota da localização atual para o destino
+   */
+  openInGoogleMaps(): void {
+    const current = this.currentLocation();
+    
+    if (current && this.latitude && this.longitude) {
+      // Abrir com rota da localização atual para o destino
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${current.lat},${current.lng}&destination=${this.latitude},${this.longitude}&travelmode=driving`;
+      console.log('[Map Viewer] Abrindo Google Maps:', url);
+      window.open(url, '_blank');
+    } else if (this.latitude && this.longitude) {
+      // Abrir apenas o destino se não houver localização atual
+      const url = `https://www.google.com/maps/search/?api=1&query=${this.latitude},${this.longitude}`;
+      console.log('[Map Viewer] Abrindo Google Maps (destino apenas):', url);
+      window.open(url, '_blank');
+    }
+  }
+
+  /**
+   * Abre o Waze com a rota para o destino
+   */
+  openInWaze(): void {
+    if (this.latitude && this.longitude) {
+      const url = `https://waze.com/ul?ll=${this.latitude},${this.longitude}&navigate=yes`;
+      console.log('[Map Viewer] Abrindo Waze:', url);
+      window.open(url, '_blank');
+    }
   }
 }
 
