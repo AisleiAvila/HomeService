@@ -8,6 +8,7 @@ import {
   inject,
   signal,
   effect,
+  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -44,6 +45,7 @@ import { ServiceClarificationsComponent } from "../service-clarifications/servic
 import { NotificationService } from "../../services/notification.service";
 import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
+import { GeolocationService } from "../../services/geolocation.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
 import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
@@ -143,8 +145,8 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                     <i class="fas fa-user text-brand-primary-600"></i>
                   </div>
                   }
-                  <div>
-                    <h4 class="font-medium text-gray-800 dark:text-gray-100">
+                  <div class="min-w-0">
+                    <h4 class="font-medium text-gray-800 dark:text-gray-100 truncate">
                       {{ quote.professional_name || ("professional" | i18n) }}
                     </h4>
                     @if (quote.professional_rating) {
@@ -207,13 +209,13 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="title-label">
                   {{ "title" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
+                <p class="text-gray-900 dark:text-gray-100 break-words" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="description-label">
                   {{ "description" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
+                <p class="text-gray-900 dark:text-gray-100 break-words" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
               </div>
               @if (request().origin) {
               <div>
@@ -289,7 +291,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-label">
                   {{ "professionalName" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'professional-label'">
+                <p class="text-gray-900 dark:text-gray-100 truncate" [attr.aria-labelledby]="'professional-label'" [title]="request().professional_name">
                   {{
                     request().professional_name || ("nameNotAvailable" | i18n)
                   }}
@@ -447,33 +449,135 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               <i class="fas fa-map-marker-alt mr-2 text-brand-primary-500" aria-hidden="true"></i>
               {{ "geolocation" | i18n }}
             </h3>
-            @if (currentUser().role === 'professional') {
-              <button
-                (click)="showRouteMap.set(!showRouteMap())"
-                class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
-                [attr.aria-label]="(showRouteMap() ? 'geolocation' : 'viewRoute') | i18n"
-                [attr.aria-pressed]="showRouteMap()">
-                <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}" aria-hidden="true"></i>
-                {{ (showRouteMap() ? 'geolocation' : 'viewRoute') | i18n }}
-              </button>
-            }
+            <button
+              (click)="showRouteMap.set(!showRouteMap())"
+              class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
+              [attr.aria-label]="(showRouteMap() ? 'geolocation' : 'viewRoute') | i18n"
+              [attr.aria-pressed]="showRouteMap()">
+              <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}" aria-hidden="true"></i>
+              {{ (showRouteMap() ? 'geolocation' : 'viewRoute') | i18n }}
+            </button>
           </div>
           <div class="space-y-4" [attr.aria-labelledby]="'geolocation-title'">
+            <!-- User Location Section -->
+            <div class="bg-gradient-to-r from-brand-primary-50 to-brand-primary-100 dark:from-gray-700 dark:to-gray-700 rounded-lg p-4 border border-brand-primary-200 dark:border-gray-600">
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <i class="fas fa-location-dot text-brand-primary-600" aria-hidden="true"></i>
+                  {{ "yourLocation" | i18n }}
+                  @if (geolocationService.reverseGeocode()?.locality) {
+                  <span class="text-sm font-normal text-gray-600 dark:text-gray-400">
+                    — {{ geolocationService.reverseGeocode()!.locality }}
+                  </span>
+                  }
+                </h4>
+                <div class="flex items-center gap-2">
+                  @if (geolocationService.isTracking()) {
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 text-xs font-medium rounded-full">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    {{ "tracking" | i18n }}
+                  </span>
+                  }
+                </div>
+              </div>
+
+              @if (locationError()) {
+              <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded p-3 mb-3">
+                <p class="text-red-700 dark:text-red-200 text-sm">
+                  <i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>
+                  {{ locationError()!.message }}
+                </p>
+              </div>
+              }
+
+              @if (userLocationDisplay()) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                    {{ "latitude" | i18n }}
+                  </label>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono text-sm break-words">
+                    {{ userLocationDisplay()!.latitude }}
+                  </p>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+                    {{ "longitude" | i18n }}
+                  </label>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono text-sm break-words">
+                    {{ userLocationDisplay()!.longitude }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="bg-white dark:bg-gray-800 rounded p-3 mb-3">
+                <p class="text-sm text-gray-700 dark:text-gray-300">
+                  <span class="font-medium">{{ "accuracy" | i18n }}:</span>
+                  <span class="text-gray-900 dark:text-gray-100">±{{ userLocationDisplay()!.accuracy }}m</span>
+                </p>
+              </div>
+
+              @if (formattedDistance()) {
+              <div class="bg-white dark:bg-gray-800 rounded p-3 border-l-4 border-brand-primary-500">
+                <p class="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
+                  <span class="font-medium">{{ "distanceToService" | i18n }}:</span>
+                  <span class="text-lg font-bold text-brand-primary-600 dark:text-brand-primary-400">
+                    {{ formattedDistance() }}
+                  </span>
+                </p>
+              </div>
+              }
+              } @else {
+              <div class="text-center py-4">
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">
+                  {{ "enableLocationTracking" | i18n }}
+                </p>
+                <button
+                  (click)="enableUserTracking.set(true)"
+                  class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium inline-flex items-center gap-2">
+                  <i class="fas fa-location-arrow" aria-hidden="true"></i>
+                  {{ "startTracking" | i18n }}
+                </button>
+              </div>
+              }
+
+              @if (geolocationService.isTracking()) {
+              <button
+                (click)="enableUserTracking.set(false)"
+                class="w-full mt-3 px-4 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors text-sm font-medium">
+                <i class="fas fa-stop mr-2" aria-hidden="true"></i>
+                {{ "stopTracking" | i18n }}
+              </button>
+              }
+            </div>
+
+            <!-- Service Location Map Section -->
             @if (!showRouteMap()) {
-              <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="latitude-label">
-                    Latitude
+                    {{ "latitude" | i18n }}
                   </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono break-words" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="longitude-label">
-                    Longitude
+                    {{ "longitude" | i18n }}
                   </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
+                  <p class="text-gray-900 dark:text-gray-100 font-mono break-words" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
                 </div>
               </div>
+
+              <!-- Debug Info (remover em produção) -->
+              <div class="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded text-xs text-yellow-800 dark:text-yellow-200 hidden">
+                <p><strong>Debug:</strong></p>
+                <p>Request Lat: {{ request().latitude }}</p>
+                <p>Request Lng: {{ request().longitude }}</p>
+                <p>PostalCode Lat: {{ postalCodeCoordinates()?.latitude }}</p>
+                <p>PostalCode Lng: {{ postalCodeCoordinates()?.longitude }}</p>
+                <p>Postal Code: {{ addressParts().postalCode }}</p>
+              </div>
+
               <app-leaflet-map-viewer
                 [latitude]="serviceLatitude()!"
                 [longitude]="serviceLongitude()!"
@@ -484,7 +588,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               <app-leaflet-route-map
                 [destinationLatitude]="serviceLatitude()!"
                 [destinationLongitude]="serviceLongitude()!"
-                [mapHeight]="'500px'"
+                [mapHeight]="getResponsiveMapHeight()"
                 [showInstructions]="true"
                 role="img"
                 [attr.aria-label]="'routeMapRegion' | i18n">
@@ -503,7 +607,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               ({{ request().photos!.length }})
             </span>
           </h3>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
             @for (photo of request().photos; track photo; let idx = $index) {
             <button 
               class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-brand-primary-500 dark:hover:border-brand-primary-400 hover:shadow-lg transition-all cursor-pointer group"
@@ -635,7 +739,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
     <!-- Photo Modal -->
     @if (showPhotoModal()) {
     <div 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-2 sm:p-4"
       (click)="closePhotoModal()"
       role="dialog"
       [attr.aria-label]="'photoModal' | i18n"
@@ -643,14 +747,14 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
     >
       <button
         (click)="closePhotoModal()"
-        class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl z-10"
+        class="absolute top-2 sm:top-4 right-2 sm:right-4 text-white hover:text-gray-300 text-2xl sm:text-3xl z-10"
         [attr.aria-label]="'close' | i18n"
         type="button"
       >
         <i class="fas fa-times" aria-hidden="true"></i>
       </button>
       
-      <div class="max-w-6xl max-h-full" (click)="$event.stopPropagation()">
+      <div class="max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-full" (click)="$event.stopPropagation()">
         <img 
           [src]="selectedPhoto()"
           [alt]="'photo' | i18n"
@@ -662,7 +766,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestDetailsComponent {
+export class ServiceRequestDetailsComponent implements OnDestroy {
   @Output() businessRuleError = new EventEmitter<string>();
 
   // Inputs usando signal inputs nativos do Angular
@@ -677,6 +781,7 @@ export class ServiceRequestDetailsComponent {
   private readonly router = inject(Router);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly addressService = inject(PortugalAddressDatabaseService);
+  private readonly geolocationService = inject(GeolocationService);
 
   // Signal para request carregado via rota
   private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
@@ -729,6 +834,9 @@ export class ServiceRequestDetailsComponent {
   selectedPhoto = signal<string | null>(null);
   showRouteMap = signal(false);
 
+  // Signal para controlar rastreamento de localização do usuário
+  enableUserTracking = signal(false);
+
   // Estado de carregamento com granularidade
   loadingState = signal<LoadingState>({
     main: false,
@@ -762,7 +870,7 @@ export class ServiceRequestDetailsComponent {
   addressLine3 = computed(() => this.addressParts().district);
 
   // Signal para armazenar coordenadas do código postal
-  private readonly postalCodeCoordinates = signal<{ latitude: number; longitude: number } | null>(null);
+  readonly postalCodeCoordinates = signal<{ latitude: number; longitude: number } | null>(null);
 
   // Effect para buscar coordenadas quando o código postal do request mudar
   private readonly coordinatesEffect = effect(async () => {
@@ -776,11 +884,18 @@ export class ServiceRequestDetailsComponent {
     try {
       const result = await this.addressService.validateCodigoPostal(postalCode);
       if (result.valid && result.endereco?.latitude && result.endereco?.longitude) {
+        console.log('[ServiceRequestDetailsComponent] Coordenadas do código postal obtidas:', {
+          postalCode,
+          latitude: result.endereco.latitude,
+          longitude: result.endereco.longitude,
+          localidade: result.endereco?.localidade || 'N/A'
+        });
         this.postalCodeCoordinates.set({
           latitude: result.endereco.latitude,
           longitude: result.endereco.longitude
         });
       } else {
+        console.warn('[ServiceRequestDetailsComponent] Código postal inválido ou sem coordenadas:', postalCode);
         this.postalCodeCoordinates.set(null);
       }
     } catch (error) {
@@ -789,15 +904,124 @@ export class ServiceRequestDetailsComponent {
     }
   });
 
-  // Coordenadas finais (do request ou do código postal)
+  // Coordenadas finais (prioriza: request > código postal > null)
   serviceLatitude = computed(() => {
     const req = this.request();
-    return req.latitude || this.postalCodeCoordinates()?.latitude || null;
+    const fromRequest = req.latitude;
+    const fromPostalCode = this.postalCodeCoordinates()?.latitude;
+    const finalLat = fromRequest || fromPostalCode || null;
+    
+    // Log para debug
+    if (finalLat) {
+      console.log('[ServiceRequestDetailsComponent] Latitude final:', {
+        fromRequest,
+        fromPostalCode,
+        final: finalLat,
+        source: fromRequest ? 'request' : 'postalCode'
+      });
+    }
+    
+    return finalLat;
   });
   
   serviceLongitude = computed(() => {
     const req = this.request();
-    return req.longitude || this.postalCodeCoordinates()?.longitude || null;
+    const fromRequest = req.longitude;
+    const fromPostalCode = this.postalCodeCoordinates()?.longitude;
+    const finalLng = fromRequest || fromPostalCode || null;
+    
+    // Log para debug
+    if (finalLng) {
+      console.log('[ServiceRequestDetailsComponent] Longitude final:', {
+        fromRequest,
+        fromPostalCode,
+        final: finalLng,
+        source: fromRequest ? 'request' : 'postalCode'
+      });
+    }
+    
+    return finalLng;
+  });
+
+  // Computed para distância entre usuário e local do serviço
+  distanceToService = computed(() => {
+    const userLoc = this.geolocationService.userLocation();
+    const serviceLatLng = {
+      lat: this.serviceLatitude(),
+      lng: this.serviceLongitude()
+    };
+
+    if (!userLoc || !serviceLatLng.lat || !serviceLatLng.lng) {
+      return null;
+    }
+
+    const distance = this.geolocationService.calculateDistance(
+      userLoc.latitude,
+      userLoc.longitude,
+      serviceLatLng.lat,
+      serviceLatLng.lng
+    );
+
+    return distance;
+  });
+
+  // Computed para distância formatada
+  formattedDistance = computed(() => {
+    const distance = this.distanceToService();
+    if (distance) {
+      return this.geolocationService.formatDistance(distance);
+    }
+    return null;
+  });
+
+  // Effect to manage location tracking lifecycle
+  private readonly trackingEffect = effect(() => {
+    const shouldTrack = this.enableUserTracking();
+    const currentUser = this.currentUser();
+
+    if (shouldTrack) {
+      console.log('[ServiceRequestDetailsComponent] Iniciando rastreamento para usuário:', currentUser.role);
+      console.log('[ServiceRequestDetailsComponent] Verificando geolocalização disponível:', this.geolocationService.isGeolocationAvailable ? 'Sim' : 'Não');
+      
+      // Usar enableHighAccuracy = false por padrão para evitar timeouts
+      // em ambientes com sinal fraco
+      this.geolocationService.startTracking(false);
+      
+      // Log de status após 2 segundos
+      setTimeout(() => {
+        const location = this.geolocationService.userLocation();
+        const error = this.geolocationService.locationError();
+        if (location) {
+          console.log('[ServiceRequestDetailsComponent] Localização obtida:', {
+            lat: location.latitude.toFixed(6),
+            lng: location.longitude.toFixed(6),
+            accuracy: location.accuracy.toFixed(0) + 'm'
+          });
+        } else if (error) {
+          console.warn('[ServiceRequestDetailsComponent] Erro ao obter localização:', error.message);
+        }
+      }, 2000);
+    } else if (!shouldTrack && this.geolocationService.isTracking()) {
+      console.log('[ServiceRequestDetailsComponent] Parando rastreamento');
+      this.geolocationService.stopTracking();
+    }
+  });
+
+  // Get formatted user location for display
+  userLocationDisplay = computed(() => {
+    const userLoc = this.geolocationService.userLocation();
+    if (!userLoc) return null;
+    return {
+      latitude: userLoc.latitude.toFixed(6),
+      longitude: userLoc.longitude.toFixed(6),
+      accuracy: userLoc.accuracy.toFixed(0),
+      isTracking: this.geolocationService.isTracking()
+    };
+  });
+
+  // Get location error message
+  locationError = computed(() => {
+    return this.geolocationService.locationError();
   });
 
   // Organiza e enriquece respostas de profissionais
@@ -1082,6 +1306,47 @@ export class ServiceRequestDetailsComponent {
   logAndEmitCloseDetails() {
     this.closeDetails.emit();
     this.router.navigate(["/admin/requests"]);
+  }
+
+  /**
+   * Retorna altura responsiva para o mapa de rota
+   * Adapta-se ao tamanho da tela:
+   * - Mobile: 300px
+   * - Tablet: 400px
+   * - Desktop: 500px
+   */
+  getResponsiveMapHeight(): string {
+    try {
+      const windowWidth = globalThis.window.innerWidth;
+
+      // Mobile (< 640px)
+      if (windowWidth < 640) {
+        return '300px';
+      }
+      // Tablet (640px - 1024px)
+      else if (windowWidth < 1024) {
+        return '400px';
+      }
+      // Desktop (> 1024px)
+      else {
+        return '500px';
+      }
+    } catch {
+      // SSR ou ambiente sem window
+      return '500px';
+    }
+  }
+
+  /**
+   * Cleanup lifecycle - stops geolocation tracking when component is destroyed
+   * Prevents memory leaks and unnecessary battery drain
+   */
+  ngOnDestroy(): void {
+    if (this.geolocationService.isTracking()) {
+      console.log('Stopping location tracking on component destroy');
+      this.geolocationService.stopTracking();
+      this.enableUserTracking.set(false);
+    }
   }
 }
 

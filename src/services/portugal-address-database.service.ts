@@ -492,4 +492,39 @@ export class PortugalAddressDatabaseService {
 
     return [];
   }
+
+  /**
+   * NOVO: Busca todos os códigos postais para reverse geocoding
+   * Retorna apenas com coordenadas para cálculo de distância
+   */
+  async getAllCodigoPostais(): Promise<(CodigoPostal & { distrito?: string })[]> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from("codigos_postais")
+        .select("codigo_postal_completo, nome_localidade, latitude, longitude, distrito_codigo")
+        .not("latitude", "is", null)
+        .not("longitude", "is", null);
+
+      if (error) {
+        console.error("Erro ao buscar todos os códigos postais:", error);
+        return [];
+      }
+
+      // Mapear para formato esperado e buscar nome do distrito
+      if (data && data.length > 0) {
+        return data.map((cp: any) => ({
+          codigo_postal_completo: cp.codigo_postal_completo,
+          nome_localidade: cp.nome_localidade,
+          latitude: cp.latitude,
+          longitude: cp.longitude,
+          distrito: cp.distrito_codigo // Será melhorado com join no futuro
+        })) as any[];
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Erro ao buscar códigos postais para reverse geocoding:", error);
+      return [];
+    }
+  }
 }

@@ -88,25 +88,25 @@ interface RouteInfo {
 
           <!-- Distance/Time Grid -->
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="bg-white rounded-lg p-3 shadow-sm">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-700">
               <div class="flex items-center gap-2 mb-1">
                 <i class="fas fa-road text-brand-primary-600"></i>
-                <span class="text-xs font-medium text-gray-500">
+                <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
                   {{ isTracking() && routeInfo()!.remainingDistance ? 'Restante' : 'Distância' }}
                 </span>
               </div>
-              <p class="text-lg font-bold text-gray-900">
+              <p class="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {{ isTracking() && routeInfo()!.remainingDistance ? routeInfo()!.remainingDistance : routeInfo()!.distance }}
               </p>
             </div>
-            <div class="bg-white rounded-lg p-3 shadow-sm">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-gray-700">
               <div class="flex items-center gap-2 mb-1">
                 <i class="fas fa-clock text-brand-primary-600"></i>
-                <span class="text-xs font-medium text-gray-500">
+                <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
                   {{ isTracking() && routeInfo()!.remainingTime ? 'Tempo Restante' : 'Tempo Estimado' }}
                 </span>
               </div>
-              <p class="text-lg font-bold text-gray-900">
+              <p class="text-lg font-bold text-gray-900 dark:text-gray-100">
                 {{ isTracking() && routeInfo()!.remainingTime ? routeInfo()!.remainingTime : routeInfo()!.duration }}
               </p>
             </div>
@@ -205,6 +205,9 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
   private routingControl: any;
   private routePolyline: any = null; // Store route polyline for cleanup
   private startMarker: any = null; // Store start marker for cleanup
+  private destinationMarker: any = null; // Store destination marker for cleanup
+  private connectingLine: any = null; // Store connecting line for cleanup
+  private distanceLabel: any = null; // Store distance label marker for cleanup
   private readonly currentLocation = signal<{ lat: number; lng: number } | null>(null);
   private currentPositionMarker: any = null;
   private watchId: number | null = null;
@@ -240,6 +243,15 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
     }
     if (this.startMarker && this.map) {
       this.map.removeLayer(this.startMarker);
+    }
+    if (this.destinationMarker && this.map) {
+      this.map.removeLayer(this.destinationMarker);
+    }
+    if (this.connectingLine && this.map) {
+      this.map.removeLayer(this.connectingLine);
+    }
+    if (this.distanceLabel && this.map) {
+      this.map.removeLayer(this.distanceLabel);
     }
     if (this.routingControl && this.map) {
       this.map.removeControl(this.routingControl);
@@ -284,17 +296,17 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       attribution: '© OpenStreetMap contributors',
     }).addTo(this.map);
 
-    // Add destination marker
-    L.marker([destLat, destLng], {
+    // Add destination marker with legend
+    this.destinationMarker = L.marker([destLat, destLng], {
       icon: L.divIcon({
         className: 'custom-destination-marker',
-        html: '<div style="background-color: #dc2626; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-flag-checkered" style="color: white; font-size: 12px;"></i></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
+        html: '<div style="background-color: #dc2626; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-weight: bold;"><i class="fas fa-map-pin" style="color: white; font-size: 16px;"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
       }),
     })
       .addTo(this.map)
-      .bindPopup('<b>Destino</b><br>Local do serviço');
+      .bindPopup('<b style="color: #dc2626; font-size: 14px;">📍 Destino</b><br><span style="font-size: 12px;">Local do serviço</span>');
 
     // Start getting route
     this.initializeRoute();
@@ -323,14 +335,22 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       // Set basic route info with straight-line distance
       this.routeInfo.set({
         distance: this.formatDistance(distance * 1000),
-        duration: this.formatDuration((distance / 50) * 3600), // Estimate: 50 km/h average
+        duration: this.formatDuration((distance / 50) * 3600 * 60), // Estimate: 50 km/h average, converting to seconds
         instructions: [{
-          text: 'Distância em linha reta. Use Google Maps ou Waze para navegação detalhada.',
+          text: 'Aguardando cálculo da rota...',
           distance: '',
         }],
       });
 
       this.loading.set(false);
+
+      // Desenhar linha reta como base (será substituída se a API funcionar)
+      this.drawStraightLineRoute(
+        position.coords.latitude,
+        position.coords.longitude,
+        this.destinationLatitude(),
+        this.destinationLongitude()
+      );
 
       // Try to create detailed route (may fail with public servers)
       this.createRoute(
@@ -471,12 +491,29 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       const response = await fetch(apiUrl);
       const data = await response.json();
       
-      if (!response.ok || !data.success) {
-        console.warn('[Route] API falhou, usando distância em linha reta');
+      console.log('[Route] Resposta da API:', data, 'Status:', response.status);
+      
+      // Verificar se a API retornou sucesso
+      if (data.success === false) {
+        console.warn('[Route] API retornou sucesso=false:', data.error);
+        // Se falhou mas forneceu coordenadas fallback, usar
+        if (data.coordinates && data.coordinates.length > 0) {
+          console.log('[Route] Usando coordenadas fallback da API');
+          this.drawRoutePolyline(data.coordinates, true);
+        } else {
+          this.drawStraightLineRoute(startLat, startLng, endLat, endLng);
+        }
+        return;
+      }
+
+      // Se falhou completamente
+      if (!response.ok) {
+        console.warn('[Route] API retornou erro HTTP:', response.status, data.error);
+        this.drawStraightLineRoute(startLat, startLng, endLat, endLng);
         return;
       }
       
-      console.log('[Route] Rota recebida da API:', data);
+      console.log('[Route] Rota recebida com sucesso! Coordenadas:', data.coordinates?.length || 0);
       
       // Limpar rotas anteriores
       if (this.routePolyline) {
@@ -487,27 +524,12 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       }
       
       // Adicionar linha da rota ao mapa
-      if (data.coordinates && data.coordinates.length > 0) {
-        this.routePolyline = L.polyline(data.coordinates, {
-          color: '#2563eb',
-          weight: 6,
-          opacity: 0.8,
-        }).addTo(this.map);
-        
-        // Ajustar zoom para mostrar toda a rota
-        this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+      if (data.coordinates && data.coordinates.length > 1) {
+        console.log('[Route] Desenhando polyline com', data.coordinates.length, 'coordenadas');
+        this.drawRoutePolyline(data.coordinates, false, data);
         
         // Adicionar marcador de início
-        this.startMarker = L.marker([startLat, startLng], {
-          icon: L.divIcon({
-            className: 'custom-start-marker',
-            html: '<div style="background-color: #2563eb; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-user" style="color: white; font-size: 12px;"></i></div>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15],
-          }),
-        })
-          .addTo(this.map)
-          .bindPopup('<b>Você está aqui</b>');
+        this.addStartMarker(startLat, startLng);
         
         // Atualizar informações da rota
         this.routeInfo.set({
@@ -519,12 +541,70 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
           })),
         });
         
-        console.log('[Route] Rota renderizada com sucesso');
+        console.log('[Route] ✅ Rota renderizada com sucesso');
+      } else {
+        console.warn('[Route] Coordenadas insuficientes:', data.coordinates?.length);
+        this.drawStraightLineRoute(startLat, startLng, endLat, endLng);
       }
     } catch (error: any) {
-      console.error('[Route] Erro ao criar rota:', error);
-      // Mantém a distância em linha reta que já foi calculada
+      console.error('[Route] ❌ Erro ao criar rota:', error.message);
+      this.drawStraightLineRoute(startLat, startLng, endLat, endLng);
     }
+  }
+
+  /**
+   * Desenha a polyline da rota no mapa
+   */
+  private drawRoutePolyline(coordinates: [number, number][], isFallback: boolean = false, data?: any): void {
+    this.routePolyline = L.polyline(coordinates, {
+      color: isFallback ? '#fbbf24' : '#2563eb',
+      weight: isFallback ? 5 : 6,
+      opacity: 0.8,
+      dashArray: isFallback ? '10, 5' : '0',
+    }).addTo(this.map);
+    
+    // Adicionar popup na polyline
+    const popupText = this.buildPopupText(isFallback, data);
+    this.routePolyline.bindPopup(popupText);
+    
+    // Ajustar zoom para mostrar toda a rota
+    try {
+      this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+    } catch (error) {
+      console.warn('[Route] Erro ao ajustar zoom:', error);
+    }
+  }
+
+  /**
+   * Constrói o texto do popup baseado no tipo de rota
+   */
+  private buildPopupText(isFallback: boolean, data?: any): string {
+    if (isFallback) {
+      return `<b>Linha Direta (Roteamento Indisponível)</b><br>Use Google Maps ou Waze para rota otimizada`;
+    }
+    
+    const distance = data?.distance ? this.formatDistance(data.distance) : 'N/A';
+    const duration = data?.duration ? this.formatDuration(data.duration) : 'N/A';
+    return `<b>Trajeto Calculado</b><br>Distância: ${distance}<br>Tempo: ${duration}`;
+  }
+
+  /**
+   * Adiciona marcador de início com legenda
+   */
+  private addStartMarker(lat: number, lng: number): void {
+    this.startMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: 'custom-start-marker',
+        html: '<div style="background-color: #2563eb; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-weight: bold;"><i class="fas fa-location-dot" style="color: white; font-size: 16px;"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+      }),
+    })
+      .addTo(this.map)
+      .bindPopup('<b style="color: #2563eb; font-size: 14px;">📍 Você está aqui</b><br><span style="font-size: 12px;">Sua posição atual</span>');
+    
+    // Draw connecting line with distance
+    this.drawConnectingLine(lat, lng);
   }
   
   private translateInstruction(type: string): string {
@@ -544,6 +624,110 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
       'end-of-road': 'Fim da estrada',
     };
     return translations[type] || type;
+  }
+
+  /**
+   * Desenha uma linha reta entre dois pontos como fallback
+   * quando a API de roteamento falha
+   */
+  private drawStraightLineRoute(startLat: number, startLng: number, endLat: number, endLng: number): void {
+    console.log('[Route] Desenhando linha reta como fallback...');
+    
+    // Limpar rotas anteriores
+    if (this.routePolyline) {
+      this.map.removeLayer(this.routePolyline);
+    }
+    if (this.startMarker) {
+      this.map.removeLayer(this.startMarker);
+    }
+    
+    // Criar linha reta entre origem e destino
+    const coordinates = [[startLat, startLng], [endLat, endLng]];
+    
+    this.routePolyline = L.polyline(coordinates, {
+      color: '#fbbf24', // Amarelo para indicar que é fallback
+      weight: 5,
+      opacity: 0.8,
+      dashArray: '10, 5', // Linha tracejada para indicar que não é rota otimizada
+    }).addTo(this.map);
+    
+    // Adicionar popup na polyline mostrando que é linha direta
+    this.routePolyline.bindPopup(
+      `<b>Linha Direta (Roteamento Indisponível)</b><br>Distância: ${this.routeInfo()?.distance || 'N/A'}<br>Use Google Maps ou Waze para rota otimizada`
+    );
+    
+    // Adicionar marcador de início
+    this.startMarker = L.marker([startLat, startLng], {
+      icon: L.divIcon({
+        className: 'custom-start-marker',
+        html: '<div style="background-color: #2563eb; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-weight: bold;"><i class="fas fa-location-dot" style="color: white; font-size: 16px;"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+      }),
+    })
+      .addTo(this.map)
+      .bindPopup('<b style="color: #2563eb; font-size: 14px;">📍 Você está aqui</b><br><span style="font-size: 12px;">Sua posição atual</span>');
+    
+    // Ajustar zoom para mostrar toda a rota
+    this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+    
+    console.log('[Route] Linha reta renderizada com sucesso (fallback mode)');
+  }
+
+  /**
+   * Desenha uma linha de conexão entre a posição atual e o destino com distância
+   */
+  private drawConnectingLine(startLat: number, startLng: number): void {
+    const destLat = this.destinationLatitude();
+    const destLng = this.destinationLongitude();
+    
+    // Limpar linhas anteriores
+    if (this.connectingLine && this.map) {
+      this.map.removeLayer(this.connectingLine);
+      this.connectingLine = null;
+    }
+    if (this.distanceLabel && this.map) {
+      this.map.removeLayer(this.distanceLabel);
+      this.distanceLabel = null;
+    }
+    
+    // Calcular distância
+    const distance = this.calculateDistance(startLat, startLng, destLat, destLng);
+    const distanceDisplay = this.formatDistance(distance * 1000);
+    
+    console.log('[Route] Desenhando linha de conexão. Distância:', distanceDisplay);
+    
+    // Criar uma linha de conexão simples
+    this.connectingLine = L.polyline(
+      [[startLat, startLng], [destLat, destLng]],
+      {
+        color: '#06b6d4',
+        weight: 3,
+        opacity: 0.6,
+        dashArray: '5, 5',
+        lineCap: 'round',
+        lineJoin: 'round',
+      }
+    ).addTo(this.map);
+    
+    console.log('[Route] Linha de conexão criada:', this.connectingLine);
+    
+    // Adicionar label de distância no meio da linha
+    const midLat = (startLat + destLat) / 2;
+    const midLng = (startLng + destLng) / 2;
+    
+    // Criar um marcador invisível com um popup de distância
+    this.distanceLabel = L.marker([midLat, midLng], {
+      icon: L.divIcon({
+        className: 'distance-label',
+        html: `<div style="background-color: rgba(6, 182, 212, 0.95); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid white;"><i class="fas fa-ruler-horizontal" style="margin-right: 6px;"></i>${distanceDisplay}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        popupAnchor: [0, 0],
+      }),
+    }).addTo(this.map);
+    
+    console.log('[Route] Label de distância criado:', this.distanceLabel);
   }
 
   private createRouteWithLeafletRouting(startLat: number, startLng: number, endLat: number, endLng: number): void {
@@ -730,11 +914,14 @@ export class LeafletRouteMapComponent implements AfterViewInit, OnDestroy {
               iconSize: [20, 20],
               iconAnchor: [10, 10],
             }),
-          }).addTo(this.map).bindPopup('<b>Você está aqui</b><br>Rastreando...');
+          }).addTo(this.map).bindPopup('<b style="color: #2563eb;">📍 Você está aqui</b><br>Rastreando...');
         }
 
         // Update remaining distance and time
         this.updateRemainingDistance(newLat, newLng);
+        
+        // Draw connecting line while tracking
+        this.drawConnectingLine(newLat, newLng);
 
         // Center map on current location (optional, can be disabled)
         // this.map.setView([newLat, newLng], this.map.getZoom());

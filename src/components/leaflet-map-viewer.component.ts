@@ -39,6 +39,8 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
   private map: any = null;
   private marker: any = null;
   private currentLocationMarker: any = null;
+  private connectingLine: any = null; // Linha de conexão
+  private distanceLabel: any = null; // Label de distância
   private readonly mapInitialized = signal(false);
   private readonly currentLocation = signal<{ lat: number; lng: number } | null>(null);
 
@@ -70,6 +72,12 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.connectingLine && this.map) {
+      this.map.removeLayer(this.connectingLine);
+    }
+    if (this.distanceLabel && this.map) {
+      this.map.removeLayer(this.distanceLabel);
+    }
     if (this.map) {
       this.map.remove();
       this.map = null;
@@ -139,25 +147,26 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
           className: 'custom-destination-marker',
           html: `
             <div style="
-              background-color: #ef4444;
-              width: 32px;
-              height: 32px;
+              background-color: #dc2626;
+              width: 40px;
+              height: 40px;
               border-radius: 50%;
               border: 4px solid white;
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
               display: flex;
               align-items: center;
               justify-content: center;
+              font-weight: bold;
             ">
-              <i class="fas fa-location-dot" style="color: white; font-size: 16px;"></i>
+              <i class="fas fa-map-pin" style="color: white; font-size: 18px;"></i>
             </div>
           `,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
+          iconSize: [40, 40],
+          iconAnchor: [20, 40],
         }),
       })
         .addTo(this.map)
-        .bindPopup('<b>Local do Serviço</b>');
+        .bindPopup('<b style="color: #dc2626; font-size: 14px;">📍 Destino</b><br><span style="font-size: 12px;">Local do serviço</span>');
       
       this.mapInitialized.set(true);
       console.log('[Map Viewer] Mapa inicializado com sucesso');
@@ -200,31 +209,30 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
         html: `
           <div style="
             background-color: #2563eb;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 4px solid white;
             box-shadow: 0 2px 10px rgba(37, 99, 235, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
           ">
-            <div style="
-              background-color: white;
-              width: 10px;
-              height: 10px;
-              border-radius: 50%;
-            "></div>
+            <i class="fas fa-location-dot" style="color: white; font-size: 18px;"></i>
           </div>
         `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
       }),
     })
       .addTo(this.map)
-      .bindPopup('<b>Sua localização atual</b>');
+      .bindPopup('<b style="color: #2563eb; font-size: 14px;">📍 Você está aqui</b><br><span style="font-size: 12px;">Sua posição atual</span>');
 
     console.log('[Map Viewer] Marcador azul criado com sucesso');
+
+    // Desenhar linha de conexão com distância
+    this.drawConnectingLine(lat, lng);
 
     // Ajustar zoom para mostrar ambos os marcadores
     if (this.marker) {
@@ -235,6 +243,93 @@ export class LeafletMapViewerComponent implements AfterViewInit, OnDestroy {
       this.map.fitBounds(bounds, { padding: [50, 50] });
       console.log('[Map Viewer] Zoom ajustado para mostrar ambos os marcadores');
     }
+  }
+
+  /**
+   * Desenha uma linha de conexão entre a posição atual e o destino com distância
+   */
+  private drawConnectingLine(startLat: number, startLng: number): void {
+    const destLat = this.latitude;
+    const destLng = this.longitude;
+    
+    // Limpar linhas anteriores
+    if (this.connectingLine && this.map) {
+      this.map.removeLayer(this.connectingLine);
+      this.connectingLine = null;
+    }
+    if (this.distanceLabel && this.map) {
+      this.map.removeLayer(this.distanceLabel);
+      this.distanceLabel = null;
+    }
+    
+    // Calcular distância
+    const distance = this.calculateDistance(startLat, startLng, destLat, destLng);
+    const distanceDisplay = this.formatDistance(distance);
+    
+    console.log('[Map Viewer] Desenhando linha de conexão. Distância:', distanceDisplay);
+    
+    // Criar linha de conexão
+    this.connectingLine = L.polyline(
+      [[startLat, startLng], [destLat, destLng]],
+      {
+        color: '#06b6d4',
+        weight: 3,
+        opacity: 0.6,
+        dashArray: '5, 5',
+        lineCap: 'round',
+        lineJoin: 'round',
+      }
+    ).addTo(this.map);
+    
+    console.log('[Map Viewer] Linha de conexão criada');
+    
+    // Adicionar label de distância no meio da linha
+    const midLat = (startLat + destLat) / 2;
+    const midLng = (startLng + destLng) / 2;
+    
+    this.distanceLabel = L.marker([midLat, midLng], {
+      icon: L.divIcon({
+        className: 'distance-label',
+        html: `<div style="background-color: rgba(6, 182, 212, 0.95); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid white;"><i class="fas fa-ruler-horizontal" style="margin-right: 6px;"></i>${distanceDisplay}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        popupAnchor: [0, 0],
+      }),
+    }).addTo(this.map);
+    
+    console.log('[Map Viewer] Label de distância criado:', distanceDisplay);
+  }
+
+  /**
+   * Calcula distância em km entre dois pontos (Haversine)
+   */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Raio da Terra em km
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Converte graus para radianos
+   */
+  private toRad(degrees: number): number {
+    return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Formata distância em metros ou km
+   */
+  private formatDistance(km: number): string {
+    if (km < 1) {
+      return `${Math.round(km * 1000)} m`;
+    }
+    return `${km.toFixed(1)} km`;
   }
 }
 
