@@ -10,15 +10,14 @@ import {
   ViewChild,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { I18nService } from "../i18n.service";
-import { I18nPipe } from "../pipes/i18n.pipe";
 
 @Component({
   selector: "app-status-pie-chart",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [CommonModule],
   template: `
+    @if (hasData()) {
     <div
       class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
     >
@@ -28,16 +27,6 @@ import { I18nPipe } from "../pipes/i18n.pipe";
           <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400 mr-1.5 text-xs sm:text-sm"></i>
           {{ title() }}
         </h3>
-        <select
-          [(ngModel)]="selectedPeriod"
-          (ngModelChange)="onPeriodChange()"
-          class="w-full sm:w-auto px-2 py-1 text-xs sm:text-xs md:text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500"
-        >
-          <option value="all">{{ 'allTime' | i18n }}</option>
-          <option value="7">{{ 'last7Days' | i18n }}</option>
-          <option value="30">{{ 'last30Days' | i18n }}</option>
-          <option value="90">{{ 'last90Days' | i18n }}</option>
-        </select>
       </div>
 
       <div class="w-full mx-auto flex justify-center items-center relative max-w-full overflow-auto">
@@ -70,9 +59,8 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         <ng-container *ngFor="let item of chartData()">
           @if (item.value > 0) {
             <span
-              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words text-white line-clamp-2"
+              [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
               [style.background]="item.color"
-              [style.color]="'white'"
             >
               <span class="font-bold text-xs sm:text-xs md:text-sm">●</span>
               <span class="text-xs sm:text-xs md:text-sm">{{ item.label }}: {{ item.value }} ({{ item.percentage }}%)</span>
@@ -81,6 +69,7 @@ import { I18nPipe } from "../pipes/i18n.pipe";
         </ng-container>
       </div>
     </div>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -89,20 +78,46 @@ export class StatusPieChartComponent {
   
   @ViewChild('pieCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
   
+  // Signal para rastrear mudanças de modo dark
+  isDarkMode = signal(document.documentElement.classList.contains('dark'));
+  
   // Signals para controle de hover e tooltip
   hoveredSegment = signal<{label: string; value: number; percentage: string; color: string} | null>(null);
   tooltipPosition = signal<{x: number; y: number}>({x: 0, y: 0});
   private readonly animationProgress = signal(0);
   private segments: Array<{startAngle: number; endAngle: number; item: any}> = [];
   
-  // Signal para controle de período
-  selectedPeriod = signal<'all' | '7' | '30' | '90'>('all');
-
   constructor() {
-    // Log para depuração do valor do título
+    // Observar mudanças na classe 'dark' do documento
+    const observer = new MutationObserver(() => {
+      const newDarkMode = document.documentElement.classList.contains('dark');
+      if (newDarkMode !== this.isDarkMode()) {
+        this.isDarkMode.set(newDarkMode);
+      }
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    // Effect que observa mudanças de título e dados
     effect(() => {
       console.log("[PieChart] Título recebido:", this.title());
-      this.renderPieChart();
+      console.log("[PieChart] Data recebida:", this.data());
+      
+      // Usar setTimeout para garantir que o canvas está pronto
+      setTimeout(() => {
+        this.renderPieChart();
+      }, 0);
+    });
+    
+    // Effect que observa mudanças de modo dark para re-renderizar
+    effect(() => {
+      this.isDarkMode(); // Observar mudanças
+      setTimeout(() => {
+        this.renderPieChart();
+      }, 0);
     });
   }
   
@@ -110,6 +125,23 @@ export class StatusPieChartComponent {
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
   createdDates = input<Record<string, string[]>>(); // Datas de criação por status para filtro
+
+  // Função para calcular luminância de uma cor e determinar se precisa de texto claro ou escuro
+  getTextColor(hexColor: string): string {
+    // Remover # se existir
+    const color = hexColor.replace('#', '');
+    
+    // Converter hex para RGB
+    const r = Number.parseInt(color.substring(0, 2), 16);
+    const g = Number.parseInt(color.substring(2, 4), 16);
+    const b = Number.parseInt(color.substring(4, 6), 16);
+    
+    // Calcular luminância usando a fórmula padrão
+    const luminância = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Se luminância é alta (cor clara), retornar texto preto puro, caso contrário branco puro
+    return luminância > 0.5 ? 'text-black' : 'text-white';
+  }
 
   chartData = computed(() => {
     const d = this.data();
@@ -155,14 +187,14 @@ export class StatusPieChartComponent {
     return result;
   });
 
+  // Verificar se há dados para mostrar o gráfico
+  hasData = computed(() => {
+    const data = this.chartData();
+    return data?.some(item => item.value > 0) ?? false;
+  });
+
   ngAfterViewInit() {
     // Iniciar animação suave ao carregar
-    this.animateChart();
-  }
-  
-  onPeriodChange() {
-    // Quando o período muda, animar novamente
-    this.animationProgress.set(0);
     this.animateChart();
   }
   
@@ -291,8 +323,9 @@ export class StatusPieChartComponent {
       ctx.fill();
       
       // Texto no centro
+      const isDarkMode = document.documentElement.classList.contains('dark');
       ctx.font = "bold 16px sans-serif";
-      ctx.fillStyle = "#6b7280"; // gray-500
+      ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const noDataText = this.i18n.translate("noDataAvailable") || "Sem dados";
@@ -327,7 +360,7 @@ export class StatusPieChartComponent {
       // Desenhar segmento do donut
       ctx.beginPath();
       ctx.arc(centerX, centerY, currentOuterRadius, startAngle, endAngle);
-      ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+      ctx.arc(centerX, centerY, innerRadius, startAngle, endAngle, true);
       ctx.closePath();
       
       // Cores sólidas para cada segmento
@@ -346,18 +379,23 @@ export class StatusPieChartComponent {
       ctx.arc(centerX, centerY, bgRadius, 0, 2 * Math.PI);
       ctx.fill();
       
-      // Número total em branco brilhante - menor no mobile
+      // Detectar se está em dark mode verificando o background
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const totalColor = isDarkMode ? "#FFFFFF" : "#000000"; // Branco puro (#FFFFFF) em dark, preto puro em light
+      const labelColor = isDarkMode ? "#FFFFFF" : "#000000"; // Branco puro (#FFFFFF) em dark, preto puro em light
+      
+      // Número total - mais legível em ambos os modos
       const fontSize = isSmallScreen ? "18px" : "24px";
       ctx.font = `bold ${fontSize} sans-serif`;
-      ctx.fillStyle = "#FFFFFF"; // Branco puro para melhor visibilidade
+      ctx.fillStyle = totalColor;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(total.toString(), centerX, centerY - (isSmallScreen ? 4 : 6));
       
-      // Label "Total" em branco com menor opacidade
+      // Label "Total" - ajustado para cada modo
       const labelSize = isSmallScreen ? "9px" : "12px";
       ctx.font = `${labelSize} sans-serif`;
-      ctx.fillStyle = "#E0E0E0"; // Branco levemente acinzentado
+      ctx.fillStyle = labelColor;
       ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + (isSmallScreen ? 8 : 12));
     }
   }

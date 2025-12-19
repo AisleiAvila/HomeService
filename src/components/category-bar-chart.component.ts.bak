@@ -13,13 +13,13 @@ import {
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nService } from "@/src/i18n.service";
+import { I18nPipe } from "../pipes/i18n.pipe";
 
 @Component({
   selector: "app-category-bar-chart",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, I18nPipe],
   template: `
-    @if (hasData()) {
     <div
       class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
     >
@@ -59,125 +59,87 @@ import { I18nService } from "@/src/i18n.service";
       </div>
       
       <!-- Legendas com valores - Grid responsivo melhorado -->
-      <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2 justify-items-center mt-1.5 px-1">
+      <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-1.5 sm:gap-2 justify-items-center mt-1.5">
         <ng-container *ngFor="let item of sortedChartData()">
           @if (item.value > 0) {
             <span
-              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200"
-              [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
+              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-md border border-opacity-30 border-white transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words text-white line-clamp-2"
               [style.background]="item.color"
+              [style.color]="'white'"
             >
-              <span class="font-bold text-xs sm:text-xs md:text-sm flex-shrink-0">●</span>
-              <span class="text-xs sm:text-xs md:text-sm truncate">{{ item.label }}: {{ formatValue(item.value) }}</span>
+              <span class="font-bold text-xs sm:text-xs md:text-sm">●</span>
+              <span class="text-xs sm:text-xs md:text-sm">{{ item.label }}: {{ formatValue(item.value) }}</span>
             </span>
           }
         </ng-container>
       </div>
     </div>
-    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryBarChartComponent implements AfterViewInit {
+  // Injeção do serviço de i18n
   readonly i18n = inject(I18nService);
   
   @ViewChild('barCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
   
   private readonly animationProgress = signal(0);
   
-  // Signal para rastrear mudanças de modo dark
-  isDarkMode = signal(globalThis.window && 
-    globalThis.document?.documentElement?.classList?.contains('dark'));
-  
   constructor() {
-    // Observar mudanças na classe 'dark' do documento
-    if (globalThis.window && globalThis.document) {
-      const observer = new MutationObserver(() => {
-        const newDarkMode = globalThis.document?.documentElement?.classList?.contains('dark');
-        if (newDarkMode !== this.isDarkMode()) {
-          this.isDarkMode.set(newDarkMode);
-        }
-      });
-      
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
-    }
-    
-    // Effect que observa mudanças de título, dados e período
-    // Este effect é acionado sempre que qualquer um desses inputs muda
+    // Log para depuração do valor do título e re-renderizar quando período muda
     effect(() => {
       console.log("[BarChart] Título recebido:", this.title());
       console.log("[BarChart] Dados recebidos:", this.data());
       console.log("[BarChart] Período:", this.selectedPeriodInput());
-      
-      // Usar setTimeout para garantir que o canvas está pronto
-      setTimeout(() => {
-        this.renderBarChart();
-      }, 0);
-    });
-    
-    // Effect que observa mudanças de modo dark para re-renderizar
-    effect(() => {
-      this.isDarkMode(); // Observar mudanças
-      setTimeout(() => {
-        this.renderBarChart();
-      }, 0);
+      console.log("[BarChart] Dados processados:", this.chartData());
+      this.renderBarChart();
     });
   }
 
   title = input.required<string>();
-  icon = input<string>('fas fa-chart-bar');
+  icon = input<string>('fas fa-chart-bar'); // Ícone padrão
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
-  showPaidPendingLegend = input<boolean>(false);
-  selectedPeriodInput = input<'all' | '7' | '30' | '90'>('all');
-
-  // Função para calcular luminância de uma cor e determinar se precisa de texto claro ou escuro
-  getTextColor(hexColor: string): string {
-    // Remover # se existir
-    const color = hexColor.replace('#', '');
-    
-    // Converter hex para RGB
-    const r = Number.parseInt(color.substring(0, 2), 16);
-    const g = Number.parseInt(color.substring(2, 4), 16);
-    const b = Number.parseInt(color.substring(4, 6), 16);
-    
-    // Calcular luminância usando a fórmula padrão
-    const luminância = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
-    // Se luminância é alta (cor clara), retornar texto preto puro, caso contrário branco puro
-    return luminância > 0.5 ? 'text-black' : 'text-white';
-  }
+  createdDates = input<Record<string, string[]>>(); // Datas de criação por categoria para filtro
+  showPaidPendingLegend = input<boolean>(false); // Controlar exibição da legenda Pago/Pendente
+  selectedPeriodInput = input<'all' | '7' | '30' | '90'>('all'); // Período selecionado no pai
 
   chartData = computed(() => {
     const d = this.data();
     const providedLabels = this.labels();
     
+    // Verificação de segurança: retornar array vazio se data não existir
     if (!d) {
-      console.warn('[BarChart] Data undefined');
+      console.warn('[BarChart] Data undefined:', { data: d });
       return [];
     }
     
-    let colorIndex = 0;
+    let i = 0;
     return Object.entries(d).map(([category, value]) => {
+      // Verificar se a categoria contém "Pago" ou "Pendente" para usar cores padrão
       const isPaid = category.includes('Pago') || category.includes('Paid');
       const isPending = category.includes('Pendente') || category.includes('Pending');
       
       let color: string;
       if (isPaid) {
-        color = "#00C853";
+        color = "#00C853"; // Verde para valores pagos
       } else if (isPending) {
-        color = "#FFA500";
+        color = "#FFA500"; // Laranja para valores pendentes
       } else {
+        // Cores vibrantes da identidade visual para outros casos
         const colors = [
-          "#FF3838", "#00D4A6", "#6B5FFF", "#00B8E6",
-          "#34495E", "#FF4757", "#0084FF", "#95A5A6",
+          "#FF3838", // Vermelho vibrante
+          "#00D4A6", // Teal vibrante
+          "#6B5FFF", // Roxo vibrante
+          "#00B8E6", // Ciano vibrante
+          "#34495E", // Cinza escuro
+          "#FF4757", // Vermelho coral vibrante
+          "#0084FF", // Azul vibrante
+          "#95A5A6", // Cinza neutral
         ];
-        color = colors[colorIndex % colors.length];
+        color = colors[i % colors.length];
       }
-      colorIndex++;
+      i++;
       
       return {
         category,
@@ -188,23 +150,19 @@ export class CategoryBarChartComponent implements AfterViewInit {
     });
   });
   
+  // Dados ordenados do maior para o menor
   sortedChartData = computed(() => {
     return [...this.chartData()].sort((a, b) => b.value - a.value);
   });
 
-  // Verificar se há dados para mostrar o gráfico
-  hasData = computed(() => {
-    const data = this.chartData();
-    return data?.some(item => item.value > 0) ?? false;
-  });
-
+  // Agrupa dados por categoria base (sem o sufixo " - Pago" ou " - Pendente")
   groupedChartData = computed(() => {
     const data = this.sortedChartData();
     const groups: Record<string, any[]> = {};
     
     data.forEach(item => {
-      const baseCategoryRegex = /^(.+?)\s*-\s*(Pago|Pagado|Paid|Pendente|Pending)/i;
-      const baseCategoryMatch = baseCategoryRegex.exec(item.label);
+      // Extrair categoria base removendo " - Pago" ou " - Pendente"
+      const baseCategoryMatch = item.label.match(/^(.+?)\s*-\s*(Pago|Pagado|Paid|Pendente|Pending)/i);
       const baseCategory = baseCategoryMatch ? baseCategoryMatch[1].trim() : item.label;
       
       if (!groups[baseCategory]) {
@@ -213,9 +171,11 @@ export class CategoryBarChartComponent implements AfterViewInit {
       groups[baseCategory].push(item);
     });
     
+    // Converter em array e manter ordem
     return Object.entries(groups).map(([category, items]) => ({
       category,
-      items: [...items].sort((a, b) => {
+      items: items.sort((a, b) => {
+        // "Pago" vem antes de "Pendente"
         const aIsPaid = a.label.includes('Pago') || a.label.includes('Paid');
         const bIsPaid = b.label.includes('Pago') || b.label.includes('Paid');
         if (aIsPaid && !bIsPaid) return -1;
@@ -225,70 +185,59 @@ export class CategoryBarChartComponent implements AfterViewInit {
     }));
   });
 
+  // Largura mínima do canvas baseada no número de categorias e barras por categoria
   canvasMinWidth = computed(() => {
     const groups = this.groupedChartData();
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
     
+    // Calcular total de barras considerando agrupamento
     let totalBars = 0;
     groups.forEach(group => {
-      totalBars += group.items.length > 1 ? group.items.length + 1 : 1;
+      totalBars += group.items.length > 1 ? group.items.length + 1 : 1; // +1 para espaço entre grupos
     });
     
-    let barSize: number;
-    if (isMobile) {
-      barSize = 50;
-    } else if (isTablet) {
-      barSize = 60;
-    } else {
-      barSize = 70;
-    }
-
-    let minWidth: number;
-    if (isMobile) {
-      minWidth = 240;
-    } else if (isTablet) {
-      minWidth = 280;
-    } else {
-      minWidth = 320;
-    }
-
+    // Mobile: 45px por grupo / Tablet: 50px / Desktop: 55px
+    const barSize = isMobile ? 50 : isTablet ? 60 : 70;
+    const minWidth = isMobile ? 240 : isTablet ? 280 : 320;
     return Math.max(minWidth, groups.length * barSize);
   });
   
+  // Largura do canvas ajustada
   canvasWidth = computed(() => {
     return this.canvasMinWidth();
   });
   
+  // Altura do canvas responsiva
   canvasHeight = computed(() => {
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
-    
-    if (isMobile) {
-      return 140;
-    } else if (isTablet) {
-      return 200;
-    } else {
-      return 320;
-    }
+    // Mobile: 140px / Tablet: 200px / Desktop: 320px
+    return isMobile ? 140 : isTablet ? 200 : 320;
   });
 
   ngAfterViewInit() {
+    // Iniciar animação suave ao carregar
     this.animateChart();
   }
 
+  // Método para formatar valores com 2 casas decimais
   formatValue(value: number): string {
     return value.toFixed(2);
   }
   
+  // Animação suave ao carregar o gráfico
   private animateChart() {
-    const duration = 800;
+    const duration = 800; // ms
     const startTime = Date.now();
     
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function (ease-out cubic)
       this.animationProgress.set(1 - Math.pow(1 - progress, 3));
+      
       this.renderBarChart();
       
       if (progress < 1) {
@@ -301,15 +250,18 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
   renderBarChart() {
     if (!this.canvasRef) {
+      console.warn("[BarChart] Canvas ref não encontrado");
       return;
     }
     
     const canvas = this.canvasRef.nativeElement;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
+      console.warn("[BarChart] Contexto 2D não encontrado");
       return;
     }
 
+    // Usar dados agrupados
     const groups = this.groupedChartData();
     const data = this.sortedChartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
@@ -327,6 +279,12 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const displayHeight = rect.height;
     const chartDimensions = this.calculateChartDimensions(displayWidth, displayHeight);
     const normalizeValue = this.getNormalizeFunction(data);
+
+    console.log('[CategoryBarChart] Renderizando com agrupamento:', {
+      groupCount: groups.length,
+      displayWidth,
+      data: groups.map(g => ({ category: g.category, itemCount: g.items.length }))
+    });
 
     this.drawGroupedBars(ctx, groups, normalizeValue, chartDimensions, displayWidth);
     this.drawGridLines(ctx, data, chartDimensions, displayWidth);
@@ -347,15 +305,14 @@ export class CategoryBarChartComponent implements AfterViewInit {
 
   private drawNoDataMessage(ctx: CanvasRenderingContext2D, width: number, height: number) {
     ctx.font = "bold 18px sans-serif";
-    const isDarkMode = globalThis.window && 
-      globalThis.document?.documentElement?.classList?.contains('dark');
-    ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
+    ctx.fillStyle = "#6b7280";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     const i18nText = this.i18n.translate("noDataAvailable") || "Sem dados";
     ctx.fillText(i18nText, width / 2, height / 2);
   }
 
+  // Novo método para desenhar barras agrupadas por categoria
   private drawGroupedBars(
     ctx: CanvasRenderingContext2D,
     groups: any[],
@@ -366,31 +323,39 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const progress = this.animationProgress();
     const isMobile = chartDimensions.isMobile;
     
+    // Calcular dimensões para grupos
     const groupSpacing = displayWidth / groups.length;
-    const barWidthPerGroup = groupSpacing * 0.7;
+    const barWidthPerGroup = groupSpacing * 0.7; // 70% da largura do grupo
+    const spaceBetweenBarsInGroup = 0; // Sem espaço entre barras da mesma categoria
     
     let groupIndex = 0;
     
     for (const group of groups) {
       const groupCenterX = (groupIndex + 0.5) * groupSpacing;
       const barsInGroup = group.items.length;
+      
+      // Calcular largura de cada barra
       const singleBarWidth = barWidthPerGroup / barsInGroup;
       
+      // Desenhar barras do grupo lado a lado
       for (let barIndex = 0; barIndex < barsInGroup; barIndex++) {
         const item = group.items[barIndex];
         const normalizedValue = normalizeValue(item.value);
         const barHeight = normalizedValue * chartDimensions.chartHeight * progress;
         
+        // Posição X: centralizar as barras no grupo
+        const xOffset = (barIndex - (barsInGroup - 1) / 2) * singleBarWidth;
         const x = groupCenterX - barWidthPerGroup / 2 + barIndex * singleBarWidth;
         const y = chartDimensions.chartBottom - barHeight;
         
-        this.drawBar(ctx, item, x, y, singleBarWidth - 1, barHeight);
+        this.drawBar(ctx, item, x, y, singleBarWidth - 1, barHeight); // -1 para separação visual mínima
         
         if (progress >= 1) {
           this.drawBarValue(ctx, item.value, x, y, singleBarWidth, isMobile);
         }
       }
       
+      // Desenhar rótulo da categoria (apenas uma vez por grupo)
       if (progress >= 1) {
         this.drawGroupLabel(ctx, group.category, groupCenterX, chartDimensions, displayWidth, groups.length);
       }
@@ -414,9 +379,10 @@ export class CategoryBarChartComponent implements AfterViewInit {
     const labelFontSize = chartDimensions.isMobile ? 8 : 9;
     ctx.font = `bold ${labelFontSize}px sans-serif`;
     
+    // Detectar dark mode
     const isDarkMode = globalThis.window && 
       globalThis.document?.documentElement?.classList?.contains('dark');
-    ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
+    ctx.fillStyle = isDarkMode ? "#d1d5db" : "#4b5563";
     ctx.textBaseline = "top";
     
     const maxLength = chartDimensions.isMobile ? 12 : 15;
@@ -431,24 +397,8 @@ export class CategoryBarChartComponent implements AfterViewInit {
   private calculateChartDimensions(displayWidth: number, displayHeight: number) {
     const isMobile = globalThis.window != null && globalThis.window.innerWidth < 640;
     const isTablet = globalThis.window != null && globalThis.window.innerWidth < 1024;
-    
-    let topMargin: number;
-    if (isMobile) {
-      topMargin = 15;
-    } else if (isTablet) {
-      topMargin = 25;
-    } else {
-      topMargin = 35;
-    }
-    
-    let bottomMargin: number;
-    if (isMobile) {
-      bottomMargin = 40;
-    } else if (isTablet) {
-      bottomMargin = 60;
-    } else {
-      bottomMargin = 80;
-    }
+    const topMargin = isMobile ? 15 : isTablet ? 25 : 35;
+    const bottomMargin = isMobile ? 40 : isTablet ? 60 : 80;
     
     return {
       isMobile,
@@ -573,6 +523,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     }
   }
   
+  // Função auxiliar para desenhar retângulos com cantos arredondados
   private roundRect(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -594,6 +545,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     ctx.closePath();
   }
   
+  // Função para escurecer uma cor
   private darkenColor(color: string, percent: number): string {
     const num = Number.parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);
@@ -603,6 +555,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     return "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   }
   
+  // Função para clarear uma cor
   private lightenColor(color: string, percent: number): string {
     const num = Number.parseInt(color.replace("#", ""), 16);
     const amt = Math.round(2.55 * percent);

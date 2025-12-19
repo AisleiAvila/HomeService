@@ -29,6 +29,100 @@ export class AdminOverviewComponent implements OnInit {
     // Signal para estado de loading
     readonly isLoading = computed(() => this.dataService.isLoading());
     
+    // Signal para filtro de período centralizado
+    selectedPeriod = signal<'all' | '7' | '30' | '90'>('all');
+    
+    // Signal para filtro de profissional
+    selectedProfessional = signal<string>('all');
+    
+    // Computed signal com lista de profissionais disponíveis
+    professionalsList = computed(() => {
+        const users = this.dataService.users();
+        return users.filter(u => u.role === 'professional').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    });
+    
+    // Computed signal para filtrar requests por período e profissional
+    // ✅ DEVE SER ANTES de sparklineData e stats que o usam
+    filteredRequests = computed(() => {
+        const period = this.selectedPeriod();
+        const selectedProId = this.selectedProfessional();
+        const requests = this.dataService.serviceRequests();
+        
+        let filtered = requests;
+
+        // Filtrar por período
+        if (period !== 'all') {
+            const now = new Date();
+            const days = Number.parseInt(period, 10);
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - days);
+            
+            // Reseta para comparação apenas de dias (ignora timezone issues)
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(now);
+            endDate.setHours(23, 59, 59, 999);
+
+            console.log(`[filteredRequests] Period filter: ${days} days`);
+            console.log(`[filteredRequests] Range: ${startDate.toDateString()} to ${endDate.toDateString()}`);
+
+            filtered = filtered.filter(r => {
+                // Tentar requested_datetime primeiro, depois requested_date, depois scheduled_date
+                const dateToCheck = (r as any).requested_datetime || (r as any).requested_date || (r as any).scheduled_date;
+                
+                if (!dateToCheck) {
+                    console.warn(`[filteredRequests] ID ${r.id}: sem data (requested_datetime/requested_date/scheduled_date)`);
+                    return false;
+                }
+                
+                const requestDate = new Date(dateToCheck);
+                
+                if (Number.isNaN(requestDate.getTime())) {
+                    console.warn(`[filteredRequests] ID ${r.id}: data inválida - ${dateToCheck}`);
+                    return false;
+                }
+                
+                const inRange = requestDate >= startDate && requestDate <= endDate;
+                
+                // Log dos primeiros 5
+                if (requests.indexOf(r) < 5) {
+                    const dateStr = typeof dateToCheck === 'string' ? dateToCheck.substring(0, 10) : dateToCheck;
+                    console.log(`[filteredRequests] ID ${r.id}: ${dateStr} → inRange: ${inRange}`);
+                }
+                
+                return inRange;
+            });
+
+            // Se nenhum resultado, fazer debug
+            if (filtered.length === 0 && requests.length > 0) {
+                console.error(`[filteredRequests] ⚠️ NENHUM RESULTADO! Total de registos: ${requests.length}`);
+                console.table(requests.slice(0, 10).map(r => ({
+                    id: r.id,
+                    requested_datetime: (r as any).requested_datetime ? String((r as any).requested_datetime).substring(0, 10) : 'NULL',
+                    requested_date: (r as any).requested_date ? String((r as any).requested_date).substring(0, 10) : 'NULL',
+                    scheduled_date: (r as any).scheduled_date ? String((r as any).scheduled_date).substring(0, 10) : 'NULL',
+                    status: r.status
+                })));
+            }
+        }
+
+        // Filtrar por profissional
+        if (selectedProId !== 'all') {
+            // selectedProId vem como string do HTML, professional_id é número
+            const proIdToMatch = Number.parseInt(selectedProId, 10);
+            filtered = filtered.filter(r => {
+                if (!r.professional_id) return false;
+                return r.professional_id === proIdToMatch;
+            });
+        }
+
+        // Debug: Log dos filtros aplicados
+        if (period !== 'all' || selectedProId !== 'all') {
+            console.log(`[filteredRequests] FINAL - Period: ${period}, Professional: ${selectedProId}, Results: ${filtered.length}/${requests.length}`);
+        }
+
+        return filtered;
+    });
+    
     // Signals para animação de contagem
     private readonly animatedValues = signal<Record<string, number>>({});
     
@@ -45,20 +139,20 @@ export class AdminOverviewComponent implements OnInit {
             totalProfessionals: [],
         };
         
-        // Gerar dados dos últimos 7 dias
+        // Gerar dados dos últimos 7 dias - usando filteredRequests para respeitar os filtros selecionados
         for (let i = 6; i >= 0; i--) {
             const date = new Date(now);
             date.setDate(date.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
             
-            // Receita por dia
-            const dayRevenue = this.dataService.serviceRequests()
+            // Receita por dia (usando filteredRequests para respeitar período/profissional selecionado)
+            const dayRevenue = this.filteredRequests()
                 .filter(r => r.payment_status === "Paid" && r.completed_at?.startsWith(dateStr))
                 .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
             last7Days.totalRevenue.push(dayRevenue);
             
-            // Serviços ativos por dia
-            const dayActive = this.dataService.serviceRequests().filter(r => 
+            // Serviços ativos por dia (usando filteredRequests para respeitar período/profissional selecionado)
+            const dayActive = this.filteredRequests().filter(r => 
                 r.status !== "Concluído" && r.status !== "Cancelado" && 
                 r.created_at?.startsWith(dateStr)
             ).length;
@@ -91,7 +185,7 @@ export class AdminOverviewComponent implements OnInit {
     }
 
     stats = computed(() => {
-        const requests = this.dataService.serviceRequests();
+        const requests = this.filteredRequests(); // ✅ Use filtered requests based on selected period and professional
         const users = this.dataService.users();
 
         // Pre-filter users to avoid repeated iterations
@@ -222,7 +316,7 @@ export class AdminOverviewComponent implements OnInit {
 
     statusPieChartData = computed(() => {
         const counts: Record<string, number> = {};
-        for (const r of this.dataService.serviceRequests()) {
+        for (const r of this.filteredRequests()) {
             const status = r.status || 'Unknown';
             counts[status] = (counts[status] || 0) + 1;
         }
@@ -253,8 +347,9 @@ export class AdminOverviewComponent implements OnInit {
     ordersByCategory = computed(() => {
         const categories = this.dataService.categories();
         const counts: Record<string, number> = {};
+        const filteredRequests = this.filteredRequests();
 
-        for (const r of this.dataService.serviceRequests()) {
+        for (const r of filteredRequests) {
             if (r.category_id) {
                 const category = categories.find(c => c.id === r.category_id);
                 const categoryName = category?.name || `Category ${r.category_id}`;
@@ -288,68 +383,54 @@ export class AdminOverviewComponent implements OnInit {
         return sortedCounts;
     });
 
-    // Tempo médio de conclusão por tipo de serviço
-    avgCompletionTimeByService = computed(() => {
-        const requests = this.dataService.serviceRequests();
-        const completedRequests = requests.filter(r => 
-            r.status === 'Concluído' && 
-            r.actual_start_datetime && 
-            r.actual_end_datetime
-        );
-
-        const timeByCategory: Record<string, { total: number; count: number }> = {};
-
-        completedRequests.forEach(request => {
-            const categoryName = request.category?.name || 'Outros';
-            const start = new Date(request.actual_start_datetime).getTime();
-            const end = new Date(request.actual_end_datetime).getTime();
-            const durationHours = (end - start) / (1000 * 60 * 60); // em horas
-
-            if (!timeByCategory[categoryName]) {
-                timeByCategory[categoryName] = { total: 0, count: 0 };
-            }
-            timeByCategory[categoryName].total += durationHours;
-            timeByCategory[categoryName].count += 1;
-        });
-
-        // Retornar média em horas com rótulo formatado
-        const result: Record<string, number> = {};
-        Object.entries(timeByCategory).forEach(([category, data]) => {
-            const avgHours = data.total / data.count;
-            result[category] = Math.round(avgHours * 10) / 10; // 1 casa decimal
-        });
-
-        return result;
-    });
-
-    // Receita por categoria
+    // Receita por categoria - com duas colunas: valores pagos e pendentes
     revenueByCategory = computed(() => {
-        const requests = this.dataService.serviceRequests();
-        const paidRequests = requests.filter(r => 
-            r.payment_status === 'Paid' && r.valor
-        );
+        const filteredRequests = this.filteredRequests();
+        
+        // Estrutura para armazenar dados de duas colunas por categoria
+        const revenueData: Record<string, { paid: number; pending: number }> = {};
 
-        const revenueByCategory: Record<string, number> = {};
-
-        paidRequests.forEach(request => {
+        filteredRequests.forEach(request => {
+            if (!request.valor) return;
+            
             const categoryName = request.category?.name || 'Outros';
             const revenue = this.validateCost(request.valor);
 
-            if (!revenueByCategory[categoryName]) {
-                revenueByCategory[categoryName] = 0;
+            if (!revenueData[categoryName]) {
+                revenueData[categoryName] = { paid: 0, pending: 0 };
             }
-            revenueByCategory[categoryName] += revenue;
+
+            // Separar valores pagos e pendentes
+            if (request.payment_status === 'Paid') {
+                revenueData[categoryName].paid += revenue;
+            } else if (request.payment_status === 'Pending' || request.payment_status === 'Unpaid' || request.payment_status === 'Processing') {
+                revenueData[categoryName].pending += revenue;
+            }
         });
 
-        return revenueByCategory;
+        // Converter para formato esperado pelo gráfico: { "categoria - Pago": number, "categoria - Pendente": number }
+        const chartData: Record<string, number> = {};
+        
+        Object.entries(revenueData).forEach(([category, values]) => {
+            if (values.paid > 0) {
+                // Formatar com 2 casas decimais
+                chartData[`${category} - Pago`] = Math.round(values.paid * 100) / 100;
+            }
+            if (values.pending > 0) {
+                // Formatar com 2 casas decimais
+                chartData[`${category} - Pendente`] = Math.round(values.pending * 100) / 100;
+            }
+        });
+
+        return chartData;
     });
 
     // Receita por profissional
     revenueByProfessional = computed(() => {
-        const requests = this.dataService.serviceRequests();
+        const filteredRequests = this.filteredRequests();
         const users = this.dataService.users();
         
-        const paidRequests = requests.filter(r => 
+        const paidRequests = filteredRequests.filter(r => 
             r.payment_status === 'Paid' && r.professional_id && r.valor
         );
 
@@ -395,7 +476,7 @@ export class AdminOverviewComponent implements OnInit {
                 this.router.navigate(['/admin/requests']);
                 break;
             case "totalProfessionals":
-                this.router.navigate(['/admin/professionals']);
+                this.router.navigate(['/admin/clients']);
                 break;
             case "activeClients":
                 this.router.navigate(['/admin/clients']);
