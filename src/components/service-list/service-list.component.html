@@ -1,247 +1,203 @@
 <div class="service-list-container">
   <!-- Desktop Table View -->
   <div class="hidden md:block overflow-x-auto">
-    <table class="w-full min-w-full">
-      <thead class="bg-gray-50">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-800">
         <tr>
-          <th 
-            class="service-list-header text-left"
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
             [attr.aria-sort]="isSortedBy('category') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
           >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
               (click)="handleSortColumn('category')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center justify-between gap-2">
                 <span>{{ "service" | i18n }}</span>
                 @if(isSortedBy('category')) {
-                  <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
                 } @else {
-                  <i class="fas fa-sort text-gray-400"></i>
+                <i class="fas fa-sort text-gray-400"></i>
                 }
               </div>
             </button>
           </th>
-          <th class="service-list-header text-left">
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
             {{ "locality" | i18n }}
           </th>
-          <th 
-            class="service-list-header text-center"
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+            {{ "client" | i18n }}
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
             [attr.aria-sort]="isSortedBy('date') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
           >
             <button
               type="button"
-              class="w-full text-center cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
               (click)="handleSortColumn('date')"
-              [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('date' | i18n)"
-              [attr.title]="('clickToSort' | i18n) + ': ' + ('date' | i18n)"
+              [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('requestDate' | i18n)"
+              [attr.title]="('clickToSort' | i18n) + ': ' + ('requestDate' | i18n)"
             >
-              <div class="flex items-center justify-center gap-2">
-                <span>{{ "date" | i18n }}</span>
+              <div class="flex items-center justify-between gap-2">
+                <span>{{ "requestDate" | i18n }}</span>
                 @if(isSortedBy('date')) {
-                  <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
                 } @else {
-                  <i class="fas fa-sort text-gray-400"></i>
+                <i class="fas fa-sort text-gray-400"></i>
                 }
               </div>
             </button>
           </th>
-          <th 
-            class="service-list-header text-left"
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
             [attr.aria-sort]="isSortedBy('status') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
           >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
               (click)="handleSortColumn('status')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
             >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center justify-between gap-2">
                 <span>{{ "status" | i18n }}</span>
                 @if(isSortedBy('status')) {
-                  <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
                 } @else {
-                  <i class="fas fa-sort text-gray-400"></i>
+                <i class="fas fa-sort text-gray-400"></i>
                 }
               </div>
             </button>
           </th>
-          <th class="service-list-header text-left">
-            {{ "client" | i18n }}
-          </th>
-          <th class="service-list-header text-left">
-            {{ "professional" | i18n }}
-          </th>
           @if (shouldShowValueColumn()) {
-          <th class="service-list-header">
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
             {{ "value" | i18n }}
           </th>
           }
-          <th class="service-list-header text-center">
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
             {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
-      <tbody class="service-list-table-body">
+      <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
         @if (displayedRequests().length === 0) {
         <tr>
-          <td colspan="8" class="service-list-empty-row">
+          <td
+            class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300"
+            [attr.colspan]="shouldShowValueColumn() ? 7 : 6"
+          >
             {{ "noServiceRequestsFound" | i18n }}
           </td>
         </tr>
         } @else { @for (request of displayedRequests(); track request.id) {
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 lg:px-6 py-4">
-            <div class="min-w-0">
-              <div class="text-sm font-medium text-gray-900 truncate">
-                {{ request.category?.name }}
-              </div>
-              <div class="text-sm text-gray-500 truncate">
-                {{ request.title }}
-              </div>
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+          <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[32ch] leading-snug">
+            <div class="flex flex-col gap-1">
+              <span>{{ request.title }}</span>
+              <span class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                {{ request.category?.name || ("service" | i18n) }}
+              </span>
             </div>
           </td>
-          <td class="service-list-empty-row">
-            <div class="max-w-xs truncate text-sm text-gray-700">
-              {{ getAddressParts(request).locality || '—' }}
-            </div>
+          <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[26ch] leading-snug">
+            {{ getAddressParts(request).locality || request.city || request.state || request.zip_code || '—' }}
           </td>
-          <td class="service-list-empty-row text-center">
-            @if (request.scheduled_start_datetime) {
-            <span class="font-semibold text-brand-primary-700">
-              {{ request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
-            </span>
-            }
+          <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[28ch] leading-snug">
+            {{ request.client_name || "—" }}
           </td>
-          <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-left">
-            <span
-              [class]="statusClass(request.status)"
-              class="px-2 py-1 text-xs font-medium rounded-full"
-              style="border: 2px solid red; background: #ffeaea; color: #222"
-              [attr.aria-label]="
-                getStatusLabel(request.status) || request.status
-              "
-            >
+          <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+            {{ request.requested_date ? (request.requested_date | date : "dd/MM/yyyy HH:mm") : "—" }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <span [class]="statusClass(request.status)">
               {{ getStatusLabel(request.status) || request.status || "—" }}
             </span>
           </td>
-
-          <td class="service-list-empty-row">
-            <div 
-              class="max-w-xs truncate text-sm text-gray-700"
-              [attr.data-request-id]="request.id"
-              [attr.data-client-name]="request.client_name"
-              [title]="'ID: ' + request.id + ' | Cliente: ' + (request.client_name || 'vazio')"
-            >
-              {{ request.client_name || "—" }}
-            </div>
-          </td>
-
-          <td class="service-list-empty-row">
-            <div class="max-w-xs truncate">
-              {{
-                request.professional_id
-                  ? getProfessionalName(request.professional_id)
-                  : ("unassigned" | i18n)
-              }}
-            </div>
-          </td>
           @if (shouldShowValueColumn()) {
-          <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
             @if (request.valor_prestador && request.valor_prestador > 0) {
-              <span class="text-green-600 font-medium">
-                € {{ request.valor_prestador | number : "1.2-2" }}
-              </span>
+            <span class="text-green-600 font-medium">
+              € {{ request.valor_prestador | number : "1.2-2" }}
+            </span>
             } @else if (request.valor && request.valor > 0) {
-              <span class="text-green-600 font-medium">
-                € {{ request.valor | number : "1.2-2" }}
-              </span>
+            <span class="text-green-600 font-medium">
+              € {{ request.valor | number : "1.2-2" }}
+            </span>
             } @else {
-              <span class="text-gray-400">—</span>
+            <span class="text-gray-400">—</span>
             }
           </td>
           }
-          <td class="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <div class="flex gap-2 items-center">
-              <!-- Always Available Actions -->
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <div class="flex items-center gap-2 flex-wrap">
               <button
                 (click)="logAndEmitViewDetails(request)"
-                class="service-list-action-view-details"
-                title="{{ 'viewRequestDetails' | i18n }}"
+                class="p-2 text-brand-primary-500 hover:text-brand-primary-600 hover:bg-brand-primary-50 rounded-md transition-colors"
+                [title]="'viewRequestDetails' | i18n"
+                [attr.aria-label]="'viewRequestDetails' | i18n"
               >
                 <i class="fas fa-eye"></i>
               </button>
               <button
-                  (click)="request && openChat.emit(request)"
-                class="service-list-action-view-details"
-                title="{{ 'chat' | i18n }}"
+                (click)="openChat.emit(request)"
+                class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                [title]="'chat' | i18n"
+                [attr.aria-label]="'chat' | i18n"
               >
                 <i class="fas fa-comments"></i>
               </button>
-              
-              <!-- Profissional: Confirmar/Recusar atribuição -->
+
               @if(currentUser().role === 'professional' && request.status === 'Aguardando confirmação do profissional') {
               <button
                 (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
                 class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
-                title="{{ 'confirmAssignment' | i18n }}"
+                [title]="'confirmAssignment' | i18n"
+                [attr.aria-label]="'confirmAssignment' | i18n"
                 [disabled]="isLoading(request.id)"
               >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
-                ></i>
+                <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"></i>
               </button>
               <button
                 (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
                 class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                title="{{ 'rejectAssignment' | i18n }}"
+                [title]="'rejectAssignment' | i18n"
+                [attr.aria-label]="'rejectAssignment' | i18n"
                 [disabled]="isLoading(request.id)"
               >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
-                ></i>
-              </button>
-              }
-              
-              <!-- Profissional: Iniciar serviço para status Agendado -->
-              @if(currentUser().role === 'professional' && (request.status ===
-              'Data Definida' || request.status === 'Scheduled')) {
-              <button
-                (click)="!isLoading(request.id) && startService.emit(request)"
-                class="service-list-action-start-service"
-                title="{{ 'startService' | i18n }}"
-                [disabled]="isLoading(request.id)"
-              >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'"
-                  class="text-base"
-                ></i>
-              </button>
-              }
-              <!-- Profissional: Finalizar serviço para status Em execução -->
-              @if(currentUser().role === 'professional' && (request.status ===
-              'Em Progresso' || request.status === 'In Progress')) {
-              <button
-                (click)="!isLoading(request.id) && finishService.emit(request)"
-                class="service-list-action-finish-service"
-                title="{{ 'finishService' | i18n }}"
-                [disabled]="isLoading(request.id)"
-              >
-                <i
-                  [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
-                  class="text-base"
-                ></i>
+                <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"></i>
               </button>
               }
 
-              <!-- Client role removed - no client-specific actions in desktop view -->
+              @if(currentUser().role === 'professional' && (request.status === 'Data Definida' || request.status === 'Scheduled')) {
+              <button
+                (click)="!isLoading(request.id) && startService.emit(request)"
+                class="service-list-action-start-service"
+                [title]="'startService' | i18n"
+                [attr.aria-label]="'startService' | i18n"
+                [disabled]="isLoading(request.id)"
+              >
+                <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'" class="text-base"></i>
+              </button>
+              }
+
+              @if(currentUser().role === 'professional' && (request.status === 'Em Progresso' || request.status === 'In Progress')) {
+              <button
+                (click)="!isLoading(request.id) && finishService.emit(request)"
+                class="service-list-action-finish-service"
+                [title]="'finishService' | i18n"
+                [attr.aria-label]="'finishService' | i18n"
+                [disabled]="isLoading(request.id)"
+              >
+                <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'" class="text-base"></i>
+              </button>
+              }
             </div>
           </td>
         </tr>
@@ -393,16 +349,24 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700"
-                  >{{ "professional" | i18n }}:</span
-                >
-                <span class="text-brand-primary-600 ml-1 font-medium break-words">
-                  {{
-                    request.professional_id
-                      ? getProfessionalName(request.professional_id)
-                      : ("unassigned" | i18n)
-                  }}
+                <span class="font-medium text-gray-700">
+                  {{ "professional" | i18n }}:
                 </span>
+                @if (getProfessionalProfile(request.professional_id); as professional) {
+                <div class="flex items-center gap-2 mt-1 text-gray-900">
+                  @if (professional.avatar_url) {
+                  <img
+                    [src]="professional.avatar_url"
+                    [alt]="professional.name"
+                    class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+                    loading="lazy"
+                  />
+                  }
+                  <span class="font-medium break-words">{{ professional.name }}</span>
+                </div>
+                } @else {
+                <span class="text-gray-500 ml-1">{{ "unassigned" | i18n }}</span>
+                }
               </div>
             </div>
           </div>
@@ -505,81 +469,72 @@
 
           <!-- Professional actions (mobile): start/finish -->
           @if(currentUser().role === 'professional') {
-          <div class="service-list-actions mb-3">
+          <div class="service-list-actions mb-3 flex flex-wrap gap-2">
             <!-- Confirmação/Recusa de Direcionamento -->
             @if(request.status === 'Aguardando confirmação do profissional') {
             <button
               (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
-              class="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors flex items-center justify-center w-full sm:w-auto mb-2 sm:mb-0 sm:mr-2"
+              class="w-10 h-10 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center justify-center"
               [disabled]="isLoading(request.id)"
+              [title]="'confirmAssignment' | i18n"
+              [attr.aria-label]="'confirmAssignment' | i18n"
             >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ 'confirmAssignment' | i18n }}
+              <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"></i>
             </button>
             <button
               (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
-              class="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors flex items-center justify-center w-full sm:w-auto"
+              class="w-10 h-10 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center justify-center"
               [disabled]="isLoading(request.id)"
+              [title]="'rejectAssignment' | i18n"
+              [attr.aria-label]="'rejectAssignment' | i18n"
             >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ 'rejectAssignment' | i18n }}
+              <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"></i>
             </button>
             }
             
             @if(request.status === 'Data Definida' || request.status === 'Scheduled') {
             <button
               (click)="!isLoading(request.id) && startService.emit(request)"
-              class="service-list-action-start-service"
+              class="w-10 h-10 rounded-md bg-brand-primary-500 text-white hover:bg-brand-primary-600 transition-colors flex items-center justify-center"
               [disabled]="isLoading(request.id)"
+              [title]="'startService' | i18n"
+              [attr.aria-label]="'startService' | i18n"
             >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ 'startService' | i18n }}
+              <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-play'"></i>
             </button>
             }
 
             @if(request.status === 'Em Progresso' || request.status === 'In Progress') {
             <button
               (click)="!isLoading(request.id) && finishService.emit(request)"
-              class="service-list-action-finish-service"
+              class="w-10 h-10 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors flex items-center justify-center"
               [disabled]="isLoading(request.id)"
+              [title]="'finishService' | i18n"
+              [attr.aria-label]="'finishService' | i18n"
             >
-              <i
-                [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"
-                class="mr-1 sm:mr-2"
-              ></i>
-              {{ 'finishService' | i18n }}
+              <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"></i>
             </button>
             }
           </div>
           }
 
           <!-- Secondary Actions -->
-          <div class="service-list-actions">
+          <div class="service-list-actions flex gap-2">
             <button
               (click)="logAndEmitViewDetails(request)"
-              class="service-list-action-secondary-details"
+              class="w-10 h-10 flex items-center justify-center rounded-md bg-brand-primary-50 text-brand-primary-600 border border-brand-primary-100 hover:bg-brand-primary-100 transition-colors"
               title="{{ 'viewRequestDetails' | i18n }}"
-              style="display: flex; align-items: center"
+              [attr.aria-label]="'viewRequestDetails' | i18n"
             >
-              <i class="fas fa-eye mr-1 text-xs sm:text-sm"></i>
-              <span class="text-xs sm:text-sm">{{ "details" | i18n }}</span>
+              <i class="fas fa-eye"></i>
             </button>
             <button
               (click)="openChat.emit(request)"
-              class="service-list-action-secondary-chat"
+              class="w-10 h-10 flex items-center justify-center rounded-md bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
               title="{{ 'chat' | i18n }}"
+              [attr.aria-label]="'chat' | i18n"
             >
-              <i class="fas fa-comments mr-1 text-xs sm:text-sm"></i>
-              <span class="text-xs sm:text-sm">{{ "chat" | i18n }}</span>
+              <i class="fas fa-comments"></i>
             </button>
           </div>
         </div>

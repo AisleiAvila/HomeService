@@ -237,10 +237,16 @@ export class ServiceListComponent {
     return extractPtAddressParts(src);
   }
 
+  getProfessionalProfile(professionalId: number | null): User | null {
+    if (!professionalId) return null;
+    return this.allUsers().find((u) => u.id === professionalId) ?? null;
+  }
+
   getProfessionalName(professionalId: number | null): string {
-    if (!professionalId) return this.i18n.translate("unassigned");
-    const professional = this.allUsers().find((u) => u.id === professionalId);
-    return professional?.name || this.i18n.translate("unknownProfessional");
+    return (
+      this.getProfessionalProfile(professionalId)?.name ||
+      this.i18n.translate("unassigned")
+    );
   }
 
   statusClass(status: ServiceStatus): string {
