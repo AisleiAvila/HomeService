@@ -56,7 +56,7 @@ export class ServiceRequestGeolocationComponent implements OnDestroy {
     this.requestId.set(this.parseId(idParam));
 
     const navigationState =
-      this.router.getCurrentNavigation()?.extras?.state ??
+      this.router.currentNavigation?.()?.extras?.state ??
       (globalThis.history?.state ?? null);
     if (navigationState?.request) {
       this.navigationRequest.set(navigationState.request as ServiceRequest);
@@ -91,7 +91,7 @@ export class ServiceRequestGeolocationComponent implements OnDestroy {
     const fromStore = this.dataService
       .serviceRequests()
       .find((req) => req.id === id);
-    return fromStore ?? (fromState && fromState.id === id ? fromState : null);
+    return fromStore ?? (fromState?.id === id ? fromState : null);
   });
 
   private readonly addressParts = computed(() =>

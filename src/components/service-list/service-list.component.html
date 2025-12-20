@@ -250,6 +250,39 @@
             </span>
           </div>
         </div>
+          @if (shouldShowValueColumn()) {
+          <div class="service-request-info-item">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-emerald-500 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                />
+              </svg>
+              <div class="text-sm min-w-0 flex-1">
+                <span class="font-medium text-gray-700">{{ "value" | i18n }}:</span>
+                @if (request.valor_prestador && request.valor_prestador > 0) {
+                <span class="text-emerald-600 font-semibold ml-1">
+                  € {{ request.valor_prestador | number : "1.2-2" }}
+                </span>
+                } @else if (request.valor && request.valor > 0) {
+                <span class="text-emerald-600 font-semibold ml-1">
+                  € {{ request.valor | number : "1.2-2" }}
+                </span>
+                } @else {
+                <span class="text-gray-500 ml-1">—</span>
+                }
+              </div>
+            </div>
+          </div>
+          }
 
         <!-- Service Request Details -->
         <div
