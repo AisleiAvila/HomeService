@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   ChangeDetectionStrategy,
   input,
@@ -8,10 +8,8 @@ import {
   inject,
   signal,
   effect,
-  OnDestroy,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   ServiceRequest,
@@ -19,10 +17,20 @@ import {
   ServiceStatus,
 } from "@/src/models/maintenance.models";
 import { I18nService } from "@/src/i18n.service";
+import { StatusUtilsService } from "@/src/utils/status-utils.service";
+import { extractPtAddressParts } from "@/src/utils/address-utils";
+import { I18nPipe } from "../../pipes/i18n.pipe";
+import { TimeControlComponent } from "../time-control/time-control.component";
+import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
+import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
+import { ServiceImagesComponent } from "../service-images/service-images.component";
+import { NotificationService } from "../../services/notification.service";
+import { DataService } from "../../services/data.service";
+import { AuthService } from "../../services/auth.service";
+import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
 
-// Tipos específicos para ações
-type ActionType = 'schedule' | 'start' | 'complete' | 'pay' | 'chat';
-type ActionClass = 'primary' | 'secondary' | 'success' | 'danger';
+type ActionType = "schedule" | "start" | "complete" | "pay" | "chat";
+type ActionClass = "primary" | "secondary" | "success" | "danger";
 
 interface ServiceAction {
   type: ActionType;
@@ -31,59 +39,43 @@ interface ServiceAction {
   loading: boolean;
 }
 
-// Estado de carregamento com granularidade
-interface LoadingState {
-  main: boolean;
-  coordinates: boolean;
-  quotes: boolean;
-}
-import { StatusUtilsService } from "@/src/utils/status-utils.service";
-import { I18nPipe } from "../../pipes/i18n.pipe";
-import { TimeControlComponent } from "../time-control/time-control.component";
-import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
-import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
-import { NotificationService } from "../../services/notification.service";
-import { DataService } from "../../services/data.service";
-import { AuthService } from "../../services/auth.service";
-import { GeolocationService } from "../../services/geolocation.service";
-import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
-import { extractPtAddressParts } from "@/src/utils/address-utils";
-import { LeafletMapViewerComponent } from "../leaflet-map-viewer.component";
-import { LeafletRouteMapComponent } from "../leaflet-route-map.component";
-import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
-import { ServiceImagesComponent } from "../service-images/service-images.component";
-
 @Component({
   selector: "app-service-request-details",
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     I18nPipe,
     TimeControlComponent,
     WorkflowTimelineComponent,
     ServiceClarificationsComponent,
-    LeafletMapViewerComponent,
-    LeafletRouteMapComponent,
     ServiceImagesComponent,
   ],
   template: `
     @if (!request()) {
-    <div class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold" role="alert" aria-live="polite">
-      <h3 class="text-xl font-bold mb-2">❌ {{ 'error' | i18n }}</h3>
-      {{ 'noRequestSelected' | i18n }}<br />
-      {{ 'selectValidRequest' | i18n }}
+    <div
+      class="bg-red-100 text-red-700 p-4 rounded text-center font-semibold"
+      role="alert"
+      aria-live="polite"
+    >
+      <h3 class="text-xl font-bold mb-2">âš ï¸ {{ "error" | i18n }}</h3>
+      {{ "noRequestSelected" | i18n }}<br />
+      {{ "selectValidRequest" | i18n }}
     </div>
     } @else {
-    <!-- Cabeçalho com gradiente, ícone e título -->
-    <header class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600" role="banner">
+    <header
+      class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600"
+      role="banner"
+    >
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold text-white flex items-center">
             <i class="fas fa-file-alt mr-3" aria-hidden="true"></i>
             {{ "serviceRequestDetails" | i18n }}
           </h2>
-          <p class="text-brand-primary-200 text-sm mt-1" [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }">
+          <p
+            class="text-brand-primary-200 text-sm mt-1"
+            [attr.aria-label]="'serviceTitle' | i18n : { title: request().title }"
+          >
             {{ request().title }}
           </p>
         </div>
@@ -93,35 +85,47 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
           [attr.aria-label]="'backToList' | i18n"
         >
           <i class="fas fa-arrow-left" aria-hidden="true"></i>
-          <span>{{ 'backToList' | i18n }}</span>
+          <span>{{ "backToList" | i18n }}</span>
         </button>
       </div>
     </header>
 
-    <!-- Conteúdo Principal -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" role="main">
       @if (request()) {
       <div class="space-y-6">
-        <!-- Workflow Timeline -->
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'workflowTimeline' | i18n">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'workflowTimeline' | i18n"
+        >
           <app-workflow-timeline
             [serviceRequest]="request()"
             role="complementary"
           ></app-workflow-timeline>
         </section>
 
-        <!-- Professional Responses / Respostas dos Profissionais -->
         @if (professionalQuotes().length > 0) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'professionalResponses' | i18n">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'professionalResponses' | i18n"
+        >
           <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="professional-quotes-title">
             {{ "professionalResponses" | i18n }}
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2" aria-label="professionalResponsesCount">
-              ({{ professionalQuotes().length }} {{ professionalQuotes().length === 1 ? ('response' | i18n) : ('responses' | i18n) }})
+            <span
+              class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2"
+            >
+              ({{ professionalQuotes().length }}
+              {{
+                professionalQuotes().length === 1
+                  ? ("response" | i18n)
+                  : ("responses" | i18n)
+              }})
             </span>
           </h3>
           <div class="space-y-4" [attr.aria-labelledby]="'professional-quotes-title'">
             @for (quote of professionalQuotes(); track quote.professional_id) {
-            <article 
+            <article
               class="border rounded-lg p-4 transition-all"
               [class.border-green-500]="quote.isSelected"
               [class.bg-green-50]="quote.isSelected"
@@ -130,12 +134,11 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               [class.dark:border-gray-700]="!quote.isSelected"
               [attr.aria-label]="'professionalQuote' | i18n : { name: quote.professional_name }"
             >
-              <!-- Cabeçalho da resposta -->
               <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
                 <div class="flex items-center space-x-3 mb-2 sm:mb-0">
                   @if (quote.professional_avatar_url) {
-                  <img 
-                    [src]="quote.professional_avatar_url" 
+                  <img
+                    [src]="quote.professional_avatar_url"
                     [alt]="quote.professional_name"
                     class="w-10 h-10 rounded-full object-cover"
                     loading="lazy"
@@ -150,14 +153,19 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                       {{ quote.professional_name || ("professional" | i18n) }}
                     </h4>
                     @if (quote.professional_rating) {
-                    <div class="flex items-center mt-1" [attr.aria-label]="'professionalRating' | i18n : { rating: quote.professional_rating.toFixed(1) }">
+                    <div
+                      class="flex items-center mt-1"
+                      [attr.aria-label]="'professionalRating' | i18n : { rating: quote.professional_rating.toFixed(1) }"
+                    >
                       <i class="fas fa-star text-yellow-400 text-xs" aria-hidden="true"></i>
-                      <span class="text-xs text-gray-600 ml-1">{{ quote.professional_rating.toFixed(1) }}</span>
+                      <span class="text-xs text-gray-600 ml-1">
+                        {{ quote.professional_rating.toFixed(1) }}
+                      </span>
                     </div>
                     }
                   </div>
                 </div>
-                
+
                 <div class="flex items-center space-x-2">
                   @if (quote.isSelected) {
                   <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800" role="status">
@@ -177,8 +185,11 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 </div>
               </div>
 
-              <!-- Botões de ação para admin - SIMPLIFICADO: apenas seleção de profissional -->
-              @if (currentUser().role === "admin" && (quote.response_status === "responded" || quote.response_status === "accepted") && !quote.isSelected) {
+              @if (
+                currentUser().role === "admin" &&
+                (quote.response_status === "responded" || quote.response_status === "accepted") &&
+                !quote.isSelected
+              ) {
               <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   (click)="selectSpecificProfessional(quote.professional_id)"
@@ -196,47 +207,59 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </section>
         }
 
-        <!-- Service Request Details Card -->
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'requestInformation' | i18n">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'requestInformation' | i18n"
+        >
           <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="request-info-title">
             {{ "requestInformation" | i18n }}
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6" [attr.aria-labelledby]="'request-info-title'">
-            <!-- Left Column -->
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="title-label">
                   {{ "title" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100 break-words" [attr.aria-labelledby]="'title-label'">{{ request().title }}</p>
+                <p class="text-gray-900 dark:text-gray-100 break-words" [attr.aria-labelledby]="'title-label'">
+                  {{ request().title }}
+                </p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="description-label">
                   {{ "description" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100 break-words" [attr.aria-labelledby]="'description-label'">{{ request().description }}</p>
+                <p class="text-gray-900 dark-text-gray-100 break-words" [attr.aria-labelledby]="'description-label'">
+                  {{ request().description }}
+                </p>
               </div>
               @if (request().origin) {
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="origin-label">
                   {{ "origin" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'origin-label'">{{ request().origin?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'origin-label'">
+                  {{ request().origin?.name || "â€”" }}
+                </p>
               </div>
               }
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="category-label">
                   {{ "category" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'category-label'">{{ request().category?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'category-label'">
+                  {{ request().category?.name || "â€”" }}
+                </p>
               </div>
               @if (request().subcategory) {
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="subcategory-label">
                   {{ "subcategory" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'subcategory-label'">{{ request().subcategory?.name || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'subcategory-label'">
+                  {{ request().subcategory?.name || "â€”" }}
+                </p>
               </div>
               }
               @if (currentUser().role === "admin") {
@@ -246,9 +269,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'total-value-label'">
                   @if (request().valor && request().valor > 0) {
-                    €{{ request().valor | number : '1.2-2' }}
+                    â‚¬{{ request().valor | number : "1.2-2" }}
                   } @else {
-                    —
+                    â€”
                   }
                 </p>
               </div>
@@ -260,9 +283,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 </label>
                 <p class="text-lg font-semibold text-brand-primary-600" [attr.aria-labelledby]="'professional-value-label'">
                   @if (request().valor_prestador && request().valor_prestador > 0) {
-                    €{{ request().valor_prestador | number : '1.2-2' }}
+                    â‚¬{{ request().valor_prestador | number : "1.2-2" }}
                   } @else {
-                    —
+                    â€”
                   }
                 </p>
               </div>
@@ -277,58 +300,63 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               </div>
             </div>
 
-            <!-- Right Column -->
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="status-label">
                   {{ "status" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'status-label'" role="status">{{ request().status || '—' }}</p>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'status-label'" role="status">
+                  {{ request().status || "â€”" }}
+                </p>
               </div>
 
               @if (request().professional_name) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-label">
+                <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="professional-label">
                   {{ "professionalName" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100 truncate" [attr.aria-labelledby]="'professional-label'" [title]="request().professional_name">
-                  {{
-                    request().professional_name || ("nameNotAvailable" | i18n)
-                  }}
+                <p
+                  class="text-gray-900 dark-text-gray-100 truncate"
+                  [attr.aria-labelledby]="'professional-label'"
+                  [title]="request().professional_name"
+                >
+                  {{ request().professional_name || ("nameNotAvailable" | i18n) }}
                 </p>
               </div>
-              } @if (request().cost) {
+              }
+
+              @if (request().cost) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="cost-label">
+                <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="cost-label">
                   {{ "cost" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'cost-label'">
-                  €{{ request().cost | number : "1.2-2" }}
+                  â‚¬{{ request().cost | number : "1.2-2" }}
                 </p>
               </div>
               }
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="created-at-label">
+                <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="created-at-label">
                   {{ "createdAt" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'created-at-label'">
+                <p class="text-gray-900 dark-text-gray-100" [attr.aria-labelledby]="'created-at-label'">
                   @if (request().created_at) {
                     {{ request().created_at | date : "dd/MM/yyyy HH:mm" }}
                   } @else if (request().requested_date) {
                     {{ request().requested_date | date : "dd/MM/yyyy HH:mm" }}
                   } @else {
-                    —
+                    â€”
                   }
                 </p>
               </div>
 
               @if (request().scheduled_date) {
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="scheduled-date-label">
+                <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="scheduled-date-label">
                   {{ "scheduledDate" | i18n }}
                 </label>
-                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'scheduled-date-label'">
+                <p class="text-gray-900 dark-text-gray-100" [attr.aria-labelledby]="'scheduled-date-label'">
                   {{ request().scheduled_date | date : "short" }}
                 </p>
               </div>
@@ -337,9 +365,17 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
           </div>
         </section>
 
-        <!-- Requester Information -->
-        @if (request().client_name || request().client_phone || request().client_nif || request().email_client) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'requesterInformation' | i18n">
+        @if (
+          request().client_name ||
+          request().client_phone ||
+          request().client_nif ||
+          request().email_client
+        ) {
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'requesterInformation' | i18n"
+        >
           <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="requester-info-title">
             {{ "requesterInformation" | i18n }}
           </h3>
@@ -347,276 +383,149 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'requester-info-title'">
             @if (request().client_name) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-name-label">
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="client-name-label">
                 <i class="fas fa-user text-brand-primary-500 mr-1" aria-hidden="true"></i>
-                {{ 'client' | i18n }}
+                {{ "client" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'client-name-label'">{{ request().client_name }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'client-name-label'">
+                {{ request().client_name }}
+              </p>
             </div>
             }
             @if (request().client_phone) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-phone-label">
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="client-phone-label">
                 <i class="fas fa-phone text-brand-primary-500 mr-1" aria-hidden="true"></i>
-                {{ 'phone' | i18n }}
+                {{ "phone" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'client-phone-label'">{{ request().client_phone }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'client-phone-label'">
+                {{ request().client_phone }}
+              </p>
             </div>
             }
             @if (request().client_nif) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-nif-label">
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="client-nif-label">
                 <i class="fas fa-id-card text-brand-primary-500 mr-1" aria-hidden="true"></i>
-                {{ 'nif' | i18n }}
+                {{ "nif" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'client-nif-label'">{{ request().client_nif }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'client-nif-label'">
+                {{ request().client_nif }}
+              </p>
             </div>
             }
             @if (request().email_client) {
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="client-email-label">
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="client-email-label">
                 <i class="fas fa-envelope text-brand-primary-500 mr-1" aria-hidden="true"></i>
-                {{ 'email' | i18n }}
+                {{ "email" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'client-email-label'">{{ request().email_client }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'client-email-label'">
+                {{ request().email_client }}
+              </p>
             </div>
             }
           </div>
         </section>
         }
 
-        <!-- Address Information (detailed with labels) -->
         @if (hasAddress()) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'address' | i18n">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'address' | i18n"
+        >
           <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="address-title">
             {{ "address" | i18n }}
           </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'address-title'">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-900 dark-text-gray-100" [attr.aria-labelledby]="'address-title'">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="postal-code-label">
-                {{ 'postalCode' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="postal-code-label">
+                {{ "postalCode" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'postal-code-label'">{{ request().zip_code || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'postal-code-label'">
+                {{ request().zip_code || "â€”" }}
+              </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="street-label">
-                {{ 'logradouro' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="street-label">
+                {{ "logradouro" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'street-label'">{{ request().street || request().street_manual || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'street-label'">
+                {{ request().street || request().street_manual || "â€”" }}
+              </p>
               @if (request().street_manual && !request().street) {
-                <span class="text-xs text-gray-500 dark:text-gray-400 italic">{{ 'manualEntry' | i18n }}</span>
+                <span class="text-xs text-gray-500 dark-text-gray-400 italic">
+                  {{ "manualEntry" | i18n }}
+                </span>
               }
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="number-label">
-                {{ 'number' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="number-label">
+                {{ "number" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'number-label'">{{ request().street_number || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'number-label'">
+                {{ request().street_number || "â€”" }}
+              </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="complement-label">
-                {{ 'complement' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="complement-label">
+                {{ "complement" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'complement-label'">{{ request().complement || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'complement-label'">
+                {{ request().complement || "â€”" }}
+              </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="locality-label">
-                {{ 'locality' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="locality-label">
+                {{ "locality" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'locality-label'">{{ addressParts().locality || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'locality-label'">
+                {{ addressParts().locality || "â€”" }}
+              </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="city-label">
-                {{ 'concelho' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="city-label">
+                {{ "concelho" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'city-label'">{{ request().city || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'city-label'">
+                {{ request().city || "â€”" }}
+              </p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="district-label">
-                {{ 'district' | i18n }}
+              <label class="block text-sm font-medium text-gray-700 dark-text-gray-300 mb-1" id="district-label">
+                {{ "district" | i18n }}
               </label>
-              <p class="break-words" [attr.aria-labelledby]="'district-label'">{{ request().state || '—' }}</p>
+              <p class="break-words" [attr.aria-labelledby]="'district-label'">
+                {{ request().state || "â€”" }}
+              </p>
             </div>
           </div>
         </section>
         }
 
-        <!-- Geolocation / Geolocalização -->
-        @if (serviceLatitude() && serviceLongitude()) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'geolocation' | i18n">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100" id="geolocation-title">
-              <i class="fas fa-map-marker-alt mr-2 text-brand-primary-500" aria-hidden="true"></i>
-              {{ "geolocation" | i18n }}
-            </h3>
-            <button
-              (click)="showRouteMap.set(!showRouteMap())"
-              class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium flex items-center gap-2"
-              [attr.aria-label]="(showRouteMap() ? 'geolocation' : 'viewRoute') | i18n"
-              [attr.aria-pressed]="showRouteMap()">
-              <i class="fas fa-{{showRouteMap() ? 'map-marked-alt' : 'route'}}" aria-hidden="true"></i>
-              {{ (showRouteMap() ? 'geolocation' : 'viewRoute') | i18n }}
-            </button>
-          </div>
-          <div class="space-y-4" [attr.aria-labelledby]="'geolocation-title'">
-            <!-- User Location Section -->
-            <div class="bg-gradient-to-r from-brand-primary-50 to-brand-primary-100 dark:from-gray-700 dark:to-gray-700 rounded-lg p-4 border border-brand-primary-200 dark:border-gray-600">
-              <div class="flex items-center justify-between mb-3">
-                <h4 class="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                  <i class="fas fa-location-dot text-brand-primary-600" aria-hidden="true"></i>
-                  {{ "yourLocation" | i18n }}
-                  @if (geolocationService.reverseGeocode()?.locality) {
-                  <span class="text-sm font-normal text-gray-600 dark:text-gray-400">
-                    — {{ geolocationService.reverseGeocode()!.locality }}
-                  </span>
-                  }
-                </h4>
-                <div class="flex items-center gap-2">
-                  @if (geolocationService.isTracking()) {
-                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 text-xs font-medium rounded-full">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    {{ "tracking" | i18n }}
-                  </span>
-                  }
-                </div>
-              </div>
-
-              @if (locationError()) {
-              <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded p-3 mb-3">
-                <p class="text-red-700 dark:text-red-200 text-sm">
-                  <i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>
-                  {{ locationError()!.message }}
-                </p>
-              </div>
-              }
-
-              @if (userLocationDisplay()) {
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    {{ "latitude" | i18n }}
-                  </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono text-sm break-words">
-                    {{ userLocationDisplay()!.latitude }}
-                  </p>
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
-                    {{ "longitude" | i18n }}
-                  </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono text-sm break-words">
-                    {{ userLocationDisplay()!.longitude }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="bg-white dark:bg-gray-800 rounded p-3 mb-3">
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                  <span class="font-medium">{{ "accuracy" | i18n }}:</span>
-                  <span class="text-gray-900 dark:text-gray-100">±{{ userLocationDisplay()!.accuracy }}m</span>
-                </p>
-              </div>
-
-              @if (formattedDistance()) {
-              <div class="bg-white dark:bg-gray-800 rounded p-3 border-l-4 border-brand-primary-500">
-                <p class="text-sm text-gray-700 dark:text-gray-300 flex items-center justify-between">
-                  <span class="font-medium">{{ "distanceToService" | i18n }}:</span>
-                  <span class="text-lg font-bold text-brand-primary-600 dark:text-brand-primary-400">
-                    {{ formattedDistance() }}
-                  </span>
-                </p>
-              </div>
-              }
-              } @else {
-              <div class="text-center py-4">
-                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                  {{ "enableLocationTracking" | i18n }}
-                </p>
-                <button
-                  (click)="enableUserTracking.set(true)"
-                  class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 transition-colors text-sm font-medium inline-flex items-center gap-2">
-                  <i class="fas fa-location-arrow" aria-hidden="true"></i>
-                  {{ "startTracking" | i18n }}
-                </button>
-              </div>
-              }
-
-              @if (geolocationService.isTracking()) {
-              <button
-                (click)="enableUserTracking.set(false)"
-                class="w-full mt-3 px-4 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 transition-colors text-sm font-medium">
-                <i class="fas fa-stop mr-2" aria-hidden="true"></i>
-                {{ "stopTracking" | i18n }}
-              </button>
-              }
-            </div>
-
-            <!-- Service Location Map Section -->
-            @if (!showRouteMap()) {
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="latitude-label">
-                    {{ "latitude" | i18n }}
-                  </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono break-words" [attr.aria-labelledby]="'latitude-label'">{{ serviceLatitude() }}</p>
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1" id="longitude-label">
-                    {{ "longitude" | i18n }}
-                  </label>
-                  <p class="text-gray-900 dark:text-gray-100 font-mono break-words" [attr.aria-labelledby]="'longitude-label'">{{ serviceLongitude() }}</p>
-                </div>
-              </div>
-
-              <!-- Debug Info (remover em produção) -->
-              <div class="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded text-xs text-yellow-800 dark:text-yellow-200 hidden">
-                <p><strong>Debug:</strong></p>
-                <p>Request Lat: {{ request().latitude }}</p>
-                <p>Request Lng: {{ request().longitude }}</p>
-                <p>PostalCode Lat: {{ postalCodeCoordinates()?.latitude }}</p>
-                <p>PostalCode Lng: {{ postalCodeCoordinates()?.longitude }}</p>
-                <p>Postal Code: {{ addressParts().postalCode }}</p>
-              </div>
-
-              <app-leaflet-map-viewer
-                [latitude]="serviceLatitude()!"
-                [longitude]="serviceLongitude()!"
-                role="img"
-                [attr.aria-label]="'mapViewerRegion' | i18n">
-              </app-leaflet-map-viewer>
-            } @else {
-              <app-leaflet-route-map
-                [destinationLatitude]="serviceLatitude()!"
-                [destinationLongitude]="serviceLongitude()!"
-                [mapHeight]="getResponsiveMapHeight()"
-                [showInstructions]="true"
-                role="img"
-                [attr.aria-label]="'routeMapRegion' | i18n">
-              </app-leaflet-route-map>
-            }
-          </div>
-        </section>
-        }
-
-        <!-- Photos Gallery -->
         @if (hasPhotos()) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'photos' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="photos-title">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'photos' | i18n"
+        >
+          <h3 class="text-lg font-semibold text-gray-800 dark-text-gray-100 mb-4" id="photos-title">
             {{ "photos" | i18n }}
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+            <span class="text-sm font-normal text-gray-500 dark-text-gray-400 ml-2">
               ({{ request().photos!.length }})
             </span>
           </h3>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4" role="grid" [attr.aria-labelledby]="'photos-title'">
             @for (photo of request().photos; track photo; let idx = $index) {
-            <button 
-              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 hover:border-brand-primary-500 dark:hover:border-brand-primary-400 hover:shadow-lg transition-all cursor-pointer group"
+            <button
+              class="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark-border-gray-700 hover:border-brand-primary-500 dark-hover:border-brand-primary-400 hover:shadow-lg transition-all cursor-pointer group"
               (click)="openPhotoModal(photo)"
               [attr.aria-label]="'photoOf' | i18n : { number: idx + 1 }"
               type="button"
             >
-              <img 
-                [src]="photo" 
+              <img
+                [src]="photo"
                 [alt]="'photoOf' | i18n : { number: idx + 1 }"
                 class="w-full h-full object-cover"
                 loading="lazy"
@@ -630,22 +539,25 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </section>
         }
 
-        <!-- Attachments -->
         @if (hasAttachments()) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'attachments' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="attachments-title">
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'attachments' | i18n"
+        >
+          <h3 class="text-lg font-semibold text-gray-800 dark-text-gray-100 mb-4" id="attachments-title">
             {{ "attachments" | i18n }}
-            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+            <span class="text-sm font-normal text-gray-500 dark-text-gray-400 ml-2">
               ({{ request().attachments!.length }})
             </span>
           </h3>
           <div class="space-y-2" [attr.aria-labelledby]="'attachments-title'">
             @for (attachment of request().attachments; track attachment; let idx = $index) {
-            <a 
+            <a
               [href]="attachment"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-brand-primary-500 transition-colors"
+              class="flex items-center p-3 border border-gray-200 dark-border-gray-700 rounded-lg hover:bg-gray-50 dark-hover:bg-gray-700 hover:border-brand-primary-500 transition-colors"
               [attr.aria-label]="'attachmentLink' | i18n : { number: idx + 1 }"
             >
               <i class="fas fa-file-alt text-gray-400 text-xl mr-3" aria-hidden="true"></i>
@@ -653,7 +565,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
                 <p class="text-sm font-medium text-gray-900">
                   {{ "attachment" | i18n }} {{ idx + 1 }}
                 </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ "clickToView" | i18n }}</p>
+                <p class="text-xs text-gray-500 dark-text-gray-400">
+                  {{ "clickToView" | i18n }}
+                </p>
               </div>
               <i class="fas fa-external-link-alt text-gray-400" aria-hidden="true"></i>
             </a>
@@ -662,12 +576,17 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </section>
         }
 
-        <!-- Time Control (for professionals) -->
-        @if ( currentUser().role === "professional" && request().professional_id
-        === currentUser().id && (request().status === "Em Progresso" ||
-        request().status === "Aceito") ) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'timeControl' | i18n">
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="time-control-title">
+        @if (
+          currentUser().role === "professional" &&
+          request().professional_id === currentUser().id &&
+          (request().status === "Em Progresso" || request().status === "Aceito")
+        ) {
+        <section
+          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'timeControl' | i18n"
+        >
+          <h3 class="text-lg font-semibold text-gray-800 dark-text-gray-100 mb-4" id="time-control-title">
             {{ "timeControl" | i18n }}
           </h3>
           <div [attr.aria-labelledby]="'time-control-title'">
@@ -679,9 +598,12 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </section>
         }
 
-        <!-- Service Images - Upload de Imagens -->
         @if (request().professional_id) {
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700" role="region" [attr.aria-label]="'serviceImages' | i18n">
+        <section
+          class="bg-white dark-bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700"
+          role="region"
+          [attr.aria-label]="'serviceImages' | i18n"
+        >
           <app-service-images
             [requestId]="request().id"
             [requestStatus]="request().status"
@@ -689,19 +611,25 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
         </section>
         }
 
-        <!-- Service Clarifications -->
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6" role="region" [attr.aria-label]="'serviceClarifications' | i18n">
+        <section
+          class="bg-white dark-bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark-border-gray-700 p-6"
+          role="region"
+          [attr.aria-label]="'serviceClarifications' | i18n"
+        >
           <app-service-clarifications
             [serviceRequest]="request()"
             [currentUser]="currentUser()"
           ></app-service-clarifications>
         </section>
 
-        <!-- Action Buttons for mobile at bottom -->
         @if (availableActions().length > 0) {
         <section class="block sm:hidden">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4" role="region" [attr.aria-label]="'availableActions' | i18n">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3" id="mobile-actions-title">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+            role="region"
+            [attr.aria-label]="'availableActions' | i18n"
+          >
+            <h3 class="text-sm font-medium text-gray-700 dark-text-gray-300 mb-3" id="mobile-actions-title">
               {{ "availableActions" | i18n }}
             </h3>
             <div class="space-y-2" [attr.aria-labelledby]="'mobile-actions-title'">
@@ -709,9 +637,7 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
               <button
                 (click)="executeAction(action)"
                 [disabled]="action.loading"
-                [class]="
-                  getActionButtonClass(action) + ' w-full justify-center'
-                "
+                [class]="getActionButtonClass(action) + ' w-full justify-center'"
                 [attr.aria-label]="action.label | i18n"
               >
                 @if (action.loading) {
@@ -730,15 +656,16 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
       </div>
       } @else {
       <div class="flex items-center justify-center h-64" role="status" aria-live="polite">
-        <p class="text-gray-500 dark:text-gray-400">{{ "loadingServiceRequest" | i18n }}</p>
+        <p class="text-gray-500 dark-text-gray-400">
+          {{ "loadingServiceRequest" | i18n }}
+        </p>
       </div>
       }
     </main>
     }
 
-    <!-- Photo Modal -->
     @if (showPhotoModal()) {
-    <div 
+    <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-2 sm:p-4"
       (click)="closePhotoModal()"
       role="dialog"
@@ -753,9 +680,9 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
       >
         <i class="fas fa-times" aria-hidden="true"></i>
       </button>
-      
+
       <div class="max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-full" (click)="$event.stopPropagation()">
-        <img 
+        <img
           [src]="selectedPhoto()"
           [alt]="'photo' | i18n"
           class="max-w-full max-h-[90vh] object-contain rounded-lg"
@@ -766,28 +693,22 @@ import { ServiceImagesComponent } from "../service-images/service-images.compone
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceRequestDetailsComponent implements OnDestroy {
+export class ServiceRequestDetailsComponent {
   @Output() businessRuleError = new EventEmitter<string>();
 
-  // Inputs usando signal inputs nativos do Angular
   requestInput = input<ServiceRequest>();
   currentUserInput = input<User>();
 
-  // Injeção de serviços
   private readonly dataService = inject(DataService);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workflowService = inject(WorkflowServiceSimplified);
-  private readonly addressService = inject(PortugalAddressDatabaseService);
-  private readonly geolocationService = inject(GeolocationService);
 
-  // Signal para request carregado via rota
   private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
   private readonly loadedUser = signal<User | undefined>(undefined);
 
-  // Request e User efetivos usados no template
   request = computed(() => {
     const inputReq = this.requestInput();
     const loadedReq = this.loadedRequest();
@@ -795,29 +716,26 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
   });
   currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
 
-  // Effect para reagir a mudanças no requestInput e carregar via rota se necessário
   private readonly requestEffect = effect(() => {
     const inputReq = this.requestInput();
-    
+
     if (inputReq) {
       return;
     }
-    
-    // Se não há input, tentar carregar via rota
-    const routeId = this.route.snapshot.params['id'];
-    
+
+    const routeId = this.route.snapshot.params["id"];
+
     if (routeId) {
       const requests = this.dataService.serviceRequests();
-      const foundRequest = requests.find(r => r.id === Number.parseInt(routeId));
+      const foundRequest = requests.find((r) => r.id === Number.parseInt(routeId));
       if (foundRequest) {
         this.loadedRequest.set(foundRequest);
       } else {
-        this.router.navigate(['/admin/requests']);
+        this.router.navigate(["/admin/requests"]);
       }
     }
   });
-  
-  // Effect para garantir que o user está disponível
+
   private readonly userEffect = effect(() => {
     const inputUser = this.currentUserInput();
     if (!inputUser && !this.loadedUser()) {
@@ -828,23 +746,10 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     }
   });
 
-  // Signals para UI state
   showMobileActions = signal(false);
   showPhotoModal = signal(false);
   selectedPhoto = signal<string | null>(null);
-  showRouteMap = signal(false);
 
-  // Signal para controlar rastreamento de localização do usuário
-  enableUserTracking = signal(false);
-
-  // Estado de carregamento com granularidade
-  loadingState = signal<LoadingState>({
-    main: false,
-    coordinates: false,
-    quotes: false,
-  });
-
-  // Verifica se há dados de endereço (aninhado ou campos planos)
   hasAddress = computed(() => {
     const r = this.request();
     const nested = (r as any).address;
@@ -860,184 +765,20 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     );
   });
 
-  // Linhas de endereço formatadas PT
-  private readonly addressParts = computed(() => extractPtAddressParts(this.request()));
-  addressLine1 = computed(() => this.addressParts().streetNumber);
-  addressLine2 = computed(() => {
-    const p = this.addressParts();
-    return [p.postalCode, p.locality].filter(Boolean).join(" ");
-  });
-  addressLine3 = computed(() => this.addressParts().district);
+  readonly addressParts = computed(() => extractPtAddressParts(this.request()));
 
-  // Signal para armazenar coordenadas do código postal
-  readonly postalCodeCoordinates = signal<{ latitude: number; longitude: number } | null>(null);
-
-  // Effect para buscar coordenadas quando o código postal do request mudar
-  private readonly coordinatesEffect = effect(async () => {
-    const postalCode = this.addressParts().postalCode;
-    
-    if (!postalCode) {
-      this.postalCodeCoordinates.set(null);
-      return;
-    }
-
-    try {
-      const result = await this.addressService.validateCodigoPostal(postalCode);
-      if (result.valid && result.endereco?.latitude && result.endereco?.longitude) {
-        console.log('[ServiceRequestDetailsComponent] Coordenadas do código postal obtidas:', {
-          postalCode,
-          latitude: result.endereco.latitude,
-          longitude: result.endereco.longitude,
-          localidade: result.endereco?.localidade || 'N/A'
-        });
-        this.postalCodeCoordinates.set({
-          latitude: result.endereco.latitude,
-          longitude: result.endereco.longitude
-        });
-      } else {
-        console.warn('[ServiceRequestDetailsComponent] Código postal inválido ou sem coordenadas:', postalCode);
-        this.postalCodeCoordinates.set(null);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar coordenadas do código postal:', error);
-      this.postalCodeCoordinates.set(null);
-    }
-  });
-
-  // Coordenadas finais (prioriza: request > código postal > null)
-  serviceLatitude = computed(() => {
-    const req = this.request();
-    const fromRequest = req.latitude;
-    const fromPostalCode = this.postalCodeCoordinates()?.latitude;
-    const finalLat = fromRequest || fromPostalCode || null;
-    
-    // Log para debug
-    if (finalLat) {
-      console.log('[ServiceRequestDetailsComponent] Latitude final:', {
-        fromRequest,
-        fromPostalCode,
-        final: finalLat,
-        source: fromRequest ? 'request' : 'postalCode'
-      });
-    }
-    
-    return finalLat;
-  });
-  
-  serviceLongitude = computed(() => {
-    const req = this.request();
-    const fromRequest = req.longitude;
-    const fromPostalCode = this.postalCodeCoordinates()?.longitude;
-    const finalLng = fromRequest || fromPostalCode || null;
-    
-    // Log para debug
-    if (finalLng) {
-      console.log('[ServiceRequestDetailsComponent] Longitude final:', {
-        fromRequest,
-        fromPostalCode,
-        final: finalLng,
-        source: fromRequest ? 'request' : 'postalCode'
-      });
-    }
-    
-    return finalLng;
-  });
-
-  // Computed para distância entre usuário e local do serviço
-  distanceToService = computed(() => {
-    const userLoc = this.geolocationService.userLocation();
-    const serviceLatLng = {
-      lat: this.serviceLatitude(),
-      lng: this.serviceLongitude()
-    };
-
-    if (!userLoc || !serviceLatLng.lat || !serviceLatLng.lng) {
-      return null;
-    }
-
-    const distance = this.geolocationService.calculateDistance(
-      userLoc.latitude,
-      userLoc.longitude,
-      serviceLatLng.lat,
-      serviceLatLng.lng
-    );
-
-    return distance;
-  });
-
-  // Computed para distância formatada
-  formattedDistance = computed(() => {
-    const distance = this.distanceToService();
-    if (distance) {
-      return this.geolocationService.formatDistance(distance);
-    }
-    return null;
-  });
-
-  // Effect to manage location tracking lifecycle
-  private readonly trackingEffect = effect(() => {
-    const shouldTrack = this.enableUserTracking();
-    const currentUser = this.currentUser();
-
-    if (shouldTrack) {
-      console.log('[ServiceRequestDetailsComponent] Iniciando rastreamento para usuário:', currentUser.role);
-      console.log('[ServiceRequestDetailsComponent] Verificando geolocalização disponível:', this.geolocationService.isGeolocationAvailable ? 'Sim' : 'Não');
-      
-      // Usar enableHighAccuracy = false por padrão para evitar timeouts
-      // em ambientes com sinal fraco
-      this.geolocationService.startTracking(false);
-      
-      // Log de status após 2 segundos
-      setTimeout(() => {
-        const location = this.geolocationService.userLocation();
-        const error = this.geolocationService.locationError();
-        if (location) {
-          console.log('[ServiceRequestDetailsComponent] Localização obtida:', {
-            lat: location.latitude.toFixed(6),
-            lng: location.longitude.toFixed(6),
-            accuracy: location.accuracy.toFixed(0) + 'm'
-          });
-        } else if (error) {
-          console.warn('[ServiceRequestDetailsComponent] Erro ao obter localização:', error.message);
-        }
-      }, 2000);
-    } else if (!shouldTrack && this.geolocationService.isTracking()) {
-      console.log('[ServiceRequestDetailsComponent] Parando rastreamento');
-      this.geolocationService.stopTracking();
-    }
-  });
-
-  // Get formatted user location for display
-  userLocationDisplay = computed(() => {
-    const userLoc = this.geolocationService.userLocation();
-    if (!userLoc) return null;
-    return {
-      latitude: userLoc.latitude.toFixed(6),
-      longitude: userLoc.longitude.toFixed(6),
-      accuracy: userLoc.accuracy.toFixed(0),
-      isTracking: this.geolocationService.isTracking()
-    };
-  });
-
-  // Get location error message
-  locationError = computed(() => {
-    return this.geolocationService.locationError();
-  });
-
-  // Organiza e enriquece respostas de profissionais
   professionalQuotes = computed(() => {
     const req = this.request();
     const responses = req.professional_responses || [];
-    
+
     if (responses.length === 0) return [];
 
-    // Encontra o menor orçamento
     const amounts = responses
-      .map(r => r.quote_amount)
+      .map((r) => r.quote_amount)
       .filter((amt): amt is number => amt !== null && amt !== undefined);
     const lowestAmount = amounts.length > 0 ? Math.min(...amounts) : null;
 
-    return responses.map(r => ({
+    return responses.map((r) => ({
       ...r,
       isSelected: r.professional_id === req.professional_id,
       isLowest: lowestAmount !== null && r.quote_amount === lowestAmount && r.quote_amount !== null,
@@ -1045,29 +786,24 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     }));
   });
 
-  // Verifica se há fotos anexadas
   hasPhotos = computed(() => {
     const photos = this.request().photos;
     return photos && photos.length > 0;
   });
 
-  // Verifica se há anexos
   hasAttachments = computed(() => {
     const attachments = this.request().attachments;
     return attachments && attachments.length > 0;
   });
 
-  // Verifica se deve mostrar o valor do prestador (ocultar para funcionários da Natan)
   shouldShowProviderValue = computed(() => {
     const user = this.currentUser();
-    // Oculta para profissionais que são funcionários da Natan
-    if (user.role === 'professional' && user.is_natan_employee === true) {
+    if (user.role === "professional" && user.is_natan_employee === true) {
       return false;
     }
     return true;
   });
 
-  // Outputs para eventos
   @Output() closeDetails = new EventEmitter<void>();
   @Output() openChat = new EventEmitter<ServiceRequest>();
   @Output() approveQuote = new EventEmitter<ServiceRequest>();
@@ -1081,53 +817,60 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
 
   @Output() refreshRequest = new EventEmitter<void>();
 
-  // Computed properties com type safety melhorado
   availableActions = computed<ServiceAction[]>(() => {
     const user = this.currentUser();
     const req = this.request();
 
     const allPossibleActions: (ServiceAction & { condition: boolean })[] = [
-      // SISTEMA NOVO: Sem fase de orçamentos
-      // Profissional não fornece mais orçamento, apenas aceita/recusa atribuição
-      
-      // Fase 1: Agendamento (após profissional aceitar)
       {
         type: "schedule" as ActionType,
         label: "scheduleService",
         class: "primary" as ActionClass,
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Aceito" && !req.scheduled_date,
+        condition:
+          user.role === "professional" &&
+          req.professional_id === user.id &&
+          req.status === "Aceito" &&
+          !req.scheduled_date,
       },
-      // Fase 2: Execução do Serviço
       {
         type: "start" as ActionType,
         label: "startService",
         class: "primary" as ActionClass,
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Data Definida",
+        condition:
+          user.role === "professional" &&
+          req.professional_id === user.id &&
+          req.status === "Data Definida",
       },
       {
         type: "complete" as ActionType,
         label: "completeService",
         class: "primary" as ActionClass,
         loading: false,
-        condition: user.role === "professional" && req.professional_id === user.id && req.status === "Em Progresso",
+        condition:
+          user.role === "professional" &&
+          req.professional_id === user.id &&
+          req.status === "Em Progresso",
       },
-      // Fase 3: Pagamento (Admin)
       {
         type: "pay" as ActionType,
         label: "payNow",
         class: "primary" as ActionClass,
         loading: false,
-        condition: user.role === "admin" && req.status === "Aguardando Finalização" && !req.payment_date,
+        condition:
+          user.role === "admin" &&
+          req.status === "Aguardando Finalização" &&
+          !req.payment_date,
       },
-      // Chat sempre disponível para partes envolvidas
       {
         type: "chat" as ActionType,
         label: "chat",
         class: "secondary" as ActionClass,
         loading: false,
-        condition: (user.role === "admin" || (user.role === "professional" && req.professional_id === user.id)),
+        condition:
+          user.role === "admin" ||
+          (user.role === "professional" && req.professional_id === user.id),
       },
     ];
 
@@ -1157,8 +900,6 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
         return `${baseClasses} bg-gray-300 hover:bg-gray-400 text-gray-700`;
     }
   }
-
-
 
   getStatusLabel(status: ServiceStatus): string {
     return StatusUtilsService.getLabel(status, inject(I18nService));
@@ -1218,8 +959,10 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
           break;
       }
     } catch (error) {
-      console.error('Erro ao executar ação:', error);
-      this.notificationService.addNotification(error instanceof Error ? error.message : 'Erro ao executar ação');
+      console.error("Erro ao executar aÃ§Ã£o:", error);
+      this.notificationService.addNotification(
+        error instanceof Error ? error.message : "Erro ao executar aÃ§Ã£o",
+      );
     } finally {
       action.loading = false;
     }
@@ -1229,12 +972,12 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     try {
       const currentUser = this.currentUser();
       if (currentUser?.role !== "professional") {
-        throw new Error("Apenas profissionais podem iniciar serviços");
+        throw new Error("Apenas profissionais podem iniciar serviÃ§os");
       }
 
       const success = await this.workflowService.startExecution(
         this.request().id,
-        currentUser.id
+        currentUser.id,
       );
 
       if (success) {
@@ -1243,10 +986,10 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     } catch (error: any) {
       if (
         error instanceof Error &&
-        error.message.includes("Tentativa de início antes da data agendada")
+        error.message.includes("Tentativa de inÃ­cio antes da data agendada")
       ) {
         this.businessRuleError.emit(
-          "Não é permitido iniciar o serviço antes da data agendada!"
+          "NÃ£o Ã© permitido iniciar o serviÃ§o antes da data agendada!",
         );
       } else {
         throw error;
@@ -1258,12 +1001,12 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     try {
       const currentUser = this.currentUser();
       if (currentUser?.role !== "professional") {
-        throw new Error("Apenas profissionais podem concluir serviços");
+        throw new Error("Apenas profissionais podem concluir serviÃ§os");
       }
 
       const success = await this.workflowService.completeExecution(
         this.request().id,
-        currentUser.id
+        currentUser.id,
       );
 
       if (success) {
@@ -1272,10 +1015,10 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     } catch (error: any) {
       if (
         error instanceof Error &&
-        error.message.includes("Tentativa de conclusão antes do tempo mínimo")
+        error.message.includes("Tentativa de conclusÃ£o antes do tempo mÃ­nimo")
       ) {
         this.businessRuleError.emit(
-          "Não é permitido concluir o serviço antes do tempo mínimo!"
+          "NÃ£o Ã© permitido concluir o serviÃ§o antes do tempo mÃ­nimo!",
         );
       } else {
         throw error;
@@ -1283,7 +1026,6 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     }
   }
 
-  // Métodos para gerenciamento de fotos
   openPhotoModal(photoUrl: string): void {
     this.selectedPhoto.set(photoUrl);
     this.showPhotoModal.set(true);
@@ -1294,7 +1036,6 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     this.selectedPhoto.set(null);
   }
 
-  // Método para selecionar profissional específico
   selectSpecificProfessional(professionalId: number): void {
     this.selectProfessional.emit({
       request: this.request(),
@@ -1302,53 +1043,10 @@ export class ServiceRequestDetailsComponent implements OnDestroy {
     });
   }
 
-  // Corrige o botão Voltar para emitir o evento closeDetails corretamente
   logAndEmitCloseDetails() {
     this.closeDetails.emit();
     this.router.navigate(["/admin/requests"]);
   }
 
-  /**
-   * Retorna altura responsiva para o mapa de rota
-   * Adapta-se ao tamanho da tela:
-   * - Mobile: 300px
-   * - Tablet: 400px
-   * - Desktop: 500px
-   */
-  getResponsiveMapHeight(): string {
-    try {
-      const windowWidth = globalThis.window.innerWidth;
-
-      // Mobile (< 640px)
-      if (windowWidth < 640) {
-        return '300px';
-      }
-      // Tablet (640px - 1024px)
-      else if (windowWidth < 1024) {
-        return '400px';
-      }
-      // Desktop (> 1024px)
-      else {
-        return '500px';
-      }
-    } catch {
-      // SSR ou ambiente sem window
-      return '500px';
-    }
-  }
-
-  /**
-   * Cleanup lifecycle - stops geolocation tracking when component is destroyed
-   * Prevents memory leaks and unnecessary battery drain
-   */
-  ngOnDestroy(): void {
-    if (this.geolocationService.isTracking()) {
-      console.log('Stopping location tracking on component destroy');
-      this.geolocationService.stopTracking();
-      this.enableUserTracking.set(false);
-    }
-  }
 }
-
-
 

@@ -1,0 +1,188 @@
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <header class="px-6 py-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-gradient-to-r from-brand-primary-500 to-brand-primary-600 text-white shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-wide text-brand-primary-200 font-semibold">{{ "geolocation" | i18n }}</p>
+        <h1 class="text-2xl font-bold flex items-center gap-2">
+          <i class="fas fa-location-crosshairs"></i>
+          {{ request()?.title || ("serviceRequestDetails" | i18n) }}
+        </h1>
+        <p class="text-brand-primary-100 text-sm mt-1">
+          @if (request()?.id) {
+            #{{ request()!.id }} • {{ request()!.status || ("status" | i18n) }}
+          } @else {
+            {{ "loading" | i18n }}
+          }
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white transition"
+          (click)="handleBack()"
+        >
+          <i class="fas fa-arrow-left"></i>
+          <span>{{ "backToList" | i18n }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  @if (!request()) {
+    <section class="bg-white dark:bg-gray-800 rounded-2xl border border-red-200 dark:border-red-800 p-6 text-center shadow-sm">
+      <p class="text-red-600 dark:text-red-300 font-medium">
+        {{ "noRequestSelected" | i18n }}
+      </p>
+      <button
+        type="button"
+        class="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        (click)="handleBack()"
+      >
+        <i class="fas fa-arrow-left"></i>
+        {{ "backToList" | i18n }}
+      </button>
+    </section>
+  } @else {
+    <section class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm space-y-6" aria-live="polite">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <i class="fas fa-map-marker-alt text-brand-primary-500"></i>
+            {{ "geolocation" | i18n }}
+          </h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            {{ "enableLocationTracking" | i18n }}
+          </p>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-brand-primary-200 text-brand-primary-700 hover:bg-brand-primary-50 disabled:opacity-50"
+            [disabled]="!hasCoordinates()"
+            (click)="showRouteMap.set(!showRouteMap())"
+          >
+            <i class="fas fa-route"></i>
+            {{ (showRouteMap() ? "geolocation" : "viewRoute") | i18n }}
+          </button>
+          @if (!geolocationService.isTracking()) {
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-brand-primary-600 text-white hover:bg-brand-primary-700"
+            (click)="enableUserTracking.set(true)"
+          >
+            <i class="fas fa-location-arrow"></i>
+            {{ "startTracking" | i18n }}
+          </button>
+          } @else {
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+            (click)="enableUserTracking.set(false)"
+          >
+            <i class="fas fa-stop-circle"></i>
+            {{ "stopTracking" | i18n }}
+          </button>
+          }
+        </div>
+      </div>
+
+      @if (!hasCoordinates()) {
+        <div class="bg-amber-50 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700 rounded-xl p-4 text-amber-800 dark:text-amber-100 text-sm">
+          <i class="fas fa-triangle-exclamation mr-2"></i>
+          {{ "geolocationUnavailable" | i18n }}
+        </div>
+      } @else {
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-brand-primary-50 to-brand-primary-100 dark:from-gray-700 dark:to-gray-700 rounded-xl p-4 border border-brand-primary-100 dark:border-gray-600">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <i class="fas fa-location-dot text-brand-primary-600"></i>
+                  {{ "yourLocation" | i18n }}
+                </h3>
+                @if (geolocationService.reverseGeocode()?.locality) {
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                  {{ geolocationService.reverseGeocode()!.locality }}
+                </p>
+                }
+              </div>
+              @if (geolocationService.isTracking()) {
+              <span class="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                {{ "tracking" | i18n }}
+              </span>
+              }
+            </div>
+
+            @if (locationError()) {
+            <div class="mt-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-3 text-sm text-red-700 dark:text-red-200">
+              <i class="fas fa-exclamation-circle mr-2"></i>
+              {{ locationError()!.message }}
+            </div>
+            }
+
+            @if (userLocationDisplay()) {
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-gray-700 dark:text-gray-200">
+              <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ "latitude" | i18n }}</p>
+                <p class="font-mono">{{ userLocationDisplay()!.latitude }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ "longitude" | i18n }}</p>
+                <p class="font-mono">{{ userLocationDisplay()!.longitude }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ "accuracy" | i18n }}</p>
+                <p>±{{ userLocationDisplay()!.accuracy }}m</p>
+              </div>
+            </div>
+            } @else {
+            <p class="mt-4 text-sm text-gray-600 dark:text-gray-300">
+              {{ "enableLocationTracking" | i18n }}
+            </p>
+            }
+
+            @if (formattedDistance()) {
+            <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg p-3 border-l-4 border-brand-primary-500 text-sm text-gray-700 dark:text-gray-100">
+              <span class="font-semibold">{{ "distanceToService" | i18n }}:</span>
+              <span class="text-lg font-bold text-brand-primary-600 dark:text-brand-primary-400 ml-2">
+                {{ formattedDistance() }}
+              </span>
+            </div>
+            }
+          </div>
+
+          @if (!showRouteMap()) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-200">
+            <div>
+              <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ "latitude" | i18n }}</p>
+              <p class="font-mono">{{ serviceLatitude() }}</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ "longitude" | i18n }}</p>
+              <p class="font-mono">{{ serviceLongitude() }}</p>
+            </div>
+          </div>
+          <app-leaflet-map-viewer
+            class="block rounded-xl overflow-hidden"
+            [latitude]="serviceLatitude()!"
+            [longitude]="serviceLongitude()!"
+            role="img"
+            [attr.aria-label]="'mapViewerRegion' | i18n"
+          ></app-leaflet-map-viewer>
+          } @else {
+          <app-leaflet-route-map
+            class="block rounded-xl overflow-hidden"
+            [destinationLatitude]="serviceLatitude()!"
+            [destinationLongitude]="serviceLongitude()!"
+            [mapHeight]="getResponsiveMapHeight()"
+            [showInstructions]="true"
+            role="img"
+            [attr.aria-label]="'routeMapRegion' | i18n"
+          ></app-leaflet-route-map>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

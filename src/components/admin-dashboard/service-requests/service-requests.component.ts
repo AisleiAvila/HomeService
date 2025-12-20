@@ -449,5 +449,16 @@ viewDetails = output<ServiceRequest>();
         console.log('Chat', req); 
         this.uiState.openChat(req);
     }
+
+    handleOpenGeolocation(req: ServiceRequest) {
+        if (!req?.id) {
+            console.warn('[ServiceRequestsComponent] Invalid request for geolocation action', req);
+            return;
+        }
+        const target = this.currentUser()?.role === 'admin'
+            ? ['/admin/requests', req.id, 'geolocation']
+            : ['/requests', req.id, 'geolocation'];
+        this.router.navigate(target, { state: { request: req } });
+    }
 }
 

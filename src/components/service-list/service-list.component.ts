@@ -47,6 +47,7 @@ export class ServiceListComponent {
   sortChange = output<string>(); // Emite a coluna clicada
 
   viewDetails = output<ServiceRequest>();
+  viewGeolocation = output<ServiceRequest>();
 
   logAndEmitViewDetails(request: ServiceRequest) {
     console.log('[ServiceListComponent] Botão detalhes clicado. Request:', request);

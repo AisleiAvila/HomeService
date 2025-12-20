@@ -147,6 +147,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     navigation: "Navigation",
     geolocationDiagnostics: "Geolocation Diagnostics",
     enableLocation: "Enable Location",
+    geolocationUnavailable:
+      "Geolocation unavailable for this request. Please confirm the service address contains valid coordinates.",
     appName: "HomeService",
     menu: "Menu",
     newRequest: "New Request",
@@ -1128,6 +1130,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     navigation: "Navegação",
     geolocationDiagnostics: "Diagnóstico de Geolocalização",
     enableLocation: "Ativar Localização",
+    geolocationUnavailable:
+      "Geolocalização indisponível para esta solicitação. Confirme se o endereço possui coordenadas válidas.",
     retry: "Tentar Novamente",
     appName: "HomeService",
     menu: "Menu",

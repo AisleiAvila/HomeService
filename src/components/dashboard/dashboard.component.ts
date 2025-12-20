@@ -52,6 +52,20 @@ export class DashboardComponent implements OnInit {
     this.viewDetails.emit(request);
   }
 
+  handleViewGeolocation(request: ServiceRequest) {
+    if (!request?.id) {
+      console.error('[Dashboard] Request inválido para geolocalização:', request);
+      return;
+    }
+
+    const isAdmin = this.user()?.role === "admin";
+    const target = isAdmin
+      ? ["/admin", "requests", request.id, "geolocation"]
+      : ["/requests", request.id, "geolocation"];
+
+    void this.router.navigate(target, { state: { request } });
+  }
+
   // Effect para logar mudanças no signal selectedRequest
   readonly _logSelectedRequestEffect = effect(() => {
     console.log('[Dashboard] selectedRequest mudou:', this.selectedRequest());

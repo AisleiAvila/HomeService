@@ -37,6 +37,14 @@ export const routes: Routes = [
     component: AdminCreateServiceRequestComponent,
     canActivate: [authGuard],
   },
+  {
+    path: 'requests/:id/geolocation',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/service-request-geolocation/service-request-geolocation.component').then(
+        (m) => m.ServiceRequestGeolocationComponent
+      ),
+  },
   // (Removido rota antiga de confirmação)
   {
     path: 'admin',
@@ -46,6 +54,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', loadComponent: () => import('../components/admin-dashboard/admin-overview/admin-overview.component').then(m => m.AdminOverviewComponent) },
       { path: 'requests', loadComponent: () => import('../components/admin-dashboard/service-requests/service-requests.component').then(m => m.ServiceRequestsComponent) },
+      { path: 'requests/:id/geolocation', loadComponent: () => import('./pages/service-request-geolocation/service-request-geolocation.component').then(m => m.ServiceRequestGeolocationComponent) },
       { path: 'request-details/:id', loadComponent: () => import('../components/service-request-details/service-request-details.component').then(m => m.ServiceRequestDetailsComponent) },
       { path: 'service-request-edit/:id', loadComponent: () => import('../components/service-request-edit/service-request-edit.component').then(m => m.ServiceRequestEditComponent) },
       { path: 'approvals', loadComponent: () => import('../components/admin-dashboard/pending-approvals/pending-approvals.component').then(m => m.PendingApprovalsComponent) },
