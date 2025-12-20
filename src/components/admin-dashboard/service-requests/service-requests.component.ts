@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, s
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
-import { ServiceRequest, ServiceStatus } from "../../../models/maintenance.models";
+import { ServiceRequest, ServiceStatus, User } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
@@ -360,9 +360,13 @@ viewDetails = output<ServiceRequest>();
         return this.dataService.users().find(u => u.id === clientId)?.name || 'N/A';
     }
 
-    getProfessionalName(profId: number | undefined): string {
-        if (!profId) return 'N/A';
-        return this.dataService.users().find(u => u.id === profId)?.name || 'N/A';
+    getProfessionalProfile(profId: number | null | undefined): User | null {
+        if (!profId) return null;
+        return this.dataService.users().find(u => u.id === profId) ?? null;
+    }
+
+    getProfessionalName(profId: number | null | undefined): string {
+        return this.getProfessionalProfile(profId)?.name || 'N/A';
     }
 
     statusClass(status: string): string {

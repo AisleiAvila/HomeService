@@ -348,7 +348,18 @@
                         {{ req.client_name || "—" }}
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal break-words max-w-[30ch] leading-snug">
-                        {{ getProfessionalName(req.professional_id) }}
+                        @if (getProfessionalProfile(req.professional_id); as professional) {
+                        <div class="flex items-center gap-2 max-w-[30ch]">
+                            @if (professional.avatar_url) {
+                            <img [src]="professional.avatar_url" [alt]="professional.name"
+                                class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+                                loading="lazy" />
+                            }
+                            <span class="break-words">{{ professional.name }}</span>
+                        </div>
+                        } @else {
+                        <span class="text-gray-400">—</span>
+                        }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <span [class]="statusClass(req.status)">{{
@@ -451,11 +462,20 @@
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "client" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">{{ req.client_name || "—" }}</span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex items-center justify-between gap-2">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "professional" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{
-                        getProfessionalName(req.professional_id)
-                        }}</span>
+                    @if (getProfessionalProfile(req.professional_id); as professional) {
+                    <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                        @if (professional.avatar_url) {
+                        <img [src]="professional.avatar_url" [alt]="professional.name"
+                            class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+                            loading="lazy" />
+                        }
+                        <span class="text-right">{{ professional.name }}</span>
+                    </div>
+                    } @else {
+                    <span class="text-gray-400">—</span>
+                    }
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "value" | i18n }}:</span>
