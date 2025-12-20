@@ -31,7 +31,7 @@ export class ServiceRequestEditComponent implements OnInit {
   error: string | null = null;
   formError = signal<string>('');
   locality = signal<string>('');
-  district = signal<string>('');
+  districtName = signal<string>('');
 
   // Getter/Setter para formatar requested_datetime para datetime-local input
   get requestedDateTimeFormatted(): string {
@@ -85,7 +85,7 @@ export class ServiceRequestEditComponent implements OnInit {
       // Inicializar campos de endereço derivados
       if (this.request) {
         this.locality.set(this.request.city || '');
-        this.district.set(this.request.state || '');
+        this.districtName.set(this.request.state || '');
       }
       
       this.loading = false;
@@ -184,7 +184,7 @@ export class ServiceRequestEditComponent implements OnInit {
     this.request.city = result.concelho || '';
     this.request.state = result.distrito || '';
     this.locality.set(result.localidade || '');
-    this.district.set(result.distrito || '');
+    this.districtName.set(result.distrito || '');
     
     this.cdr.markForCheck();
   }
@@ -196,7 +196,7 @@ export class ServiceRequestEditComponent implements OnInit {
     this.request.city = '';
     this.request.state = '';
     this.locality.set('');
-    this.district.set('');
+    this.districtName.set('');
     
     this.cdr.markForCheck();
   }
