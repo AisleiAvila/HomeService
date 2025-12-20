@@ -32,27 +32,11 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
             {{ "client" | i18n }}
           </th>
-          <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
-            [attr.aria-sort]="isSortedBy('date') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
-            scope="col"
-          >
-            <button
-              type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
-              (click)="handleSortColumn('date')"
-              [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('requestDate' | i18n)"
-              [attr.title]="('clickToSort' | i18n) + ': ' + ('requestDate' | i18n)"
-            >
-              <div class="flex items-center justify-between gap-2">
-                <span>{{ "requestDate" | i18n }}</span>
-                @if(isSortedBy('date')) {
-                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
-                } @else {
-                <i class="fas fa-sort text-gray-400"></i>
-                }
-              </div>
-            </button>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+            {{ "startExecutionDate" | i18n }}
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+            {{ "endExecutionDate" | i18n }}
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
@@ -113,7 +97,10 @@
             {{ request.client_name || "—" }}
           </td>
           <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
-            {{ request.requested_date ? (request.requested_date | date : "dd/MM/yyyy HH:mm") : "—" }}
+            {{ request.actual_start_datetime ? (request.actual_start_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap">
+            {{ request.actual_end_datetime ? (request.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
             <span [class]="statusClass(request.status)">
