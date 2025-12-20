@@ -360,7 +360,7 @@
                             {{ req.ispaid ? ('paymentDone' | i18n) : ('paymentPending' | i18n) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                         {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -405,43 +405,24 @@
                             </button>
                             }
 
-                            <!-- Menu Dropdown para Ações Secundárias -->
-                            <div class="relative" #actionsMenu>
-                                <button (click)="toggleActionsMenu(req.id)"
-                                    class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-
-                                <!-- Painel do Dropdown -->
-                                @if (isActionsMenuOpen(req.id)) {
-                                <div
-                                    class="absolute right-0 z-10 mt-2 w-48 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                    <div class="py-1" role="menu" aria-orientation="vertical">
-                                        <!-- Ações sempre disponíveis -->
-                                        <a href="#" (click)="handleViewDetails(req); $event.preventDefault()"
-                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            role="menuitem">
-                                            <i class="fas fa-eye w-5 mr-2"></i>
-                                            {{ "viewDetails" | i18n }}
-                                        </a>
-                                        @if (req.status !== 'Concluído') {
-                                        <a href="#" (click)="openEditRequestModal(req); $event.preventDefault()"
-                                            class="flex items-center px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-100"
-                                            role="menuitem">
-                                            <i class="fas fa-edit w-5 mr-2"></i>
-                                            {{ "editRequest" | i18n }}
-                                        </a>
-                                        }
-                                        <a href="#" (click)="handleOpenChat(req); $event.preventDefault()"
-                                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                            role="menuitem">
-                                            <i class="fas fa-comments w-5 mr-2"></i>
-                                            {{ "chat" | i18n }}
-                                        </a>
-                                    </div>
-                                </div>
-                                }
-                            </div>
+                            <!-- Ações sempre disponíveis -->
+                            <button (click)="handleViewDetails(req)"
+                                class="p-2 text-brand-primary-500 hover:text-brand-primary-600 hover:bg-brand-primary-50 rounded-md transition-colors"
+                                [title]="'viewDetails' | i18n" [attr.aria-label]="'viewDetails' | i18n">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            @if (req.status !== 'Concluído') {
+                            <button (click)="openEditRequestModal(req)"
+                                class="p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-md transition-colors"
+                                [title]="'editRequest' | i18n" [attr.aria-label]="'editRequest' | i18n">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            }
+                            <button (click)="handleOpenChat(req)"
+                                class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                [title]="'chat' | i18n" [attr.aria-label]="'chat' | i18n">
+                                <i class="fas fa-comments"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
