@@ -110,18 +110,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     private readonly handleResize = () => {
         this.scheduleFinancialTotalsRender();
         this.scheduleServiceStatusRender();
-        if (typeof window !== "undefined" && window.innerWidth >= 1024 && !this.filtersExpanded()) {
+        if (globalThis.window !== undefined && globalThis.window.innerWidth >= 1024 && !this.filtersExpanded()) {
             this.filtersExpanded.set(true);
         }
     };
 
-    @ViewChild("financialTotalsCanvas") private financialTotalsCanvas?: ElementRef<HTMLCanvasElement>;
-    @ViewChild("serviceStatusCanvas") private serviceStatusCanvas?: ElementRef<HTMLCanvasElement>;
+    @ViewChild("financialTotalsCanvas") private readonly financialTotalsCanvas?: ElementRef<HTMLCanvasElement>;
+    @ViewChild("serviceStatusCanvas") private readonly serviceStatusCanvas?: ElementRef<HTMLCanvasElement>;
 
     ngOnInit() {
         console.log('[FinancialReportsComponent] Inicializando - recarregando dados de solicitações');
         this.dataService.reloadServiceRequests();
-        if (typeof window !== "undefined" && window.innerWidth < 768) {
+        if (globalThis.window !== undefined && globalThis.window.innerWidth < 768) {
             this.filtersExpanded.set(false);
         }
     }
@@ -131,12 +131,12 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         this.hasInitializedServiceStatusChart = true;
         this.scheduleFinancialTotalsRender();
         this.scheduleServiceStatusRender();
-        window.addEventListener("resize", this.handleResize);
+        globalThis.window.addEventListener("resize", this.handleResize);
     }
 
 
     ngOnDestroy(): void {
-        window.removeEventListener("resize", this.handleResize);
+        globalThis.window.removeEventListener("resize", this.handleResize);
     }
 
     activeRequests = computed(() =>
@@ -286,7 +286,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
         const cssWidth = canvas.clientWidth || 640;
         const cssHeight = canvas.clientHeight || 280;
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = globalThis.window.devicePixelRatio || 1;
 
         canvas.width = cssWidth * dpr;
         canvas.height = cssHeight * dpr;
@@ -666,8 +666,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
             const financialCanvas = this.financialTotalsCanvas?.nativeElement;
             const statusCanvas = this.serviceStatusCanvas?.nativeElement;
-            const financialChartImage = financialCanvas?.toDataURL("image/png", 1.0) ?? null;
-            const statusChartImage = statusCanvas?.toDataURL("image/png", 1.0) ?? null;
+            const financialChartImage = financialCanvas?.toDataURL("image/png", 1) ?? null;
+            const statusChartImage = statusCanvas?.toDataURL("image/png", 1) ?? null;
 
             const summaries = this.sortedSummaries();
             const financialLegendItems = this.financialBreakdown();
@@ -685,11 +685,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 }).format(value / 100);
             const encodeHtml = (value: string | number | null | undefined) =>
                 String(value ?? "")
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#39;");
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#39;");
 
             const financialTitle = this.i18n.translate("financialTotalsChartTitle") ?? "Valores dos Serviços";
             const statusTitle = this.i18n.translate("servicesByStatus") ?? "Serviços por status";
@@ -702,7 +702,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const financialReportsLabel = this.i18n.translate("financialReports") ?? "Relatórios Financeiros";
             const legendLabel = this.i18n.translate("legend") ?? "Legenda";
             const quantityLabel = this.i18n.translate("quantity") ?? "Qtde";
-            const baseHref = (document.querySelector("base")?.href ?? window.location.origin).replace(/\/$/, "");
+            const baseHref = (document.querySelector("base")?.href ?? globalThis.window.location.origin).replace(/\/$/, "");
             const logoUrl = `${baseHref}/assets/logo-new.png`;
             const logoDataUrl = await this.tryLoadImageAsDataUrl(logoUrl);
             const encodedAppName = encodeHtml(appName);
@@ -865,7 +865,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 </body>
 </html>`;
 
-            const printWindow = window.open("", "_blank");
+            const printWindow = globalThis.window.open("", "_blank");
             if (!printWindow) {
                 this.notificationService.addNotification(
                     this.i18n.translate("popupBlocked") ||
@@ -874,9 +874,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 return;
             }
 
-            printWindow.document.open();
-            printWindow.document.write(html);
-            printWindow.document.close();
+            printWindow.document.documentElement.innerHTML = html;
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();

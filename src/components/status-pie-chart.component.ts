@@ -298,6 +298,89 @@ export class StatusPieChartComponent {
     this.hoveredSegment.set(null);
   }
 
+  private drawNoDataState(ctx: CanvasRenderingContext2D, centerX: number, centerY: number, outerRadius: number, innerRadius: number): void {
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI, true);
+    ctx.closePath();
+    ctx.fillStyle = "#e5e7eb";
+    ctx.fill();
+    
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const noDataText = this.i18n.translate("noDataAvailable") || "Sem dados";
+    ctx.fillText(noDataText, centerX, centerY);
+  }
+
+  private drawSegments(ctx: CanvasRenderingContext2D, config: {
+    visibleData: any[];
+    total: number;
+    centerX: number;
+    centerY: number;
+    outerRadius: number;
+    innerRadius: number;
+    progress: number;
+  }): number {
+    let startAngle = -Math.PI / 2;
+    this.segments = [];
+    
+    config.visibleData.forEach(item => {
+      const sliceAngle = (item.value / config.total) * 2 * Math.PI;
+      const animatedSliceAngle = sliceAngle * config.progress;
+      const endAngle = startAngle + animatedSliceAngle;
+      
+      this.segments.push({
+        startAngle: startAngle + Math.PI / 2,
+        endAngle: endAngle + Math.PI / 2,
+        item
+      });
+      
+      const isHovered = this.hoveredSegment()?.label === item.label;
+      const currentOuterRadius = isHovered ? config.outerRadius + 5 : config.outerRadius;
+      
+      ctx.beginPath();
+      ctx.arc(config.centerX, config.centerY, currentOuterRadius, startAngle, endAngle);
+      ctx.lineTo(config.centerX + config.innerRadius * Math.cos(endAngle), config.centerY + config.innerRadius * Math.sin(endAngle));
+      ctx.arc(config.centerX, config.centerY, config.innerRadius, startAngle, endAngle, true);
+      ctx.closePath();
+      
+      ctx.fillStyle = item.color;
+      ctx.fill();
+      
+      startAngle = endAngle;
+    });
+    
+    return startAngle;
+  }
+
+  private drawCenterText(ctx: CanvasRenderingContext2D, total: number, centerX: number, centerY: number, canvasWidth: number, progress: number): void {
+    if (progress < 0.9) return;
+    
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.beginPath();
+    const bgRadius = canvasWidth < 350 ? 30 : 38;
+    ctx.arc(centerX, centerY, bgRadius, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const totalColor = isDarkMode ? "#FFFFFF" : "#000000";
+    
+    const fontSize = canvasWidth < 350 ? 20 : 28;
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.fillStyle = totalColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(total.toString(), centerX, centerY - (canvasWidth < 350 ? 6 : 8));
+    
+    const labelSize = canvasWidth < 350 ? 10 : 12;
+    ctx.font = `${labelSize}px sans-serif`;
+    ctx.fillStyle = totalColor;
+    ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + (canvasWidth < 350 ? 10 : 14));
+  }
+
   renderPieChart() {
     if (!this.canvasRef) {
       console.warn("[PieChart] Canvas ref não encontrado");
@@ -311,116 +394,37 @@ export class StatusPieChartComponent {
       return;
     }
     
-    // Aplicar devicePixelRatio para melhorar nitidez em displays de alta densidade
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    
-    // Usar dimensões predefinidas do canvas sem scaling
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
     
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
-    // Usa todos os itens da legenda, mesmo com valor zero
     const data = this.chartData();
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     const centerX = canvasWidth / 2;
     const centerY = canvasHeight / 2;
     
-    // Raio responsivo baseado no tamanho do canvas
     const outerRadius = canvasWidth < 350 ? 70 : 90;
     const innerRadius = canvasWidth < 350 ? 45 : 55;
     
     if (total === 0) {
-      // Desenha donut cinza indicando ausência de dados
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
-      ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI, true); // Reverso para criar buraco
-      ctx.closePath();
-      ctx.fillStyle = "#e5e7eb"; // gray-200
-      ctx.fill();
-      
-      // Texto no centro
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      ctx.font = "bold 14px sans-serif";
-      ctx.fillStyle = isDarkMode ? "#FFFFFF" : "#000000";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      const noDataText = this.i18n.translate("noDataAvailable") || "Sem dados";
-      ctx.fillText(noDataText, centerX, centerY);
+      this.drawNoDataState(ctx, centerX, centerY, outerRadius, innerRadius);
       return;
     }
     
-    // Aplicar progresso de animação
     const progress = this.animationProgress();
-    let startAngle = -Math.PI / 2; // Começar no topo
-    this.segments = [];
-    
-    // Filtrar apenas itens com valor > 0 para evitar lacunas no donut
     const visibleData = data.filter(item => item.value > 0);
     
-    // Renderizar segmentos do donut - garante preenchimento completo
-    visibleData.forEach((item, index) => {
-      // Calcular o ângulo deste segmento (percentual do total em 360 graus)
-      const sliceAngle = (item.value / total) * 2 * Math.PI;
-      
-      // Durante animação, animar progressivamente
-      const animatedSliceAngle = sliceAngle * progress;
-      const endAngle = startAngle + animatedSliceAngle;
-      
-      // Salvar informações do segmento para detecção de hover
-      this.segments.push({
-        startAngle: startAngle + Math.PI / 2,
-        endAngle: endAngle + Math.PI / 2,
-        item
-      });
-      
-      // Efeito de hover
-      const isHovered = this.hoveredSegment()?.label === item.label;
-      const currentOuterRadius = isHovered ? outerRadius + 5 : outerRadius;
-      
-      // Desenhar segmento do donut - usando caminho fechado correto
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, currentOuterRadius, startAngle, endAngle);
-      ctx.lineTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
-      ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-      ctx.closePath();
-      
-      // Cores sólidas para cada segmento
-      ctx.fillStyle = item.color;
-      ctx.fill();
-      
-      // Mover para o próximo segmento
-      startAngle = endAngle;
+    this.drawSegments(ctx, {
+      visibleData,
+      total,
+      centerX,
+      centerY,
+      outerRadius,
+      innerRadius,
+      progress
     });
-    
-    // Desenhar total no centro do donut
-    if (progress >= 0.9) {
-      // Background semi-transparente para melhor legibilidade
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.beginPath();
-      const bgRadius = canvasWidth < 350 ? 30 : 38;
-      ctx.arc(centerX, centerY, bgRadius, 0, 2 * Math.PI);
-      ctx.fill();
-      
-      // Detectar se está em dark mode
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      const totalColor = isDarkMode ? "#FFFFFF" : "#000000";
-      
-      // Número total
-      const fontSize = canvasWidth < 350 ? 20 : 28;
-      ctx.font = `bold ${fontSize}px sans-serif`;
-      ctx.fillStyle = totalColor;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(total.toString(), centerX, centerY - (canvasWidth < 350 ? 6 : 8));
-      
-      // Label "Total"
-      const labelSize = canvasWidth < 350 ? 10 : 12;
-      ctx.font = `${labelSize}px sans-serif`;
-      ctx.fillStyle = totalColor;
-      ctx.fillText(this.i18n.translate("total") || "Total", centerX, centerY + (canvasWidth < 350 ? 10 : 14));
-    }
+    this.drawCenterText(ctx, total, centerX, centerY, canvasWidth, progress);
   }
 }

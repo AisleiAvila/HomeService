@@ -1,6 +1,5 @@
 // FIX: This file was a placeholder. It has been implemented to provide internationalization services.
 import { Injectable, signal } from "@angular/core";
-import { aM } from "@fullcalendar/core/internal-common";
 
 export type Language = "en" | "pt";
 
