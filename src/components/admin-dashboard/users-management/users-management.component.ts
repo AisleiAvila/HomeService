@@ -37,6 +37,7 @@ export class UsersManagementComponent implements OnInit {
     searchTerm = signal("");
     filterRole = signal<UserRole | "all">("all");
     filterStatus = signal<"all" | "Active" | "Inactive" | "Pending" | "Rejected">("all");
+    filterSpecialty = signal<number | "all">("all");
 
     // Ordenação
     sortColumn = signal<'name' | 'email' | 'role' | 'status'>('name');
@@ -79,6 +80,12 @@ export class UsersManagementComponent implements OnInit {
         const status = this.filterStatus();
         if (status !== "all") {
             users = users.filter(u => u.status === status);
+        }
+
+        // Aplicar filtro de especialidade
+        const specialty = this.filterSpecialty();
+        if (specialty !== "all") {
+            users = users.filter(u => (u.specialties ?? []).some(cat => cat.id === specialty));
         }
 
         // Aplicar ordenação
@@ -138,6 +145,7 @@ export class UsersManagementComponent implements OnInit {
             this.searchTerm();
             this.filterRole();
             this.filterStatus();
+            this.filterSpecialty();
             this.sortColumn();
             this.sortDirection();
             // Reseta para a primeira página
@@ -551,6 +559,7 @@ export class UsersManagementComponent implements OnInit {
         this.searchTerm.set("");
         this.filterRole.set("all");
         this.filterStatus.set("all");
+        this.filterSpecialty.set("all");
         this.currentPage.set(1);
     }
 }
