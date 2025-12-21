@@ -446,16 +446,6 @@
                     <span class="text-gray-900 dark:text-gray-100">{{ client.email }}</span>
                 </div>
                 <div class="flex items-center">
-                    <i class="fas fa-user-tag text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
-                    <span class="px-2 py-1 text-xs rounded-full" 
-                        [ngClass]="{
-                            'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional',
-                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
-                        }">
-                        {{ getRoleLabel(client.role) }}
-                    </span>
-                </div>
-                <div class="flex items-center">
                     <i class="fas fa-circle-dot text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
                     <span class="px-2 py-1 text-xs rounded-full" 
                         [ngClass]="{
