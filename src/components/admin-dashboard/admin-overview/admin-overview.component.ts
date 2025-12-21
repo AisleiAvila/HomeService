@@ -205,9 +205,8 @@ export class AdminOverviewComponent implements OnInit {
 
         const unpaidInProgressStatuses = new Set([
             "Em Progresso",
-            "Aguardando Finalização",
             "In Progress",
-            "Awaiting Finalization",
+            "Concluído",
         ]);
         const unpaidInProgressRevenue = requests
             .filter((r) => r.valor != null && unpaidInProgressStatuses.has(r.status || ""))
@@ -350,8 +349,6 @@ export class AdminOverviewComponent implements OnInit {
             'Recusado': this.i18n.translate('statusRejected'),
             'Data Definida': this.i18n.translate('statusScheduled'),
             'Em Progresso': this.i18n.translate('in_progress'),
-            'Aguardando Finalização': this.i18n.translate('statusAwaitingFinalization'),
-            'Pagamento Feito': this.i18n.translate('statusPaid'),
             'Concluído': this.i18n.translate('statusCompleted'),
             'Cancelado': this.i18n.translate('statusCancelled'),
             'In Progress': this.i18n.translate('in_progress'),

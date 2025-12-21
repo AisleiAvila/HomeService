@@ -66,12 +66,6 @@ export class WorkflowServiceSimplified {
     "Em Progresso": ["Concluído", "Cancelado"],
     "In Progress": ["Concluído", "Cancelado"],
     
-    // Aguardando (legado) → Admin ainda pode concluir ou cancelar
-    "Aguardando Finalização": ["Concluído", "Cancelado"],
-    
-    // Pagamento (legado) → Admin finaliza
-    "Pagamento Feito": ["Concluído"],
-    
     // Estados finais
     "Concluído": [],
     "Cancelado": [],
@@ -789,7 +783,7 @@ export class WorkflowServiceSimplified {
         );
       }
 
-      // Auditoria: Log da finalização (Pagamento Feito → Concluído)
+      // Auditoria: Log da finalização (Em Progresso → Concluído)
       await this.auditService.logStatusChange(
         requestId,
         previousStatus,
@@ -1030,8 +1024,8 @@ export class WorkflowServiceSimplified {
     const translationMap: Record<string, ServiceStatus> = {
       "In Progress": "Em Progresso",
       "Scheduled": "Data Definida",
-      "Awaiting Finalization": "Aguardando Finalização",
-      "Payment Made": "Pagamento Feito",
+      "Awaiting Finalization": "Concluído",
+      "Payment Made": "Concluído",
       "Completed": "Concluído",
       "Cancelled": "Cancelado",
     };
@@ -1047,8 +1041,6 @@ export class WorkflowServiceSimplified {
       "Data Definida": "Data de execução agendada",
       "Em Progresso": "Serviço em execução",
       "In Progress": "Serviço em execução",
-      "Aguardando Finalização": "Aguardando finalização administrativa",
-      "Pagamento Feito": "Pagamento ao profissional registrado",
       "Concluído": "Serviço finalizado",
       "Cancelado": "Serviço cancelado",
     };

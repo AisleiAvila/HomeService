@@ -732,7 +732,7 @@ export class ServiceRequestDetailsComponent {
         loading: false,
         condition:
           user.role === "admin" &&
-          req.status === "Aguardando Finalização" &&
+          req.status === "Concluído" &&
           !req.payment_date,
       },
       {

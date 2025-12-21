@@ -330,7 +330,7 @@ export class ServiceListComponent {
         return this.i18n.translate("workStartLate") || "Início atrasado";
       case "Aceito":
         return this.i18n.translate("paymentLate") || "Pagamento atrasado";
-      case "Pagamento Feito":
+      case "Concluído":
         return this.i18n.translate("evaluationLate") || "Avaliação pendente";
       case "Aguardando Confirmação":
         return (
@@ -360,7 +360,7 @@ export class ServiceListComponent {
           this.i18n.translate("paymentOverdueDescription") ||
           "O pagamento não foi confirmado dentro do prazo esperado."
         ) + serviceNameTag;
-      case "Pagamento Feito":
+      case "Concluído":
         return (
           this.i18n.translate("evaluationOverdueDescription") ||
           "As avaliações do serviço ainda não foram preenchidas."

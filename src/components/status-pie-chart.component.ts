@@ -182,8 +182,6 @@ export class StatusPieChartComponent {
       'Recusado': '#FF4757', // Vermelho coral vibrante
       'Data Definida': '#00B8E6', // Ciano vibrante
       'Em Progresso': '#9B59B6', // Roxo magenta vibrante
-      'Aguardando Finalização': '#34495E', // Cinza escuro
-      'Pagamento Feito': '#00C853', // Verde vibrante
       'Concluído': '#26A69A', // Teal claro vibrante
       'Cancelado': '#E74C3C', // Vermelho escuro vibrante
       'In Progress': '#9B59B6', // Roxo magenta vibrante

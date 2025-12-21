@@ -19,7 +19,7 @@ interface WorkflowPhase {
   id: number;
   title: string;
   description: string;
-  statuses: ServiceStatus[]; // Agora usa apenas os 11 status novos
+  statuses: ServiceStatus[]; // Agora usa apenas os 9 status novos
   completed: boolean;
   current: boolean;
   icon: string;
@@ -91,7 +91,6 @@ export class WorkflowTimelineComponent {
         description: this.i18n.translate("serviceExecution"),
         statuses: [
           "Em Progresso",           // Profissional executando
-          "Aguardando Finalização", // Profissional concluiu
         ],
         completed: this.isPhaseCompleted(3, currentStatus),
         current: this.isCurrentPhase(3, currentStatus),
@@ -103,7 +102,6 @@ export class WorkflowTimelineComponent {
         title: this.i18n.translate("paymentAndCompletion"),
         description: this.i18n.translate("adminPaysAndFinalizes"),
         statuses: [
-          "Pagamento Feito",  // Admin registrou pagamento
           "Concluído",        // Admin finalizou
           "Cancelado",        // Cancelado
         ],
@@ -271,11 +269,9 @@ export class WorkflowTimelineComponent {
       case 3:
         return [
           "Em Progresso",
-          "Aguardando Finalização",
         ];
       case 4:
         return [
-          "Pagamento Feito",
           "Concluído",
           "Cancelado",
         ];

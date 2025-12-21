@@ -1120,7 +1120,7 @@ export class DataService {
   async finishServiceWork(requestId: number) {
     const updates: Partial<ServiceRequest> = {
       actual_end_datetime: new Date().toISOString(),
-      status: "Aguardando Finalização" as const,
+      status: "Concluído" as const,
     };
     await this.updateServiceRequest(requestId, updates);
     this.notificationService.addNotification(

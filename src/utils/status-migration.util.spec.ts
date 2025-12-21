@@ -10,7 +10,7 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.migrateStatus("Agendado")).toBe("Data Definida");
       expect(StatusMigrationUtil.migrateStatus("Em execução")).toBe("Em Progresso");
       expect(StatusMigrationUtil.migrateStatus("Finalizado")).toBe("Concluído");
-      expect(StatusMigrationUtil.migrateStatus("Aprovado")).toBe("Pagamento Feito");
+      expect(StatusMigrationUtil.migrateStatus("Aprovado")).toBe("Concluído");
     });
     
     it("deve migrar status deprecated em inglês para novos equivalentes", () => {
@@ -88,8 +88,6 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.isNewStatus("Recusado")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Data Definida")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Em Progresso")).toBe(true);
-      expect(StatusMigrationUtil.isNewStatus("Aguardando Finalização")).toBe(true);
-      expect(StatusMigrationUtil.isNewStatus("Pagamento Feito")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Concluído")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Cancelado")).toBe(true);
     });
@@ -234,9 +232,9 @@ describe("StatusMigrationUtil", () => {
   
   describe("getAllNewStatuses", () => {
     
-    it("deve retornar exatamente 11 status novos", () => {
+    it("deve retornar exatamente 9 status novos", () => {
       const newStatuses = StatusMigrationUtil.getAllNewStatuses();
-      expect(newStatuses.length).toBe(11);
+      expect(newStatuses.length).toBe(9);
     });
     
     it("deve conter todos os status do novo sistema", () => {
@@ -249,8 +247,6 @@ describe("StatusMigrationUtil", () => {
       expect(newStatuses).toContain("Recusado");
       expect(newStatuses).toContain("Data Definida");
       expect(newStatuses).toContain("Em Progresso");
-      expect(newStatuses).toContain("Aguardando Finalização");
-      expect(newStatuses).toContain("Pagamento Feito");
       expect(newStatuses).toContain("Concluído");
       expect(newStatuses).toContain("Cancelado");
     });
@@ -272,7 +268,7 @@ describe("StatusMigrationUtil", () => {
       
       expect(desc).toContain("Solicitado");
       expect(desc).toContain("já pertence ao novo sistema");
-      expect(desc).toContain("11 status");
+      expect(desc).toContain("9 status");
     });
     
     it("deve gerar descrições diferentes para diferentes status", () => {

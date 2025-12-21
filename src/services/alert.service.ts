@@ -160,7 +160,7 @@ export class AlertService {
       case "Aceito":
         stakeholders = ["admin"];
         break;
-      case "Pagamento Feito":
+      case "Concluído":
         stakeholders = ["admin", "professional"];
         break;
       default:
@@ -213,7 +213,7 @@ export class AlertService {
     // Determinar status mais crítico
     let mostCriticalStatus: ServiceStatus | null = null;
     const statusPriority: Record<ServiceStatus, number> = {
-      // Novos status (11 status simplificados)
+      // Novos status (9 status simplificados)
       "Solicitado": 1,
       "Atribuído": 2,
       "Aguardando Confirmação": 2,
@@ -222,8 +222,6 @@ export class AlertService {
       "Data Definida": 3,
       "Em Progresso": 4,
       "In Progress": 4,
-      "Aguardando Finalização": 5,
-      "Pagamento Feito": 1,
       "Concluído": 0,
       "Cancelado": 0,
     };
@@ -288,7 +286,7 @@ export class AlertService {
         return this.checkWorkStartOverdue(request, now);
       case "Aceito":
         return this.checkPaymentOverdue(request, now);
-      case "Pagamento Feito":
+      case "Concluído":
         return this.checkEvaluationOverdue(request, now);
       default:
         return { isOverdue: false, message: "" };

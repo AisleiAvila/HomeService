@@ -220,8 +220,6 @@ export class DashboardComponent implements OnInit {
       "Recusado",
       "Data Definida",
       "Em Progresso",
-      "Aguardando Finalização",
-      "Pagamento Feito",
       "Concluído",
       "Cancelado"
     ];
@@ -444,9 +442,7 @@ export class DashboardComponent implements OnInit {
       "Aguardando Confirmação",
       "Aceito",
       "Data Definida",
-      "Em Progresso",
-      "Aguardando Finalização",
-      "Pagamento Feito"
+      "Em Progresso"
     ]);
     
     const isActive = (status: string) => activeStatuses.has(status as ServiceStatus);

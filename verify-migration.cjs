@@ -1,5 +1,5 @@
 // Script para verificar a migração dos dados no banco Supabase
-// Verifica se os 7 registros foram migrados corretamente para o novo sistema de 11 status
+// Verifica se os registros estão usando corretamente o novo sistema de 9 status
 
 const { createClient } = require('@supabase/supabase-js');
 
@@ -35,8 +35,6 @@ async function verifyMigration() {
       'Recusado',
       'Data Definida',
       'Em Progresso',
-      'Aguardando Finalização',
-      'Pagamento Feito',
       'Concluído',
       'Cancelado'
     ];
@@ -91,7 +89,7 @@ async function verifyMigration() {
     console.log('═'.repeat(50));
 
     if (deprecatedStatuses.length === 0) {
-      console.log('\n🎉 MIGRAÇÃO 100% COMPLETA! Todos os registros estão usando o novo sistema de 11 status.');
+      console.log('\n🎉 MIGRAÇÃO 100% COMPLETA! Todos os registros estão usando o novo sistema de 9 status.');
     } else {
       console.log(`\n⚠️ ATENÇÃO: ${deprecatedStatuses.length} registro(s) precisam ser migrados manualmente.`);
     }

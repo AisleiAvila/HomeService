@@ -60,7 +60,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
 
   canUploadAfter = computed(() => {
     const status = this.requestStatus();
-    return ['Em Progresso', 'Aguardando Finalização', 'Pagamento Feito', 'Concluído'].includes(status);
+    return ['Em Progresso', 'Concluído'].includes(status);
   });
 
   ngOnInit(): void {

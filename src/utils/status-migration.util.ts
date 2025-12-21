@@ -4,7 +4,7 @@ import { ServiceStatus } from "@/src/models/maintenance.models";
  * Utilitário de Migração de Status
  * 
  * Mapeia status do sistema antigo (23 status com fluxo de cliente e orçamento)
- * para o novo sistema simplificado (11 status - Admin → Professional → Admin)
+ * para o novo sistema simplificado (9 status - Admin → Professional → Admin)
  * 
  * Contexto da Migração:
  * - Sistema antigo: Cliente criava solicitação → Admin enviava orçamento → Cliente aprovava
@@ -55,12 +55,12 @@ export class StatusMigrationUtil {
     "Em execução": "Em Progresso",                 // Serviço sendo executado
     
     // FASE DE CONCLUSÃO
-    "Concluído - Aguardando aprovação": "Aguardando Finalização", // Profissional terminou
-    "Aprovado": "Pagamento Feito",                 // Cliente aprovava → Admin paga agora
+    "Concluído - Aguardando aprovação": "Concluído", // Profissional terminou
+    "Aprovado": "Concluído",                       // Fluxo finalizado diretamente
     "Rejeitado": "Em Progresso",                   // Volta para execução se rejeitado
     
     // FASE DE PAGAMENTO
-    "Pago": "Pagamento Feito",                     // Pagamento ao profissional
+    "Pago": "Concluído",                           // Pagamento deixa o serviço concluído
     
     // ESTADOS FINAIS
     "Finalizado": "Concluído",                     // Processo completo
@@ -86,14 +86,14 @@ export class StatusMigrationUtil {
     "AwaitingProfessionalConfirmation": "Aguardando Confirmação",
     "Scheduled": "Data Definida",
     "InProgress": "Em Progresso",
-    "CompletedAwaitingApproval": "Aguardando Finalização",
+    "CompletedAwaitingApproval": "Concluído",
     "Completed": "Concluído",
     "Cancelled": "Cancelado",
-    "Paid": "Pagamento Feito",
+    "Paid": "Concluído",
   };
   
   /**
-   * Lista de todos os status do novo sistema (11 status)
+   * Lista de todos os status do novo sistema (9 status)
    * Usado para validação rápida
    */
   private static readonly newStatuses: ServiceStatus[] = [
@@ -104,8 +104,6 @@ export class StatusMigrationUtil {
     "Recusado",
     "Data Definida",
     "Em Progresso",
-    "Aguardando Finalização",
-    "Pagamento Feito",
     "Concluído",
     "Cancelado",
   ];
@@ -114,7 +112,7 @@ export class StatusMigrationUtil {
    * Converte status do sistema antigo para o novo sistema simplificado
    * 
    * @param oldStatus - Status do sistema antigo (deprecated) ou novo
-   * @returns Status equivalente no novo sistema de 11 status
+  * @returns Status equivalente no novo sistema de 9 status
    * 
    * @example
    * ```typescript
@@ -164,7 +162,7 @@ export class StatusMigrationUtil {
   }
   
   /**
-   * Verifica se um status pertence ao novo sistema (11 status)
+  * Verifica se um status pertence ao novo sistema (9 status)
    * 
    * @param status - Status a verificar
    * @returns true se for um status novo, false se deprecated
@@ -301,7 +299,7 @@ export class StatusMigrationUtil {
   /**
    * Retorna uma lista de todos os status do novo sistema
    * 
-   * @returns Array com os 11 status novos
+  * @returns Array com os 9 status novos
    */
   static getAllNewStatuses(): ServiceStatus[] {
     return [...this.newStatuses];
@@ -322,7 +320,7 @@ export class StatusMigrationUtil {
    */
   static getMigrationDescription(oldStatus: string): string {
     if (this.isNewStatus(oldStatus)) {
-      return `Status '${oldStatus}' já pertence ao novo sistema (11 status)`;
+      return `Status '${oldStatus}' já pertence ao novo sistema (9 status)`;
     }
     const newStatus = this.migrateStatus(oldStatus);
     return `Status '${oldStatus}' (deprecated) migrado para '${newStatus}' (novo sistema)`;

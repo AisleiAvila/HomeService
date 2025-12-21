@@ -137,8 +137,6 @@ export class ServiceImageService {
       const allowedStatuses = [
         "Em Progresso",
         "In Progress",
-        "Aguardando Finalização",
-        "Pagamento Feito",
         "Concluído",
       ];
       if (!allowedStatuses.includes(request.status)) {

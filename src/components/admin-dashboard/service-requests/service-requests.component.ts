@@ -201,8 +201,6 @@ viewDetails = output<ServiceRequest>();
             "Recusado",
             "Data Definida",
             "Em Progresso",
-            "Aguardando Finalização",
-            "Pagamento Feito",
             "Concluído",
             "Cancelado"
         ];

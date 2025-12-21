@@ -6,7 +6,7 @@ export interface ServiceRequestOrigin {
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 
-// Sistema simplificado: 11 status (removido fluxo de orçamentos e aprovação de cliente)
+// Sistema simplificado: 9 status (removido fluxo de orçamentos e aprovação de cliente)
 export type ServiceStatus =
   | "Solicitado"                    // Admin criou a solicitação
   | "Atribuído"                     // Admin atribuiu a um profissional
@@ -15,8 +15,6 @@ export type ServiceStatus =
   | "Recusado"                      // Profissional recusou
   | "Data Definida"                 // Profissional definiu data
   | "Em Progresso"                  // Serviço em execução
-  | "Aguardando Finalização"        // Profissional concluiu, aguardando admin
-  | "Pagamento Feito"               // Admin registrou pagamento
   | "Concluído"                     // Admin finalizou
   | "Cancelado"                     // Cancelado
   | "In Progress";                  // Sinônimo para "Em Progresso"

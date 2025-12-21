@@ -618,8 +618,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusAwaitingConfirmation: "Awaiting Confirmation",
     statusAccepted: "Accepted",
     statusRejected: "Rejected",
-    statusAwaitingFinalization: "Awaiting Finalization",
-    statusPaid: "Paid",
+    
     statusInAnalysis: "In Analysis",
     statusAwaitingClarifications: "Awaiting Clarifications",
     statusQuoteSent: "Cancelled",
@@ -1621,8 +1620,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     statusAwaitingConfirmation: "Aguardando Confirmação",
     statusAccepted: "Aceito",
     statusRejected: "Recusado",
-    statusAwaitingFinalization: "Aguardando Finalização",
-    statusPaid: "Pagamento Feito",
+    
     statusInAnalysis: "Em Análise",
     statusAwaitingClarifications: "Aguardando Esclarecimentos",
     statusQuoteSent: "Cancelado",
