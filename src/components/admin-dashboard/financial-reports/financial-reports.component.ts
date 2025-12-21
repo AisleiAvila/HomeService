@@ -536,10 +536,17 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     private buildCsvContent(summaries: SummarizedFinancialRow[]): string {
+        const categoryHeader = this.i18n.translate("category") || "Categoria";
+        const subcategoryHeader = this.i18n.translate("subcategory") || "Subcategoria";
+        const serviceHeader =
+            this.i18n.translate("serviceRequest") ||
+            this.i18n.translate("service") ||
+            "Solicitação";
         const headerLabels = [
-            this.i18n.translate("rowType") || "Tipo",
             this.i18n.translate("professional") || "Profissional",
-            this.i18n.translate("category") || "Categoria / Detalhe",
+            categoryHeader,
+            subcategoryHeader,
+            serviceHeader,
             this.i18n.translate("employmentBond") || "Vínculo",
             this.i18n.translate("serviceValueColumn") || "Valor Serviço (€)",
             this.i18n.translate("paidAmount") || "Valor Pago (€)",
@@ -547,49 +554,17 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             this.i18n.translate("finalAmount") || "Valor final (€)",
         ];
         const rows: string[] = [this.toCsvRow(headerLabels)];
-        const typeLabels = {
-            summary: this.i18n.translate("summary") || "Resumo",
-            subcategory: this.i18n.translate("subcategory") || "Subcategoria",
-            service: this.i18n.translate("service") || "Serviço",
-        };
         const unassignedLabel = this.i18n.translate("unassigned") || "N/A";
-        const subcategoryPrefix = `${this.i18n.translate("subcategory") || "Subcategoria"}: `;
-        const servicePrefix = `${this.i18n.translate("service") || "Serviço"}: `;
 
         summaries.forEach((summary) => {
-            rows.push(
-                this.toCsvRow([
-                    typeLabels.summary,
-                    summary.professionalName || unassignedLabel,
-                    summary.categoryName || "-",
-                    summary.employmentLabel ?? "-",
-                    this.formatCsvNumber(summary.serviceValue),
-                    this.formatCsvNumber(summary.paidAmount),
-                    this.formatCsvNumber(summary.pendingAmount),
-                    this.formatCsvNumber(summary.finalAmount),
-                ])
-            );
-
             summary.subcategoryBreakdown.forEach((subcategory) => {
-                rows.push(
-                    this.toCsvRow([
-                        typeLabels.subcategory,
-                        summary.professionalName || unassignedLabel,
-                        `${subcategoryPrefix}${subcategory.name}`,
-                        summary.employmentLabel ?? "-",
-                        this.formatCsvNumber(subcategory.serviceValue),
-                        this.formatCsvNumber(subcategory.paidAmount),
-                        this.formatCsvNumber(subcategory.pendingAmount),
-                        this.formatCsvNumber(subcategory.finalAmount),
-                    ])
-                );
-
                 subcategory.services.forEach((service) => {
                     rows.push(
                         this.toCsvRow([
-                            typeLabels.service,
                             summary.professionalName || unassignedLabel,
-                            `${servicePrefix}${service.title}`,
+                            summary.categoryName || "-",
+                            `${subcategory.name}`,
+                            `${service.title}`,
                             summary.employmentLabel ?? "-",
                             this.formatCsvNumber(service.serviceValue),
                             this.formatCsvNumber(service.paidAmount),
@@ -1005,6 +980,9 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const professionalLabel = this.i18n.translate("professional") ?? "Profissional";
             const categoryLabel = this.i18n.translate("category") ?? "Categoria";
             const paymentLabel = this.i18n.translate("payment") ?? "Pagamento";
+            const subcategoryLabel = this.i18n.translate("subcategory") ?? "Subcategoria";
+            const serviceLabel = this.i18n.translate("service") ?? "Serviço";
+            const notApplicableLabel = this.i18n.translate("notApplicable") ?? "-";
             const unassignedLabel = this.i18n.translate("unassigned") ?? "N/A";
             const noDataLabel = this.i18n.translate("noDataAvailable") ?? "Sem dados";
             const appName = this.i18n.translate("appNameFull") ?? this.i18n.translate("appName") ?? "HomeService";
@@ -1139,24 +1117,61 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     </thead>
     <tbody>`;
 
-            summaries.forEach((summary) => {
-                const professionalName = encodeHtml(summary.professionalName || unassignedLabel);
-                const categoryName = encodeHtml(summary.categoryName || "-");
-                const employmentLabel = encodeHtml(summary.employmentLabel ?? "-");
-                const serviceValue = encodeHtml(formatCurrency(summary.serviceValue));
-                const paidAmount = encodeHtml(formatCurrency(summary.paidAmount));
-                const pendingAmount = encodeHtml(formatCurrency(summary.pendingAmount));
-                const finalAmount = encodeHtml(formatCurrency(summary.finalAmount));
-                html += `
-      <tr>
-        <td>${professionalName}</td>
-        <td>${categoryName}</td>
-        <td>${serviceValue}</td>
-        <td>${employmentLabel}</td>
-        <td>${paidAmount}</td>
-        <td>${pendingAmount}</td>
-        <td><strong>${finalAmount}</strong></td>
-      </tr>`;
+                        summaries.forEach((summary) => {
+                                const professionalName = encodeHtml(summary.professionalName || unassignedLabel);
+                                const categoryName = encodeHtml(summary.categoryName || "-");
+                                const employmentLabel = encodeHtml(summary.employmentLabel ?? "-");
+                                const serviceValue = encodeHtml(formatCurrency(summary.serviceValue));
+                                const paidAmount = encodeHtml(formatCurrency(summary.paidAmount));
+                                const pendingAmount = encodeHtml(formatCurrency(summary.pendingAmount));
+                                const finalAmount = encodeHtml(formatCurrency(summary.finalAmount));
+                                const notApplicableValue = encodeHtml(notApplicableLabel);
+                                html += `
+            <tr>
+                <td>${professionalName}</td>
+                <td>${categoryName}</td>
+                <td>${serviceValue}</td>
+                <td>${employmentLabel}</td>
+                <td>${paidAmount}</td>
+                <td>${pendingAmount}</td>
+                <td><strong>${finalAmount}</strong></td>
+            </tr>`;
+
+                                summary.subcategoryBreakdown.forEach((subcategory) => {
+                                        const subcategoryName = encodeHtml(subcategory.name || "-");
+                                        const subcategoryServiceValue = encodeHtml(formatCurrency(subcategory.serviceValue));
+                                        const subcategoryPaidAmount = encodeHtml(formatCurrency(subcategory.paidAmount));
+                                        const subcategoryPendingAmount = encodeHtml(formatCurrency(subcategory.pendingAmount));
+                                        const subcategoryFinalAmount = encodeHtml(formatCurrency(subcategory.finalAmount));
+                                        html += `
+            <tr>
+                <td>${encodeHtml(`↳ ${subcategoryLabel}`)}</td>
+                <td>${subcategoryName}</td>
+                <td>${subcategoryServiceValue}</td>
+                <td>${employmentLabel}</td>
+                <td>${subcategoryPaidAmount}</td>
+                <td>${subcategoryPendingAmount}</td>
+                <td><strong>${subcategoryFinalAmount}</strong></td>
+            </tr>`;
+
+                                        subcategory.services.forEach((service) => {
+                                                const serviceTitle = encodeHtml(service.title || "-");
+                                                const serviceServiceValue = encodeHtml(formatCurrency(service.serviceValue));
+                                                const servicePaidAmount = encodeHtml(formatCurrency(service.paidAmount));
+                                                const servicePendingAmount = encodeHtml(formatCurrency(service.pendingAmount));
+                                                const serviceFinalAmount = encodeHtml(formatCurrency(service.finalAmount));
+                                                html += `
+            <tr>
+                <td>${encodeHtml(`↳↳ ${serviceLabel}`)}</td>
+                <td>${serviceTitle}</td>
+                <td>${serviceServiceValue}</td>
+                <td>${notApplicableValue}</td>
+                <td>${servicePaidAmount}</td>
+                <td>${servicePendingAmount}</td>
+                <td><strong>${serviceFinalAmount}</strong></td>
+            </tr>`;
+                                        });
+                                });
             });
 
             if (!summaries.length) {
