@@ -94,6 +94,7 @@ export class StatusPieChartComponent {
   hoveredSegment = signal<{label: string; value: number; percentage: string; color: string} | null>(null);
   tooltipPosition = signal<{x: number; y: number}>({x: 0, y: 0});
   private readonly animationProgress = signal(0);
+  private readonly segmentOverlapAngle = 0.008; // small overlap to avoid visual gaps between slices
   private segments: Array<{startAngle: number; endAngle: number; item: any}> = [];
   
   constructor() {
@@ -326,31 +327,43 @@ export class StatusPieChartComponent {
   }): number {
     let startAngle = -Math.PI / 2;
     this.segments = [];
+    const overlapMagnitude = config.progress >= 0.98
+      ? this.segmentOverlapAngle
+      : this.segmentOverlapAngle * Math.max(config.progress, 0.2);
     
-    config.visibleData.forEach(item => {
+    config.visibleData.forEach((item, index) => {
       const sliceAngle = (item.value / config.total) * 2 * Math.PI;
       const animatedSliceAngle = sliceAngle * config.progress;
-      const endAngle = startAngle + animatedSliceAngle;
+      if (animatedSliceAngle <= 0) {
+        startAngle += animatedSliceAngle;
+        return;
+      }
+      const baseEndAngle = startAngle + animatedSliceAngle;
+      const overlapLimit = Math.min(0.03, Math.max(overlapMagnitude, 0.008));
+      const startWithOverlap = startAngle - overlapLimit;
+      const endWithOverlap = baseEndAngle + overlapLimit;
       
       this.segments.push({
-        startAngle: startAngle + Math.PI / 2,
-        endAngle: endAngle + Math.PI / 2,
+        startAngle: startWithOverlap + Math.PI / 2,
+        endAngle: endWithOverlap + Math.PI / 2,
         item
       });
       
       const isHovered = this.hoveredSegment()?.label === item.label;
-      const currentOuterRadius = isHovered ? config.outerRadius + 5 : config.outerRadius;
+      const outerRadius = isHovered ? config.outerRadius + 4 : config.outerRadius;
+      const innerRadius = Math.max(6, isHovered ? config.innerRadius - 3 : config.innerRadius);
       
       ctx.beginPath();
-      ctx.arc(config.centerX, config.centerY, currentOuterRadius, startAngle, endAngle);
-      ctx.lineTo(config.centerX + config.innerRadius * Math.cos(endAngle), config.centerY + config.innerRadius * Math.sin(endAngle));
-      ctx.arc(config.centerX, config.centerY, config.innerRadius, startAngle, endAngle, true);
+      ctx.arc(config.centerX, config.centerY, outerRadius, startWithOverlap, endWithOverlap);
+      ctx.arc(config.centerX, config.centerY, innerRadius, endWithOverlap, startWithOverlap, true);
       ctx.closePath();
-      
       ctx.fillStyle = item.color;
       ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = item.color;
+      ctx.stroke();
       
-      startAngle = endAngle;
+      startAngle += animatedSliceAngle;
     });
     
     return startAngle;
@@ -398,9 +411,15 @@ export class StatusPieChartComponent {
     const canvasHeight = canvas.height;
     
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "butt";
+    ctx.miterLimit = 2;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     
     const data = this.chartData();
-    const total = data.reduce((sum, item) => sum + item.value, 0);
+    const visibleData = data.filter((item) => item.value > 0);
+    const total = visibleData.reduce((sum, item) => sum + item.value, 0);
     
     const centerX = canvasWidth / 2;
     const centerY = canvasHeight / 2;
@@ -408,13 +427,12 @@ export class StatusPieChartComponent {
     const outerRadius = canvasWidth < 350 ? 70 : 90;
     const innerRadius = canvasWidth < 350 ? 45 : 55;
     
-    if (total === 0) {
+    if (total === 0 || visibleData.length === 0) {
       this.drawNoDataState(ctx, centerX, centerY, outerRadius, innerRadius);
       return;
     }
     
     const progress = this.animationProgress();
-    const visibleData = data.filter(item => item.value > 0);
     
     this.drawSegments(ctx, {
       visibleData,
