@@ -271,6 +271,9 @@
                             <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
                         </span>
                     </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider">
+                        {{ 'specialties' | i18n }}
+                    </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
                         tabindex="0" 
                         (click)="setSort('status')" 
@@ -302,6 +305,29 @@
                             }">
                             {{ getRoleLabel(client.role) }}
                         </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm">
+                        @if (client.role === 'professional') {
+                        @let specialtyList = getProfessionalSpecialties(client);
+                        @if (specialtyList.length > 0) {
+                        <div class="flex flex-wrap gap-1">
+                            @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
+                            <span class="px-2 py-0.5 text-xs rounded-full bg-brand-primary-50 dark:bg-gray-800 text-brand-primary-700 dark:text-brand-primary-300 border border-brand-primary-200 dark:border-gray-700">
+                                {{ specialty.name }}
+                            </span>
+                            }
+                            @if (specialtyList.length > 2) {
+                            <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                +{{ specialtyList.length - 2 }}
+                            </span>
+                            }
+                        </div>
+                        } @else {
+                        <span class="text-gray-400 dark:text-gray-500">-</span>
+                        }
+                        } @else {
+                        <span class="text-gray-400 dark:text-gray-500">-</span>
+                        }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <span class="px-2 py-1 text-xs rounded-full" 
@@ -441,6 +467,28 @@
                         {{ client.status }}
                     </span>
                 </div>
+                @if (client.role === 'professional') {
+                @let specialtyList = getProfessionalSpecialties(client);
+                <div class="flex items-start">
+                    <i class="fas fa-tools text-gray-400 dark:text-gray-500 w-4 mr-2 mt-0.5"></i>
+                    @if (specialtyList.length > 0) {
+                    <div class="flex flex-wrap gap-1">
+                        @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-brand-primary-50 dark:bg-gray-800 text-brand-primary-700 dark:text-brand-primary-300 border border-brand-primary-200 dark:border-gray-700">
+                            {{ specialty.name }}
+                        </span>
+                        }
+                        @if (specialtyList.length > 2) {
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                            +{{ specialtyList.length - 2 }}
+                        </span>
+                        }
+                    </div>
+                    } @else {
+                    <span class="text-xs text-gray-500 dark:text-gray-400">-</span>
+                    }
+                </div>
+                }
             </div>
         </div>
         }

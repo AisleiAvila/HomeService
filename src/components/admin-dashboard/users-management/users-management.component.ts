@@ -541,6 +541,13 @@ export class UsersManagementComponent implements OnInit {
         }
     }
 
+    getProfessionalSpecialties(user: User | null): ServiceCategory[] {
+        if (!user || user.role !== "professional") {
+            return [];
+        }
+        return (user.specialties ?? []).filter((category): category is ServiceCategory => !!category?.name);
+    }
+
     // Pagination
     nextPage() {
         if (this.currentPage() < this.totalPages()) {
