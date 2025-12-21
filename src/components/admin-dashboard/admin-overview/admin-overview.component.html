@@ -93,6 +93,17 @@
                     {{ stat.value }}
                 </p>
             </div>
+
+            @if (stat.id === 'totalRevenue' && stat.unpaidInProgressValue) {
+                <div [class]="'relative z-10 flex items-center justify-between text-gray-600 dark:text-gray-300 ' + (compactMode() ? 'text-[11px] mb-1' : 'text-xs mb-2')">
+                    <span class="font-medium truncate">
+                        {{ 'totalUnpaidToProviders' | i18n }} · {{ 'in_progress' | i18n }}/{{ 'statusAwaitingFinalization' | i18n }}
+                    </span>
+                    <span class="font-semibold text-gray-900 dark:text-white">
+                        {{ stat.unpaidInProgressValue }}
+                    </span>
+                </div>
+            }
             
             <!-- Mini gráfico sparkline (apenas em modo expandido) -->
             @if (stat.sparklineData && stat.sparklineData.length > 0 && !compactMode()) {

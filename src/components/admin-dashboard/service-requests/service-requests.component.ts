@@ -77,6 +77,24 @@ export class ServiceRequestsComponent implements OnInit {
     private readonly authService = inject(AuthService);
     private readonly workflowService = inject(WorkflowServiceSimplified);
     readonly uiState = inject(UiStateService);
+    private readonly reassignmentBlockedStatuses = new Set(
+        [
+            "iniciado",
+            "iniciada",
+            "finalizado",
+            "finalizada",
+            "pendente de pagamento",
+            "pagamento pendente",
+            "pendente pagamento",
+            "concluído",
+            "concluido",
+            "concluída",
+            "concluida",
+            "in progress",
+            "completed",
+            "payment pending",
+        ].map((status) => status.toLowerCase())
+    );
 
     // Quick filter options
     quickFilterOptions = [
@@ -106,6 +124,9 @@ export class ServiceRequestsComponent implements OnInit {
     requestToEdit = signal<ServiceRequest | null>(null);
     showDirectAssignmentModal = signal(false);
     requestToAssign = signal<ServiceRequest | null>(null);
+    showReassignmentModal = signal(false);
+    requestToReassign = signal<ServiceRequest | null>(null);
+    replacementProfessionalId = signal<string>("");
     openActionsMenuId = signal<number | null>(null);
 
     // Pagination signals
@@ -400,6 +421,90 @@ viewDetails = output<ServiceRequest>();
         this.requestToAssign.set(null);
         this.selectedProfessionalId.set("");
         this.selectedExecutionDate.set("");
+    }
+    canChangeProfessional(request: ServiceRequest): boolean {
+        if (!request?.professional_id) {
+            return false;
+        }
+        const normalizedStatus = (request.status || "").trim().toLowerCase();
+        return !this.reassignmentBlockedStatuses.has(normalizedStatus);
+    }
+    openReassignmentModal(request: ServiceRequest): void {
+        if (!this.canChangeProfessional(request)) {
+            return;
+        }
+        this.requestToReassign.set(request);
+        this.replacementProfessionalId.set("");
+        this.showReassignmentModal.set(true);
+    }
+    closeReassignmentModal(): void {
+        this.showReassignmentModal.set(false);
+        this.requestToReassign.set(null);
+        this.replacementProfessionalId.set("");
+    }
+    availableReassignmentProfessionals(request: ServiceRequest | null): User[] {
+        if (!request) {
+            return [];
+        }
+        return this.professionalOptions().filter((prof) => prof.id !== request.professional_id);
+    }
+    getExecutionDateLabel(request: ServiceRequest | null): string {
+        const scheduledDate =
+            request?.scheduled_start_datetime ||
+            request?.requested_datetime ||
+            request?.requested_date ||
+            null;
+        if (!scheduledDate) {
+            return this.i18n.translate('noDateDefined') || 'Sem data definida';
+        }
+        const parsed = new Date(scheduledDate);
+        if (Number.isNaN(parsed.getTime())) {
+            return scheduledDate;
+        }
+        return new Intl.DateTimeFormat('pt-PT', {
+            dateStyle: 'short',
+            timeStyle: scheduledDate.includes('T') ? 'short' : undefined,
+        }).format(parsed);
+    }
+    private getExecutionDateValue(request: ServiceRequest | null): string {
+        if (!request) {
+            return '';
+        }
+        return (
+            request.scheduled_start_datetime ||
+            request.requested_datetime ||
+            request.requested_date ||
+            ''
+        );
+    }
+    async confirmProfessionalReassignment(): Promise<void> {
+        const request = this.requestToReassign();
+        const professionalId = this.replacementProfessionalId();
+        if (!request || !professionalId) {
+            alert(
+                this.i18n.translate('pleasSelectProfessional') ||
+                    'Selecione um profissional disponível.'
+            );
+            return;
+        }
+        try {
+            await this.dataService.directAssignServiceRequest(
+                request.id,
+                Number.parseInt(professionalId, 10),
+                this.getExecutionDateValue(request)
+            );
+            this.closeReassignmentModal();
+            alert(
+                this.i18n.translate('reassignmentSuccess') ||
+                    'Profissional atualizado com sucesso!'
+            );
+        } catch (error) {
+            console.error('Error reassigning professional:', error);
+            alert(
+                this.i18n.translate('reassignmentError') ||
+                    'Não foi possível atualizar o profissional.'
+            );
+        }
     }
     closeEditRequestModal() {
         this.showEditRequestModal.set(false);

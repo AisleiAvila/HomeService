@@ -73,6 +73,73 @@
     </div>
 </div>
 }
+
+<!-- Modal de Troca de Profissional -->
+@if (showReassignmentModal()) {
+<div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <i class="fas fa-user-edit mr-2 text-indigo-500"></i>
+                Trocar profissional
+            </h3>
+            <button (click)="closeReassignmentModal()"
+                class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        @if (requestToReassign(); as request) {
+        <div class="space-y-4">
+            <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    Serviço: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ request.title }}</span>
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                    Profissional atual: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ getProfessionalName(request.professional_id) }}</span>
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                    Execução prevista: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ getExecutionDateLabel(request) }}</span>
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Selecione o novo profissional *
+                </label>
+                @if (availableReassignmentProfessionals(request).length === 0) {
+                <div class="px-3 py-2 text-sm rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                    Não existem outros profissionais ativos para esta categoria.
+                </div>
+                } @else {
+                <select [(ngModel)]="replacementProfessionalId"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">{{ 'selectProfessional' | i18n }}</option>
+                    @for (prof of availableReassignmentProfessionals(request); track prof.id) {
+                        <option [value]="prof.id">{{ prof.name }}</option>
+                    }
+                </select>
+                }
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 mt-6 mobile-safe">
+            <button (click)="closeReassignmentModal()"
+                class="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                {{ 'cancel' | i18n }}
+            </button>
+            <button (click)="confirmProfessionalReassignment()"
+                [disabled]="availableReassignmentProfessionals(request).length === 0"
+                class="w-full sm:flex-1 px-4 py-3 sm:py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-60 disabled:cursor-not-allowed">
+                <i class="fas fa-check mr-2"></i>
+                {{ 'confirm' | i18n }}
+            </button>
+        </div>
+        }
+    </div>
+</div>
+}
 <!-- Spinner de loading global/local -->
 @if (isLoading()) {
     <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
@@ -416,6 +483,15 @@
                             </button>
                             }
 
+                            <!-- Trocar Profissional - Apenas Admin/gestores com profissional definido -->
+                            @if (currentUser() && currentUser()!.role !== 'professional' && canChangeProfessional(req)) {
+                            <button (click)="openReassignmentModal(req)"
+                                class="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
+                                title="Trocar profissional">
+                                <i class="fas fa-user-edit"></i>
+                            </button>
+                            }
+
                             <!-- Ações sempre disponíveis -->
                             <button (click)="handleOpenGeolocation(req)"
                                 class="p-2 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md transition-colors"
@@ -526,6 +602,14 @@
                     <button (click)="openDirectAssignmentModal(req)" title="{{ 'directAssign' | i18n }}"
                         class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-user-clock"></i>
+                    </button>
+                    }
+
+                    <!-- Trocar Profissional - Apenas Admin/gestores com profissional definido -->
+                    @if (currentUser() && currentUser()!.role !== 'professional' && canChangeProfessional(req)) {
+                    <button (click)="openReassignmentModal(req)" title="Trocar profissional"
+                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        <i class="fas fa-user-edit"></i>
                     </button>
                     }
 

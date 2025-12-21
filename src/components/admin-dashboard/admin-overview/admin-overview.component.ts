@@ -200,7 +200,18 @@ export class AdminOverviewComponent implements OnInit {
             (r) => (r.status === "Concluído" || r.status === ("Completed" as any)) && r.valor != null
         );
         const totalRevenue = completed
-            .filter((r) => r.payment_status === "Paid")
+            .filter((r) => this.isPaymentMarkedAsPaid(r.payment_status))
+            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+
+        const unpaidInProgressStatuses = new Set([
+            "Em Progresso",
+            "Aguardando Finalização",
+            "In Progress",
+            "Awaiting Finalization",
+        ]);
+        const unpaidInProgressRevenue = requests
+            .filter((r) => r.valor != null && unpaidInProgressStatuses.has(r.status || ""))
+            .filter((r) => !this.isPaymentMarkedAsPaid(r.payment_status))
             .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
 
         // Calculate active services
@@ -264,6 +275,7 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.revenue.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: this.sparklineData().totalRevenue,
+                unpaidInProgressValue: this.formatCost(unpaidInProgressRevenue),
             },
             {
                 id: "pendingApprovals",
@@ -276,6 +288,7 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.approvals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
+                unpaidInProgressValue: undefined,
             },
             {
                 id: "activeServices",
@@ -288,6 +301,7 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.active.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: this.sparklineData().activeServices,
+                unpaidInProgressValue: undefined,
             },
             {
                 id: "totalProfessionals",
@@ -300,6 +314,7 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.professionals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
+                unpaidInProgressValue: undefined,
             },
             // {
             //     id: "activeClients",
@@ -455,6 +470,14 @@ export class AdminOverviewComponent implements OnInit {
      */
     private validateCost(cost: number | undefined | null): number {
         return (cost != null && !Number.isNaN(cost)) ? cost : 0;
+    }
+
+    private isPaymentMarkedAsPaid(status: string | null | undefined): boolean {
+        if (!status) {
+            return false;
+        }
+        const normalized = status.toLowerCase();
+        return normalized === "paid" || normalized === "pagamento feito" || normalized === "pago";
     }
 
     formatCost(cost: number): string {
