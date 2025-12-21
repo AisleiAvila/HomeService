@@ -211,8 +211,6 @@
       (viewDetails)="handleViewDetails($event)"
       (openChat)="openChat.emit($event)"
       (payNow)="payNow.emit($event)"
-      (approveQuote)="handleQuoteResponse($event, true)"
-      (rejectQuote)="handleQuoteResponse($event, false)"
       (approveExecutionDate)="handleExecutionDateResponse($event, true)"
       (rejectExecutionDate)="
         handleExecutionDateResponse($event.request, false, $event.reason)

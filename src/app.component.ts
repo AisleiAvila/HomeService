@@ -20,6 +20,7 @@ import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
 import { UiStateService } from "./services/ui-state.service";
 import { ThemeService } from "./services/theme.service";
+import { AlertService } from "./services/alert.service";
 
 // Models
 import {
@@ -96,6 +97,7 @@ export class AppComponent implements OnInit {
   readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
   readonly themeService = inject(ThemeService);
+  private readonly alertService = inject(AlertService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly pushNotificationService = inject(PushNotificationService);
   private readonly router = inject(Router);
@@ -206,6 +208,7 @@ export class AppComponent implements OnInit {
 
   // Track last loaded user to prevent infinite loops
   private lastLoadedUserId: number | undefined = undefined;
+  private lastAlertSyncUserId: number | undefined = undefined;
 
   constructor() {
     // Detecta link de confirmação de e-mail e redireciona para redefinição de senha
@@ -238,6 +241,7 @@ export class AppComponent implements OnInit {
         this.view.set("verification");
         this.dataService.clearData();
         this.lastLoadedUserId = undefined;
+        this.lastAlertSyncUserId = undefined;
       } else if (user) {
         if (user.status === "Active") {
           this.view.set("app");
@@ -263,16 +267,20 @@ export class AppComponent implements OnInit {
             this.lastLoadedUserId = user.id;
             this.pushNotificationService.requestPermission();
           }
+
+          this.initializeAlertMonitoring(user);
         } else if (user.status === "Pending") {
           this.view.set("app");
         } else {
           this.authService.logout();
           this.lastLoadedUserId = undefined;
+          this.lastAlertSyncUserId = undefined;
         }
       } else {
         this.view.set("landing");
         this.dataService.clearData();
         this.lastLoadedUserId = undefined;
+        this.lastAlertSyncUserId = undefined;
       }
     });
   }
@@ -355,6 +363,28 @@ export class AppComponent implements OnInit {
     if (this.loginComponent) {
       this.loginComponent.clearError();
     }
+  }
+
+  private initializeAlertMonitoring(user: { id?: number | null } | null): void {
+    if (!user?.id) {
+      return;
+    }
+
+    if (this.lastAlertSyncUserId === user.id) {
+      return;
+    }
+
+    this.lastAlertSyncUserId = user.id;
+    console.log(`[AppComponent] Iniciando sincronização de alertas para o usuário ${user.id}`);
+
+    setTimeout(() => {
+      this.alertService.checkOverdueRequests().catch((error) =>
+        console.error("[AppComponent] Falha ao executar verificação de atrasos:", error)
+      );
+      this.alertService.sendDeadlineWarnings().catch((error) =>
+        console.error("[AppComponent] Falha ao executar avisos de prazo:", error)
+      );
+    }, 0);
   }
 
   private async checkTemporaryPassword(payload: LoginPayload) {
@@ -507,52 +537,6 @@ export class AppComponent implements OnInit {
     this.isSchedulerOpen.set(false);
     this.isClarificationModalOpen.set(false);
     this.uiState.closeChat();
-  }
-
-  async handleApproveQuote(request: ServiceRequest) {
-    const currentUser = this.authService.appUser();
-    if (!currentUser) return;
-
-    // Se é profissional aceitando a atribuição
-    if (currentUser.role === "professional" && request.professional_id === currentUser.id) {
-      await this.workflowService.respondToAssignment(
-        request.id,
-        currentUser.id,
-        true // accept = true
-      );
-    } else {
-      // Fallback para admin ou outros casos
-      await this.dataService.updateServiceRequest(request.id, {
-        status: "Aceito",
-      });
-      this.notificationService.addNotification(
-        `Quote for "${request.title}" approved`
-      );
-    }
-    this.closeModal();
-  }
-
-  async handleRejectQuote(request: ServiceRequest) {
-    const currentUser = this.authService.appUser();
-    if (!currentUser) return;
-
-    // Se é profissional recusando a atribuição
-    if (currentUser.role === "professional" && request.professional_id === currentUser.id) {
-      await this.workflowService.respondToAssignment(
-        request.id,
-        currentUser.id,
-        false, // accept = false
-        "Orçamento rejeitado pelo profissional"
-      );
-    } else {
-      // Cancelar para admin ou outros casos
-      await this.workflowService.cancelRequest(
-        request.id,
-        currentUser.id,
-        `Quote for "${request.title}" rejected`
-      );
-    }
-    this.closeModal();
   }
 
   handlePayment(request: ServiceRequest) {

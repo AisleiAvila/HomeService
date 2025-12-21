@@ -24,7 +24,7 @@ import {
  * - Admin paga e finaliza
  * 
  * Fluxo: Solicitado → Atribuído → Aceito → Data Definida → 
- *        Em Progresso → Aguardando Finalização → Pagamento Feito → Concluído
+ *        Em Progresso → Concluído (pagamento tratado em paralelo)
  */
 @Injectable({
   providedIn: "root",
@@ -63,13 +63,13 @@ export class WorkflowServiceSimplified {
     "Data Definida": ["Em Progresso", "Cancelado"],
     
     // Em execução → Profissional conclui ou volta se necessário
-    "Em Progresso": ["Aguardando Finalização", "Cancelado"],
-    "In Progress": ["Aguardando Finalização", "Cancelado"],
+    "Em Progresso": ["Concluído", "Cancelado"],
+    "In Progress": ["Concluído", "Cancelado"],
     
-    // Aguardando → Admin paga ou volta para execução se houver problema
-    "Aguardando Finalização": ["Pagamento Feito", "Em Progresso", "Cancelado"],
+    // Aguardando (legado) → Admin ainda pode concluir ou cancelar
+    "Aguardando Finalização": ["Concluído", "Cancelado"],
     
-    // Pagamento → Admin finaliza
+    // Pagamento (legado) → Admin finaliza
     "Pagamento Feito": ["Concluído"],
     
     // Estados finais
@@ -111,10 +111,8 @@ export class WorkflowServiceSimplified {
         "Aceito->Data Definida",
         "Data Definida->Em Progresso",
         "Data Definida->In Progress",
-        "Em Progresso->Aguardando Finalização",
-        "In Progress->Aguardando Finalização",
-        "Aguardando Finalização->Pagamento Feito",
-        "Pagamento Feito->Concluído",
+        "Em Progresso->Concluído",
+        "In Progress->Concluído",
       ];
       
       const transitionKey = `${from}->${to}`;
@@ -573,12 +571,12 @@ export class WorkflowServiceSimplified {
   }
 
   private async validateExecutionCompletion(previousStatus: ServiceStatus, currentUser: any): Promise<void> {
-    if (!this.canTransition(previousStatus, "Aguardando Finalização")) {
+    if (!this.canTransition(previousStatus, "Concluído")) {
       throw new Error(`Não é possível concluir a partir do status ${previousStatus}`);
     }
 
-    console.log("[DEBUG] completeExecution - Usuário:", currentUser, "Status anterior:", previousStatus, "Tentando para:", "Aguardando Finalização");
-    if (!currentUser || !this.canPerformTransition(previousStatus, "Aguardando Finalização", currentUser.role)) {
+    console.log("[DEBUG] completeExecution - Usuário:", currentUser, "Status anterior:", previousStatus, "Tentando para:", "Concluído");
+    if (!currentUser || !this.canPerformTransition(previousStatus, "Concluído", currentUser.role)) {
       console.error("[DEBUG] Permissão negada para concluir execução", { currentUser, previousStatus });
       throw new Error("Usuário não tem permissão para concluir execução");
     }
@@ -605,7 +603,7 @@ export class WorkflowServiceSimplified {
     const { error } = await this.supabase.client
       .from("service_requests")
       .update({
-        status: "Aguardando Finalização",
+        status: "Concluído",
         completed_at: new Date().toISOString(),
         actual_end_datetime: new Date().toISOString(),
         admin_notes: notes ? `Notas de conclusão: ${notes}` : undefined,
@@ -620,13 +618,13 @@ export class WorkflowServiceSimplified {
     const auditMessage = notes ? `Profissional concluiu a execução: ${notes}` : "Profissional concluiu a execução";
 
     if (currentUser) {
-      await this.updateStatus(requestId, "Aguardando Finalização", currentUser.id, auditMessage);
+      await this.updateStatus(requestId, "Concluído", currentUser.id, auditMessage);
     }
 
     await this.auditService.logStatusChange(
       requestId,
       previousStatus,
-      "Aguardando Finalização" as const,
+      "Concluído" as const,
       auditMessage,
       { actual_end: new Date().toISOString(), notes }
     );
@@ -665,9 +663,8 @@ export class WorkflowServiceSimplified {
 
       const previousStatus = request.status;
 
-      // Validar transição
-      if (!this.canTransition(previousStatus, "Pagamento Feito")) {
-        throw new Error(`Não é possível registrar pagamento a partir do status ${previousStatus}`);
+      if (previousStatus !== "Concluído") {
+        throw new Error("Pagamentos só podem ser registrados quando a solicitação estiver concluída");
       }
 
       // Validar permissão (apenas admin)
@@ -684,7 +681,6 @@ export class WorkflowServiceSimplified {
           payment_method: paymentData.method,
           payment_notes: paymentData.notes,
           paid_by_admin_id: adminId,
-          status: "Pagamento Feito",
           ispaid: true,
           payment_status: "Paid",
         })
@@ -695,18 +691,18 @@ export class WorkflowServiceSimplified {
       // Registrar na tabela de histórico
       if (currentUser) {
         await this.updateStatus(
-          requestId, 
-          "Pagamento Feito", 
-          currentUser.id, 
+          requestId,
+          "Concluído",
+          currentUser.id,
           "Pagamento registrado: " + paymentData.amount + "€ via " + paymentData.method + (paymentData.notes ? " - " + paymentData.notes : "")
         );
       }
 
-      // Auditoria: Log do pagamento (Aguardando Finalização → Pagamento Feito)
+      // Auditoria: Log do pagamento mantendo status concluído
       await this.auditService.logStatusChange(
         requestId,
         previousStatus,
-        "Pagamento Feito" as const,
+        "Concluído" as const,
         "Pagamento registrado: " +
         paymentData.amount +
         "€ via " +
@@ -715,7 +711,8 @@ export class WorkflowServiceSimplified {
         { 
           payment_amount: paymentData.amount, 
           payment_method: paymentData.method,
-          payment_notes: paymentData.notes 
+          payment_notes: paymentData.notes,
+          payment_status: "Paid"
         }
       );
 

@@ -59,8 +59,6 @@ export class ServiceListComponent {
     }
   }
   openChat = output<ServiceRequest>();
-  approveQuote = output<ServiceRequest>();
-  rejectQuote = output<ServiceRequest>();
   approveExecutionDate = output<ServiceRequest>();
   rejectExecutionDate = output<{ request: ServiceRequest; reason: string }>();
   payNow = output<ServiceRequest>();
@@ -84,6 +82,33 @@ export class ServiceListComponent {
   // Pagination state
   currentPage = signal(1);
   itemsPerPage = signal(10);
+
+  private readonly overdueRequestsList = computed(() => {
+    const requests = this.serviceRequests();
+    if (!requests || !Array.isArray(requests)) {
+      return [];
+    }
+    return requests.filter((request) => this.isRequestOverdue(request));
+  });
+  delayedRequestsCount = computed(() => this.overdueRequestsList().length);
+  delayedRequestsPreview = computed(() =>
+    this.overdueRequestsList().slice(0, 3)
+  );
+  showAdminOverdueBanner = computed(() => {
+    const user = this.currentUser();
+    return user.role === "admin" && this.delayedRequestsCount() > 0;
+  });
+  overdueBannerTitle = computed(() => {
+    const label =
+      this.i18n.translate("overdueRequestsAwaitingAction") ||
+      "solicitações aguardando início";
+    return `${this.delayedRequestsCount()} ${label}`;
+  });
+  overdueBannerDescription = computed(
+    () =>
+      this.i18n.translate("overdueRequestsAdminDescription") ||
+      "Os alertas automáticos já foram emitidos, mas valide com o profissional responsável."
+  );
 
   // Initialize items per page based on input
   // ...existing code...
@@ -286,5 +311,76 @@ export class ServiceListComponent {
     this.payNow.emit(event.request);
     this.showPaymentModal.set(false);
     this.selectedRequestForPayment.set(null);
+  }
+
+  isRequestOverdue(request: ServiceRequest): boolean {
+    if (request.overdue === true) {
+      return true;
+    }
+
+    const schedulingStatus = this.dataService.getSchedulingStatus(request);
+    return schedulingStatus === "Delayed";
+  }
+
+  getOverdueBadgeLabel(request: ServiceRequest): string {
+    const schedulingStatus = this.dataService.getSchedulingStatus(request);
+
+    switch (request.status) {
+      case "Data Definida":
+        return this.i18n.translate("workStartLate") || "Início atrasado";
+      case "Aceito":
+        return this.i18n.translate("paymentLate") || "Pagamento atrasado";
+      case "Pagamento Feito":
+        return this.i18n.translate("evaluationLate") || "Avaliação pendente";
+      case "Aguardando Confirmação":
+        return (
+          this.i18n.translate("professionalConfirmationLate") ||
+          "Confirmação em atraso"
+        );
+      default:
+        if (schedulingStatus === "Scheduled" || schedulingStatus === "Scheduled Today") {
+          return this.i18n.translate("workStartLate") || "Início atrasado";
+        }
+        return this.i18n.translate("actionOverdue") || "Ação em atraso";
+    }
+  }
+
+  getOverdueDescription(request: ServiceRequest): string {
+    const schedulingStatus = this.dataService.getSchedulingStatus(request);
+    const serviceNameTag = request.title ? ` — ${request.title}` : "";
+
+    switch (request.status) {
+      case "Data Definida":
+        return (
+          this.i18n.translate("workStartOverdueDescription") ||
+          "O trabalho deveria ter começado após o horário combinado."
+        ) + serviceNameTag;
+      case "Aceito":
+        return (
+          this.i18n.translate("paymentOverdueDescription") ||
+          "O pagamento não foi confirmado dentro do prazo esperado."
+        ) + serviceNameTag;
+      case "Pagamento Feito":
+        return (
+          this.i18n.translate("evaluationOverdueDescription") ||
+          "As avaliações do serviço ainda não foram preenchidas."
+        ) + serviceNameTag;
+      case "Aguardando Confirmação":
+        return (
+          this.i18n.translate("professionalConfirmationOverdueDescription") ||
+          "O profissional precisa confirmar ou recusar o atendimento."
+        ) + serviceNameTag;
+      default:
+        if (schedulingStatus === "Scheduled" || schedulingStatus === "Scheduled Today") {
+          return (
+            this.i18n.translate("workStartOverdueDescription") ||
+            "O trabalho deveria ter começado após o horário combinado."
+          ) + serviceNameTag;
+        }
+        return (
+          this.i18n.translate("genericOverdueDescription") ||
+          "Existe uma ação pendente além do prazo configurado."
+        ) + serviceNameTag;
+    }
   }
 }

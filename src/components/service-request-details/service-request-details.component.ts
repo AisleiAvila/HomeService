@@ -104,109 +104,6 @@ interface ServiceAction {
           ></app-workflow-timeline>
         </section>
 
-        @if (professionalQuotes().length > 0) {
-        <section
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-          role="region"
-          [attr.aria-label]="'professionalResponses' | i18n"
-        >
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="professional-quotes-title">
-            {{ "professionalResponses" | i18n }}
-            <span
-              class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2"
-            >
-              ({{ professionalQuotes().length }}
-              {{
-                professionalQuotes().length === 1
-                  ? ("response" | i18n)
-                  : ("responses" | i18n)
-              }})
-            </span>
-          </h3>
-          <div class="space-y-4" [attr.aria-labelledby]="'professional-quotes-title'">
-            @for (quote of professionalQuotes(); track quote.professional_id) {
-            <article
-              class="border rounded-lg p-4 transition-all"
-              [class.border-green-500]="quote.isSelected"
-              [class.bg-green-50]="quote.isSelected"
-              [class.dark:bg-green-900]="quote.isSelected"
-              [class.border-gray-200]="!quote.isSelected"
-              [class.dark:border-gray-700]="!quote.isSelected"
-              [attr.aria-label]="'professionalQuote' | i18n : { name: quote.professional_name }"
-            >
-              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3">
-                <div class="flex items-center space-x-3 mb-2 sm:mb-0">
-                  @if (quote.professional_avatar_url) {
-                  <img
-                    [src]="quote.professional_avatar_url"
-                    [alt]="quote.professional_name"
-                    class="w-10 h-10 rounded-full object-cover"
-                    loading="lazy"
-                  >
-                  } @else {
-                  <div class="w-10 h-10 rounded-full bg-brand-primary-100 flex items-center justify-center" aria-hidden="true">
-                    <i class="fas fa-user text-brand-primary-600"></i>
-                  </div>
-                  }
-                  <div class="min-w-0">
-                    <h4 class="font-medium text-gray-800 dark:text-gray-100 truncate">
-                      {{ quote.professional_name || ("professional" | i18n) }}
-                    </h4>
-                    @if (quote.professional_rating) {
-                    <div
-                      class="flex items-center mt-1"
-                      [attr.aria-label]="'professionalRating' | i18n : { rating: quote.professional_rating.toFixed(1) }"
-                    >
-                      <i class="fas fa-star text-yellow-400 text-xs" aria-hidden="true"></i>
-                      <span class="text-xs text-gray-600 ml-1">
-                        {{ quote.professional_rating.toFixed(1) }}
-                      </span>
-                    </div>
-                    }
-                  </div>
-                </div>
-
-                <div class="flex items-center space-x-2">
-                  @if (quote.isSelected) {
-                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800" role="status">
-                    <i class="fas fa-check-circle mr-1" aria-hidden="true"></i>
-                    {{ "selected" | i18n }}
-                  </span>
-                  }
-                  @if (quote.isLowest && quote.hasQuote) {
-                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-brand-primary-100 text-brand-primary-800">
-                    <i class="fas fa-award mr-1" aria-hidden="true"></i>
-                    {{ "lowestQuote" | i18n }}
-                  </span>
-                  }
-                  <span [class]="getResponseStatusClass(quote.response_status)">
-                    {{ quote.response_status | i18n }}
-                  </span>
-                </div>
-              </div>
-
-              @if (
-                currentUser().role === "admin" &&
-                (quote.response_status === "responded" || quote.response_status === "accepted") &&
-                !quote.isSelected
-              ) {
-              <div class="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  (click)="selectSpecificProfessional(quote.professional_id)"
-                  class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                  [attr.aria-label]="'selectProfessionalAction' | i18n : { name: quote.professional_name }"
-                >
-                  <i class="fas fa-check mr-2" aria-hidden="true"></i>
-                  {{ "selectProfessional" | i18n }}
-                </button>
-              </div>
-              }
-            </article>
-            }
-          </div>
-        </section>
-        }
-
         <section
           class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
           role="region"
@@ -269,9 +166,9 @@ interface ServiceAction {
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'total-value-label'">
                   @if (request().valor && request().valor > 0) {
-                    â‚¬{{ request().valor | number : "1.2-2" }}
+                    {{ "currencySymbol" | i18n }} {{ request().valor | number : "1.2-2" }}
                   } @else {
-                    â€”
+                    &mdash;
                   }
                 </p>
               </div>
@@ -281,11 +178,11 @@ interface ServiceAction {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="professional-value-label">
                   {{ "valorPrestador" | i18n }}
                 </label>
-                <p class="text-lg font-semibold text-brand-primary-600" [attr.aria-labelledby]="'professional-value-label'">
+                <p class="text-lg font-semibold text-blue-600 dark:text-blue-400" [attr.aria-labelledby]="'professional-value-label'">
                   @if (request().valor_prestador && request().valor_prestador > 0) {
-                    â‚¬{{ request().valor_prestador | number : "1.2-2" }}
+                    {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : "1.2-2" }}
                   } @else {
-                    â€”
+                    &mdash;
                   }
                 </p>
               </div>
@@ -294,9 +191,9 @@ interface ServiceAction {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="priority-label">
                   {{ "priority" | i18n }}
                 </label>
-                <span [class]="getPriorityClass(request().priority)" [attr.aria-labelledby]="'priority-label'">
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'priority-label'">
                   {{ request().priority | i18n }}
-                </span>
+                </p>
               </div>
             </div>
 
@@ -331,7 +228,7 @@ interface ServiceAction {
                   {{ "cost" | i18n }}
                 </label>
                 <p class="text-lg font-semibold text-green-600" [attr.aria-labelledby]="'cost-label'">
-                  â‚¬{{ request().cost | number : "1.2-2" }}
+                  {{ "currencySymbol" | i18n }} {{ request().cost | number : "1.2-2" }}
                 </p>
               </div>
               }
@@ -767,25 +664,6 @@ export class ServiceRequestDetailsComponent {
 
   readonly addressParts = computed(() => extractPtAddressParts(this.request()));
 
-  professionalQuotes = computed(() => {
-    const req = this.request();
-    const responses = req.professional_responses || [];
-
-    if (responses.length === 0) return [];
-
-    const amounts = responses
-      .map((r) => r.quote_amount)
-      .filter((amt): amt is number => amt !== null && amt !== undefined);
-    const lowestAmount = amounts.length > 0 ? Math.min(...amounts) : null;
-
-    return responses.map((r) => ({
-      ...r,
-      isSelected: r.professional_id === req.professional_id,
-      isLowest: lowestAmount !== null && r.quote_amount === lowestAmount && r.quote_amount !== null,
-      hasQuote: r.quote_amount !== null && r.quote_amount > 0,
-    }));
-  });
-
   hasPhotos = computed(() => {
     const photos = this.request().photos;
     return photos && photos.length > 0;
@@ -806,14 +684,8 @@ export class ServiceRequestDetailsComponent {
 
   @Output() closeDetails = new EventEmitter<void>();
   @Output() openChat = new EventEmitter<ServiceRequest>();
-  @Output() approveQuote = new EventEmitter<ServiceRequest>();
-  @Output() rejectQuote = new EventEmitter<ServiceRequest>();
   @Output() scheduleRequest = new EventEmitter<ServiceRequest>();
   @Output() payNow = new EventEmitter<ServiceRequest>();
-  @Output() selectProfessional = new EventEmitter<{
-    request: ServiceRequest;
-    professionalId: string;
-  }>();
 
   @Output() refreshRequest = new EventEmitter<void>();
 
@@ -920,23 +792,6 @@ export class ServiceRequestDetailsComponent {
     }
   }
 
-  getResponseStatusClass(status: string): string {
-    const baseClasses = "px-2 py-1 text-xs font-medium rounded-full";
-
-    switch (status) {
-      case "pending":
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "responded":
-        return `${baseClasses} bg-brand-primary-100 text-brand-primary-800`;
-      case "accepted":
-        return `${baseClasses} bg-green-100 text-green-800`;
-      case "rejected":
-        return `${baseClasses} bg-red-100 text-red-800`;
-      default:
-        return `${baseClasses} bg-gray-100 text-gray-800`;
-    }
-  }
-
   async executeAction(action: ServiceAction): Promise<void> {
     try {
       action.loading = true;
@@ -1034,13 +889,6 @@ export class ServiceRequestDetailsComponent {
   closePhotoModal(): void {
     this.showPhotoModal.set(false);
     this.selectedPhoto.set(null);
-  }
-
-  selectSpecificProfessional(professionalId: number): void {
-    this.selectProfessional.emit({
-      request: this.request(),
-      professionalId: professionalId.toString(),
-    });
   }
 
   logAndEmitCloseDetails() {

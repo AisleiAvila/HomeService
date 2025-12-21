@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
   ServiceCategory,
@@ -67,6 +67,98 @@ export class CategoryManagementComponent implements OnInit {
     }
     return map;
   });
+
+  // ========== PAGINAÇÃO ==========
+  currentPage = signal(1);
+  itemsPerPage = signal(10);
+  Math = Math;
+
+  paginatedCategories = computed(() => {
+    const categories = this.allCategories();
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return categories.slice(start, end);
+  });
+
+  totalPages = computed(() => {
+    const totalItems = this.allCategories().length;
+    if (totalItems === 0) {
+      return 0;
+    }
+    return Math.ceil(totalItems / this.itemsPerPage());
+  });
+
+  get pageNumbers(): number[] {
+    const total = this.totalPages();
+    if (total <= 1) {
+      return total === 1 ? [1] : [];
+    }
+
+    const current = this.currentPage();
+    const pages: number[] = [1];
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+
+    if (start > 2) {
+      pages.push(-1);
+    }
+
+    for (let page = start; page <= end; page++) {
+      if (page !== 1 && page !== total) {
+        pages.push(page);
+      }
+    }
+
+    if (end < total - 1) {
+      pages.push(-1);
+    }
+
+    pages.push(total);
+    return pages;
+  }
+
+  previousPage() {
+    if (this.currentPage() > 1) {
+      this.currentPage.update((page) => page - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.totalPages() > 0 && this.currentPage() < this.totalPages()) {
+      this.currentPage.update((page) => page + 1);
+    }
+  }
+
+  goToPage(page: number) {
+    if (page !== -1 && page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  setItemsPerPage(items: number) {
+    if (!Number.isNaN(items) && items > 0) {
+      this.itemsPerPage.set(items);
+      this.currentPage.set(1);
+    }
+  }
+
+  constructor() {
+    effect(() => {
+      const totalPages = this.totalPages();
+      const current = this.currentPage();
+
+      if (totalPages === 0) {
+        if (current !== 1) {
+          this.currentPage.set(1);
+        }
+        return;
+      }
+
+      if (current > totalPages) {
+        this.currentPage.set(totalPages);
+      }
+    });
+  }
 
   // ========== MÉTODOS DE CATEGORIAS ==========
   

@@ -690,29 +690,6 @@ export class DataService {
     }
   }
 
-  async respondToQuote(requestId: number, approved: boolean) {
-    const status = approved ? "Aceito" : "Recusado";
-    await this.updateServiceRequest(requestId, {
-      status: status,
-    });
-    
-    // Record in status history table
-    const currentUser = this.authService.appUser();
-    if (currentUser) {
-      await this.recordStatusChange(
-        requestId,
-        status,
-        currentUser.id,
-        `Orçamento do pedido foi ${approved ? "aprovado" : "rejeitado"}`
-      );
-    }
-    
-    this.notificationService.addNotification(
-      `Orçamento do pedido #${requestId} foi ${approved ? "aprovado" : "rejeitado"
-      }.`
-    );
-  }
-
   async scheduleServiceRequest(
     requestId: number,
     professionalId: number,

@@ -493,23 +493,6 @@ export class DashboardComponent implements OnInit {
     return [];
   });
 
-  async handleQuoteResponse(request: ServiceRequest, approved: boolean) {
-    this.actionLoadingIds.update((ids) =>
-      Array.from(new Set([...(ids || []), request.id]))
-    );
-    try {
-      await this.dataService.respondToQuote(request.id, approved);
-    } catch (error) {
-      console.error("Erro ao responder orçamento:", error);
-      this.showBusinessError.set(true);
-      this.businessErrorMessage.set(this.i18n.translate("genericError"));
-    } finally {
-      this.actionLoadingIds.update((ids) =>
-        (ids || []).filter((id) => id !== request.id)
-      );
-    }
-  }
-
   async handleExecutionDateResponse(
     request: ServiceRequest,
     approved: boolean,

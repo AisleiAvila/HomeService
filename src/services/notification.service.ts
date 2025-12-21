@@ -449,44 +449,6 @@ export class NotificationService {
 
   // MÉTODOS DE CONVENIÊNCIA PARA TIPOS ESPECÍFICOS DE NOTIFICAÇÃO
 
-  async notifyQuoteRequest(
-    serviceRequestId: number,
-    clientId: number
-  ): Promise<void> {
-    await this.createEnhancedNotification(
-      clientId,
-      "quote_request",
-      "Orçamento Solicitado",
-      "Um orçamento foi solicitado para o seu pedido de serviço.",
-      {
-        serviceRequestId,
-        actionRequired: false,
-        priority: "medium",
-      }
-    );
-  }
-
-  async notifyQuoteSent(
-    serviceRequestId: number,
-    clientId: number,
-    amount: number
-  ): Promise<void> {
-    await this.createEnhancedNotification(
-      clientId,
-      "quote_sent",
-      "Orçamento Recebido",
-      `Você recebeu um orçamento de €${amount.toFixed(
-        2
-      )}. Clique para revisar e aprovar.`,
-      {
-        serviceRequestId,
-        actionRequired: true,
-        priority: "high",
-        expiresInHours: 168, // 7 dias
-      }
-    );
-  }
-
   async notifyProfessionalAssignment(
     serviceRequestId: number,
     professionalId: number

@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, s
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
-import { ServiceRequest, ServiceStatus, User } from "../../../models/maintenance.models";
+import { PaymentStatus, ServiceRequest, ServiceStatus, User } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
@@ -77,6 +77,7 @@ export class ServiceRequestsComponent implements OnInit {
     private readonly authService = inject(AuthService);
     private readonly workflowService = inject(WorkflowServiceSimplified);
     readonly uiState = inject(UiStateService);
+    private readonly completedPaymentStatuses = new Set<PaymentStatus>(["Paid", "Released"]);
     private readonly reassignmentBlockedStatuses = new Set(
         [
             "iniciado",
@@ -415,8 +416,6 @@ viewDetails = output<ServiceRequest>();
         return ''; // Placeholder, need to check original component for this logic
     }
 
-    // Action placeholders - these would need to emit events or call services
-    selectRequestForQuote(req: ServiceRequest) { console.log('Quote', req); }
     openDirectAssignmentModal(req: ServiceRequest) { 
         console.log('Direct Assign', req);
         console.log('requested_datetime:', req.requested_datetime);
@@ -446,6 +445,27 @@ viewDetails = output<ServiceRequest>();
         }
         const normalizedStatus = (request.status || "").trim().toLowerCase();
         return !this.reassignmentBlockedStatuses.has(normalizedStatus);
+    }
+    shouldShowProviderValue(request: ServiceRequest): boolean {
+        if (!request?.professional_id) {
+            return false;
+        }
+        const professional = this.getProfessionalProfile(request.professional_id);
+        return professional ? professional.is_natan_employee !== true : false;
+    }
+    canShowPayRequestAction(request: ServiceRequest): boolean {
+        if (!request) {
+            return false;
+        }
+        const user = this.currentUser();
+        if (!user || user.role !== "admin") {
+            return false;
+        }
+        const paymentConfirmed =
+            request.ispaid === true ||
+            !!request.payment_date ||
+            this.completedPaymentStatuses.has(request.payment_status);
+        return request.status === "Concluído" && !paymentConfirmed;
     }
     canDeleteRequest(request: ServiceRequest): boolean {
         if (!request) {

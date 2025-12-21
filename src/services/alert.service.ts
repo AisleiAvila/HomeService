@@ -326,11 +326,12 @@ export class AlertService {
     const scheduledTime = new Date(request.scheduled_start_datetime);
     const deadline = new Date(scheduledTime);
     deadline.setHours(deadline.getHours() + this.DEADLINES.work_start);
+    const serviceLabel = request.title ? ` **${request.title}**` : "";
 
     if (now > deadline) {
       return {
         isOverdue: true,
-        message: "Início do trabalho está em atraso. O profissional deveria ter iniciado o serviço."
+        message: `O início do serviço${serviceLabel} está em atraso. O profissional deveria ter iniciado o atendimento conforme o horário combinado.`
       };
     }
 

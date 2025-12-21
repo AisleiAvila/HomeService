@@ -49,7 +49,7 @@
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-        <ng-container *ngFor="let cat of allCategories(); trackBy: trackById">
+        <ng-container *ngFor="let cat of paginatedCategories(); trackBy: trackById">
           <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
               <div class="flex items-center gap-3">
@@ -195,7 +195,7 @@
 
   <!-- Mobile Card View -->
   <div class="lg:hidden p-4 space-y-4">
-    @for(cat of allCategories(); track cat.id) {
+    @for(cat of paginatedCategories(); track cat.id) {
       <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <!-- Category Header -->
         <div class="p-4 bg-white dark:bg-gray-800">
@@ -328,6 +328,93 @@
     }
   </div>
 </div>
+
+@if(allCategories().length > 0) {
+  <div
+    class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0 mt-4 rounded-lg shadow-sm"
+  >
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-gray-700 dark:text-gray-200">{{ "itemsPerPage" | i18n }}:</span>
+      <select
+        [value]="itemsPerPage()"
+        (change)="setItemsPerPage(+$event.target.value)"
+        class="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+      >
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+
+    <div class="hidden sm:block">
+      <p class="text-sm text-gray-700 dark:text-gray-200">
+        {{ "showing" | i18n }}
+        <span class="font-medium">
+          {{ (currentPage() - 1) * itemsPerPage() + 1 }}
+        </span>
+        {{ "to" | i18n }}
+        <span class="font-medium">
+          {{ Math.min(currentPage() * itemsPerPage(), allCategories().length) }}
+        </span>
+        {{ "of" | i18n }}
+        <span class="font-medium">{{ allCategories().length }}</span>
+        {{ "results" | i18n }}
+      </p>
+    </div>
+
+    <div class="flex justify-center sm:justify-end">
+      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage() === 1"
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-left"></i>
+          <span class="sr-only">Previous</span>
+        </button>
+
+        <div class="hidden sm:flex">
+          @for(page of pageNumbers; track page) {
+            @if(page === -1) {
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                ...
+              </span>
+            } @else {
+              <button
+                (click)="goToPage(page)"
+                [class]="
+                  page === currentPage()
+                    ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-300'
+                    : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                "
+              >
+                {{ page }}
+              </button>
+            }
+          }
+        </div>
+
+        <div
+          class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          {{ currentPage() }} / {{ totalPages() || 1 }}
+        </div>
+
+        <button
+          (click)="nextPage()"
+          [disabled]="totalPages() === 0 || currentPage() === totalPages()"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-right"></i>
+          <span class="sr-only">Next</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+}
 
 <!-- Modais (fora da tabela) -->
 
