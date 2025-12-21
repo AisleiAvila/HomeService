@@ -25,7 +25,10 @@ type SubcategoryBreakdownId = number | "uncategorized";
 type SubcategoryBreakdownItem = {
     id: SubcategoryBreakdownId;
     name: string;
-    totalValue: number;
+    serviceValue: number;
+    paidAmount: number;
+    pendingAmount: number;
+    finalAmount: number;
 };
 
 type SummarizedFinancialRow = {
@@ -539,7 +542,10 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     private addRequestToSubcategoryBreakdown(
         accumulator: Map<string, SubcategoryBreakdownItem>,
         request: ServiceRequest,
-        serviceValue: number
+        serviceValue: number,
+        paidAmount: number,
+        pendingAmount: number,
+        finalAmount: number
     ): void {
         if (serviceValue <= 0) {
             return;
@@ -552,12 +558,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             accumulator.set(key, {
                 id: subcategoryId,
                 name: this.getSubcategoryName(request.subcategory_id),
-                totalValue: 0,
+                serviceValue: 0,
+                paidAmount: 0,
+                pendingAmount: 0,
+                finalAmount: 0,
             });
         }
         const item = accumulator.get(key);
         if (item) {
-            item.totalValue += serviceValue;
+            item.serviceValue += serviceValue;
+            item.paidAmount += paidAmount;
+            item.pendingAmount += pendingAmount;
+            item.finalAmount += finalAmount;
         }
     }
 
@@ -597,7 +609,14 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 summary.paidAmount += paidAmount;
                 summary.pendingAmount += pendingAmount;
                 summary.finalAmount += finalAmount;
-                this.addRequestToSubcategoryBreakdown(summary.subcategoryAccumulator, request, serviceValue);
+                this.addRequestToSubcategoryBreakdown(
+                    summary.subcategoryAccumulator,
+                    request,
+                    serviceValue,
+                    paidAmount,
+                    pendingAmount,
+                    finalAmount
+                );
                 // employment bond label stays consistent per professional, so no reassignment needed
             }
         });
@@ -607,8 +626,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             return {
                 ...rest,
                 subcategoryBreakdown: Array.from(subcategoryAccumulator.values())
-                    .filter((item) => item.totalValue > 0)
-                    .sort((a, b) => b.totalValue - a.totalValue),
+                    .filter((item) => item.serviceValue > 0)
+                    .sort((a, b) => b.serviceValue - a.serviceValue),
             };
         });
     });
