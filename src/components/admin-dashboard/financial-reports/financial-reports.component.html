@@ -320,6 +320,16 @@
                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                             <div class="pl-6 flex items-center gap-2">
                                 <span class="inline-flex w-2 h-2 rounded-full bg-brand-primary-500"></span>
+                                @if(subcategory.services.length > 0) {
+                                <button type="button"
+                                    class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 dark:border-gray-600 text-brand-primary-600 dark:text-brand-primary-300 bg-white dark:bg-gray-800 hover:bg-brand-primary-50 dark:hover:bg-brand-primary-900 transition"
+                                    (click)="toggleSubcategoryRow(summary.rowKey, subcategory.id)"
+                                    [attr.aria-expanded]="isSubcategoryRowExpanded(summary.rowKey, subcategory.id)"
+                                    [attr.aria-label]="(isSubcategoryRowExpanded(summary.rowKey, subcategory.id) ? 'collapse' : 'expand') | i18n">
+                                    <i class="fas text-xs"
+                                        [ngClass]="isSubcategoryRowExpanded(summary.rowKey, subcategory.id) ? 'fa-minus' : 'fa-plus'"></i>
+                                </button>
+                                }
                                 <span>{{ subcategory.name }}</span>
                             </div>
                         </td>
@@ -339,6 +349,34 @@
                             {{ formatAmountValue(subcategory.finalAmount) }}
                         </td>
                     </tr>
+                    @if(subcategory.services.length > 0 && isSubcategoryRowExpanded(summary.rowKey, subcategory.id)) {
+                        @for(service of subcategory.services; track service.id) {
+                        <tr class="bg-white dark:bg-gray-800/70 border-t border-gray-100 dark:border-gray-700">
+                            <td class="px-6 py-3 pl-10 text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">
+                                ↳↳ {{ 'services' | i18n }}
+                            </td>
+                            <td class="px-6 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                <div class="pl-10 flex items-center gap-2">
+                                    <span class="inline-flex w-1.5 h-1.5 rounded-full bg-brand-primary-300"></span>
+                                    <span>{{ service.title }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
+                                {{ formatAmountValue(service.serviceValue) }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-center text-gray-500 dark:text-gray-400">—</td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
+                                {{ formatAmountValue(service.paidAmount) }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
+                                {{ formatAmountValue(service.pendingAmount) }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
+                                {{ formatAmountValue(service.finalAmount) }}
+                            </td>
+                        </tr>
+                        }
+                    }
                     }
                 }
                 }
@@ -402,9 +440,22 @@
                     </p>
                     <div class="space-y-1">
                         @for(subcategory of summary.subcategoryBreakdown; track subcategory.id) {
-                        <div class="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/60 px-3 py-2 space-y-1">
+                        <div class="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/60 px-3 py-2 space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ subcategory.name }}
+                                </div>
+                                @if(subcategory.services.length > 0) {
+                                <button type="button"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-full border border-gray-300 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300 bg-white dark:bg-gray-700"
+                                    (click)="toggleSubcategoryRow(summary.rowKey, subcategory.id)">
+                                    <i class="fas text-xs"
+                                        [ngClass]="isSubcategoryRowExpanded(summary.rowKey, subcategory.id) ? 'fa-minus' : 'fa-plus'"></i>
+                                </button>
+                                }
+                            </div>
                             <div class="flex items-center justify-between text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                <span>{{ subcategory.name }}</span>
+                                <span>{{ 'services' | i18n }}</span>
                                 <span>{{ formatAmountValue(subcategory.serviceValue) }}</span>
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300">
@@ -421,6 +472,18 @@
                                     <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatAmountValue(subcategory.finalAmount) }}</span>
                                 </div>
                             </div>
+                            @if(subcategory.services.length > 0 && isSubcategoryRowExpanded(summary.rowKey, subcategory.id)) {
+                            <div class="pt-2 border-t border-dashed border-gray-300 dark:border-gray-600 space-y-1">
+                                @for(service of subcategory.services; track service.id) {
+                                <div class="flex items-center justify-between text-xs text-gray-700 dark:text-gray-200 pl-4">
+                                    <span class="truncate">{{ service.title }}</span>
+                                    <span class="font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatAmountValue(service.serviceValue) }}
+                                    </span>
+                                </div>
+                                }
+                            </div>
+                            }
                         </div>
                         }
                     </div>

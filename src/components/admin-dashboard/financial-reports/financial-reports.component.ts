@@ -22,6 +22,15 @@ type FinancialBreakdownItem = {
 
 type SubcategoryBreakdownId = number | "uncategorized";
 
+type SubcategoryServiceRow = {
+    id: number | string;
+    title: string;
+    serviceValue: number;
+    paidAmount: number;
+    pendingAmount: number;
+    finalAmount: number;
+};
+
 type SubcategoryBreakdownItem = {
     id: SubcategoryBreakdownId;
     name: string;
@@ -29,6 +38,7 @@ type SubcategoryBreakdownItem = {
     paidAmount: number;
     pendingAmount: number;
     finalAmount: number;
+    services: SubcategoryServiceRow[];
 };
 
 type SummarizedFinancialRow = {
@@ -120,6 +130,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     readonly filtersExpanded = signal<boolean>(true);
     readonly chartsExpanded = signal<boolean>(true);
     readonly expandedCategoryRows = signal<Set<string>>(new Set());
+    readonly expandedSubcategoryRows = signal<Set<string>>(new Set());
     private readonly financialColorStyles: Record<FinancialBreakdownKey, { className: string; color: string }> = {
         serviceValue: { className: "bg-brand-primary-500", color: "#2563eb" },
         paidProviders: { className: "bg-emerald-500", color: "#10b981" },
@@ -499,9 +510,126 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         }).format(amount);
     }
 
-    exportToCSV() {
-        console.log("Export to CSV");
-        // Implement CSV export logic
+    exportToCSV(): void {
+        const summaries = this.sortedSummaries();
+        if (!summaries.length) {
+            this.notificationService.addNotification(
+                this.i18n.translate("noDataAvailable") || "Sem dados disponíveis para exportação"
+            );
+            return;
+        }
+
+        try {
+            const csvContent = this.buildCsvContent(summaries);
+            this.triggerCsvDownload(csvContent);
+            this.notificationService.addNotification(
+                this.i18n.translate("exportSuccessCSV") ||
+                    this.i18n.translate("exportSuccess") ||
+                    "Arquivo CSV gerado com sucesso!"
+            );
+        } catch (error) {
+            console.error("Erro ao exportar CSV:", error);
+            this.notificationService.addNotification(
+                this.i18n.translate("exportError") || "Erro ao exportar relatório"
+            );
+        }
+    }
+
+    private buildCsvContent(summaries: SummarizedFinancialRow[]): string {
+        const headerLabels = [
+            this.i18n.translate("rowType") || "Tipo",
+            this.i18n.translate("professional") || "Profissional",
+            this.i18n.translate("category") || "Categoria / Detalhe",
+            this.i18n.translate("employmentBond") || "Vínculo",
+            this.i18n.translate("serviceValueColumn") || "Valor Serviço (€)",
+            this.i18n.translate("paidAmount") || "Valor Pago (€)",
+            this.i18n.translate("pendingAmount") || "Valor em aberto (€)",
+            this.i18n.translate("finalAmount") || "Valor final (€)",
+        ];
+        const rows: string[] = [this.toCsvRow(headerLabels)];
+        const typeLabels = {
+            summary: this.i18n.translate("summary") || "Resumo",
+            subcategory: this.i18n.translate("subcategory") || "Subcategoria",
+            service: this.i18n.translate("service") || "Serviço",
+        };
+        const unassignedLabel = this.i18n.translate("unassigned") || "N/A";
+        const subcategoryPrefix = `${this.i18n.translate("subcategory") || "Subcategoria"}: `;
+        const servicePrefix = `${this.i18n.translate("service") || "Serviço"}: `;
+
+        summaries.forEach((summary) => {
+            rows.push(
+                this.toCsvRow([
+                    typeLabels.summary,
+                    summary.professionalName || unassignedLabel,
+                    summary.categoryName || "-",
+                    summary.employmentLabel ?? "-",
+                    this.formatCsvNumber(summary.serviceValue),
+                    this.formatCsvNumber(summary.paidAmount),
+                    this.formatCsvNumber(summary.pendingAmount),
+                    this.formatCsvNumber(summary.finalAmount),
+                ])
+            );
+
+            summary.subcategoryBreakdown.forEach((subcategory) => {
+                rows.push(
+                    this.toCsvRow([
+                        typeLabels.subcategory,
+                        summary.professionalName || unassignedLabel,
+                        `${subcategoryPrefix}${subcategory.name}`,
+                        summary.employmentLabel ?? "-",
+                        this.formatCsvNumber(subcategory.serviceValue),
+                        this.formatCsvNumber(subcategory.paidAmount),
+                        this.formatCsvNumber(subcategory.pendingAmount),
+                        this.formatCsvNumber(subcategory.finalAmount),
+                    ])
+                );
+
+                subcategory.services.forEach((service) => {
+                    rows.push(
+                        this.toCsvRow([
+                            typeLabels.service,
+                            summary.professionalName || unassignedLabel,
+                            `${servicePrefix}${service.title}`,
+                            summary.employmentLabel ?? "-",
+                            this.formatCsvNumber(service.serviceValue),
+                            this.formatCsvNumber(service.paidAmount),
+                            this.formatCsvNumber(service.pendingAmount),
+                            this.formatCsvNumber(service.finalAmount),
+                        ])
+                    );
+                });
+            });
+        });
+
+        return "\uFEFF" + rows.join("\r\n");
+    }
+
+    private toCsvRow(values: Array<string | number | null | undefined>): string {
+        return values.map((value) => this.quoteCsvValue(value)).join(";");
+    }
+
+    private quoteCsvValue(value: string | number | null | undefined): string {
+        const stringValue = value === null || value === undefined ? "" : String(value);
+        return `"${stringValue.replaceAll("\"", "\"\"")}"`;
+    }
+
+    private formatCsvNumber(value: number | null | undefined): string {
+        const safeValue = typeof value === "number" && !Number.isNaN(value) ? value : 0;
+        return safeValue.toFixed(2).replace(".", ",");
+    }
+
+    private triggerCsvDownload(csvContent: string): void {
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const fileName = `relatorio-financeiro-${new Date().toISOString().split("T")[0]}.csv`;
+        anchor.href = url;
+        anchor.setAttribute("download", fileName);
+        anchor.style.display = "none";
+        document.body?.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
     }
 
     getClientName(clientId: number | null | undefined): string {
@@ -562,6 +690,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 paidAmount: 0,
                 pendingAmount: 0,
                 finalAmount: 0,
+                services: [],
             });
         }
         const item = accumulator.get(key);
@@ -570,6 +699,14 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             item.paidAmount += paidAmount;
             item.pendingAmount += pendingAmount;
             item.finalAmount += finalAmount;
+            item.services.push({
+                id: request.id ?? `${key}-${item.services.length}`,
+                title: request.title || this.i18n.translate("service") || "Serviço",
+                serviceValue,
+                paidAmount,
+                pendingAmount,
+                finalAmount,
+            });
         }
     }
 
@@ -627,6 +764,12 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 ...rest,
                 subcategoryBreakdown: Array.from(subcategoryAccumulator.values())
                     .filter((item) => item.serviceValue > 0)
+                    .map((item) => ({
+                        ...item,
+                        services: [...item.services].sort(
+                            (a, b) => b.serviceValue - a.serviceValue
+                        ),
+                    }))
                     .sort((a, b) => b.serviceValue - a.serviceValue),
             };
         });
@@ -716,6 +859,24 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 return next;
             });
         });
+
+        effect(() => {
+            const validKeys = new Set<string>();
+            this.sortedSummaries().forEach((row) => {
+                row.subcategoryBreakdown.forEach((subcategory) => {
+                    validKeys.add(this.getSubcategoryRowKey(row.rowKey, subcategory.id));
+                });
+            });
+            this.expandedSubcategoryRows.update((current) => {
+                const next = new Set<string>();
+                current.forEach((key) => {
+                    if (validKeys.has(key)) {
+                        next.add(key);
+                    }
+                });
+                return next;
+            });
+        });
     }
 
     private getProfessional(professionalId: number | null | undefined): User | null {
@@ -774,6 +935,27 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
     isCategoryRowExpanded(rowKey: string): boolean {
         return this.expandedCategoryRows().has(rowKey);
+    }
+
+    private getSubcategoryRowKey(rowKey: string, subcategoryId: SubcategoryBreakdownId): string {
+        return `${rowKey}::${subcategoryId}`;
+    }
+
+    toggleSubcategoryRow(rowKey: string, subcategoryId: SubcategoryBreakdownId): void {
+        const key = this.getSubcategoryRowKey(rowKey, subcategoryId);
+        this.expandedSubcategoryRows.update((current) => {
+            const next = new Set(current);
+            if (next.has(key)) {
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
+            return next;
+        });
+    }
+
+    isSubcategoryRowExpanded(rowKey: string, subcategoryId: SubcategoryBreakdownId): boolean {
+        return this.expandedSubcategoryRows().has(this.getSubcategoryRowKey(rowKey, subcategoryId));
     }
 
     async exportReportsToPDF(): Promise<void> {
