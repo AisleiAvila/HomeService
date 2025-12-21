@@ -275,13 +275,25 @@
                 </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                @for(summary of paginatedSummaries(); track summary.categoryId + '-' + summary.professionalId) {
+                @for(summary of paginatedSummaries(); track summary.rowKey) {
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                         {{ summary.professionalName }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {{ summary.categoryName }}
+                        <div class="flex items-center gap-2">
+                            @if(summary.subcategoryBreakdown.length > 0) {
+                            <button type="button"
+                                class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 dark:border-gray-600 text-brand-primary-600 dark:text-brand-primary-300 hover:bg-brand-primary-50 dark:hover:bg-brand-primary-900 transition"
+                                (click)="toggleCategoryRow(summary.rowKey)"
+                                [attr.aria-expanded]="isCategoryRowExpanded(summary.rowKey)"
+                                [attr.aria-label]="(isCategoryRowExpanded(summary.rowKey) ? 'collapse' : 'expand') | i18n">
+                                <i class="fas text-xs"
+                                    [ngClass]="isCategoryRowExpanded(summary.rowKey) ? 'fa-minus' : 'fa-plus'"></i>
+                            </button>
+                            }
+                            <span>{{ summary.categoryName }}</span>
+                        </div>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
                         {{ formatAmountValue(summary.serviceValue) }}
@@ -299,6 +311,25 @@
                         {{ formatAmountValue(summary.finalAmount) }}
                     </td>
                 </tr>
+                @if(summary.subcategoryBreakdown.length > 0 && isCategoryRowExpanded(summary.rowKey)) {
+                <tr class="bg-gray-50 dark:bg-gray-900/40">
+                    <td colspan="7" class="px-8 py-4">
+                        <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            {{ 'subcategories' | i18n }}
+                        </div>
+                        <div class="mt-3 grid gap-2 md:grid-cols-2">
+                            @for(subcategory of summary.subcategoryBreakdown; track subcategory.id) {
+                            <div class="flex items-center justify-between rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2">
+                                <span class="text-sm text-gray-700 dark:text-gray-200">{{ subcategory.name }}</span>
+                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {{ formatAmountValue(subcategory.totalValue) }}
+                                </span>
+                            </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+                }
                 }
             </tbody>
         </table>
@@ -306,7 +337,7 @@
 
     <!-- Mobile Card View -->
     <div class="lg:hidden p-4 space-y-4">
-        @for(summary of paginatedSummaries(); track summary.categoryId + '-' + summary.professionalId) {
+        @for(summary of paginatedSummaries(); track summary.rowKey) {
         <div class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg p-4 space-y-3">
             <div class="flex flex-col gap-2">
                 <div class="flex justify-between items-center">
@@ -320,7 +351,17 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "category" | i18n }}:</span>
-                        <span class="text-gray-900 dark:text-gray-100">{{ summary.categoryName }}</span>
+                        <span class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                            @if(summary.subcategoryBreakdown.length > 0) {
+                            <button type="button"
+                                class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-gray-300 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300"
+                                (click)="toggleCategoryRow(summary.rowKey)">
+                                <i class="fas text-xs"
+                                    [ngClass]="isCategoryRowExpanded(summary.rowKey) ? 'fa-minus' : 'fa-plus'"></i>
+                            </button>
+                            }
+                            {{ summary.categoryName }}
+                        </span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">Valor Serviço (€):</span>
@@ -343,6 +384,23 @@
                         <span class="text-gray-900 dark:text-gray-100 font-semibold text-lg">{{ formatAmountValue(summary.finalAmount) }}</span>
                     </div>
                 </div>
+                @if(summary.subcategoryBreakdown.length > 0 && isCategoryRowExpanded(summary.rowKey)) {
+                <div class="pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                    <p class="text-xs uppercase font-semibold text-gray-500 dark:text-gray-300 tracking-wide">
+                        {{ 'subcategories' | i18n }}
+                    </p>
+                    <div class="space-y-1">
+                        @for(subcategory of summary.subcategoryBreakdown; track subcategory.id) {
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-700 dark:text-gray-200">{{ subcategory.name }}</span>
+                            <span class="font-semibold text-gray-900 dark:text-gray-100">
+                                {{ formatAmountValue(subcategory.totalValue) }}
+                            </span>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
             </div>
         </div>
         }

@@ -4,7 +4,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, El
 import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
-import { ServiceRequest, User, ServiceCategory } from "../../../models/maintenance.models";
+import { ServiceRequest, User, ServiceCategory, ServiceSubcategory } from "../../../models/maintenance.models";
 import { NotificationService } from "../../../services/notification.service";
 
 type ProfessionalFilterValue = number | "unassigned" | null;
@@ -18,6 +18,33 @@ type FinancialBreakdownItem = {
     percentage: number;
     colorClass: string;
     color: string;
+};
+
+type SubcategoryBreakdownId = number | "uncategorized";
+
+type SubcategoryBreakdownItem = {
+    id: SubcategoryBreakdownId;
+    name: string;
+    totalValue: number;
+};
+
+type SummarizedFinancialRow = {
+    rowKey: string;
+    categoryId: number | null | undefined;
+    professionalId: number | null | undefined;
+    categoryName: string;
+    professionalName: string;
+    hasEmploymentBond: boolean;
+    employmentLabel: string;
+    serviceValue: number;
+    paidAmount: number;
+    pendingAmount: number;
+    finalAmount: number;
+    subcategoryBreakdown: SubcategoryBreakdownItem[];
+};
+
+type SummarizedRowAccumulator = SummarizedFinancialRow & {
+    subcategoryAccumulator: Map<string, SubcategoryBreakdownItem>;
 };
 
 @Component({
@@ -56,6 +83,20 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         return map;
     });
 
+    private readonly subcategoriesById = computed(() => {
+        const map = new Map<number, ServiceSubcategory>();
+        this.dataService
+            .categories()
+            .forEach((category) => {
+                category?.subcategories?.forEach((subcategory) => {
+                    if (subcategory?.id !== undefined && subcategory?.id !== null) {
+                        map.set(subcategory.id, subcategory);
+                    }
+                });
+            });
+        return map;
+    });
+
     readonly availableCategories = computed(() => this.dataService.categories());
     readonly availableProfessionals = computed(() =>
         this.dataService
@@ -75,6 +116,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     readonly Math = Math;
     readonly filtersExpanded = signal<boolean>(true);
     readonly chartsExpanded = signal<boolean>(true);
+    readonly expandedCategoryRows = signal<Set<string>>(new Set());
     private readonly financialColorStyles: Record<FinancialBreakdownKey, { className: string; color: string }> = {
         serviceValue: { className: "bg-brand-primary-500", color: "#2563eb" },
         paidProviders: { className: "bg-emerald-500", color: "#10b981" },
@@ -483,19 +525,44 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         return this.categoriesById().get(categoryId)?.name || fallback;
     }
 
-    summarizedRows = computed(() => {
-        const rows = new Map<string, {
-            categoryId: number | null | undefined;
-            professionalId: number | null | undefined;
-            categoryName: string;
-            professionalName: string;
-            hasEmploymentBond: boolean;
-            employmentLabel: string;
-            serviceValue: number;
-            paidAmount: number;
-            pendingAmount: number;
-            finalAmount: number;
-        }>();
+    private getSubcategoryName(subcategoryId: number | null | undefined): string {
+        if (!subcategoryId) {
+            return this.i18n.translate("noSubcategories") || "Sem subcategoria";
+        }
+        return (
+            this.subcategoriesById().get(subcategoryId)?.name ||
+            this.i18n.translate("subcategory") ||
+            "Subcategoria"
+        );
+    }
+
+    private addRequestToSubcategoryBreakdown(
+        accumulator: Map<string, SubcategoryBreakdownItem>,
+        request: ServiceRequest,
+        serviceValue: number
+    ): void {
+        if (serviceValue <= 0) {
+            return;
+        }
+
+        const subcategoryId: SubcategoryBreakdownId =
+            (request.subcategory_id as number | undefined) ?? "uncategorized";
+        const key = String(subcategoryId);
+        if (!accumulator.has(key)) {
+            accumulator.set(key, {
+                id: subcategoryId,
+                name: this.getSubcategoryName(request.subcategory_id),
+                totalValue: 0,
+            });
+        }
+        const item = accumulator.get(key);
+        if (item) {
+            item.totalValue += serviceValue;
+        }
+    }
+
+    summarizedRows = computed<SummarizedFinancialRow[]>(() => {
+        const rows = new Map<string, SummarizedRowAccumulator>();
 
         this.filteredRequests().forEach((request) => {
             const key = `${request.category_id ?? "none"}-${request.professional_id ?? "none"}`;
@@ -508,6 +575,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
             if (!rows.has(key)) {
                 rows.set(key, {
+                    rowKey: key,
                     categoryId: request.category_id,
                     professionalId: request.professional_id,
                     categoryName: this.getCategoryName(request.category_id),
@@ -518,6 +586,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                     paidAmount: 0,
                     pendingAmount: 0,
                     finalAmount: 0,
+                    subcategoryBreakdown: [],
+                    subcategoryAccumulator: new Map<string, SubcategoryBreakdownItem>(),
                 });
             }
 
@@ -527,14 +597,23 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 summary.paidAmount += paidAmount;
                 summary.pendingAmount += pendingAmount;
                 summary.finalAmount += finalAmount;
+                this.addRequestToSubcategoryBreakdown(summary.subcategoryAccumulator, request, serviceValue);
                 // employment bond label stays consistent per professional, so no reassignment needed
             }
         });
 
-        return Array.from(rows.values());
+        return Array.from(rows.values()).map((summary) => {
+            const { subcategoryAccumulator, ...rest } = summary;
+            return {
+                ...rest,
+                subcategoryBreakdown: Array.from(subcategoryAccumulator.values())
+                    .filter((item) => item.totalValue > 0)
+                    .sort((a, b) => b.totalValue - a.totalValue),
+            };
+        });
     });
 
-    sortedSummaries = computed(() => {
+    sortedSummaries = computed<SummarizedFinancialRow[]>(() => {
         const column = this.sortBy();
         const direction = this.sortOrder() === "asc" ? 1 : -1;
         const collator = new Intl.Collator("pt", { sensitivity: "base" });
@@ -567,7 +646,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
     });
 
-    paginatedSummaries = computed(() => {
+    paginatedSummaries = computed<SummarizedFinancialRow[]>(() => {
         const start = (this.currentPage() - 1) * this.itemsPerPage();
         const end = start + this.itemsPerPage();
         return this.sortedSummaries().slice(start, end);
@@ -604,6 +683,19 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         effect(() => {
             this.serviceStatusSummary();
             this.scheduleServiceStatusRender();
+        });
+
+        effect(() => {
+            const validKeys = new Set(this.sortedSummaries().map((row) => row.rowKey));
+            this.expandedCategoryRows.update((current) => {
+                const next = new Set<string>();
+                current.forEach((key) => {
+                    if (validKeys.has(key)) {
+                        next.add(key);
+                    }
+                });
+                return next;
+            });
         });
     }
 
@@ -647,6 +739,22 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 this.scheduleServiceStatusRender();
             }, 0);
         }
+    }
+
+    toggleCategoryRow(rowKey: string): void {
+        this.expandedCategoryRows.update((current) => {
+            const next = new Set(current);
+            if (next.has(rowKey)) {
+                next.delete(rowKey);
+            } else {
+                next.add(rowKey);
+            }
+            return next;
+        });
+    }
+
+    isCategoryRowExpanded(rowKey: string): boolean {
+        return this.expandedCategoryRows().has(rowKey);
     }
 
     async exportReportsToPDF(): Promise<void> {
