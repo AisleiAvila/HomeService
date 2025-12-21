@@ -62,10 +62,6 @@ export class ServiceRequestGeolocationComponent implements OnDestroy {
       this.navigationRequest.set(navigationState.request as ServiceRequest);
     }
 
-    if (!this.dataService.serviceRequests().length) {
-      this.dataService.reloadServiceRequests();
-    }
-
     if (!this.requestId()) {
       this.notificationService.addNotification(
         this.i18n.translate("noRequestSelected") ||
@@ -73,6 +69,12 @@ export class ServiceRequestGeolocationComponent implements OnDestroy {
       );
     }
   }
+
+  private readonly reloadEffect = effect(() => {
+    if (!this.dataService.serviceRequests().length) {
+      this.dataService.reloadServiceRequests();
+    }
+  });
 
   private parseId(value: string | null): number | null {
     if (!value) return null;

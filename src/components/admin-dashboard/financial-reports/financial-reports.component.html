@@ -16,36 +16,167 @@
 
   <!-- Conteúdo -->
   <div class="p-6">
-@if(financialStats(); as stats) {
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6">
-    <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {{ "completedServices" | i18n }}
-        </h4>
-        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats.completedServices }}</p>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
+    <button type="button" class="w-full flex items-center justify-between gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+        (click)="toggleFiltersPanel()"
+        [attr.aria-expanded]="filtersExpanded()"
+        aria-controls="financialFilters">
+        <div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                {{ "filters" | i18n }}
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">Ajuste os critérios para refinar os resultados.</p>
+        </div>
+        <i class="fas text-lg text-brand-primary-500"
+            [ngClass]="filtersExpanded() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    </button>
+    @if(filtersExpanded()) {
+    <div id="financialFilters" class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="flex flex-col gap-1">
+                <label for="categoryFilter" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Categoria</label>
+                <select id="categoryFilter" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 px-3 py-2"
+                    [value]="(categoryFilter() ?? 'all')"
+                    (change)="onCategoryFilterChange($any($event.target).value)">
+                    <option value="all">Todas</option>
+                    @for(category of availableCategories(); track category.id) {
+                    <option [value]="category.id">{{ category.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="professionalFilter" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Profissional</label>
+                <select id="professionalFilter" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 px-3 py-2"
+                    [value]="(professionalFilter() ?? 'all')"
+                    (change)="onProfessionalFilterChange($any($event.target).value)">
+                    <option value="all">Todos</option>
+                    <option value="unassigned">{{ "unassigned" | i18n }}</option>
+                    @for(professional of availableProfessionals(); track professional.id) {
+                    <option [value]="professional.id">{{ professional.name }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="employmentFilter" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Vínculo Empregatício</label>
+                <select id="employmentFilter" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 px-3 py-2"
+                    [value]="employmentFilter()"
+                    (change)="onEmploymentFilterChange($any($event.target).value)">
+                    <option value="all">Todos</option>
+                    <option value="employee">Funcionário</option>
+                    <option value="independent">Prestador</option>
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="startDateFilter" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Início (Data término)</label>
+                <input id="startDateFilter" type="date"
+                    class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 px-3 py-2"
+                    [value]="startDateFilter() ?? ''"
+                    (change)="onStartDateChange($any($event.target).value)" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="endDateFilter" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Fim (Data término)</label>
+                <div class="flex gap-2">
+                    <input id="endDateFilter" type="date"
+                        class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 px-3 py-2"
+                        [value]="endDateFilter() ?? ''"
+                        (change)="onEndDateChange($any($event.target).value)" />
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {{ "totalRevenue" | i18n }}
-        </h4>
-        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-            {{ formatCost(stats.totalRevenue) }}
-        </p>
+    <div class="px-4 py-3 flex justify-end bg-white dark:bg-gray-800">
+        <button class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            (click)="clearFilters()">
+            <i class="fas fa-filter-circle-xmark"></i>
+            Limpar filtros
+        </button>
     </div>
-    <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {{ "totalTax" | i18n }}
-        </h4>
-        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatCost(stats.totalTax) }}</p>
+    }
+</div>
+@if(filteredRequests().length > 0 || serviceStatusSummary().length > 0) {
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
+    <button type="button"
+        class="w-full flex items-center justify-between gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-left"
+        (click)="toggleChartsPanel()"
+        [attr.aria-expanded]="chartsExpanded()"
+        aria-controls="financialChartsGroup">
+        <div class="flex items-center gap-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <i class="fas fa-chart-bar text-brand-primary-500 dark:text-brand-primary-400"></i>
+            <span>{{ "financialReports" | i18n }} - {{ "charts" | i18n }}</span>
+        </div>
+        <i class="fas text-lg text-brand-primary-500"
+            [ngClass]="chartsExpanded() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+    </button>
+    @if(chartsExpanded()) {
+    <div id="financialChartsGroup" class="p-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            @if(filteredRequests().length > 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full min-h-[24rem] flex flex-col">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                    <i class="fas fa-sack-dollar text-brand-primary-500 dark:text-brand-primary-400"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        {{ "financialTotalsChartTitle" | i18n }}
+                    </h3>
+                </div>
+                <div class="p-4 flex-1 flex flex-col gap-3">
+                    <div class="w-full overflow-x-auto pb-1">
+                        <canvas #financialTotalsCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="{{ 'financialTotalsChartTitle' | i18n }}"></canvas>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                        @for(item of financialBreakdown(); track item.key) {
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 bg-gray-50 dark:bg-gray-900/40 rounded-lg px-3 py-1.5 border border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full border border-white/50" [ngClass]="item.colorClass"></span>
+                                <span class="text-[0.7rem] sm:text-[0.75rem] font-medium text-gray-700 dark:text-gray-200">
+                                    {{ item.label }}
+                                </span>
+                            </div>
+                            <span class="text-[0.65rem] sm:text-[0.75rem] font-semibold text-gray-900 dark:text-gray-100">
+                                {{ formatCost(item.value) }}
+                            </span>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            }
+            @if(serviceStatusSummary().length > 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full min-h-[24rem] flex flex-col">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                    <i class="fas fa-chart-column text-brand-primary-500 dark:text-brand-primary-400"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        {{ "servicesByStatus" | i18n }} • {{ filteredRequests().length }}
+                    </h3>
+                </div>
+                <div class="p-4 flex-1 flex flex-col gap-3">
+                    <div class="w-full overflow-x-auto pb-1">
+                        <canvas #serviceStatusCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="{{ 'servicesByStatus' | i18n }}"></canvas>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        @for(item of serviceStatusSummary(); track item.status) {
+                        <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/40 rounded-lg px-3 py-1.5 border border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full border border-white/40" [style.background-color]="getStatusColor(item.status)"></span>
+                                <span class="text-xs font-medium text-gray-700 dark:text-gray-200 truncate">
+                                    {{ item.status }}
+                                </span>
+                            </div>
+                            <span class="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                                {{ item.count }}
+                            </span>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
     </div>
-    <div class="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-        <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {{ "outstandingAmount" | i18n }}
-        </h4>
-        <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {{ formatCost(stats.outstandingAmount) }}
-        </p>
-    </div>
+    }
 </div>
 }
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -53,61 +184,119 @@
         <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
             {{ "financialDetails" | i18n }}
         </h3>
-        <button (click)="exportToCSV()"
-            class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 dark:bg-green-700 rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors">
-            <i class="fas fa-file-csv mr-2"></i>{{ "exportToCsv" | i18n }}
-        </button>
+        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+            <button (click)="exportReportsToPDF()"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-primary-600 dark:bg-brand-primary-500 rounded-md hover:bg-brand-primary-700 dark:hover:bg-brand-primary-400 transition-colors">
+                <i class="fas fa-file-pdf"></i>
+                <span>{{ "exportPDF" | i18n }}</span>
+            </button>
+            <button (click)="exportToCSV()"
+                class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 dark:bg-green-700 rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors">
+                <i class="fas fa-file-csv"></i>
+                <span>{{ "exportToCsv" | i18n }}</span>
+            </button>
+        </div>
     </div>
 
+    @if(sortedSummaries().length === 0) {
+    <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+        <i class="fas fa-database-slash text-2xl"></i>
+        <p class="mt-2 font-semibold">{{ "noDataAvailable" | i18n }}</p>
+    </div>
+    } @else {
     <!-- Desktop Table View -->
-    <div class="hidden lg:block">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div class="hidden lg:block overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
             <thead class="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "service" | i18n }}
+                    <th class="px-4 py-3 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-between gap-1"
+                            (click)="sortByColumn('professional')">
+                            <span>{{ "professional" | i18n }}</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'professional'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "client" | i18n }}
+                    <th class="px-4 py-3 text-left text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-between gap-1"
+                            (click)="sortByColumn('category')">
+                            <span>{{ "category" | i18n }}</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'category'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "professional" | i18n }}
+                    <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-end gap-1"
+                            (click)="sortByColumn('serviceValue')">
+                            <span>Valor Serviço (€)</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'serviceValue'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "date" | i18n }}
+                    <th class="px-4 py-3 text-center text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        Vínculo Empregatício
                     </th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "payment" | i18n }}
+                    <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-end gap-1"
+                            (click)="sortByColumn('paidAmount')">
+                            <span>Valor Pago (€)</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'paidAmount'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
                     </th>
-                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
-                        {{ "total" | i18n }}
+                    <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-end gap-1"
+                            (click)="sortByColumn('pendingAmount')">
+                            <span>Valor a pagar (€)</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'pendingAmount'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
+                    </th>
+                    <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+                        <button type="button" class="w-full flex items-center justify-end gap-1"
+                            (click)="sortByColumn('finalAmount')">
+                            <span>Valor final (€)</span>
+                            <i class="fas text-xs"
+                                [ngClass]="sortBy() === 'finalAmount'
+                                    ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
+                                    : 'fa-arrows-up-down text-gray-400'"></i>
+                        </button>
                     </th>
                 </tr>
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                @for(req of completedRequests(); track req.id) {
+                @for(summary of paginatedSummaries(); track summary.categoryId + '-' + summary.professionalId) {
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                        {{ summary.professionalName }}
+                    </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {{ req.title }}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                        {{ getClientName(req.client_id) }}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                        {{ getProfessionalName(req.professional_id) }}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                        {{ req.scheduled_date | date }}
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold"
-                        [class.text-green-600]="req.payment_status === 'Paid'"
-                        [class.dark:text-green-400]="req.payment_status === 'Paid'"
-                        [class.text-orange-600]="req.payment_status === 'Unpaid'"
-                        [class.dark:text-orange-400]="req.payment_status === 'Unpaid'">
-                        {{ req.payment_status }}
+                        {{ summary.categoryName }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
-                        {{ formatCost(req.cost) }}
+                        {{ formatAmountValue(summary.serviceValue) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-700 dark:text-gray-300">
+                        {{ summary.employmentLabel }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
+                        {{ formatAmountValue(summary.paidAmount) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
+                        {{ formatAmountValue(summary.pendingAmount) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
+                        {{ formatAmountValue(summary.finalAmount) }}
                     </td>
                 </tr>
                 }
@@ -117,56 +306,113 @@
 
     <!-- Mobile Card View -->
     <div class="lg:hidden p-4 space-y-4">
-        @for(req of completedRequests(); track req.id) {
+        @for(summary of paginatedSummaries(); track summary.categoryId + '-' + summary.professionalId) {
         <div class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg p-4 space-y-3">
-            <!-- Header with service title and payment status -->
-            <div class="flex justify-between items-start">
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-1 mr-3">
-                    {{ req.title }}
-                </h4>
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0"
-                    [class.bg-green-100]="req.payment_status === 'Paid'"
-                    [class.dark:bg-green-900]="req.payment_status === 'Paid'"
-                    [class.text-green-800]="req.payment_status === 'Paid'"
-                    [class.dark:text-green-200]="req.payment_status === 'Paid'"
-                    [class.bg-orange-100]="req.payment_status === 'Unpaid'"
-                    [class.dark:bg-orange-900]="req.payment_status === 'Unpaid'"
-                    [class.text-orange-800]="req.payment_status === 'Unpaid'"
-                    [class.dark:text-orange-200]="req.payment_status === 'Unpaid'">
-                    {{ req.payment_status }}
-                </span>
-            </div>
-
-            <!-- Service details -->
-            <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "client" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{
-                        getClientName(req.client_id)
-                        }}</span>
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-xs uppercase text-gray-500 dark:text-gray-400">{{ "professional" | i18n }}</p>
+                        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {{ summary.professionalName }}
+                        </h4>
+                    </div>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "professional" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{
-                        getProfessionalName(req.professional_id)
-                        }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "date" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{
-                        req.scheduled_date | date
-                        }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "total" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100 font-semibold text-lg">{{
-                        formatCost(req.cost)
-                        }}</span>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">{{ "category" | i18n }}:</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ summary.categoryName }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor Serviço (€):</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ formatAmountValue(summary.serviceValue) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Vínculo Empregatício:</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ summary.employmentLabel }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor Pago (€):</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ formatAmountValue(summary.paidAmount) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor a pagar (€):</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ formatAmountValue(summary.pendingAmount) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor final (€):</span>
+                        <span class="text-gray-900 dark:text-gray-100 font-semibold text-lg">{{ formatAmountValue(summary.finalAmount) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
         }
     </div>
+
+    <div
+        class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
+            <select [value]="itemsPerPage()" (change)="setItemsPerPage(+$any($event.target).value)"
+                class="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-100">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <div class="hidden sm:block">
+            <p class="text-sm text-gray-700">
+                {{ "showing" | i18n }}
+                <span class="font-medium">{{ (currentPage() - 1) * itemsPerPage() + 1 }}</span>
+                {{ "to" | i18n }}
+                <span class="font-medium">{{ Math.min(currentPage() * itemsPerPage(), sortedSummaries().length) }}</span>
+                {{ "of" | i18n }}
+                <span class="font-medium">{{ sortedSummaries().length }}</span>
+                {{ "results" | i18n }}
+            </p>
+        </div>
+
+        <div class="flex justify-center sm:justify-end">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button (click)="previousPage()" [disabled]="currentPage() === 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                    <span class="sr-only">Previous</span>
+                </button>
+
+                <div class="hidden sm:flex">
+                    @for(page of pageNumbers; track page) {
+                    @if(page === -1) {
+                    <span
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        ...
+                    </span>
+                    } @else {
+                    <button (click)="goToPage(page)" [class]="
+                        page === currentPage()
+                            ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-400'
+                            : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'">
+                        {{ page }}
+                    </button>
+                    }
+                    }
+                </div>
+
+                <div
+                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ currentPage() }} / {{ totalPages() }}
+                </div>
+
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="sr-only">Next</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+    }
   </div>
 </div>
 </div>
