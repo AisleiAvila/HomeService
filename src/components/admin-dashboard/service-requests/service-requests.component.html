@@ -233,101 +233,112 @@
 
         <!-- Filtros Avançados -->
         <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
-            <div class="flex items-center gap-2 mb-4">
-                <i class="fas fa-sliders-h text-brand-primary-500"></i>
-                <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ "advancedFilters" | i18n }}</span>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-sliders-h text-brand-primary-500"></i>
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ "advancedFilters" | i18n }}</span>
+                </div>
+                <button (click)="toggleFilters()" type="button"
+                    class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-full border border-brand-primary-200 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300 bg-brand-primary-50 dark:bg-gray-800 hover:bg-brand-primary-100 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas" [ngClass]="showFilters() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    <span>{{ showFilters() ? ("hideFilters" | i18n) : ("showFilters" | i18n) }}</span>
+                </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <!-- Filtro de Status (Dropdown) -->
-                <div>
-                    <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "status" | i18n }}
-                    </label>
-                    <select id="filterStatus" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
-                        <option value="">{{ "all" | i18n }}</option>
-                        @for(status of statusOptions(); track status.value) {
-                        <option [value]="status.value">{{ status.label }}</option>
-                        }
-                    </select>
+            @if (showFilters()) {
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    <!-- Filtro de Status (Dropdown) -->
+                    <div>
+                        <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "status" | i18n }}
+                        </label>
+                        <select id="filterStatus" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                            <option value="">{{ "all" | i18n }}</option>
+                            @for(status of statusOptions(); track status.value) {
+                            <option [value]="status.value">{{ status.label }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Distrito -->
+                    <div>
+                        <label for="filterDistrict" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-map-marker-alt text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "district" | i18n }}
+                        </label>
+                        <select id="filterDistrict" [ngModel]="filterDistrict()"
+                            (ngModelChange)="filterDistrict.set($event)"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                            <option value="">{{ "all" | i18n }}</option>
+                            @for(district of districtOptions; track district) {
+                            <option [value]="district">{{ district }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Profissional -->
+                    <div>
+                        <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-user-tie text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "professional" | i18n }}
+                        </label>
+                        <select id="filterProfessional" [ngModel]="filterProfessional()"
+                            (ngModelChange)="filterProfessional.set($event)"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                            <option value="">{{ "all" | i18n }}</option>
+                            @for(prof of professionalOptions(); track prof.id) {
+                            <option [value]="prof.id">{{ prof.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Período - Data Inicial -->
+                    <div>
+                        <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-calendar text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "startDate" | i18n }}
+                        </label>
+                        <input type="date" id="filterStartDate" [ngModel]="filterStartDate()"
+                            (ngModelChange)="filterStartDate.set($event)"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                    </div>
+
+                    <!-- Filtro por Período - Data Final -->
+                    <div>
+                        <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "endDate" | i18n }}
+                        </label>
+                        <input type="date" id="filterEndDate" [ngModel]="filterEndDate()"
+                            (ngModelChange)="filterEndDate.set($event)"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                    </div>
                 </div>
 
-                <!-- Filtro por Distrito -->
-                <div>
-                    <label for="filterDistrict" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-map-marker-alt text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "district" | i18n }}
-                    </label>
-                    <select id="filterDistrict" [ngModel]="filterDistrict()"
-                        (ngModelChange)="filterDistrict.set($event)"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
-                        <option value="">{{ "all" | i18n }}</option>
-                        @for(district of districtOptions; track district) {
-                        <option [value]="district">{{ district }}</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Filtro por Profissional -->
-                <div>
-                    <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-user-tie text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "professional" | i18n }}
-                    </label>
-                    <select id="filterProfessional" [ngModel]="filterProfessional()"
-                        (ngModelChange)="filterProfessional.set($event)"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
-                        <option value="">{{ "all" | i18n }}</option>
-                        @for(prof of professionalOptions(); track prof.id) {
-                        <option [value]="prof.id">{{ prof.name }}</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Filtro por Período - Data Inicial -->
-                <div>
-                    <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-calendar text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "startDate" | i18n }}
-                    </label>
-                    <input type="date" id="filterStartDate" [ngModel]="filterStartDate()"
-                        (ngModelChange)="filterStartDate.set($event)"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
-                </div>
-
-                <!-- Filtro por Período - Data Final -->
-                <div>
-                    <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "endDate" | i18n }}
-                    </label>
-                    <input type="date" id="filterEndDate" [ngModel]="filterEndDate()"
-                        (ngModelChange)="filterEndDate.set($event)"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                <!-- Barra de Pesquisa e Botão Limpar -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1">
+                        <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-search text-brand-primary-500 mr-1 text-xs"></i>
+                            {{ "search" | i18n }}
+                        </label>
+                        <input type="text" id="searchInput" [ngModel]="searchTerm()"
+                            (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchPlaceholder' | i18n }}"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
+                    </div>
+                    <div class="flex items-end">
+                        <button (click)="clearFilters()"
+                            class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600">
+                            <i class="fas fa-times-circle"></i>
+                            {{ "clearFilters" | i18n }}
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <!-- Barra de Pesquisa e Botão Limpar -->
-            <div class="flex flex-col sm:flex-row gap-3 mt-4">
-                <div class="flex-1">
-                    <label for="searchInput" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        <i class="fas fa-search text-brand-primary-500 mr-1 text-xs"></i>
-                        {{ "search" | i18n }}
-                    </label>
-                    <input type="text" id="searchInput" [ngModel]="searchTerm()"
-                        (ngModelChange)="searchTerm.set($event)" placeholder="{{ 'searchPlaceholder' | i18n }}"
-                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all" />
-                </div>
-                <div class="flex items-end">
-                    <button (click)="clearFilters()"
-                        class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600">
-                        <i class="fas fa-times-circle"></i>
-                        {{ "clearFilters" | i18n }}
-                    </button>
-                </div>
-            </div>
+            }
         </div>
 
         <!-- Indicadores de Filtros Ativos -->

@@ -124,6 +124,7 @@ export class ServiceRequestsComponent implements OnInit {
     filterDistrict = signal<string>("");
     filterProfessional = signal<string>("");
     searchTerm = signal<string>("");
+    showFilters = signal(true);
 
     // Signals for sorting
     sortBy = signal<string>("date");
@@ -330,6 +331,10 @@ viewDetails = output<ServiceRequest>();
         this.filterDistrict.set("");
         this.filterProfessional.set("");
         this.searchTerm.set("");
+    }
+
+    toggleFilters() {
+        this.showFilters.update((current) => !current);
     }
 
     removeFilter(filterType: "status" | "period" | "district" | "professional" | "search") {
