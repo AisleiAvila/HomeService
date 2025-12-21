@@ -95,6 +95,16 @@ export class ServiceRequestsComponent implements OnInit {
             "payment pending",
         ].map((status) => status.toLowerCase())
     );
+    private readonly deletableStatuses = new Set(
+        [
+            "Solicitado",
+            "Atribuído",
+            "Aguardando Confirmação",
+            "Aceito",
+            "Recusado",
+            "Data Definida"
+        ].map((status) => status.toLowerCase())
+    );
 
     // Quick filter options
     quickFilterOptions = [
@@ -128,6 +138,9 @@ export class ServiceRequestsComponent implements OnInit {
     requestToReassign = signal<ServiceRequest | null>(null);
     replacementProfessionalId = signal<string>("");
     openActionsMenuId = signal<number | null>(null);
+    showDeleteRequestModal = signal(false);
+    requestToDelete = signal<ServiceRequest | null>(null);
+    isDeletingRequest = signal(false);
 
     // Pagination signals
     currentPage = signal<number>(1);
@@ -429,6 +442,13 @@ viewDetails = output<ServiceRequest>();
         const normalizedStatus = (request.status || "").trim().toLowerCase();
         return !this.reassignmentBlockedStatuses.has(normalizedStatus);
     }
+    canDeleteRequest(request: ServiceRequest): boolean {
+        if (!request) {
+            return false;
+        }
+        const normalizedStatus = (request.status || "").trim().toLowerCase();
+        return this.deletableStatuses.has(normalizedStatus);
+    }
     openReassignmentModal(request: ServiceRequest): void {
         if (!this.canChangeProfessional(request)) {
             return;
@@ -437,10 +457,35 @@ viewDetails = output<ServiceRequest>();
         this.replacementProfessionalId.set("");
         this.showReassignmentModal.set(true);
     }
+    openDeleteRequestModal(request: ServiceRequest): void {
+        if (!this.canDeleteRequest(request)) {
+            return;
+        }
+        this.requestToDelete.set(request);
+        this.showDeleteRequestModal.set(true);
+    }
     closeReassignmentModal(): void {
         this.showReassignmentModal.set(false);
         this.requestToReassign.set(null);
         this.replacementProfessionalId.set("");
+    }
+    closeDeleteRequestModal(): void {
+        this.showDeleteRequestModal.set(false);
+        this.requestToDelete.set(null);
+        this.isDeletingRequest.set(false);
+    }
+    async confirmDeleteRequest(): Promise<void> {
+        const request = this.requestToDelete();
+        if (!request) {
+            return;
+        }
+        this.isDeletingRequest.set(true);
+        const deleted = await this.dataService.deleteServiceRequest(request.id);
+        if (deleted) {
+            this.closeDeleteRequestModal();
+        } else {
+            this.isDeletingRequest.set(false);
+        }
     }
     availableReassignmentProfessionals(request: ServiceRequest | null): User[] {
         if (!request) {

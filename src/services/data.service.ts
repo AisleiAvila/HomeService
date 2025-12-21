@@ -284,6 +284,36 @@ export class DataService {
     }
   }
 
+  async deleteServiceRequest(requestId: number): Promise<boolean> {
+    if (!requestId) {
+      console.warn('[DataService] deleteServiceRequest chamado sem ID válido');
+      return false;
+    }
+
+    const { error } = await this.supabase.client
+      .from('service_requests')
+      .delete()
+      .eq('id', requestId);
+
+    if (error) {
+      console.error('[DataService] Erro ao excluir solicitação:', error);
+      this.notificationService.addNotification(
+        this.i18n.translate('errorDeletingRequest') || 'Erro ao excluir solicitação.'
+      );
+      return false;
+    }
+
+    this.serviceRequests.update((requests) =>
+      requests.filter((request) => request.id !== requestId)
+    );
+
+    this.notificationService.addNotification(
+      this.i18n.translate('serviceRequestDeleted') || 'Solicitação excluída com sucesso.'
+    );
+
+    return true;
+  }
+
   async fetchCategories() {
     this.isLoading.set(true);
     const { data, error } = await this.supabase.client

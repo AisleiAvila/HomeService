@@ -74,6 +74,64 @@
 </div>
 }
 
+<!-- Modal Excluir Solicitação -->
+@if (showDeleteRequestModal()) {
+<div class="fixed inset-0 bg-gray-800/60 dark:bg-gray-900/80 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <i class="fas fa-trash-alt text-red-600"></i>
+                {{ 'deleteRequestTitle' | i18n }}
+            </h3>
+            <button (click)="closeDeleteRequestModal()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        @if (requestToDelete(); as request) {
+        <div class="space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+                {{ 'deleteRequestWarning' | i18n }}
+            </p>
+
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                <div class="flex items-center justify-between gap-3">
+                    <span class="font-semibold text-gray-500 dark:text-gray-400">{{ 'service' | i18n }}</span>
+                    <span class="text-gray-900 dark:text-gray-100 text-right">{{ request.title || '—' }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                    <span class="font-semibold text-gray-500 dark:text-gray-400">{{ 'client' | i18n }}</span>
+                    <span class="text-gray-900 dark:text-gray-100 text-right">{{ request.client_name || '—' }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                    <span class="font-semibold text-gray-500 dark:text-gray-400">{{ 'status' | i18n }}</span>
+                    <span class="text-gray-900 dark:text-gray-100 text-right">{{ request.status || '—' }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                    <span class="font-semibold text-gray-500 dark:text-gray-400">{{ 'preferredDateTime' | i18n }}</span>
+                    <span class="text-gray-900 dark:text-gray-100 text-right">{{ getExecutionDateLabel(request) }}</span>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-200 text-sm">
+                {{ 'deleteRequestQuestion' | i18n }}
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 mt-6">
+            <button type="button" (click)="closeDeleteRequestModal()" class="w-full sm:flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                {{ 'cancel' | i18n }}
+            </button>
+            <button type="button" (click)="confirmDeleteRequest()" [disabled]="isDeletingRequest()" class="w-full sm:flex-1 px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <i class="fas fa-trash"></i>
+                <span>{{ isDeletingRequest() ? ('loading' | i18n) : ('deleteRequest' | i18n) }}</span>
+            </button>
+        </div>
+        }
+    </div>
+</div>
+}
+
 <!-- Modal de Troca de Profissional -->
 @if (showReassignmentModal()) {
 <div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
@@ -510,6 +568,13 @@
                                 <i class="fas fa-edit"></i>
                             </button>
                             }
+                            @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
+                            <button (click)="openDeleteRequestModal(req)"
+                                class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                                [title]="'deleteRequest' | i18n" [attr.aria-label]="'deleteRequest' | i18n">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            }
                             <button (click)="handleOpenChat(req)"
                                 class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                                 [title]="'chat' | i18n" [attr.aria-label]="'chat' | i18n">
@@ -627,6 +692,12 @@
                         <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
                             class="flex-1 px-3 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200 flex items-center justify-center">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        }
+                        @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
+                        <button (click)="openDeleteRequestModal(req)" title="{{ 'deleteRequest' | i18n }}"
+                            class="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200 flex items-center justify-center">
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                         }
                         <button (click)="handleOpenChat(req)" title="{{ 'chat' | i18n }}"

@@ -49,7 +49,11 @@ export class ServiceRequestEditComponent implements OnInit {
   set requestedDateTimeFormatted(value: string) {
     if (!this.request) return;
     // Converter de datetime-local para ISO string
-    this.request.requested_datetime = value ? new Date(value).toISOString() : undefined;
+    const isoString = value ? new Date(value).toISOString() : undefined;
+    this.request.requested_datetime = isoString;
+    if (!this.request.actual_start_datetime) {
+      this.request.scheduled_start_datetime = isoString;
+    }
   }
 
   // Computed signal para categorias (filtrar apenas as que têm subcategorias)
