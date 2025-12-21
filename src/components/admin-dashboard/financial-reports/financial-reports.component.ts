@@ -536,25 +536,22 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     private buildCsvContent(summaries: SummarizedFinancialRow[]): string {
-        const categoryHeader = this.i18n.translate("category") || "Categoria";
-        const subcategoryHeader = this.i18n.translate("subcategory") || "Subcategoria";
-        const serviceHeader =
-            this.i18n.translate("serviceRequest") ||
-            this.i18n.translate("service") ||
-            "Solicitação";
+        const categoryHeader = this.translateOrFallback("category", "Categoria");
+        const subcategoryHeader = this.translateOrFallback("subcategory", "Subcategoria");
+        const serviceHeader = this.translateAnyOrFallback(["serviceRequest", "service"], "Solicitação");
         const headerLabels = [
-            this.i18n.translate("professional") || "Profissional",
+            this.translateOrFallback("professional", "Profissional"),
             categoryHeader,
             subcategoryHeader,
             serviceHeader,
-            this.i18n.translate("employmentBond") || "Vínculo",
-            this.i18n.translate("serviceValueColumn") || "Valor Serviço (€)",
-            this.i18n.translate("paidAmount") || "Valor Pago (€)",
-            this.i18n.translate("pendingAmount") || "Valor em aberto (€)",
-            this.i18n.translate("finalAmount") || "Valor final (€)",
+            this.translateOrFallback("employmentBond", "Vínculo"),
+            this.translateOrFallback("serviceValueColumn", "Valor Serviço (€)"),
+            this.translateOrFallback("paidAmount", "Valor Pago (€)"),
+            this.translateOrFallback("pendingAmount", "Valor em aberto (€)"),
+            this.translateOrFallback("finalAmount", "Valor final (€)"),
         ];
         const rows: string[] = [this.toCsvRow(headerLabels)];
-        const unassignedLabel = this.i18n.translate("unassigned") || "N/A";
+        const unassignedLabel = this.translateOrFallback("unassigned", "N/A");
 
         summaries.forEach((summary) => {
             summary.subcategoryBreakdown.forEach((subcategory) => {
@@ -577,6 +574,24 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         return "\uFEFF" + rows.join("\r\n");
+    }
+
+    private translateOrFallback(key: string, fallback: string): string {
+        const value = this.i18n.translate(key);
+        if (typeof value === "string" && value.trim().length > 0 && value !== key) {
+            return value;
+        }
+        return fallback;
+    }
+
+    private translateAnyOrFallback(keys: string[], fallback: string): string {
+        for (const key of keys) {
+            const value = this.i18n.translate(key);
+            if (typeof value === "string" && value.trim().length > 0 && value !== key) {
+                return value;
+            }
+        }
+        return fallback;
     }
 
     private toCsvRow(values: Array<string | number | null | undefined>): string {
