@@ -15,6 +15,7 @@ import { Router, RouterModule } from "@angular/router";
 import { AuthService } from "./services/auth.service";
 import { DataService } from "./services/data.service";
 import { NotificationService } from "./services/notification.service";
+import { InAppNotificationService } from "./services/in-app-notification.service";
 import { WorkflowServiceSimplified } from "./services/workflow-simplified.service";
 import { I18nService } from "./i18n.service";
 import { PushNotificationService } from "./services/push-notification.service";
@@ -33,7 +34,7 @@ import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { LandingComponent } from "./components/landing/landing.component";
 import { LoginComponent, LoginPayload } from "./components/login/login.component";
-import { NotificationCenterComponent } from "./components/notification-center/notification-center.component";
+import { NotificationsComponent } from "./components/notifications/notifications.component";
 import { ProfileComponent } from "./components/profile/profile.component";
 import { RegisterComponent, RegisterPayload } from "./components/register/register.component";
 import { ResetPasswordComponent } from "./components/reset-password/reset-password.component";
@@ -77,7 +78,7 @@ type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-re
     ServiceRequestDetailsComponent,
     SchedulerComponent,
     ChatComponent,
-    NotificationCenterComponent,
+    NotificationsComponent,
     LanguageSwitcherComponent,
     NotificationToastComponent,
     ThemeToggleComponent,
@@ -95,6 +96,7 @@ export class AppComponent implements OnInit {
   readonly authService = inject(AuthService);
   readonly dataService = inject(DataService);
   readonly notificationService = inject(NotificationService);
+  readonly inAppNotificationService = inject(InAppNotificationService);
   readonly i18n = inject(I18nService);
   readonly themeService = inject(ThemeService);
   private readonly alertService = inject(AlertService);
@@ -113,7 +115,6 @@ export class AppComponent implements OnInit {
   // Modal State
   isSidebarOpen = signal(false);
   isSidebarCollapsed = signal(false);
-  isNotificationCenterOpen = signal(false);
   showRegistrationModal = signal(false);
   isClarificationModalOpen = signal(false);
   showDirectAssignmentModal = signal(false);
@@ -133,9 +134,7 @@ export class AppComponent implements OnInit {
   // Component References
   @ViewChild(LoginComponent) loginComponent?: LoginComponent;
 
-  hasUnreadNotifications = computed(() =>
-    this.notificationService.notifications().some((n) => !n.read)
-  );
+  hasUnreadNotifications = computed(() => this.inAppNotificationService.unreadCount() > 0);
   authTheme = computed(() => (this.view() === "landing" ? "light" : "dark"));
   isMobile = computed(() => {
     if (globalThis.window === undefined) return false;
@@ -266,6 +265,9 @@ export class AppComponent implements OnInit {
             this.dataService.loadInitialData();
             this.lastLoadedUserId = user.id;
             this.pushNotificationService.requestPermission();
+            
+            // Inicializar notificações in-app
+            this.inAppNotificationService.subscribeToNotifications();
           }
 
           this.initializeAlertMonitoring(user);
@@ -459,7 +461,6 @@ export class AppComponent implements OnInit {
       this.dataService.clearData();
       this.view.set("landing");
       this.isSidebarOpen.set(false);
-      this.isNotificationCenterOpen.set(false);
       this.isSchedulerOpen.set(false);
       this.isClarificationModalOpen.set(false);
       this.selectedRequest.set(null);
@@ -515,9 +516,6 @@ export class AppComponent implements OnInit {
       this.isSidebarCollapsed.set(!this.isSidebarCollapsed());
     }
   }
-  openNotificationCenter() {
-    this.isNotificationCenterOpen.set(true);
-  }
 
   handleScheduleConfirmed(event: {
     requestId: number;
@@ -533,7 +531,6 @@ export class AppComponent implements OnInit {
   }
 
   closeModal() {
-    this.isNotificationCenterOpen.set(false);
     this.isSchedulerOpen.set(false);
     this.isClarificationModalOpen.set(false);
     this.uiState.closeChat();

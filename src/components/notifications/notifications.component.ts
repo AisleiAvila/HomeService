@@ -1,9 +1,10 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { I18nService } from '../../i18n.service';
 import { InAppNotificationService } from '../../services/in-app-notification.service';
-import { InAppNotification } from '../../models/maintenance.models';
+import { AuthService } from '../../services/auth.service';
+import { EnhancedNotification } from '../../models/maintenance.models';
 import { Router } from '@angular/router';
 
 @Component({
@@ -34,26 +35,48 @@ export class NotificationsComponent implements OnInit {
   hasNotifications = computed(() => this.notifications().length > 0);
 
   ngOnInit(): void {
-    // Load notifications when component initializes
-    this.notificationService.loadNotifications();
+    console.log('🔔 [NotificationsComponent] ngOnInit - Inicializando componente');
+    console.log('🔔 [NotificationsComponent] Estado inicial:', {
+      notifications: this.notificationService.notifications(),
+      unreadCount: this.notificationService.unreadCount()
+    });
     
-    // Subscribe to real-time updates
-    this.notificationService.subscribeToNotifications();
+    // Note: loadNotifications and subscribeToNotifications are already called 
+    // in app.component.ts when user logs in. We just display the data here.
   }
 
   toggleDropdown(): void {
+    const wasOpen = this.isOpen();
     this.isOpen.update(v => !v);
+    console.log('🔔 [NotificationsComponent] toggleDropdown:', { 
+      wasOpen, 
+      nowOpen: this.isOpen(),
+      notifications: this.notifications(),
+      totalNotifications: this.notificationService.notifications().length,
+      unreadCount: this.unreadCount()
+    });
   }
 
   closeDropdown(): void {
     this.isOpen.set(false);
   }
 
+  // Fechar quando clicar fora do componente
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const clickedInside = target.closest('.notifications-container');
+    
+    if (!clickedInside && this.isOpen()) {
+      this.closeDropdown();
+    }
+  }
+
   toggleUnreadFilter(): void {
     this.showUnreadOnly.update(v => !v);
   }
 
-  async markAsRead(notification: InAppNotification, event?: Event): Promise<void> {
+  async markAsRead(notification: EnhancedNotification, event?: Event): Promise<void> {
     if (event) {
       event.stopPropagation();
     }
@@ -71,16 +94,16 @@ export class NotificationsComponent implements OnInit {
     await this.notificationService.deleteAllRead();
   }
 
-  async handleNotificationClick(notification: InAppNotification): Promise<void> {
+  async handleNotificationClick(notification: EnhancedNotification): Promise<void> {
     // Mark as read
     await this.markAsRead(notification);
 
     // Close dropdown
     this.closeDropdown();
 
-    // Navigate if there's a link
-    if (notification.link) {
-      this.router.navigateByUrl(notification.link);
+    // Navigate if there's a service request ID
+    if (notification.service_request_id) {
+      this.router.navigate(['/admin/requests']);
     }
   }
 

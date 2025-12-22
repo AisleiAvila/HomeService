@@ -1,11 +1,12 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
-import { InAppNotification } from "../models/maintenance.models";
+import { EnhancedNotification } from "../models/maintenance.models";
 
 /**
  * Serviço para gerenciamento de notificações in-app
  * Permite criar, listar, marcar como lida e deletar notificações
+ * Usa a tabela enhanced_notifications do Supabase
  */
 @Injectable({
   providedIn: "root",
@@ -15,7 +16,7 @@ export class InAppNotificationService {
   private readonly authService = inject(AuthService);
 
   // Signal com todas as notificações do usuário atual
-  readonly notifications = signal<InAppNotification[]>([]);
+  readonly notifications = signal<EnhancedNotification[]>([]);
   
   // Signal com contagem de notificações não lidas
   readonly unreadCount = signal<number>(0);
@@ -29,21 +30,24 @@ export class InAppNotificationService {
     title: string,
     message: string,
     link?: string,
-    metadata?: Record<string, any>
-  ): Promise<InAppNotification | null> {
+    metadata?: Record<string, any>,
+    priority: "low" | "medium" | "high" = "medium",
+    actionRequired: boolean = false
+  ): Promise<EnhancedNotification | null> {
     try {
       const notification = {
         user_id: userId,
         type,
         title,
         message,
-        link: link || null,
-        metadata: metadata || null,
         read: false,
+        created_at: new Date(),
+        priority,
+        action_required: actionRequired,
       };
 
       const { data, error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .insert([notification])
         .select()
         .single();
@@ -74,29 +78,38 @@ export class InAppNotificationService {
   async loadNotifications(): Promise<void> {
     try {
       const currentUser = this.authService.appUser();
-      if (!currentUser) return;
+      console.log('📬 [loadNotifications] Carregando notificações para usuário:', currentUser?.id, currentUser?.email);
+      
+      if (!currentUser) {
+        console.warn('📬 [loadNotifications] Usuário não autenticado');
+        return;
+      }
 
+      console.log('📬 [loadNotifications] Consultando banco de dados...');
       const { data, error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .select("*")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false })
         .limit(50); // Limitar a 50 notificações mais recentes
 
       if (error) {
-        console.error("Erro ao carregar notificações:", error);
+        console.error("📬 [loadNotifications] Erro ao carregar notificações:", error);
         return;
       }
 
+      console.log('📬 [loadNotifications] Dados recebidos do banco:', data);
+      
       this.notifications.set(data || []);
       
       // Atualizar contagem de não lidas
       const unread = (data || []).filter(n => !n.read).length;
       this.unreadCount.set(unread);
       
-      console.log(`📬 Carregadas ${data?.length || 0} notificações (${unread} não lidas)`);
+      console.log(`📬 [loadNotifications] ✅ Carregadas ${data?.length || 0} notificações (${unread} não lidas)`);
+      console.log('📬 [loadNotifications] Signal state:', this.notifications());
     } catch (error) {
-      console.error("Erro ao carregar notificações:", error);
+      console.error("📬 [loadNotifications] Erro ao carregar notificações:", error);
     }
   }
 
@@ -106,7 +119,7 @@ export class InAppNotificationService {
   async markAsRead(notificationId: number): Promise<boolean> {
     try {
       const { error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .update({
           read: true,
           read_at: new Date().toISOString(),
@@ -137,7 +150,7 @@ export class InAppNotificationService {
       if (!currentUser) return false;
 
       const { error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .update({
           read: true,
           read_at: new Date().toISOString(),
@@ -166,7 +179,7 @@ export class InAppNotificationService {
   async deleteNotification(notificationId: number): Promise<boolean> {
     try {
       const { error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .delete()
         .eq("id", notificationId);
 
@@ -194,7 +207,7 @@ export class InAppNotificationService {
       if (!currentUser) return false;
 
       const { error } = await this.supabase.client
-        .from("in_app_notifications")
+        .from("enhanced_notifications")
         .delete()
         .eq("user_id", currentUser.id)
         .eq("read", true);
@@ -217,14 +230,14 @@ export class InAppNotificationService {
   /**
    * Obtém notificações não lidas
    */
-  getUnreadNotifications(): InAppNotification[] {
+  getUnreadNotifications(): EnhancedNotification[] {
     return this.notifications().filter(n => !n.read);
   }
 
   /**
    * Obtém notificações lidas
    */
-  getReadNotifications(): InAppNotification[] {
+  getReadNotifications(): EnhancedNotification[] {
     return this.notifications().filter(n => n.read);
   }
 
@@ -246,7 +259,7 @@ export class InAppNotificationService {
         {
           event: "*",
           schema: "public",
-          table: "in_app_notifications",
+          table: "enhanced_notifications",
           filter: `user_id=eq.${currentUser.id}`,
         },
         () => {

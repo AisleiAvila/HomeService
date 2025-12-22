@@ -109,12 +109,7 @@
             <span class="hidden md:inline font-semibold dark:text-neutral-50">HomeService</span>
           </div>
           <div class="flex items-center gap-2">
-            <button class="relative p-2 rounded-md hover:bg-gray-50 dark:hover:bg-neutral-700 dark:text-neutral-50" (click)="openNotificationCenter()"
-              title="{{ 'notifications' | i18n }}">
-              <i class="fa-solid fa-bell"></i>
-              <span *ngIf="hasUnreadNotifications()"
-                class="absolute -top-0.5 -right-0.5 inline-block h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
+            <app-notifications />
             <app-theme-toggle />
             <app-language-switcher [theme]="'dark'" />
             <button class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700 dark:text-neutral-50"
@@ -221,13 +216,6 @@
     </div>
 
     <!-- Modals Layer (somente no modo app) -->
-    <ng-container *ngIf="isNotificationCenterOpen()">
-      <div class="modal-backdrop-right" (click)="closeModal()" (keydown.enter)="closeModal()"
-        aria-label="Fechar centro de notificações">
-        <app-notification-center (close)="closeModal()" (click)="$event.stopPropagation()"
-          (keydown.enter)="$event.stopPropagation(); closeModal()" aria-label="Centro de notificações" />
-      </div>
-    </ng-container>
     <ng-container *ngIf="isChatOpen() && selectedRequest()">
       <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
         aria-label="Fechar modal de chat">
