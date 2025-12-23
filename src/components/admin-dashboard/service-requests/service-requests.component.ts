@@ -120,11 +120,12 @@ export class ServiceRequestsComponent implements OnInit {
 
     // Signals for filters
     filterStatus = signal<string>("");
+    filterClient = signal<string>("");
     filterStartDate = signal<string>("");
     filterEndDate = signal<string>("");
     filterDistrict = signal<string>("");
     filterProfessional = signal<string>("");
-    searchTerm = signal<string>("");
+    filterPayment = signal<string>("");
     showFilters = signal(true);
 
     // Signals for sorting
@@ -215,17 +216,34 @@ viewDetails = output<ServiceRequest>();
         this.dataService.users().filter(u => u.role === 'professional' && u.status === 'Active')
     );
 
+    clientOptions = computed(() => {
+        const requests = this.dataService.serviceRequests();
+        const uniqueClients = new Set<string>();
+        
+        requests.forEach(req => {
+            if (req.client_name) {
+                uniqueClients.add(req.client_name);
+            }
+        });
+        
+        return Array.from(uniqueClients).sort((a, b) => 
+            a.localeCompare(b, 'pt-PT', { sensitivity: 'base' })
+        );
+    });
+
     // Computed for filtering and sorting
     filteredRequests = computed(() => {
         let reqs = this.dataService.serviceRequests();
         const status = this.filterStatus();
+        const client = this.filterClient();
         const startDate = this.filterStartDate();
         const endDate = this.filterEndDate();
         const district = this.filterDistrict();
         const professional = this.filterProfessional();
-        const search = this.searchTerm().toLowerCase();
+        const payment = this.filterPayment();
 
         if (status) reqs = reqs.filter((r) => r.status === status);
+        if (client) reqs = reqs.filter((r) => r.client_name === client);
 
         if (startDate && endDate) {
             const start = new Date(startDate);
@@ -244,14 +262,7 @@ viewDetails = output<ServiceRequest>();
             reqs = reqs.filter(
                 (r) => String(r.professional_id) === String(professional)
             );
-        if (search) {
-            reqs = reqs.filter(
-                (r) =>
-                    r.title?.toLowerCase().includes(search) ||
-                    r.zip_code?.toLowerCase().includes(search) ||
-                    String(r.id).includes(search)
-            );
-        }
+        if (payment) reqs = reqs.filter((r) => r.payment_status === payment);
 
         return this.sortRequests(reqs);
     });
@@ -325,24 +336,26 @@ viewDetails = output<ServiceRequest>();
 
     clearFilters() {
         this.filterStatus.set("");
+        this.filterClient.set("");
         this.filterStartDate.set("");
         this.filterEndDate.set("");
         this.filterDistrict.set("");
         this.filterProfessional.set("");
-        this.searchTerm.set("");
+        this.filterPayment.set("");
     }
 
     toggleFilters() {
         this.showFilters.update((current) => !current);
     }
 
-    removeFilter(filterType: "status" | "period" | "district" | "professional" | "search") {
+    removeFilter(filterType: "status" | "period" | "district" | "professional" | "payment" | "client") {
         switch (filterType) {
             case "status": this.filterStatus.set(""); break;
+            case "client": this.filterClient.set(""); break;
             case "period": this.filterStartDate.set(""); this.filterEndDate.set(""); break;
             case "district": this.filterDistrict.set(""); break;
             case "professional": this.filterProfessional.set(""); break;
-            case "search": this.searchTerm.set(""); break;
+            case "payment": this.filterPayment.set(""); break;
         }
     }
 
@@ -354,6 +367,9 @@ viewDetails = output<ServiceRequest>();
         if (this.filterStartDate() && this.filterEndDate()) {
             filters.push({ type: "period", label: "period", value: `${this.filterStartDate()} - ${this.filterEndDate()}` });
         }
+        if (this.filterClient()) {
+            filters.push({ type: "client", label: "client", value: this.filterClient() });
+        }
         if (this.filterDistrict()) {
             filters.push({ type: "district", label: "district", value: this.filterDistrict() });
         }
@@ -361,8 +377,8 @@ viewDetails = output<ServiceRequest>();
             const profName = this.professionalOptions().find(p => String(p.id) === String(this.filterProfessional()))?.name || "";
             filters.push({ type: "professional", label: "professional", value: profName });
         }
-        if (this.searchTerm()) {
-            filters.push({ type: "search", label: "search", value: this.searchTerm() });
+        if (this.filterPayment()) {
+            filters.push({ type: "payment", label: "paymentStatus", value: this.filterPayment() });
         }
         return filters;
     });
