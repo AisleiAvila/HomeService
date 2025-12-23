@@ -263,15 +263,41 @@ export class ServiceImageService {
         .single();
 
       if (fetchError || !image) {
+        console.error("Erro ao buscar imagem:", fetchError);
         throw new Error("Imagem não encontrada");
       }
 
+      // Buscar informações do pedido de serviço
+      const { data: serviceRequest, error: requestError } = await this.supabase.client
+        .from("service_requests")
+        .select("client_id, professional_id")
+        .eq("id", image.service_request_id)
+        .single();
+
+      if (requestError) {
+        console.error("Erro ao buscar pedido de serviço:", requestError);
+      }
+
       // Verificar permissão
-      if (image.uploaded_by !== userId) {
-        const currentUser = this.authService.appUser();
-        if (currentUser?.role !== "admin") {
-          throw new Error("Você não tem permissão para deletar esta imagem");
-        }
+      const currentUser = this.authService.appUser();
+      const isUploader = image.uploaded_by === userId;
+      const isAdmin = currentUser?.role === "admin";
+      const isClient = serviceRequest?.client_id === userId;
+      const isProfessional = serviceRequest?.professional_id === userId;
+
+      console.log("🔐 Verificação de permissão:", {
+        userId,
+        isUploader,
+        isAdmin,
+        isClient,
+        isProfessional,
+        imageUploadedBy: image.uploaded_by,
+        clientId: serviceRequest?.client_id,
+        professionalId: serviceRequest?.professional_id
+      });
+
+      if (!isUploader && !isAdmin && !isClient && !isProfessional) {
+        throw new Error("Você não tem permissão para deletar esta imagem");
       }
 
       // Deletar do storage

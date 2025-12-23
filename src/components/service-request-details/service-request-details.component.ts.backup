@@ -488,7 +488,8 @@ interface ServiceAction {
           </h3>
           <div [attr.aria-labelledby]="'time-control-title'">
             <app-time-control
-              [request]="request()"
+              [serviceRequest]="request()"
+              [user]="currentUser()"
             ></app-time-control>
           </div>
         </section>

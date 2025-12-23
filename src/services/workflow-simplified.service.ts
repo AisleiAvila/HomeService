@@ -474,20 +474,6 @@ export class WorkflowServiceSimplified {
         throw new Error("Usuário não tem permissão para iniciar execução");
       }
 
-      // Validar que não está iniciando antes da data agendada
-      if (request.scheduled_start_datetime) {
-        const scheduledDate = new Date(request.scheduled_start_datetime);
-        const now = new Date();
-        // Permitir iniciar até 30 minutos antes da data agendada
-        const thirtyMinutesBefore = new Date(scheduledDate.getTime() - 30 * 60 * 1000);
-        
-        if (now < thirtyMinutesBefore) {
-          throw new Error(
-            `Não é possível iniciar antes da data agendada (${scheduledDate.toLocaleString('pt-PT')}). Pode iniciar até 30 minutos antes.`
-          );
-        }
-      }
-
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({

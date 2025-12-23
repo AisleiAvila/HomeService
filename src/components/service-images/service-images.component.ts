@@ -42,6 +42,11 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   pendingFile: File | null = null;
   pendingImageType: 'before' | 'after' = 'before';
   
+  // Modal de confirmação de exclusão
+  showDeleteConfirmModal = signal(false);
+  imageToDelete = signal<ServiceRequestImage | null>(null);
+  deletingImage = signal(false);
+  
   private cameraStream: MediaStream | null = null;
 
   // Computed
@@ -155,22 +160,40 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   }
 
   async deleteImage(image: ServiceRequestImage) {
-    const confirmed = confirm(
-      this.i18n.translate('confirmDeleteImage')
-    );
-    
-    if (!confirmed) return;
+    // Armazenar imagem e abrir modal
+    this.imageToDelete.set(image);
+    this.showDeleteConfirmModal.set(true);
+  }
+
+  async confirmDeleteImage() {
+    const image = this.imageToDelete();
+    if (!image) return;
+
+    this.deletingImage.set(true);
 
     try {
       const success = await this.workflowService.deleteServiceImage(image.id);
       if (success) {
         console.log('✅ Imagem deletada com sucesso');
+        this.notificationService.addNotification(
+          this.i18n.translate('imageDeletedSuccessfully')
+        );
         await this.loadImages();
+        this.closeDeleteConfirmModal();
       }
     } catch (error) {
       console.error('❌ Erro ao deletar imagem:', error);
-      alert(this.i18n.translate('deleteImageError'));
+      this.notificationService.addNotification(
+        this.i18n.translate('deleteImageError')
+      );
+    } finally {
+      this.deletingImage.set(false);
     }
+  }
+
+  closeDeleteConfirmModal() {
+    this.showDeleteConfirmModal.set(false);
+    this.imageToDelete.set(null);
   }
 
   viewImage(imageUrl: string) {
