@@ -461,6 +461,9 @@
                             </div>
                         </button>
                     </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                        {{ "executionTimeline" | i18n }}
+                    </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
                         [attr.aria-sort]="sortBy() === 'status' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
                         scope="col">
@@ -500,13 +503,13 @@
             <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
                 @for(req of filteredPaginatedRequests(); track req.id) {
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[30ch] leading-snug">
+                    <td class="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[30ch] leading-snug">
                         {{ req.title }}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal break-words max-w-[30ch] leading-snug">
+                    <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-normal break-words max-w-[30ch] leading-snug">
                         {{ req.client_name || "—" }}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-normal break-words max-w-[30ch] leading-snug">
+                    <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-normal break-words max-w-[30ch] leading-snug">
                         @if (getProfessionalProfile(req.professional_id); as professional) {
                         <div class="flex items-center gap-2 max-w-[30ch]">
                             @if (professional.avatar_url) {
@@ -520,20 +523,50 @@
                         <span class="text-gray-400">—</span>
                         }
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <td class="px-6 py-4 text-[10px] text-gray-500 dark:text-gray-300 whitespace-normal">
+                        <div class="flex flex-col gap-1">
+                            @if (req.scheduled_start_datetime) {
+                            <div class="flex flex-wrap items-center gap-1">
+                                <span class="font-semibold text-gray-600 dark:text-gray-200 text-[10px]">
+                                    {{ "scheduled" | i18n }}:
+                                </span>
+                                <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
+                                    {{ req.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
+                                </span>
+                            </div>
+                            }
+                            <div class="flex items-center gap-1">
+                                <span class="font-semibold text-gray-600 dark:text-gray-200 text-[10px]">
+                                    {{ "executionStartLabel" | i18n }}:
+                                </span>
+                                <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
+                                    {{ req.actual_start_datetime ? (req.actual_start_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="font-semibold text-gray-600 dark:text-gray-200 text-[10px]">
+                                    {{ "executionEndLabel" | i18n }}:
+                                </span>
+                                <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
+                                    {{ req.actual_end_datetime ? (req.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-xs">
                         <span [class]="statusClass(req.status)">{{
                             req.status
                             }}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                         <span [ngClass]="req.ispaid ? 'text-green-600 font-semibold' : 'text-yellow-600 font-semibold'">
                             {{ req.ispaid ? ('paymentDone' | i18n) : ('paymentPending' | i18n) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 text-right">
                         {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 text-right">
                         @if (shouldShowProviderValue(req) && req.valor_prestador && req.valor_prestador > 0) {
                         <span class="text-emerald-600 font-semibold">
                             € {{ req.valor_prestador | number : "1.2-2" }}
@@ -669,6 +702,24 @@
                     </span>
                 </div>
                 }
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "scheduled" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">
+                        {{ req.scheduled_start_datetime ? (req.scheduled_start_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                    </span>
+                </div>
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionStartLabel" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">
+                        {{ req.actual_start_datetime ? (req.actual_start_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                    </span>
+                </div>
+                <div class="flex justify-between text-[10px]">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionEndLabel" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">
+                        {{ req.actual_end_datetime ? (req.actual_end_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                    </span>
+                </div>
             </div>
 
             <!-- Actions -->
