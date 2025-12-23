@@ -464,10 +464,10 @@ export class DashboardComponent implements OnInit {
 
     if (currentUser.role === "professional") {
       const earnings = requests
-        .filter((r) => r.payment_status === "Paid" && r.valor)
-        .reduce((sum, r) => sum + r.valor!, 0);
+        .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
+        .reduce((sum, r) => sum + r.valor_prestador!, 0);
 
-      return [
+      const baseStats: Array<{ label: string; value: string | number; icon: string }> = [
         {
           label: this.i18n.translate("activeJobs"),
           value: requests.filter((r) => isActive(r.status)).length,
@@ -478,12 +478,18 @@ export class DashboardComponent implements OnInit {
           value: requests.filter((r) => r.status === "Concluído").length,
           icon: "fas fa-check-double text-green-500",
         },
-        {
+      ];
+
+      // Adiciona o grid de Valor Total apenas se não for funcionário da Natan
+      if (!currentUser.is_natan_employee) {
+        baseStats.push({
           label: this.i18n.translate("totalEarnings"),
           value: `€ ${earnings.toFixed(2)}`,
           icon: "fas fa-euro-sign text-emerald-500",
-        },
-      ];
+        });
+      }
+
+      return baseStats;
     }
 
     return [];
