@@ -139,4 +139,24 @@ export class NotificationsComponent implements OnInit {
     
     return d.toLocaleDateString(this.i18n.getCurrentLanguage());
   }
+
+  /**
+   * Formata a mensagem da notificação colocando nomes entre aspas em negrito
+   * Exemplo: "Serviço 'Limpeza de Casa' foi agendado" -> "Serviço <strong>Limpeza de Casa</strong> foi agendado"
+   */
+  formatMessage(message: string): string {
+    // Escapa HTML para segurança
+    const escapeHtml = (text: string): string => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    const escaped = escapeHtml(message);
+    
+    // Substitui texto entre aspas simples ou duplas por negrito
+    return escaped
+      .replace(/['"]([^'"]+)['"]/g, '<strong class="font-bold text-gray-900 dark:text-white">$1</strong>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-gray-900 dark:text-white">$1</strong>'); // Também suporta **texto**
+  }
 }

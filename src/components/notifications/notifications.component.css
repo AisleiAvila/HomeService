@@ -14,34 +14,74 @@
   }
 }
 
+/* Prevent horizontal scroll on mobile */
+.notifications-container {
+  max-width: 100vw;
+}
+
 /* Smooth scrolling for notification list */
-.max-h-96 {
+.max-h-96,
+.max-h-\[50vh\] {
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Custom scrollbar for notification list */
-.max-h-96::-webkit-scrollbar {
-  width: 6px;
+.max-h-96::-webkit-scrollbar,
+.max-h-\[50vh\]::-webkit-scrollbar {
+  width: 4px; /* Thinner on mobile */
 }
 
-.max-h-96::-webkit-scrollbar-track {
+@media (min-width: 640px) {
+  .max-h-96::-webkit-scrollbar,
+  .max-h-\[50vh\]::-webkit-scrollbar {
+    width: 6px;
+  }
+}
+
+.max-h-96::-webkit-scrollbar-track,
+.max-h-\[50vh\]::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.max-h-96::-webkit-scrollbar-thumb {
+.max-h-96::-webkit-scrollbar-thumb,
+.max-h-\[50vh\]::-webkit-scrollbar-thumb {
   background: #cbd5e0;
   border-radius: 3px;
 }
 
-.max-h-96::-webkit-scrollbar-thumb:hover {
+.max-h-96::-webkit-scrollbar-thumb:hover,
+.max-h-\[50vh\]::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
 }
 
 /* Dark mode scrollbar */
-.dark .max-h-96::-webkit-scrollbar-thumb {
+.dark .max-h-96::-webkit-scrollbar-thumb,
+.dark .max-h-\[50vh\]::-webkit-scrollbar-thumb {
   background: #4a5568;
 }
 
-.dark .max-h-96::-webkit-scrollbar-thumb:hover {
+.dark .max-h-96::-webkit-scrollbar-thumb:hover,
+.dark .max-h-\[50vh\]::-webkit-scrollbar-thumb:hover {
   background: #718096;
+}
+
+/* Mobile specific improvements */
+@media (max-width: 639px) {
+  /* Ensure dropdown doesn't overflow viewport */
+  .notifications-container > div:last-child {
+    max-width: calc(100vw - 1rem);
+  }
+
+  /* Better touch targets on mobile */
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Tablet and desktop */
+@media (min-width: 640px) {
+  .notifications-container {
+    position: relative;
+  }
 }
