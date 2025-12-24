@@ -304,20 +304,20 @@
                     </th>
                     <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
                         <button type="button" class="w-full flex items-center justify-end gap-1"
-                            (click)="sortByColumn('paidAmount')">
-                            <span>Valor Pago (€)</span>
+                            (click)="sortByColumn('pendingAmount')">
+                            <span>Valor a pagar (€)</span>
                             <i class="fas text-xs"
-                                [ngClass]="sortBy() === 'paidAmount'
+                                [ngClass]="sortBy() === 'pendingAmount'
                                     ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
                                     : 'fa-arrows-up-down text-gray-400'"></i>
                         </button>
                     </th>
                     <th class="px-4 py-3 text-right text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-300 tracking-wider">
                         <button type="button" class="w-full flex items-center justify-end gap-1"
-                            (click)="sortByColumn('pendingAmount')">
-                            <span>Valor a pagar (€)</span>
+                            (click)="sortByColumn('paidAmount')">
+                            <span>Valor Pago (€)</span>
                             <i class="fas text-xs"
-                                [ngClass]="sortBy() === 'pendingAmount'
+                                [ngClass]="sortBy() === 'paidAmount'
                                     ? (sortOrder() === 'asc' ? 'fa-arrow-up text-brand-primary-500' : 'fa-arrow-down text-brand-primary-500')
                                     : 'fa-arrows-up-down text-gray-400'"></i>
                         </button>
@@ -362,10 +362,10 @@
                         {{ summary.employmentLabel }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
-                        {{ formatAmountValue(summary.paidAmount) }}
+                        {{ formatAmountValue(summary.pendingAmount) }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right text-gray-700 dark:text-gray-300">
-                        {{ formatAmountValue(summary.pendingAmount) }}
+                        {{ formatAmountValue(summary.paidAmount) }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
                         {{ formatAmountValue(summary.finalAmount) }}
@@ -400,10 +400,10 @@
                             {{ summary.employmentLabel }}
                         </td>
                         <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
-                            {{ formatAmountValue(subcategory.paidAmount) }}
+                            {{ formatAmountValue(subcategory.pendingAmount) }}
                         </td>
                         <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
-                            {{ formatAmountValue(subcategory.pendingAmount) }}
+                            {{ formatAmountValue(subcategory.paidAmount) }}
                         </td>
                         <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
                             {{ formatAmountValue(subcategory.finalAmount) }}
@@ -426,10 +426,10 @@
                             </td>
                             <td class="px-4 py-3 text-sm text-center text-gray-500 dark:text-gray-400">—</td>
                             <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
-                                {{ formatAmountValue(service.paidAmount) }}
+                                {{ formatAmountValue(service.pendingAmount) }}
                             </td>
                             <td class="px-4 py-3 text-sm text-right text-gray-700 dark:text-gray-300">
-                                {{ formatAmountValue(service.pendingAmount) }}
+                                {{ formatAmountValue(service.paidAmount) }}
                             </td>
                             <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
                                 {{ formatAmountValue(service.finalAmount) }}
@@ -481,12 +481,12 @@
                         <span class="text-gray-900 dark:text-gray-100">{{ summary.employmentLabel }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor Pago (€):</span>
-                        <span class="text-gray-900 dark:text-gray-100">{{ formatAmountValue(summary.paidAmount) }}</span>
-                    </div>
-                    <div class="flex justify-between">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">Valor a pagar (€):</span>
                         <span class="text-gray-900 dark:text-gray-100">{{ formatAmountValue(summary.pendingAmount) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400 font-medium">Valor Pago (€):</span>
+                        <span class="text-gray-900 dark:text-gray-100">{{ formatAmountValue(summary.paidAmount) }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600 dark:text-gray-400 font-medium">Valor final (€):</span>
@@ -520,12 +520,12 @@
                             </div>
                             <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300">
                                 <div class="flex justify-between">
-                                    <span>Pago</span>
-                                    <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatAmountValue(subcategory.paidAmount) }}</span>
-                                </div>
-                                <div class="flex justify-between">
                                     <span>Em aberto</span>
                                     <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatAmountValue(subcategory.pendingAmount) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Pago</span>
+                                    <span class="font-semibold text-gray-900 dark:text-gray-100">{{ formatAmountValue(subcategory.paidAmount) }}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Final</span>
