@@ -521,11 +521,11 @@ export class AlertService {
   }
 
   private schedulePeriodicChecks(): void {
-    // Verificar a cada hora
+    // Verificar a cada 10 minutos
     setInterval(() => {
       this.checkOverdueRequests();
       this.sendDeadlineWarnings();
-    }, 60 * 60 * 1000); // 1 hora
+    }, 10 * 60 * 1000); // 10 minutos
 
     // Executar imediatamente
     setTimeout(() => {
