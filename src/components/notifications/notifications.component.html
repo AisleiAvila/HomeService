@@ -55,28 +55,45 @@
 
       <!-- Action Buttons -->
       @if (hasNotifications()) {
-        <div class="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-2 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+          <!-- Toggle Unread Filter -->
           <button
             (click)="toggleUnreadFilter()"
-            class="text-xs sm:text-sm text-brand-primary-600 hover:text-brand-primary-800 dark:text-brand-primary-400 dark:hover:text-brand-primary-300 py-1.5 px-2 sm:px-0 min-h-[44px] sm:min-h-0"
+            class="notification-action-btn notification-action-btn-primary"
+            [class.notification-action-btn-active]="showUnreadOnly()"
           >
-            {{ showUnreadOnly() ? 'showAll' : 'unreadNotifications' | i18n }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <span>{{ showUnreadOnly() ? 'showAll' : 'unreadNotifications' | i18n }}</span>
           </button>
           
+          <!-- Mark All as Read -->
           @if (hasUnread()) {
             <button
               (click)="markAllAsRead()"
-              class="text-xs sm:text-sm text-brand-primary-600 hover:text-brand-primary-800 dark:text-brand-primary-400 dark:hover:text-brand-primary-300 py-1.5 px-2 sm:px-0 min-h-[44px] sm:min-h-0"
+              class="notification-action-btn notification-action-btn-success"
             >
-              {{ 'markAllAsRead' | i18n }}
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" 
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                  clip-rule="evenodd" />
+              </svg>
+              <span>{{ 'markAllAsRead' | i18n }}</span>
             </button>
           }
 
+          <!-- Delete All Read -->
           <button
             (click)="deleteAllRead()"
-            class="ml-auto text-xs sm:text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 py-1.5 px-2 sm:px-0 min-h-[44px] sm:min-h-0"
+            class="notification-action-btn notification-action-btn-danger ml-auto"
           >
-            {{ 'deleteAllRead' | i18n }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>{{ 'deleteAllRead' | i18n }}</span>
           </button>
         </div>
       }
@@ -85,28 +102,46 @@
       <div class="max-h-[50vh] sm:max-h-96 overflow-y-auto">
         @if (hasNotifications()) {
           @for (notification of notifications(); track notification.id) {
-            <button
-              (click)="handleNotificationClick(notification)"
-              class="w-full px-3 sm:px-4 py-4 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors text-left min-h-[80px]"
+            <div
+              class="notification-item w-full px-3 sm:px-4 py-4 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors min-h-[80px]"
               [class.bg-blue-50]="!notification.read"
               [class.dark:bg-blue-900/20]="!notification.read"
             >
               <div class="flex items-start gap-3">
                 <!-- Icon -->
-                <span class="text-2xl flex-shrink-0">
+                <button
+                  (click)="handleNotificationClick(notification)"
+                  class="text-2xl flex-shrink-0 hover:scale-110 transition-transform"
+                  [attr.aria-label]="'viewNotification' | i18n"
+                >
                   {{ getNotificationIcon(notification.type) }}
-                </span>
+                </button>
 
                 <!-- Content -->
-                <div class="flex-1 min-w-0">
+                <div 
+                  class="flex-1 min-w-0 cursor-pointer"
+                  (click)="handleNotificationClick(notification)"
+                >
                   <div class="flex items-start justify-between gap-2">
-                    <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                      {{ notification.title }}
-                    </p>
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        {{ notification.title }}
+                      </p>
+                      <!-- Action Required Badge -->
+                      @if (notification.action_required) {
+                        <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full">
+                          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                          </svg>
+                          <span>{{ 'actionRequired' | i18n }}</span>
+                        </span>
+                      }
+                    </div>
                     @if (!notification.read) {
                       <button
                         (click)="markAsRead(notification, $event)"
-                        class="text-brand-primary-600 hover:text-brand-primary-800 dark:text-brand-primary-400 flex-shrink-0 p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                        class="notification-mark-read-btn"
+                        [attr.aria-label]="'markAsRead' | i18n"
                         title="{{ 'markAsRead' | i18n }}"
                       >
                         <svg class="w-5 h-5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -130,7 +165,7 @@
                   </p>
                 </div>
               </div>
-            </button>
+            </div>
           }
         } @else {
           <div class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">

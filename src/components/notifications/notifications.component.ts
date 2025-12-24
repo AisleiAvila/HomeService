@@ -81,8 +81,15 @@ export class NotificationsComponent implements OnInit {
       event.stopPropagation();
     }
 
+    console.log('🔔 [NotificationsComponent] markAsRead clicked:', {
+      notificationId: notification.id,
+      title: notification.title,
+      isRead: notification.read
+    });
+
     if (!notification.read) {
       await this.notificationService.markAsRead(notification.id);
+      console.log('✅ [NotificationsComponent] Notification marked as read');
     }
   }
 

@@ -435,6 +435,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     unreadNotifications: "Unread notifications",
     showAll: "Show All",
     markAsRead: "Mark as Read",
+    actionRequired: "Action Required",
+    viewNotification: "View notification",
     justNow: "Just now",
 
     // Execution Date Management
@@ -1427,6 +1429,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     unreadNotifications: "Notificações não lidas",
     showAll: "Mostrar Todas",
     markAsRead: "Marcar como Lida",
+    actionRequired: "Ação Necessária",
+    viewNotification: "Ver notificação",
     justNow: "Agora mesmo",
 
     // Execution Date Management

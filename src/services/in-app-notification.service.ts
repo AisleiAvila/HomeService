@@ -118,12 +118,11 @@ export class InAppNotificationService {
    */
   async markAsRead(notificationId: number): Promise<boolean> {
     try {
+      console.log('📨 [markAsRead] Marcando notificação como lida:', notificationId);
+      
       const { error } = await this.supabase.client
         .from("enhanced_notifications")
-        .update({
-          read: true,
-          read_at: new Date().toISOString(),
-        })
+        .update({ read: true })
         .eq("id", notificationId);
 
       if (error) {
@@ -131,6 +130,8 @@ export class InAppNotificationService {
         return false;
       }
 
+      console.log('✅ [markAsRead] Notificação marcada como lida com sucesso');
+      
       // Atualizar lista local
       await this.loadNotifications();
       
@@ -149,12 +150,11 @@ export class InAppNotificationService {
       const currentUser = this.authService.appUser();
       if (!currentUser) return false;
 
+      console.log('📨 [markAllAsRead] Marcando todas as notificações como lidas para usuário:', currentUser.id);
+
       const { error } = await this.supabase.client
         .from("enhanced_notifications")
-        .update({
-          read: true,
-          read_at: new Date().toISOString(),
-        })
+        .update({ read: true })
         .eq("user_id", currentUser.id)
         .eq("read", false);
 
@@ -162,6 +162,8 @@ export class InAppNotificationService {
         console.error("Erro ao marcar todas como lidas:", error);
         return false;
       }
+
+      console.log('✅ [markAllAsRead] Todas as notificações marcadas como lidas');
 
       // Atualizar lista local
       await this.loadNotifications();
