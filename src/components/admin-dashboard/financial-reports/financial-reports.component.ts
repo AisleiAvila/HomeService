@@ -1306,7 +1306,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     .brand-logo { width: 64px; height: 64px; object-fit: contain; border-radius: 12px; border: 1px solid #e5e7eb; background: #fff; padding: 10px; }
     .brand-name { margin: 0; font-size: 1.35rem; font-weight: 700; color: #111827; }
     .brand-tagline { margin: 4px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; }
-    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 20px; }
+    .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 20px; }
     .chart-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; }
     .chart-card img { width: 100%; height: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
     .chart-legend-wrapper { margin-top: 12px; }
@@ -1504,7 +1504,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                         const subcategoryFinalAmount = encodeHtml(formatCurrency(subcategory.finalAmount));
                                         html += `
             <tr class="subcategory-row">
-                <td>${professionalName}</td>
+                <td></td>
                 <td><div style="padding-left: 16px;"><span class="row-label">${encodeHtml(subcategoryLabel)}</span>${subcategoryName}</div></td>
                 <td>${subcategoryServiceValue}</td>
                 <td>${employmentLabel}</td>
@@ -1521,7 +1521,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                                 const serviceFinalAmount = encodeHtml(formatCurrency(service.finalAmount));
                                                 html += `
             <tr class="service-row">
-                <td>${professionalName}</td>
+                <td></td>
                 <td><div style="padding-left: 32px;"><span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}</div></td>
                 <td>${serviceServiceValue}</td>
                 <td>${employmentLabel}</td>
