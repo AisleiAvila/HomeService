@@ -176,7 +176,7 @@ export class AlertService {
       requestId,
       type,
       type === "overdue_alert"
-        ? "Ação Urgente Necessária"
+        ? "Ação Necessária"
         : "Prazo se Aproximando",
       message,
       stakeholders,
