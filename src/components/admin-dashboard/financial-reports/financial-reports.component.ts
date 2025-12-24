@@ -159,9 +159,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     };
     private hasInitializedFinancialChart = false;
     private hasInitializedServiceStatusChart = false;
+    private hasInitializedOriginChart = false;
     private readonly handleResize = () => {
         this.scheduleFinancialTotalsRender();
         this.scheduleServiceStatusRender();
+        this.scheduleOriginValuesRender();
         if (globalThis.window !== undefined && globalThis.window.innerWidth >= 1024 && !this.filtersExpanded()) {
             this.filtersExpanded.set(true);
         }
@@ -169,10 +171,27 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
     @ViewChild("financialTotalsCanvas") private readonly financialTotalsCanvas?: ElementRef<HTMLCanvasElement>;
     @ViewChild("serviceStatusCanvas") private readonly serviceStatusCanvas?: ElementRef<HTMLCanvasElement>;
+    @ViewChild("originValuesCanvas") private readonly originValuesCanvas?: ElementRef<HTMLCanvasElement>;
 
     ngOnInit() {
         console.log('[FinancialReportsComponent] Inicializando - recarregando dados de solicitações');
         this.dataService.reloadServiceRequests();
+        
+        // Inicializa filtros de data: primeiro dia do mês corrente até dia corrente
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Formato date input: YYYY-MM-DD
+        const formatDate = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        this.startDateFilter.set(formatDate(firstDayOfMonth));
+        this.endDateFilter.set(formatDate(now));
+        
         if (globalThis.window !== undefined && globalThis.window.innerWidth < 768) {
             this.filtersExpanded.set(false);
         }
@@ -181,8 +200,10 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     ngAfterViewInit(): void {
         this.hasInitializedFinancialChart = true;
         this.hasInitializedServiceStatusChart = true;
+        this.hasInitializedOriginChart = true;
         this.scheduleFinancialTotalsRender();
         this.scheduleServiceStatusRender();
+        this.scheduleOriginValuesRender();
         globalThis.window.addEventListener("resize", this.handleResize);
     }
 
@@ -280,6 +301,34 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                     return b.count - a.count;
                 }
                 return collator.compare(a.status, b.status);
+            });
+    });
+
+    originValuesSummary = computed(() => {
+        const summary = new Map<string, number>();
+        const filtered = this.filteredRequests();
+        const fallbackLabel = this.i18n.translate("unknownOrigin") || "Origem Desconhecida";
+
+        filtered.forEach((request) => {
+            const originName = request.origin?.name || fallbackLabel;
+            const value = this.getServiceValue(request);
+            summary.set(originName, (summary.get(originName) ?? 0) + value);
+        });
+
+        const total = Array.from(summary.values()).reduce((sum, val) => sum + val, 0);
+        const collator = new Intl.Collator("pt", { sensitivity: "base" });
+
+        return Array.from(summary.entries())
+            .map(([origin, value]) => ({
+                origin,
+                value,
+                percentage: total > 0 ? (value / total) * 100 : 0,
+            }))
+            .sort((a, b) => {
+                if (b.value !== a.value) {
+                    return b.value - a.value;
+                }
+                return collator.compare(a.origin, b.origin);
             });
     });
 
@@ -486,6 +535,93 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 ctx.font = "600 12px 'Inter','Segoe UI',sans-serif";
                 ctx.textAlign = "center";
                 ctx.fillText(String(item.count), x + barWidth / 2, Math.max(topPadding + 12, y - 8));
+            }
+        });
+    }
+
+    private scheduleOriginValuesRender(): void {
+        if (!this.hasInitializedOriginChart) {
+            return;
+        }
+        requestAnimationFrame(() => this.renderOriginValuesChart());
+    }
+
+    private renderOriginValuesChart(): void {
+        const canvas = this.originValuesCanvas?.nativeElement;
+        if (!canvas) {
+            return;
+        }
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            return;
+        }
+
+        const cssWidth = canvas.clientWidth || 640;
+        const cssHeight = canvas.clientHeight || 280;
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = cssWidth * dpr;
+        canvas.height = cssHeight * dpr;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(dpr, dpr);
+
+        const data = this.originValuesSummary();
+        const hasValues = data.some((item) => item.value > 0);
+        if (!data.length) {
+            return;
+        }
+
+        const topPadding = 24;
+        const bottomPadding = 48;
+        const leftPadding = 48;
+        const rightPadding = 48;
+        const chartHeight = Math.max(0, cssHeight - topPadding - bottomPadding);
+        const maxValue = Math.max(...data.map((item) => item.value), 1);
+        const baselineY = cssHeight - bottomPadding;
+        const maxAvailableWidth = cssWidth - leftPadding - rightPadding;
+        const count = data.length;
+        const gap = Math.max(20, Math.min(36, maxAvailableWidth * 0.06));
+        const computedBarWidth = (maxAvailableWidth - gap * (count - 1)) / count;
+        const barWidth = Math.max(26, Math.min(64, computedBarWidth));
+        const totalBarSpan = barWidth * count + gap * (count - 1);
+        const startX = leftPadding + Math.max(0, (maxAvailableWidth - totalBarSpan) / 2);
+
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        const axisColor = isDarkMode ? "#6B7280" : "#9CA3AF";
+        const valueColor = isDarkMode ? "#F3F4F6" : "#111827";
+        const originColors = ["#2563eb", "#10b981", "#f97316", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+
+        ctx.strokeStyle = axisColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(leftPadding - 8, baselineY + 0.5);
+        ctx.lineTo(cssWidth - rightPadding + 8, baselineY + 0.5);
+        ctx.stroke();
+
+        if (!hasValues) {
+            ctx.fillStyle = axisColor;
+            ctx.font = "600 16px 'Inter','Segoe UI',sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(this.i18n.translate("noDataAvailable") || "Sem dados", cssWidth / 2, cssHeight / 2);
+            return;
+        }
+
+        data.forEach((item, index) => {
+            const normalizedHeight = maxValue === 0 ? 0 : (item.value / maxValue) * chartHeight;
+            const renderedHeight = Math.max(normalizedHeight, item.value > 0 ? 6 : 0);
+            const x = startX + index * (barWidth + gap);
+            const y = baselineY - renderedHeight;
+
+            ctx.fillStyle = originColors[index % originColors.length];
+            ctx.fillRect(x, y, barWidth, renderedHeight);
+
+            if (item.value > 0) {
+                ctx.fillStyle = valueColor;
+                ctx.font = "600 12px 'Inter','Segoe UI',sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(this.formatCost(item.value), x + barWidth / 2, Math.max(topPadding + 12, y - 8));
             }
         });
     }
@@ -896,6 +1032,13 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         return this.statusColorStyles[status] ?? "#3b82f6";
     }
 
+    getOriginColor(originName: string): string {
+        const originColors = ["#2563eb", "#10b981", "#f97316", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+        const origins = this.originValuesSummary().map(item => item.origin);
+        const index = origins.indexOf(originName);
+        return originColors[index % originColors.length];
+    }
+
     toggleChartsPanel(): void {
         const next = !this.chartsExpanded();
         this.chartsExpanded.set(next);
@@ -903,6 +1046,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             setTimeout(() => {
                 this.scheduleFinancialTotalsRender();
                 this.scheduleServiceStatusRender();
+                this.scheduleOriginValuesRender();
             }, 0);
         }
     }
@@ -1262,13 +1406,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     getCompletionDate(request: ServiceRequest): string | null {
-        return (
-            request.work_completed_at ||
-            request.actual_end_datetime ||
-            request.completed_at ||
-            request.scheduled_date ||
-            null
-        );
+        return request.requested_datetime || null;
     }
 
     onCategoryFilterChange(value: string): void {
