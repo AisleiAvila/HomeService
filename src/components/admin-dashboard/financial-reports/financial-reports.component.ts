@@ -1089,6 +1089,16 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         effect(() => {
+            this.originValuesSummary();
+            this.scheduleOriginValuesRender();
+        });
+
+        effect(() => {
+            this.serviceOriginSummary();
+            this.scheduleServiceOriginRender();
+        });
+
+        effect(() => {
             const validKeys = new Set(this.sortedSummaries().map((row) => row.rowKey));
             this.expandedCategoryRows.update((current) => {
                 const next = new Set<string>();
