@@ -55,12 +55,12 @@
 
       <!-- Action Buttons -->
       @if (hasNotifications()) {
-        <div class="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+        <div class="notification-actions-bar">
           <!-- Toggle Unread Filter -->
           <button
             (click)="toggleUnreadFilter()"
-            class="notification-action-btn notification-action-btn-primary"
-            [class.notification-action-btn-active]="showUnreadOnly()"
+            class="notification-btn"
+            [class.notification-btn-active]="showUnreadOnly()"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -73,7 +73,7 @@
           @if (hasUnread()) {
             <button
               (click)="markAllAsRead()"
-              class="notification-action-btn notification-action-btn-success"
+              class="notification-btn"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" 
@@ -87,7 +87,7 @@
           <!-- Delete All Read -->
           <button
             (click)="deleteAllRead()"
-            class="notification-action-btn notification-action-btn-danger ml-auto"
+            class="notification-btn notification-btn-danger"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
