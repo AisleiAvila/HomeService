@@ -1524,7 +1524,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 <td>${professionalName}</td>
                 <td><div style="padding-left: 32px;"><span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}</div></td>
                 <td>${serviceServiceValue}</td>
-                <td>${notApplicableValue}</td>
+                <td>${employmentLabel}</td>
                 <td>${servicePaidAmount}</td>
                 <td>${servicePendingAmount}</td>
                 <td><strong>${serviceFinalAmount}</strong></td>
