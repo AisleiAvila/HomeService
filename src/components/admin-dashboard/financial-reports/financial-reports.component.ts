@@ -1226,21 +1226,31 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 await new Promise((resolve) => setTimeout(resolve, 200));
                 this.scheduleFinancialTotalsRender();
                 this.scheduleServiceStatusRender();
+                this.scheduleOriginValuesRender();
+                this.scheduleServiceOriginRender();
                 await new Promise((resolve) => setTimeout(resolve, 200));
             }
 
             this.scheduleFinancialTotalsRender();
             this.scheduleServiceStatusRender();
+            this.scheduleOriginValuesRender();
+            this.scheduleServiceOriginRender();
             await new Promise((resolve) => setTimeout(resolve, 150));
 
             const financialCanvas = this.financialTotalsCanvas?.nativeElement;
             const statusCanvas = this.serviceStatusCanvas?.nativeElement;
+            const originValuesCanvas = this.originValuesCanvas?.nativeElement;
+            const serviceOriginCanvas = this.serviceOriginCanvas?.nativeElement;
             const financialChartImage = financialCanvas?.toDataURL("image/png", 1) ?? null;
             const statusChartImage = statusCanvas?.toDataURL("image/png", 1) ?? null;
+            const originValuesChartImage = originValuesCanvas?.toDataURL("image/png", 1) ?? null;
+            const serviceOriginChartImage = serviceOriginCanvas?.toDataURL("image/png", 1) ?? null;
 
             const summaries = this.sortedSummaries();
             const financialLegendItems = this.financialBreakdown();
             const serviceLegendItems = this.serviceStatusSummary();
+            const originValuesLegendItems = this.originValuesSummary();
+            const serviceOriginLegendItems = this.serviceOriginSummary();
             const formatCurrency = (value: number) =>
                 new Intl.NumberFormat("pt-PT", {
                     style: "currency",
@@ -1309,6 +1319,10 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { border: 1px solid #e5e7eb; padding: 10px; font-size: 12px; text-align: left; }
     th { background: #f3f4f6; font-weight: 600; }
+    .category-row { background: #f9fafb; font-weight: 600; }
+    .subcategory-row { background: #f3f4f6; padding-left: 24px; font-weight: 500; }
+    .service-row { background: #ffffff; padding-left: 48px; color: #6b7280; font-size: 11px; }
+    .row-label { display: block; font-size: 9px; text-transform: uppercase; color: #9ca3af; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2px; }
     .footer { margin-top: 24px; text-align: center; font-size: 12px; color: #6b7280; }
   </style>
 </head>
@@ -1385,6 +1399,66 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         </div>`;
             }
 
+            if (originValuesChartImage) {
+                html += `
+    <div class="chart-card">
+      <h3>Valores por Origem</h3>
+      <img src="${originValuesChartImage}" alt="Valores por Origem" />
+            ${
+                    originValuesLegendItems.length
+                            ? `<div class="chart-legend-wrapper">
+                <p class="legend-title">${encodedLegendLabel}</p>
+                <ul class="chart-legend">
+                        ${originValuesLegendItems
+                            .map(
+                                (item, index) => `
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.getOriginColor(item.origin))};"></span>
+                            <span>${encodeHtml(item.origin)}</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(formatCurrency(item.value))}</span>
+                    </li>`
+                            )
+                            .join("")}
+                </ul>
+            </div>`
+                            : ""
+            }
+        </div>`;
+            }
+
+            if (serviceOriginChartImage) {
+                html += `
+    <div class="chart-card">
+      <h3>Serviços por Origem</h3>
+      <img src="${serviceOriginChartImage}" alt="Serviços por Origem" />
+            ${
+                    serviceOriginLegendItems.length
+                            ? `<div class="chart-legend-wrapper">
+                <p class="legend-title">${encodedLegendLabel}</p>
+                <ul class="chart-legend">
+                        ${serviceOriginLegendItems
+                            .map(
+                                (item, index) => `
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.getOriginColor(item.origin))};"></span>
+                            <span>${encodeHtml(item.origin)}</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodedQuantityLabel}: ${encodeHtml(String(item.count))} • ${encodeHtml(
+                                            formatPercentage(item.percentage)
+                                    )}</span>
+                    </li>`
+                            )
+                            .join("")}
+                </ul>
+            </div>`
+                            : ""
+            }
+        </div>`;
+            }
+
             html += `
   </div>
   <h2>Detalhes dos Serviços</h2>
@@ -1412,7 +1486,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                 const finalAmount = encodeHtml(formatCurrency(summary.finalAmount));
                                 const notApplicableValue = encodeHtml(notApplicableLabel);
                                 html += `
-            <tr>
+            <tr class="category-row">
                 <td>${professionalName}</td>
                 <td>${categoryName}</td>
                 <td>${serviceValue}</td>
@@ -1429,9 +1503,9 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                         const subcategoryPendingAmount = encodeHtml(formatCurrency(subcategory.pendingAmount));
                                         const subcategoryFinalAmount = encodeHtml(formatCurrency(subcategory.finalAmount));
                                         html += `
-            <tr>
-                <td>${encodeHtml(`↳ ${subcategoryLabel}`)}</td>
-                <td>${subcategoryName}</td>
+            <tr class="subcategory-row">
+                <td>${professionalName}</td>
+                <td><div style="padding-left: 16px;"><span class="row-label">${encodeHtml(subcategoryLabel)}</span>${subcategoryName}</div></td>
                 <td>${subcategoryServiceValue}</td>
                 <td>${employmentLabel}</td>
                 <td>${subcategoryPaidAmount}</td>
@@ -1446,9 +1520,9 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                                 const servicePendingAmount = encodeHtml(formatCurrency(service.pendingAmount));
                                                 const serviceFinalAmount = encodeHtml(formatCurrency(service.finalAmount));
                                                 html += `
-            <tr>
-                <td>${encodeHtml(`↳↳ ${serviceLabel}`)}</td>
-                <td>${serviceTitle}</td>
+            <tr class="service-row">
+                <td>${professionalName}</td>
+                <td><div style="padding-left: 32px;"><span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}</div></td>
                 <td>${serviceServiceValue}</td>
                 <td>${notApplicableValue}</td>
                 <td>${servicePaidAmount}</td>
