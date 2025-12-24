@@ -1323,6 +1323,12 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     .subcategory-row { background: #f3f4f6; padding-left: 24px; font-weight: 500; }
     .service-row { background: #ffffff; padding-left: 48px; color: #6b7280; font-size: 11px; }
     .row-label { display: block; font-size: 9px; text-transform: uppercase; color: #9ca3af; font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2px; }
+    .filters-section { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin: 20px 0; }
+    .filters-title { font-size: 14px; font-weight: 600; color: #374151; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .filter-item { font-size: 12px; }
+    .filter-label { font-weight: 600; color: #6b7280; display: block; margin-bottom: 4px; }
+    .filter-value { color: #111827; }
     .footer { margin-top: 24px; text-align: center; font-size: 12px; color: #6b7280; }
   </style>
 </head>
@@ -1335,7 +1341,55 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         </div>
     </div>
   <h1>📊 Relatório Financeiro</h1>
-  <p><strong>Data:</strong> ${new Date().toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+  <p><strong>Data:</strong> ${new Date().toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>`;
+
+            // Adicionar filtros aplicados
+            const appliedFilters: string[] = [];
+            const categoryId = this.categoryFilter();
+            const professionalId = this.professionalFilter();
+            const employmentFilter = this.employmentFilter();
+            const startDate = this.startDateFilter();
+            const endDate = this.endDateFilter();
+
+            if (categoryId) {
+                const category = this.categoriesById().get(categoryId);
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Categoria:</span><span class="filter-value">${encodeHtml(category?.name || "-")}</span></div>`);
+            }
+
+            if (professionalId === "unassigned") {
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Profissional:</span><span class="filter-value">${encodeHtml(unassignedLabel)}</span></div>`);
+            } else if (professionalId && typeof professionalId === "number") {
+                const professional = this.usersById().get(professionalId);
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Profissional:</span><span class="filter-value">${encodeHtml(professional?.name || "-")}</span></div>`);
+            }
+
+            if (employmentFilter === "employee") {
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Vínculo:</span><span class="filter-value">Funcionário</span></div>`);
+            } else if (employmentFilter === "independent") {
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Vínculo:</span><span class="filter-value">Prestador</span></div>`);
+            }
+
+            if (startDate) {
+                const formattedDate = new Date(startDate).toLocaleDateString("pt-PT");
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Data Início:</span><span class="filter-value">${encodeHtml(formattedDate)}</span></div>`);
+            }
+
+            if (endDate) {
+                const formattedDate = new Date(endDate).toLocaleDateString("pt-PT");
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Data Fim:</span><span class="filter-value">${encodeHtml(formattedDate)}</span></div>`);
+            }
+
+            if (appliedFilters.length > 0) {
+                html += `
+  <div class="filters-section">
+    <p class="filters-title">Filtros Aplicados</p>
+    <div class="filters-grid">
+      ${appliedFilters.join("")}
+    </div>
+  </div>`;
+            }
+
+            html += `
   <h2>Gráficos</h2>
   <div class="charts">`;
 
@@ -1468,9 +1522,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         <th>${encodeHtml(professionalLabel)}</th>
         <th>${encodeHtml(categoryLabel)}</th>
         <th>Valor Serviço (€)</th>
-        <th>${encodeHtml(paymentLabel)}</th>
-        <th>Valor Pago (€)</th>
         <th>Valor a pagar (€)</th>
+        <th>Valor Pago (€)</th>
         <th>Valor final (€)</th>
       </tr>
     </thead>
@@ -1490,9 +1543,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 <td>${professionalName}</td>
                 <td>${categoryName}</td>
                 <td>${serviceValue}</td>
-                <td>${employmentLabel}</td>
-                <td>${paidAmount}</td>
                 <td>${pendingAmount}</td>
+                <td>${paidAmount}</td>
                 <td><strong>${finalAmount}</strong></td>
             </tr>`;
 
@@ -1507,9 +1559,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 <td></td>
                 <td><div style="padding-left: 16px;"><span class="row-label">${encodeHtml(subcategoryLabel)}</span>${subcategoryName}</div></td>
                 <td>${subcategoryServiceValue}</td>
-                <td>${employmentLabel}</td>
-                <td>${subcategoryPaidAmount}</td>
                 <td>${subcategoryPendingAmount}</td>
+                <td>${subcategoryPaidAmount}</td>
                 <td><strong>${subcategoryFinalAmount}</strong></td>
             </tr>`;
 
@@ -1524,9 +1575,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 <td></td>
                 <td><div style="padding-left: 32px;"><span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}</div></td>
                 <td>${serviceServiceValue}</td>
-                <td>${employmentLabel}</td>
-                <td>${servicePaidAmount}</td>
                 <td>${servicePendingAmount}</td>
+                <td>${servicePaidAmount}</td>
                 <td><strong>${serviceFinalAmount}</strong></td>
             </tr>`;
                                         });
@@ -1535,7 +1585,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
             if (!summaries.length) {
                 html += `
-      <tr><td colspan="7" style="text-align:center; padding:16px;">${encodeHtml(noDataLabel)}</td></tr>`;
+      <tr><td colspan="6" style="text-align:center; padding:16px;">${encodeHtml(noDataLabel)}</td></tr>`;
             }
 
             html += `
