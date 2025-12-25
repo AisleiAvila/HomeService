@@ -85,6 +85,7 @@ export class DashboardComponent implements OnInit {
   filterCategory = signal<string>("");
   filterLocality = signal<string>("");
   filterService = signal<string>("");
+  filterClient = signal<string>("");
   searchTerm = signal<string>("");
 
   // Ordenação
@@ -318,6 +319,22 @@ export class DashboardComponent implements OnInit {
     );
   });
 
+  // Computed para obter lista de clientes únicos ordenados
+  availableClients = computed(() => {
+    const requests = this.userRequests();
+    const clients = new Set<string>();
+    
+    requests.forEach(r => {
+      if (r.client_name && r.client_name.trim()) {
+        clients.add(r.client_name.trim());
+      }
+    });
+    
+    return Array.from(clients).sort((a, b) => 
+      a.localeCompare(b, 'pt-PT', { sensitivity: 'base' })
+    );
+  });
+
   // Computed para filtrar e pesquisar solicitações
   filteredRequests = computed(() => {
     let reqs = this.userRequests();
@@ -359,6 +376,12 @@ export class DashboardComponent implements OnInit {
     const service = this.filterService();
     if (service) {
       reqs = reqs.filter((r) => r.title?.trim() === service);
+    }
+    
+    // Filtro por cliente (comparação exata)
+    const client = this.filterClient();
+    if (client) {
+      reqs = reqs.filter((r) => r.client_name?.trim() === client);
     }
     
     if (search) {
@@ -504,6 +527,13 @@ export class DashboardComponent implements OnInit {
         value: this.filterService(),
       });
     }
+    if (this.filterClient()) {
+      filters.push({
+        type: "client",
+        label: "client",
+        value: this.filterClient(),
+      });
+    }
     if (this.searchTerm()) {
       filters.push({
         type: "search",
@@ -625,6 +655,7 @@ export class DashboardComponent implements OnInit {
     this.filterCategory.set("");
     this.filterLocality.set("");
     this.filterService.set("");
+    this.filterClient.set("");
     this.searchTerm.set("");
   }
 
