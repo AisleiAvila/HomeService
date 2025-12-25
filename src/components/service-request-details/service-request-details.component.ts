@@ -131,7 +131,7 @@ interface ServiceAction {
                   {{ request().description }}
                 </p>
               </div>
-              @if (request().origin) {
+              @if (request().origin && currentUser().role !== 'professional') {
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="origin-label">
                   {{ "origin" | i18n }}
