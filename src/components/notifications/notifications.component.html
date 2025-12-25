@@ -32,10 +32,10 @@
 
   <!-- Dropdown Panel -->
   @if (isOpen()) {
-    <div class="absolute right-0 sm:right-0 mt-2 w-screen max-w-[calc(100vw-1rem)] sm:w-96 sm:max-w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 mx-2 sm:mx-0">
+    <div class="absolute right-0 left-0 sm:left-auto mt-2 w-auto sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 mx-2 sm:mx-0">
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+      <div class="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
           {{ 'notifications' | i18n }}
         </h3>
         <button
@@ -59,41 +59,42 @@
           <!-- Toggle Unread Filter -->
           <button
             (click)="toggleUnreadFilter()"
-            class="notification-btn"
+            class="notification-btn flex-1 sm:flex-none justify-center sm:justify-start"
             [class.notification-btn-active]="showUnreadOnly()"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            <span>{{ (showUnreadOnly() ? 'showAll' : 'unreadNotifications') | i18n }}</span>
+            <span class="text-xs sm:text-sm">{{ (showUnreadOnly() ? 'showAll' : 'unreadNotifications') | i18n }}</span>
           </button>
           
           <!-- Mark All as Read -->
           @if (hasUnread()) {
             <button
               (click)="markAllAsRead()"
-              class="notification-btn"
+              class="notification-btn flex-1 sm:flex-none justify-center sm:justify-start"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" 
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
                   clip-rule="evenodd" />
               </svg>
-              <span>{{ 'markAllAsRead' | i18n }}</span>
+              <span class="text-xs sm:text-sm">{{ 'markAllAsRead' | i18n }}</span>
             </button>
           }
 
           <!-- Delete All Read -->
           <button
             (click)="deleteAllRead()"
-            class="notification-btn notification-btn-danger"
+            class="notification-btn notification-btn-danger min-w-[44px] justify-center"
+            [attr.title]="'deleteAllRead' | i18n"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            <span>{{ 'deleteAllRead' | i18n }}</span>
+            <span class="hidden sm:inline text-xs sm:text-sm">{{ 'deleteAllRead' | i18n }}</span>
           </button>
         </div>
       }
@@ -103,7 +104,7 @@
         @if (hasNotifications()) {
           @for (notification of notifications(); track notification.id) {
             <div
-              class="notification-item w-full px-3 sm:px-4 py-4 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors min-h-[80px]"
+              class="notification-item w-full px-4 sm:px-4 py-3 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 transition-colors"
               [class.bg-blue-50]="!notification.read"
               [class.dark:bg-blue-900/20]="!notification.read"
             >
@@ -111,7 +112,7 @@
                 <!-- Icon -->
                 <button
                   (click)="handleNotificationClick(notification)"
-                  class="text-2xl flex-shrink-0 hover:scale-110 transition-transform"
+                  class="text-xl sm:text-2xl flex-shrink-0 hover:scale-110 transition-transform min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2"
                   [attr.aria-label]="'viewNotification' | i18n"
                 >
                   {{ getNotificationIcon(notification.type) }}
