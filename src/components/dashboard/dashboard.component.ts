@@ -19,6 +19,7 @@ import { ServiceListComponent } from "../service-list/service-list.component";
 import { ServiceRequestDetailsComponent } from "../service-request-details/service-request-details.component";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { extractPtAddressParts } from "../../utils/address-utils";
 
 @Component({
   selector: "app-dashboard",
@@ -82,6 +83,7 @@ export class DashboardComponent implements OnInit {
   filterStartDate = signal<string>("");
   filterEndDate = signal<string>("");
   filterCategory = signal<string>("");
+  filterLocality = signal<string>("");
   searchTerm = signal<string>("");
 
   // Ordenação
@@ -264,6 +266,23 @@ export class DashboardComponent implements OnInit {
     return filtered;
   });
 
+  // Computed para obter lista de localidades únicas ordenadas
+  availableLocalities = computed(() => {
+    const requests = this.userRequests();
+    const localities = new Set<string>();
+    
+    requests.forEach(r => {
+      const addressParts = extractPtAddressParts(r);
+      if (addressParts.locality && addressParts.locality.trim()) {
+        localities.add(addressParts.locality.trim());
+      }
+    });
+    
+    return Array.from(localities).sort((a, b) => 
+      a.localeCompare(b, 'pt-PT', { sensitivity: 'base' })
+    );
+  });
+
   // Computed para filtrar e pesquisar solicitações
   filteredRequests = computed(() => {
     let reqs = this.userRequests();
@@ -291,6 +310,15 @@ export class DashboardComponent implements OnInit {
     }
 
     if (category) reqs = reqs.filter((r) => String(r.category_id) === category);
+    
+    // Filtro por localidade (comparação exata)
+    const locality = this.filterLocality();
+    if (locality) {
+      reqs = reqs.filter((r) => {
+        const addressParts = extractPtAddressParts(r);
+        return addressParts.locality?.trim() === locality;
+      });
+    }
     
     if (search) {
       reqs = reqs.filter(
@@ -421,6 +449,13 @@ export class DashboardComponent implements OnInit {
         value: catName,
       });
     }
+    if (this.filterLocality()) {
+      filters.push({
+        type: "locality",
+        label: "locality",
+        value: this.filterLocality(),
+      });
+    }
     if (this.searchTerm()) {
       filters.push({
         type: "search",
@@ -540,11 +575,12 @@ export class DashboardComponent implements OnInit {
     this.filterStartDate.set("");
     this.filterEndDate.set("");
     this.filterCategory.set("");
+    this.filterLocality.set("");
     this.searchTerm.set("");
   }
 
   removeFilter(
-    filterType: "status" | "period" | "category" | "search"
+    filterType: "status" | "period" | "category" | "locality" | "search"
   ) {
     switch (filterType) {
       case "status":
@@ -556,6 +592,12 @@ export class DashboardComponent implements OnInit {
         break;
       case "category":
         this.filterCategory.set("");
+        break;
+      case "locality":
+        this.filterLocality.set("");
+        break;
+      case "locality":
+        this.filterLocality.set("");
         break;
       case "search":
         this.searchTerm.set("");
