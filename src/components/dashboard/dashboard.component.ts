@@ -84,6 +84,7 @@ export class DashboardComponent implements OnInit {
   filterEndDate = signal<string>("");
   filterCategory = signal<string>("");
   filterLocality = signal<string>("");
+  filterService = signal<string>("");
   searchTerm = signal<string>("");
 
   // Ordenação
@@ -233,6 +234,24 @@ export class DashboardComponent implements OnInit {
       }))
     );
 
+    // Inicializar filtros de data para profissionais
+    const currentUser = this.user();
+    if (currentUser?.role === 'professional') {
+      const today = new Date();
+      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      // Formato YYYY-MM-DD para inputs de data
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      this.filterStartDate.set(formatDate(firstDayOfMonth));
+      this.filterEndDate.set(formatDate(today));
+    }
+
     // Recarrega as solicitações quando o componente é inicializado
     console.log('[Dashboard] ngOnInit - Recarregando solicitações de serviço');
     this.dataService.reloadServiceRequests();
@@ -283,6 +302,22 @@ export class DashboardComponent implements OnInit {
     );
   });
 
+  // Computed para obter lista de serviços (títulos) únicos ordenados
+  availableServices = computed(() => {
+    const requests = this.userRequests();
+    const services = new Set<string>();
+    
+    requests.forEach(r => {
+      if (r.title && r.title.trim()) {
+        services.add(r.title.trim());
+      }
+    });
+    
+    return Array.from(services).sort((a, b) => 
+      a.localeCompare(b, 'pt-PT', { sensitivity: 'base' })
+    );
+  });
+
   // Computed para filtrar e pesquisar solicitações
   filteredRequests = computed(() => {
     let reqs = this.userRequests();
@@ -318,6 +353,12 @@ export class DashboardComponent implements OnInit {
         const addressParts = extractPtAddressParts(r);
         return addressParts.locality?.trim() === locality;
       });
+    }
+    
+    // Filtro por serviço/título (comparação exata)
+    const service = this.filterService();
+    if (service) {
+      reqs = reqs.filter((r) => r.title?.trim() === service);
     }
     
     if (search) {
@@ -456,6 +497,13 @@ export class DashboardComponent implements OnInit {
         value: this.filterLocality(),
       });
     }
+    if (this.filterService()) {
+      filters.push({
+        type: "service",
+        label: "service",
+        value: this.filterService(),
+      });
+    }
     if (this.searchTerm()) {
       filters.push({
         type: "search",
@@ -576,11 +624,12 @@ export class DashboardComponent implements OnInit {
     this.filterEndDate.set("");
     this.filterCategory.set("");
     this.filterLocality.set("");
+    this.filterService.set("");
     this.searchTerm.set("");
   }
 
   removeFilter(
-    filterType: "status" | "period" | "category" | "locality" | "search"
+    filterType: "status" | "period" | "category" | "locality" | "service" | "search"
   ) {
     switch (filterType) {
       case "status":
@@ -595,6 +644,9 @@ export class DashboardComponent implements OnInit {
         break;
       case "locality":
         this.filterLocality.set("");
+        break;
+      case "service":
+        this.filterService.set("");
         break;
       case "locality":
         this.filterLocality.set("");

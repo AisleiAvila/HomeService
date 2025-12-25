@@ -79,8 +79,8 @@
         <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ "advancedFilters" | i18n }}</span>
       </div>
 
-      <!-- Grid responsivo para filtros: 1 coluna em móvel, 2 em tablet, 5 em desktop -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
+      <!-- Grid responsivo para filtros: 1 coluna em móvel, 2 em tablet, 6 em desktop -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-end">
         <!-- Status Filter -->
         <div>
           <label for="filter-status" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
@@ -159,6 +159,24 @@
             <option value="">{{ "all" | i18n }}</option>
             @for(locality of availableLocalities(); track locality) {
             <option [value]="locality">{{ locality }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Service Filter -->
+        <div>
+          <label for="filter-service" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
+            "service" | i18n
+          }}</label>
+          <select
+            id="filter-service"
+            [ngModel]="filterService()"
+            (ngModelChange)="filterService.set($event)"
+            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
+          >
+            <option value="">{{ "all" | i18n }}</option>
+            @for(service of availableServices(); track service) {
+            <option [value]="service">{{ service }}</option>
             }
           </select>
         </div>
