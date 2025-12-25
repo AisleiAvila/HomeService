@@ -1,4 +1,4 @@
-<div class="relative notifications-container">
+<div class="notifications-container">
   <!-- Notification Bell Button -->
   <button
     (click)="toggleDropdown()"
@@ -32,7 +32,11 @@
 
   <!-- Dropdown Panel -->
   @if (isOpen()) {
-    <div class="fixed sm:absolute right-2 left-2 sm:right-0 sm:left-auto top-16 sm:top-auto sm:mt-2 w-auto sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[100] sm:z-50 mx-0">
+    <!-- Backdrop for mobile -->
+    <div class="fixed inset-0 z-[999] sm:hidden" (click)="closeDropdown()"></div>
+    
+    <!-- Dropdown -->
+    <div class="fixed sm:absolute left-0 right-0 sm:right-0 sm:left-auto top-[60px] sm:top-auto sm:mt-2 mx-2 sm:mx-0 w-auto sm:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-[1000] sm:z-50 max-h-[calc(100vh-80px)] sm:max-h-[600px] overflow-hidden flex flex-col">
       <!-- Header -->
       <div class="flex items-center justify-between px-4 sm:px-4 py-4 sm:py-3 border-b border-gray-200 dark:border-gray-700">
         <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
@@ -100,7 +104,7 @@
       }
 
       <!-- Notifications List -->
-      <div class="max-h-[50vh] sm:max-h-96 overflow-y-auto">
+      <div class="overflow-y-auto flex-1">
         @if (hasNotifications()) {
           @for (notification of notifications(); track notification.id) {
             <div
