@@ -660,7 +660,7 @@ export class DashboardComponent implements OnInit {
   }
 
   removeFilter(
-    filterType: "status" | "period" | "category" | "locality" | "service" | "search"
+    filterType: "status" | "period" | "category" | "locality" | "service" | "client" | "search"
   ) {
     switch (filterType) {
       case "status":
@@ -679,8 +679,8 @@ export class DashboardComponent implements OnInit {
       case "service":
         this.filterService.set("");
         break;
-      case "locality":
-        this.filterLocality.set("");
+      case "client":
+        this.filterClient.set("");
         break;
       case "search":
         this.searchTerm.set("");
