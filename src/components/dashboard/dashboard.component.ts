@@ -79,6 +79,8 @@ export class DashboardComponent implements OnInit {
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
+  // Signal para controlar expansão dos filtros
+  filtersExpanded = signal<boolean>(true);
   filterStatus = signal<string>("");
   filterStartDate = signal<string>("");
   filterEndDate = signal<string>("");
@@ -114,6 +116,11 @@ export class DashboardComponent implements OnInit {
   // Método para alternar a ordem de ordenação
   toggleSortOrder() {
     this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
+  }
+
+  // Método para alternar expansão dos filtros
+  toggleFilters() {
+    this.filtersExpanded.set(!this.filtersExpanded());
   }
 
   quickFilterOptions = [

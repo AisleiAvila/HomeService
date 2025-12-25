@@ -73,12 +73,25 @@
   <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-lg dark:border-neutral-700 overflow-hidden border border-gray-200 dark:border-neutral-700">
     <!-- Filtros Avançados e Pesquisa -->
     <div class="p-4 border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 space-y-4">
-      <!-- Filtros Avançados -->
-      <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-sliders-h text-brand-primary-500"></i>
-        <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ "advancedFilters" | i18n }}</span>
+      <!-- Cabeçalho dos Filtros com Botão Toggle -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-sliders-h text-brand-primary-500"></i>
+          <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ "advancedFilters" | i18n }}</span>
+        </div>
+        <button
+          (click)="toggleFilters()"
+          class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded transition"
+          [attr.aria-expanded]="filtersExpanded()"
+          aria-label="Toggle filters"
+        >
+          <span>{{ filtersExpanded() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}</span>
+          <i [class]="filtersExpanded() ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+        </button>
       </div>
 
+      <!-- Filtros (retráteis) -->
+      @if (filtersExpanded()) {
       <!-- Grid responsivo para filtros: 1 coluna em móvel, 2 em tablet, 7 em desktop -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 items-end">
         <!-- Service Filter -->
@@ -209,6 +222,7 @@
           {{ "clearFilters" | i18n }}
         </button>
       </div>
+      }
 
       <!-- Indicadores de Filtros Ativos (responsivo) -->
       @if (activeFilters().length > 0) {
