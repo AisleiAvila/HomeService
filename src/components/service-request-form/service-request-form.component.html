@@ -50,20 +50,30 @@
 
     <!-- Ordem correta dos campos -->
     <div class="p-6 bg-white dark:bg-gray-800">
-      <!-- Origem da Solicitação -->
-      <div class="flex items-center gap-2 mb-4">
-        <i class="fas fa-building text-brand-primary-600"></i>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'requestOrigin' | i18n }}</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Origem da Solicitação -->
+        <div class="mb-4">
+          <label for="origin_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <i class="fas fa-building text-brand-primary-500 mr-2 text-xs"></i>
+            {{ 'origin' | i18n }}
+          </label>
+          <select id="origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
+            <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
+            <ng-container *ngFor="let origin of origins()">
+              <option [value]="origin.id">{{ origin.name }}</option>
+            </ng-container>
+          </select>
+        </div>
+        
+        <!-- Campo OS (Ordem de Serviço) -->
+        <div class="mb-4">
+          <label for="os" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <i class="fas fa-file-invoice text-brand-primary-500 mr-2 text-xs"></i>
+            {{ 'osOptional' | i18n }}</label>
+          <input type="text" id="os" [value]="os()" (input)="os.set($event.target.value)" pattern="[0-9]*" inputmode="numeric" maxlength="30" placeholder="Ex: 2816446" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+        </div>
       </div>
-      <div class="mb-4">
-        <label for="origin_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ 'origin' | i18n }}</label>
-        <select id="origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
-          <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
-          <ng-container *ngFor="let origin of origins()">
-            <option [value]="origin.id">{{ origin.name }}</option>
-          </ng-container>
-        </select>
-      </div>
+      
 
       <!-- Categoria do Serviço (Categoria/Subcategoria) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -126,7 +136,9 @@
       <!-- Valor Total / Valor do Prestador -->
       <div class="flex gap-4 mb-4">
         <div class="w-1/2">
-          <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor Total (€)</label>
+          <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <i class="fas fa-euro-sign text-brand-primary-500 mr-2 text-xs"></i>
+            Valor Total</label>
           <input
             id="valor"
             type="number"
@@ -139,7 +151,9 @@
           />
         </div>
         <div class="w-1/2">
-          <label for="valor_prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor do Prestador (€)</label>
+          <label for="valor_prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <i class="fas fa-euro-sign text-brand-primary-500 mr-2 text-xs"></i>
+            Valor do Prestador</label>
           <input
             id="valor_prestador"
             type="number"

@@ -475,6 +475,7 @@ export class DataService {
       category_id: payload.category_id,
       subcategory_id: payload.subcategory_id, // Agora é obrigatório
       origin_id: payload.origin_id,
+      os: payload.os,
       street: payload.address.street,
       street_number: payload.address.street_number,
       street_manual: payload.street_manual,
@@ -522,7 +523,7 @@ export class DataService {
     }
 
     this.notificationService.addNotification(
-      "Service request created successfully!"
+      this.i18n.translate('serviceRequestCreated')
     );
     // Reload service requests to show the new one
     if (currentUser) {
@@ -545,6 +546,7 @@ export class DataService {
       category_id: payload.category_id,
       subcategory_id: payload.subcategory_id,
       origin_id: payload.origin_id,
+      os: payload.os,
       status: "Solicitado",
       payment_status: "Unpaid" as const,
       created_by_admin: true,
@@ -577,7 +579,7 @@ export class DataService {
     }
 
     this.notificationService.addNotification(
-      "Admin service request created successfully!"
+      this.i18n.translate('adminServiceRequestCreated')
     );
     if (currentUser) {
       await this.fetchServiceRequests(currentUser);

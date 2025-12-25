@@ -31,6 +31,8 @@ export class ServiceRequestFormComponent implements OnInit {
     // Sinal para origens de solicitação
     origins = inject(DataService).origins;
     origin_id = signal<number>(0);
+    // Signal para Ordem de Serviço (OS)
+    os = signal<string>("");
   // Propriedade para controlar se o campo foi tocado/interagido
   touched: {
     title: boolean;
@@ -569,6 +571,7 @@ export class ServiceRequestFormComponent implements OnInit {
         category_id: this.category_id(),
         subcategory_id: this.subcategory_id(),
         origin_id: this.origin_id(),
+        os: this.os() || null,
         address,
         requested_datetime: this.requestedDateTime(),
         priority: (this.priority() || undefined) as 'Normal' | 'Urgent' | undefined,

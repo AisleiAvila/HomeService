@@ -141,6 +141,16 @@ interface ServiceAction {
                 </p>
               </div>
               }
+              @if (currentUser().role === 'admin') {
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="os-label">
+                  {{ "osNumber" | i18n }}
+                </label>
+                <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'os-label'">
+                  {{ request().os || "—" }}
+                </p>
+              </div>
+              }
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="category-label">
                   {{ "category" | i18n }}

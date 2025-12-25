@@ -173,6 +173,9 @@ export interface ServiceRequest {
   origin_id?: number; // FK para service_request_origins
   origin?: ServiceRequestOrigin; // Objeto populado via JOIN
   
+  // Ordem de Serviço (OS)
+  os?: string | null; // Número da ordem de serviço (campo numérico não obrigatório)
+  
   // DADOS DO PROFISSIONAL
   professional_id: number | null;
   professional_name?: string; // Denormalized for convenience
@@ -444,6 +447,7 @@ export interface ServiceRequestPayload {
   category_id: number;
   subcategory_id: number; // Agora obrigatório
   origin_id?: number;
+  os?: string | null; // Ordem de Serviço (opcional, numérico)
   address: Address;
   requested_datetime: string; // Data e hora solicitada (ISO string) - OBRIGATÓRIO
   priority?: 'Normal' | 'Urgent'; // Prioridade da solicitação

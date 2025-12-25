@@ -27,6 +27,7 @@ export class ServiceRequestsComponent implements OnInit {
         // Recarrega a lista de solicitações quando o componente é inicializado
         console.log('[ServiceRequestsComponent] Inicializando - recarregando dados de solicitações');
         this.dataService.reloadServiceRequests();
+        this.dataService.fetchOrigins();
     }
 
     async processPayment(request: ServiceRequest) {
@@ -126,6 +127,8 @@ export class ServiceRequestsComponent implements OnInit {
     filterDistrict = signal<string>("");
     filterProfessional = signal<string>("");
     filterPayment = signal<string>("");
+    filterOrigin = signal<number | "">("");
+    filterOS = signal<string>("");
     showFilters = signal(true);
 
     // Signals for sorting
@@ -216,6 +219,8 @@ viewDetails = output<ServiceRequest>();
         this.dataService.users().filter(u => u.role === 'professional' && u.status === 'Active')
     );
 
+    originOptions = computed(() => this.dataService.origins());
+
     clientOptions = computed(() => {
         const requests = this.dataService.serviceRequests();
         const uniqueClients = new Set<string>();
@@ -241,6 +246,8 @@ viewDetails = output<ServiceRequest>();
         const district = this.filterDistrict();
         const professional = this.filterProfessional();
         const payment = this.filterPayment();
+        const origin = this.filterOrigin();
+        const os = this.filterOS();
 
         if (status) reqs = reqs.filter((r) => r.status === status);
         if (client) reqs = reqs.filter((r) => r.client_name === client);
@@ -263,6 +270,8 @@ viewDetails = output<ServiceRequest>();
                 (r) => String(r.professional_id) === String(professional)
             );
         if (payment) reqs = reqs.filter((r) => r.payment_status === payment);
+        if (origin) reqs = reqs.filter((r) => r.origin_id === origin);
+        if (os) reqs = reqs.filter((r) => r.os && r.os.toLowerCase().includes(os.toLowerCase()));
 
         return this.sortRequests(reqs);
     });
@@ -342,13 +351,15 @@ viewDetails = output<ServiceRequest>();
         this.filterDistrict.set("");
         this.filterProfessional.set("");
         this.filterPayment.set("");
+        this.filterOrigin.set("");
+        this.filterOS.set("");
     }
 
     toggleFilters() {
         this.showFilters.update((current) => !current);
     }
 
-    removeFilter(filterType: "status" | "period" | "district" | "professional" | "payment" | "client") {
+    removeFilter(filterType: "status" | "period" | "district" | "professional" | "payment" | "client" | "origin" | "os") {
         switch (filterType) {
             case "status": this.filterStatus.set(""); break;
             case "client": this.filterClient.set(""); break;
@@ -356,6 +367,8 @@ viewDetails = output<ServiceRequest>();
             case "district": this.filterDistrict.set(""); break;
             case "professional": this.filterProfessional.set(""); break;
             case "payment": this.filterPayment.set(""); break;
+            case "origin": this.filterOrigin.set(""); break;
+            case "os": this.filterOS.set(""); break;
         }
     }
 
@@ -379,6 +392,13 @@ viewDetails = output<ServiceRequest>();
         }
         if (this.filterPayment()) {
             filters.push({ type: "payment", label: "paymentStatus", value: this.filterPayment() });
+        }
+        if (this.filterOrigin()) {
+            const originName = this.originOptions().find(o => o.id === this.filterOrigin())?.name || "";
+            filters.push({ type: "origin", label: "origin", value: originName });
+        }
+        if (this.filterOS()) {
+            filters.push({ type: "os", label: "os", value: this.filterOS() });
         }
         return filters;
     });

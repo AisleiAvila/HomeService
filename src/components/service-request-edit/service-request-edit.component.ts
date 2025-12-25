@@ -85,6 +85,12 @@ export class ServiceRequestEditComponent implements OnInit {
     ]).then(() => {
       this.request = this.dataService.getServiceRequestById(id) || null;
       console.log('Edit request loaded:', this.request);
+      console.log('Origin ID:', this.request?.origin_id);
+      console.log('Category ID:', this.request?.category_id);
+      console.log('Subcategory ID:', this.request?.subcategory_id);
+      console.log('Available origins:', this.origins);
+      console.log('Available categories:', this.categories());
+      console.log('Available subcategories:', this.subcategories());
       
       // Inicializar campos de endereço derivados
       if (this.request) {
@@ -242,6 +248,7 @@ export class ServiceRequestEditComponent implements OnInit {
         category_id: this.request.category_id,
         subcategory_id: this.request.subcategory_id,
         origin_id: this.request.origin_id,
+        os: this.request.os,
         client_name: this.request.client_name,
         client_phone: this.request.client_phone,
         client_nif: this.request.client_nif,

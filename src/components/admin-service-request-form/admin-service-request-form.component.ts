@@ -24,6 +24,7 @@ export interface AdminServiceRequestPayload {
   category_id: number;
   subcategory_id: number;
   origin_id: number;
+  os?: string | null;
   requester_name: string;
   requester_phone: string;
   requester_nif?: string;
@@ -91,6 +92,7 @@ export class AdminServiceRequestFormComponent {
     category_id: 0,
     subcategory_id: 0,
     origin_id: 0,
+    os: null,
     requester_name: "",
     requester_phone: "",
     requester_nif: "",
