@@ -17,6 +17,14 @@
 /* Prevent horizontal scroll on mobile */
 .notifications-container {
   max-width: 100vw;
+  position: relative;
+}
+
+/* Ensure dropdown is visible on mobile */
+@media (max-width: 639px) {
+  .notifications-container {
+    position: static;
+  }
 }
 
 /* Smooth scrolling for notification list */
@@ -83,6 +91,7 @@
 @media (min-width: 640px) {
   .notifications-container {
     position: relative;
+    overflow: visible;
   }
 }
 
