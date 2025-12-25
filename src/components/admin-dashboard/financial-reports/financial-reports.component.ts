@@ -372,10 +372,16 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         };
 
         this.filteredRequests().forEach((request) => {
-            totals.serviceValue += this.getServiceValue(request);
-            totals.paidProviders += this.getPaidAmount(request);
-            totals.unpaidProviders += this.getPendingAmount(request);
+            const paidAmount = this.getPaidAmount(request);
+            const pendingAmount = this.getPendingAmount(request);
+            totals.paidProviders += paidAmount;
+            totals.unpaidProviders += pendingAmount;
         });
+
+        // Total deve ser igual à soma de Pago + Não pago
+        totals.serviceValue = totals.paidProviders + totals.unpaidProviders;
+
+        console.log('💰 [FinancialBreakdown] Pago:', totals.paidProviders, 'Não pago:', totals.unpaidProviders, 'Total calculado:', totals.serviceValue);
 
         const maxValue = Math.max(totals.serviceValue, totals.paidProviders, totals.unpaidProviders, 1);
 
