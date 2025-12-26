@@ -290,28 +290,49 @@ export class DataService {
       return false;
     }
 
-    const { error } = await this.supabase.client
-      .from('service_requests')
-      .delete()
-      .eq('id', requestId);
+    try {
+      // 1. Primeiro, excluir todas as notificações relacionadas
+      console.log('[DataService] Excluindo notificações relacionadas ao pedido:', requestId);
+      const { error: notifError } = await this.supabase.client
+        .from('enhanced_notifications')
+        .delete()
+        .eq('service_request_id', requestId);
 
-    if (error) {
-      console.error('[DataService] Erro ao excluir solicitação:', error);
+      if (notifError) {
+        console.warn('[DataService] Aviso ao excluir notificações:', notifError);
+        // Continuar mesmo se houver erro nas notificações
+      }
+
+      // 2. Agora excluir a solicitação de serviço
+      const { error } = await this.supabase.client
+        .from('service_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) {
+        console.error('[DataService] Erro ao excluir solicitação:', error);
+        this.notificationService.addNotification(
+          this.i18n.translate('errorDeletingRequest') || 'Erro ao excluir solicitação.'
+        );
+        return false;
+      }
+
+      this.serviceRequests.update((requests) =>
+        requests.filter((request) => request.id !== requestId)
+      );
+
+      this.notificationService.addNotification(
+        this.i18n.translate('serviceRequestDeleted') || 'Solicitação excluída com sucesso.'
+      );
+
+      return true;
+    } catch (error) {
+      console.error('[DataService] Erro inesperado ao excluir solicitação:', error);
       this.notificationService.addNotification(
         this.i18n.translate('errorDeletingRequest') || 'Erro ao excluir solicitação.'
       );
       return false;
     }
-
-    this.serviceRequests.update((requests) =>
-      requests.filter((request) => request.id !== requestId)
-    );
-
-    this.notificationService.addNotification(
-      this.i18n.translate('serviceRequestDeleted') || 'Solicitação excluída com sucesso.'
-    );
-
-    return true;
   }
 
   async fetchCategories() {

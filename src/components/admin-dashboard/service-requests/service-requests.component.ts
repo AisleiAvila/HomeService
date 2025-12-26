@@ -505,6 +505,12 @@ viewDetails = output<ServiceRequest>();
         if (!request) {
             return false;
         }
+        
+        // Não permitir exclusão se houver profissional associado
+        if (request.professional_id) {
+            return false;
+        }
+        
         const normalizedStatus = (request.status || "").trim().toLowerCase();
         return this.deletableStatuses.has(normalizedStatus);
     }
