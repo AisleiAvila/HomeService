@@ -271,7 +271,7 @@ viewDetails = output<ServiceRequest>();
             );
         if (payment) reqs = reqs.filter((r) => r.payment_status === payment);
         if (origin) reqs = reqs.filter((r) => r.origin_id === origin);
-        if (os) reqs = reqs.filter((r) => r.os && r.os.toLowerCase().includes(os.toLowerCase()));
+        if (os) reqs = reqs.filter((r) => r.os?.toLowerCase().includes(os.toLowerCase()));
 
         return this.sortRequests(reqs);
     });
@@ -492,7 +492,7 @@ viewDetails = output<ServiceRequest>();
             return false;
         }
         const user = this.currentUser();
-        if (!user || user.role !== "admin") {
+        if (user?.role !== "admin") {
             return false;
         }
         const paymentConfirmed =
