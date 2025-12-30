@@ -29,10 +29,15 @@ app.use(cors(corsOptions));
 
 // Configuração Supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE;
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY não configurada. Sessões expiráveis não funcionarão.');
+  console.warn(
+    '⚠️ SUPABASE_SERVICE_ROLE_KEY não configurada. Para login local com sessão expiráveis, adicione SUPABASE_SERVICE_ROLE_KEY no arquivo .env e reinicie o servidor.'
+  );
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
@@ -84,7 +89,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     if (!SUPABASE_SERVICE_ROLE_KEY) {
-      return res.status(500).json({
+      return res.status(503).json({
         success: false,
         error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)'
       });
@@ -142,7 +147,7 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/session', async (req, res) => {
   try {
     if (!SUPABASE_SERVICE_ROLE_KEY) {
-      return res.status(500).json({
+      return res.status(503).json({
         success: false,
         error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)'
       });

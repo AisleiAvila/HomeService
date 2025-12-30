@@ -87,7 +87,16 @@ export class AuthService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const result = await res.json();
+
+      const text = await res.text();
+      const result: any = (() => {
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { success: false, error: text || 'Resposta inválida do servidor' };
+        }
+      })();
+
       // Aceita apenas autenticação via backend próprio
       const user = result.user as User | undefined;
       const session = result.session as { token: string; expiresAt: string } | undefined;
@@ -100,13 +109,17 @@ export class AuthService {
         console.log("👤 Nome recebido do backend:", user.name);
         return user;
       } else {
-        this.notificationService.addNotification(result.error || 'Credenciais inválidas');
-        return null;
+        // 401/400: tratar como falha de autenticação (UI mostra credenciais inválidas)
+        if (res.status === 401 || res.status === 400) {
+          return null;
+        }
+
+        // Outros erros (ex.: 503/500): deixar UI tratar como erro do servidor
+        throw new Error(result?.error || 'Erro no servidor de autenticação');
       }
     } catch (err) {
       console.error("Erro ao conectar ao servidor de login:", err);
-      this.notificationService.addNotification('Erro ao conectar ao servidor de login.');
-      return null;
+      throw err;
     }
   }
 
