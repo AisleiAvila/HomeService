@@ -3,12 +3,28 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !serviceRoleKey) return null;
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
+  }
+
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return res.status(500).json({
+      success: false,
+      error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)'
+    });
   }
 
   let body = req.body;
@@ -56,8 +72,41 @@ export default async function handler(req, res) {
 
   // Login bem-sucedido
   console.log('[LOGIN] Login bem-sucedido:', { user });
+
+  // Invalidar sessões anteriores (single-session)
+  const nowIso = new Date().toISOString();
+  await supabase
+    .from('user_sessions')
+    .update({ revoked_at: nowIso, revoked_reason: 'new login' })
+    .eq('user_id', user.id)
+    .is('revoked_at', null);
+
+  // Criar nova sessão (token opaco)
+  const ttlHours = Number(process.env.SESSION_TTL_HOURS || 8);
+  const token = crypto.randomBytes(32).toString('base64url');
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
+
+  await supabase.from('user_sessions').insert({
+    user_id: user.id,
+    token_hash: tokenHash,
+    expires_at: expiresAt,
+    user_agent: req.headers['user-agent'] || null,
+  });
+
+  // Remover campos sensíveis
+  const {
+    password,
+    password_hash,
+    reset_token,
+    reset_token_expiry,
+    confirmation_token,
+    ...safeUser
+  } = user || {};
+
   return res.status(200).json({
     success: true,
-    user
+    user: safeUser,
+    session: { token, expiresAt }
   });
 }

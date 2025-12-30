@@ -29,9 +29,23 @@ app.use(cors(corsOptions));
 
 // Configuração Supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY não configurada. Sessões expiráveis não funcionarão.');
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function sanitizeUserRow(row) {
+  if (!row) return row;
+  const { password, password_hash, reset_token, reset_token_expiry, confirmation_token, ...safe } = row;
+  return safe;
+}
 
 /**
  * POST /api/login
@@ -69,18 +83,47 @@ app.post('/api/login', async (req, res) => {
       });
     }
 
-    // Sucesso - retornar dados do utilizador
-    res.json({ 
-      success: true, 
-      user: {
-        id: data.id || email,
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)'
+      });
+    }
+
+    // Invalidar sessões anteriores (single-session)
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from('user_sessions')
+      .update({ revoked_at: nowIso, revoked_reason: 'new login' })
+      .eq('user_id', data.id)
+      .is('revoked_at', null);
+
+    // Criar nova sessão (token opaco)
+    const ttlHours = Number(process.env.SESSION_TTL_HOURS || 8);
+    const token = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = hashToken(token);
+    const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
+
+    await supabase.from('user_sessions').insert({
+      user_id: data.id,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+      user_agent: req.headers['user-agent'] || null,
+    });
+
+    res.json({
+      success: true,
+      user: sanitizeUserRow({
+        id: data.id,
         email: data.email,
         name: data.name,
         role: data.role,
         status: data.status,
         phone: data.phone,
-        specialty: data.specialty
-      } 
+        specialty: data.specialty,
+        avatar_url: data.avatar_url,
+      }),
+      session: { token, expiresAt }
     });
   } catch (err) {
     console.error('❌ Erro em /api/login:', err.message);
@@ -88,6 +131,80 @@ app.post('/api/login', async (req, res) => {
       success: false, 
       error: 'Erro ao processar login: ' + err.message 
     });
+  }
+});
+
+/**
+ * POST /api/session
+ * Body: { action: 'validate' | 'revoke', token?: string, reason?: string }
+ * Também aceita Authorization: Bearer <token>
+ */
+app.post('/api/session', async (req, res) => {
+  try {
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)'
+      });
+    }
+
+    const action = req.body?.action;
+    const auth = req.headers.authorization || '';
+    const bearerMatch = typeof auth === 'string' ? auth.match(/^Bearer\s+(.+)$/i) : null;
+    const token = req.body?.token || (bearerMatch ? bearerMatch[1] : null);
+
+    if (!action || (action !== 'validate' && action !== 'revoke')) {
+      return res.status(400).json({ success: false, error: 'Ação inválida' });
+    }
+    if (!token) {
+      return res.status(401).json({ success: false, error: 'Token ausente' });
+    }
+
+    const tokenHash = hashToken(token);
+    const nowIso = new Date().toISOString();
+
+    if (action === 'revoke') {
+      await supabase
+        .from('user_sessions')
+        .update({ revoked_at: nowIso, revoked_reason: req.body?.reason || 'logout' })
+        .eq('token_hash', tokenHash)
+        .is('revoked_at', null);
+      return res.json({ success: true });
+    }
+
+    const { data: session, error: sessionError } = await supabase
+      .from('user_sessions')
+      .select('id,user_id,expires_at,revoked_at')
+      .eq('token_hash', tokenHash)
+      .maybeSingle();
+
+    if (sessionError) {
+      return res.status(500).json({ success: false, error: sessionError.message });
+    }
+
+    if (!session || session.revoked_at || new Date(session.expires_at).getTime() <= Date.now()) {
+      return res.status(401).json({ success: false, error: 'Sessão inválida ou expirada' });
+    }
+
+    await supabase
+      .from('user_sessions')
+      .update({ last_seen_at: nowIso })
+      .eq('id', session.id);
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id,email,name,role,status,phone,specialty,avatar_url')
+      .eq('id', session.user_id)
+      .single();
+
+    if (userError) {
+      return res.status(500).json({ success: false, error: userError.message });
+    }
+
+    return res.json({ success: true, user: sanitizeUserRow(user), session: { expiresAt: session.expires_at } });
+  } catch (err) {
+    console.error('❌ Erro em /api/session:', err.message);
+    return res.status(500).json({ success: false, error: 'Erro ao processar sessão' });
   }
 });
 

@@ -15,6 +15,68 @@ export class AuthService {
     private readonly supabaseUser = this.supabase.currentUser;
     readonly appUser = signal<User | null>(null);
     readonly pendingEmailConfirmation = signal<string | null>(null);
+
+  private readonly sessionStorageKey = "homeservice_session";
+  private sessionExpiryTimer: number | null = null;
+
+  private readStoredSession(): { token: string; expiresAt: string; user?: User } | null {
+    try {
+      const raw = sessionStorage.getItem(this.sessionStorageKey);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  private writeStoredSession(session: { token: string; expiresAt: string; user: User }): void {
+    sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(session));
+  }
+
+  private clearStoredSession(): void {
+    sessionStorage.removeItem(this.sessionStorageKey);
+  }
+
+  private scheduleAutoLogout(expiresAtIso: string): void {
+    if (this.sessionExpiryTimer) {
+      clearTimeout(this.sessionExpiryTimer);
+      this.sessionExpiryTimer = null;
+    }
+
+    const ms = new Date(expiresAtIso).getTime() - Date.now();
+    if (!Number.isFinite(ms) || ms <= 0) {
+      // already expired
+      queueMicrotask(() => void this.logout());
+      return;
+    }
+
+    this.sessionExpiryTimer = window.setTimeout(() => {
+      void this.logout();
+    }, ms);
+  }
+
+  private revokeSessionOnExit(): void {
+    const stored = this.readStoredSession();
+    if (!stored?.token) return;
+
+    const payload = JSON.stringify({ action: "revoke", token: stored.token, reason: "exit" });
+    const url = environment.sessionApiUrl;
+
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([payload], { type: "application/json" }));
+      } else {
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => undefined);
+      }
+    } catch {
+      // best-effort
+    }
+  }
   /**
    * Login customizado via backend próprio
    */
@@ -27,11 +89,12 @@ export class AuthService {
       });
       const result = await res.json();
       // Aceita apenas autenticação via backend próprio
-      const user = result.user;
-      if (res.ok && result.success && user) {
+      const user = result.user as User | undefined;
+      const session = result.session as { token: string; expiresAt: string } | undefined;
+      if (res.ok && result.success && user && session?.token && session?.expiresAt) {
         this.appUser.set(user);
-        // Persistir sessão no localStorage para recuperar após refresh
-        this.saveSessionToStorage(user);
+        this.writeStoredSession({ token: session.token, expiresAt: session.expiresAt, user });
+        this.scheduleAutoLogout(session.expiresAt);
         console.log("✅ Usuário autenticado e sessão salva:", user.email);
         console.log("📷 Avatar URL recebido do backend:", user.avatar_url);
         console.log("👤 Nome recebido do backend:", user.name);
@@ -48,54 +111,62 @@ export class AuthService {
   }
 
   /**
-   * Salva a sessão do usuário no localStorage
-   */
-  private saveSessionToStorage(user: User): void {
-    try {
-      localStorage.setItem("homeservice_user_session", JSON.stringify(user));
-      console.log("💾 Sessão salva no localStorage:", user.email);
-      console.log("📷 Avatar URL no localStorage:", user.avatar_url);
-      console.log("👤 Nome no localStorage:", user.name);
-    } catch (err) {
-      console.error("❌ Erro ao salvar sessão no localStorage:", err);
-    }
-  }
-
-  /**
-   * Recupera a sessão do usuário do localStorage no bootstrap
+   * Recupera a sessão do usuário do sessionStorage no bootstrap
+   * (sessionStorage invalida automaticamente ao fechar a aba/app)
    */
   async restoreSessionFromStorage(): Promise<void> {
     try {
-      const sessionData = localStorage.getItem("homeservice_user_session");
-      if (sessionData) {
-        const user = JSON.parse(sessionData) as User;
-        console.log("🔄 Sessão recuperada do localStorage:", user.email);
-        this.appUser.set(user);
-        
-        // Refrescar os dados do usuário para obter o avatar_url mais recente
-        console.log("🔄 Refrescando dados do perfil do servidor...");
-        await this.refreshAppUser(user.email);
-      } else {
-        console.log("ℹ️ Nenhuma sessão encontrada no localStorage");
+      // Limpar formato legado (sem token)
+      localStorage.removeItem("homeservice_user_session");
+
+      const stored = this.readStoredSession();
+      if (!stored?.token || !stored?.expiresAt) {
+        console.log("ℹ️ Nenhuma sessão encontrada no sessionStorage");
         this.appUser.set(null);
+        return;
       }
+
+      if (new Date(stored.expiresAt).getTime() <= Date.now()) {
+        console.log("⏰ Sessão expirada (sessionStorage)");
+        this.clearStoredSession();
+        this.appUser.set(null);
+        return;
+      }
+
+      // Validar sessão no backend para garantir revogação/expiração server-side
+      const validateRes = await fetch(environment.sessionApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${stored.token}`,
+        },
+        body: JSON.stringify({ action: "validate" }),
+      });
+
+      const validateJson = await validateRes.json().catch(() => ({}));
+      if (!validateRes.ok || !validateJson.success || !validateJson.user) {
+        console.log("ℹ️ Sessão inválida no servidor; limpando");
+        this.clearStoredSession();
+        this.appUser.set(null);
+        return;
+      }
+
+      const user = validateJson.user as User;
+      const expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
+
+      this.appUser.set(user);
+      this.writeStoredSession({ token: stored.token, expiresAt, user });
+      this.scheduleAutoLogout(expiresAt);
+
+      console.log("🔄 Sessão validada e restaurada:", user.email);
+
+      // Refrescar os dados do usuário (avatar etc.)
+      console.log("🔄 Refrescando dados do perfil do servidor...");
+      await this.refreshAppUser(user.email);
     } catch (err) {
       console.error("❌ Erro ao recuperar sessão do localStorage:", err);
-      // Se houver erro ao recuperar, limpar a sessão corrompida
-      localStorage.removeItem("homeservice_user_session");
+      this.clearStoredSession();
       this.appUser.set(null);
-    }
-  }
-
-  /**
-   * Remove a sessão do localStorage ao fazer logout
-   */
-  private clearSessionFromStorage(): void {
-    try {
-      localStorage.removeItem("homeservice_user_session");
-      console.log("🗑️ Sessão removida do localStorage");
-    } catch (err) {
-      console.error("❌ Erro ao remover sessão do localStorage:", err);
     }
   }
   async confirmEmailCustom(email: string, token: string): Promise<boolean> {
@@ -174,6 +245,10 @@ export class AuthService {
     // AuthService agora usa autenticação customizada (não Supabase Auth)
     // A sessão é restaurada via restoreSessionFromStorage() chamado no bootstrap
     console.log("✅ AuthService inicializado (autenticação customizada)");
+
+    // Best-effort: revogar sessão ao fechar aba/app
+    window.addEventListener("pagehide", () => this.revokeSessionOnExit());
+    window.addEventListener("beforeunload", () => this.revokeSessionOnExit());
   }
 
   private async handleUnverifiedEmail(
@@ -880,40 +955,35 @@ export class AuthService {
     console.log("🔓 AuthService - executando logout");
 
     try {
-      // Verificar se há uma sessão ativa antes de tentar logout
-      const {
-        data: { session },
-      } = await this.supabase.client.auth.getSession();
-
-      if (session) {
-        console.log("📋 Sessão encontrada, fazendo logout via API");
-        const { error } = await this.supabase.client.auth.signOut();
-        if (error) {
-          console.warn(
-            "⚠️ Erro no logout via API, limpando localmente:",
-            error.message
-          );
-          // Se falhar, limpar dados localmente
-          await this.clearLocalSession();
-        } else {
-          console.log("✅ Logout realizado com sucesso via API");
+      const stored = this.readStoredSession();
+      if (stored?.token) {
+        try {
+          await fetch(environment.sessionApiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${stored.token}`,
+            },
+            body: JSON.stringify({ action: "revoke", reason: "logout" }),
+          });
+        } catch (e) {
+          console.warn("⚠️ Falha ao revogar sessão no servidor:", e);
         }
-      } else {
-        console.log("🔄 Nenhuma sessão ativa, limpando dados localmente");
-        await this.clearLocalSession();
       }
 
       // Sempre limpar o estado do usuário
       this.appUser.set(null);
-      
-      // Limpar sessão do localStorage (autenticação customizada)
-      this.clearSessionFromStorage();
+      this.clearStoredSession();
+
+      // Também limpar qualquer sessão Supabase local, se existir (defensivo)
+      await this.clearLocalSession();
       
       console.log("✅ Estado do usuário limpo");
     } catch (error) {
       console.error("❌ Erro durante logout, limpando localmente:", error);
       await this.clearLocalSession();
       this.appUser.set(null);
+      this.clearStoredSession();
     }
   }
 
@@ -1005,8 +1075,15 @@ export class AuthService {
 
       if (data) {
         this.appUser.set(data as User);
-        // Atualizar localStorage com dados do usuário atualizados
-        this.saveSessionToStorage(data as User);
+        // Atualizar sessão armazenada com dados do usuário atualizados
+        const stored = this.readStoredSession();
+        if (stored?.token && stored?.expiresAt) {
+          this.writeStoredSession({
+            token: stored.token,
+            expiresAt: stored.expiresAt,
+            user: data as User,
+          });
+        }
         console.log("✅ Avatar URL updated successfully");
         console.log("📷 New Avatar URL:", data.avatar_url);
       }

@@ -5,6 +5,7 @@ export const environment = {
   apiUrl: "https://your-backend-url.com",
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
   loginApiUrl: "/api/login",
+  sessionApiUrl: "/api/session",
   confirmEmailApiUrl: "/api/confirm-email",
   emailServiceUrl: "http://localhost:4001/api/send-email", // URL do servidor de e-mail
 };
