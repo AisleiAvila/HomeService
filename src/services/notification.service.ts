@@ -119,18 +119,8 @@ export class NotificationService {
       console.error("Error creating enhanced notification:", error);
       // Fallback para notificação simples
       this.addNotification(message);
-      return;
     }
 
-    // Atualizar estado local se for para o usuário atual
-    // TODO: Remover dependência circular - passar currentUserId como parâmetro
-    // const currentUser = this.authService.appUser();
-    // if (currentUser && currentUser.id === userId) {
-    //   this.enhancedNotifications.update((current) => [
-    //     data as EnhancedNotification,
-    //     ...current,
-    //   ]);
-    // }
   }
 
   /**
@@ -191,6 +181,7 @@ export class NotificationService {
     const { data: request, error } = await this.supabase.client
       .from("service_requests")
       .select("client_id, professional_id")
+      .is("deleted_at", null)
       .eq("id", serviceRequestId)
       .single();
 

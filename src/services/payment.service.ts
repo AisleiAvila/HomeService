@@ -372,6 +372,7 @@ export class PaymentService {
         platform_fee: payment.platform_fee,
         professional_payment: payment.professional_amount,
       })
+      .is("deleted_at", null)
       .eq("id", serviceRequestId);
 
     if (error) {

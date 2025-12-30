@@ -40,6 +40,7 @@ export class ContractService {
         contract_url: contractUrl,
         contract_generated_at: new Date().toISOString(),
       })
+      .is("deleted_at", null)
       .eq("id", serviceRequest.id);
 
     return contractUrl;

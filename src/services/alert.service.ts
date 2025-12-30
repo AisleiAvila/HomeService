@@ -33,6 +33,7 @@ export class AlertService {
     const { data: requests, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .not("status", "in", '("Concluído","Cancelado")');
 
     if (error) {
@@ -52,6 +53,7 @@ export class AlertService {
     const { data: requests, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .not("status", "in", '("Concluído","Cancelado")');
 
     if (error) {
@@ -89,6 +91,7 @@ export class AlertService {
     const { count: professionalConfirmations } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "Profissional selecionado");
 
     stats.professional_confirmations_needed = professionalConfirmations || 0;
@@ -102,6 +105,7 @@ export class AlertService {
     const { count: paymentsOverdue } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "Aprovado")
       .lt("approval_at", paymentDeadline.toISOString());
 
@@ -111,6 +115,7 @@ export class AlertService {
     const { count: evaluationsPending } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "Pago")
       .eq("mutual_evaluation_completed", false);
 
@@ -123,6 +128,7 @@ export class AlertService {
     const { count: workOverdue } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .eq("status", "Data Definida")
       .lt("scheduled_start_datetime", workDeadline.toISOString())
       .is("actual_start_datetime", null);
@@ -256,6 +262,7 @@ export class AlertService {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .eq("id", requestId)
       .single();
 
@@ -436,6 +443,7 @@ export class AlertService {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .eq("overdue", true)
       .not("status", "in", '("Concluído","Cancelado")')
       .order("updated_at", { ascending: true });
@@ -453,6 +461,7 @@ export class AlertService {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .not("status", "in", '("Concluído","Cancelado")')
       .order("updated_at", { ascending: true })
       .limit(20);
@@ -480,6 +489,7 @@ export class AlertService {
     const { error } = await this.supabase.client
       .from("service_requests")
       .update({ overdue: true })
+      .is("deleted_at", null)
       .eq("id", requestId);
 
     if (error) {
@@ -504,6 +514,7 @@ export class AlertService {
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({ deadline_alerts_sent: updatedAlerts })
+        .is("deleted_at", null)
         .eq("id", requestId);
 
       if (error) {

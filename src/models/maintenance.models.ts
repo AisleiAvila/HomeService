@@ -323,6 +323,9 @@ export interface ServiceRequest {
   created_at?: string;
   updated_at?: string;
 
+  /** Exclusão lógica (quando não-nulo, a solicitação está apagada) */
+  deleted_at?: string | null;
+
   // Campos para solicitação criada pelo administrador
   service_value?: number | null;
   service_deadline?: string | null;

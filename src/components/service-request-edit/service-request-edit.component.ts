@@ -265,6 +265,7 @@ export class ServiceRequestEditComponent implements OnInit {
       const { data, error } = await this.supabaseService.client
         .from('service_requests')
         .update(updates)
+        .is('deleted_at', null)
         .eq('id', this.request.id)
         .select();
       

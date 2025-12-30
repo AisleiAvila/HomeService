@@ -924,6 +924,7 @@ export class WorkflowServiceSimplified {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .eq("id", requestId)
       .single();
 

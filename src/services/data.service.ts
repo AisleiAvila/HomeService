@@ -246,6 +246,9 @@ export class DataService {
         )
       `);
 
+    // Não listar solicitações apagadas logicamente
+    query = query.is("deleted_at", null);
+
     if (currentUser.role === "professional") {
       query = query.eq("professional_id", currentUser.id);
     }
@@ -291,6 +294,28 @@ export class DataService {
     }
 
     try {
+      // Descobrir se a solicitação tem profissional associado (para decidir entre delete físico x lógico)
+      const cachedRequest = this.serviceRequests().find((r) => r.id === requestId);
+      let professionalId: number | null | undefined = cachedRequest?.professional_id;
+
+      if (professionalId === undefined) {
+        const { data: requestRow, error: requestError } = await this.supabase.client
+          .from("service_requests")
+          .select("professional_id")
+          .eq("id", requestId)
+          .maybeSingle();
+
+        if (requestError) {
+          console.error('[DataService] Erro ao buscar solicitação para exclusão:', requestError);
+          this.notificationService.addNotification(
+            this.i18n.translate('errorDeletingRequest') || 'Erro ao excluir solicitação.'
+          );
+          return false;
+        }
+
+        professionalId = (requestRow as any)?.professional_id ?? null;
+      }
+
       // 1. Primeiro, excluir todas as notificações relacionadas
       console.log('[DataService] Excluindo notificações relacionadas ao pedido:', requestId);
       const { error: notifError } = await this.supabase.client
@@ -303,11 +328,19 @@ export class DataService {
         // Continuar mesmo se houver erro nas notificações
       }
 
-      // 2. Agora excluir a solicitação de serviço
-      const { error } = await this.supabase.client
-        .from('service_requests')
-        .delete()
-        .eq('id', requestId);
+      // 2. Excluir a solicitação de serviço
+      // - Sem profissional: delete físico (comportamento atual)
+      // - Com profissional: delete lógico (marca deleted_at)
+      const hasProfessional = professionalId !== null;
+      const { error } = hasProfessional
+        ? await this.supabase.client
+            .from('service_requests')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', requestId)
+        : await this.supabase.client
+            .from('service_requests')
+            .delete()
+            .eq('id', requestId);
 
       if (error) {
         console.error('[DataService] Erro ao excluir solicitação:', error);

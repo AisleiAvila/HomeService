@@ -106,6 +106,7 @@ export class ServiceImageService {
     const { data: request, error } = await this.supabase.client
       .from("service_requests")
       .select("professional_id, status")
+      .is("deleted_at", null)
       .eq("id", uploadData.service_request_id)
       .single();
 
@@ -271,6 +272,7 @@ export class ServiceImageService {
       const { data: serviceRequest, error: requestError } = await this.supabase.client
         .from("service_requests")
         .select("client_id, professional_id")
+        .is("deleted_at", null)
         .eq("id", image.service_request_id)
         .single();
 

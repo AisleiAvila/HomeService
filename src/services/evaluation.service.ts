@@ -135,6 +135,7 @@ export class EvaluationService {
     const { count: pendingEvaluations } = await this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
+      .is("deleted_at", null)
       .in("status", ["Concluído"])
       .eq("mutual_evaluation_completed", false);
 
@@ -169,6 +170,7 @@ export class EvaluationService {
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .select("*")
+      .is("deleted_at", null)
       .eq("id", serviceRequestId)
       .single();
 
