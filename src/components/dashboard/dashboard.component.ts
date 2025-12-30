@@ -553,7 +553,8 @@ export class DashboardComponent implements OnInit {
 
   stats = computed(() => {
     const currentUser = this.user();
-    const requests = this.userRequests();
+    // Os cards da Visão Geral devem refletir os mesmos filtros aplicados na lista
+    const requests = this.filteredRequests();
 
     // Status que indicam serviços ativos (não finalizados)
     const activeStatuses = new Set<ServiceStatus>([
