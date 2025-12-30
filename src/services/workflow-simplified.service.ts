@@ -474,6 +474,12 @@ export class WorkflowServiceSimplified {
         throw new Error("Usuário não tem permissão para iniciar execução");
       }
 
+      // Regra de negócio: para iniciar, é obrigatório ter pelo menos 1 imagem "antes"
+      const imageCount = await this.imageService.getImageCount(requestId);
+      if (imageCount.before <= 0) {
+        throw new Error(this.i18n.translate("beforeImageRequiredToStartService"));
+      }
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({

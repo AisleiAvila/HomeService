@@ -1,12 +1,12 @@
-import { Injectable, signal, inject } from "@angular/core";
-import { SupabaseService } from "./supabase.service";
+import { inject, Injectable, signal } from "@angular/core";
 import {
-  Notification,
   EnhancedNotification,
-  NotificationType,
-  ServiceRequest,
-  User,
+  Notification,
+  NotificationType
 } from "../models/maintenance.models";
+import { SupabaseService } from "./supabase.service";
+
+type NotificationPriority = "low" | "medium" | "high";
 
 @Injectable({
   providedIn: "root",
@@ -90,7 +90,7 @@ export class NotificationService {
     options?: {
       serviceRequestId?: number;
       actionRequired?: boolean;
-      priority?: "low" | "medium" | "high";
+      priority?: NotificationPriority;
       expiresInHours?: number;
     }
   ): Promise<void> {
@@ -109,7 +109,7 @@ export class NotificationService {
     };
 
     // Salvar no banco (created_at será gerado automaticamente)
-    const { data, error } = await this.supabase.client
+    const { error } = await this.supabase.client
       .from("enhanced_notifications")
       .insert(notification)
       .select()
@@ -173,7 +173,7 @@ export class NotificationService {
     stakeholders: ("client" | "professional" | "admin")[],
     options?: {
       actionRequired?: boolean;
-      priority?: "low" | "medium" | "high";
+      priority?: NotificationPriority;
       expiresInHours?: number;
     }
   ): Promise<void> {
@@ -243,7 +243,7 @@ export class NotificationService {
         )
       );
     } catch (error) {
-      console.warn("Enhanced notifications feature not available");
+      console.warn("Enhanced notifications feature not available:", error);
     }
   }
 
@@ -339,7 +339,7 @@ export class NotificationService {
    */
   getFilteredNotifications(filters: {
     type?: NotificationType;
-    priority?: "low" | "medium" | "high";
+    priority?: NotificationPriority;
     actionRequired?: boolean;
     unreadOnly?: boolean;
     serviceRequestId?: number;
@@ -395,12 +395,12 @@ export class NotificationService {
           .order(column, { ascending: false })
           .limit(100);
 
-        if (!result.error) {
+        if (result.error) {
+          error = result.error;
+        } else {
           data = result.data;
           error = null;
           break;
-        } else {
-          error = result.error;
         }
       } catch (e) {
         error = e;

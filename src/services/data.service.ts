@@ -1,8 +1,4 @@
-﻿// ...existing code...
-
-// Adiciona dentro da classe DataService já existente:
-// ...existing code...
-import { inject, Injectable, signal } from "@angular/core";
+﻿import { inject, Injectable, signal } from "@angular/core";
 
 import { AdminServiceRequestPayload } from "../components/admin-service-request-form/admin-service-request-form.component";
 import { I18nService } from "../i18n.service";
@@ -21,6 +17,7 @@ import {
 } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
+import { ServiceImageService } from "./service-image.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
 import { WorkflowServiceSimplified } from "./workflow-simplified.service";
@@ -199,6 +196,7 @@ export class DataService {
   private readonly i18n = inject(I18nService);
   private readonly addressDatabase = inject(PortugalAddressDatabaseService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
+  private readonly serviceImageService = inject(ServiceImageService);
 
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
@@ -514,7 +512,6 @@ export class DataService {
     // Usar requested_datetime (agora obrigat├│rio)
     const requestedDateTime = payload.requested_datetime;
 
-    const { StatusService } = await import("../services/status.service");
     const newRequestData: any = {
       client_id: currentUser.id,
       // Dados do solicitante vindos do formulário (não do perfil do usuário)
@@ -1160,6 +1157,13 @@ export class DataService {
    * Registra o início real do atendimento (usado pelo profissional)
    */
   async startServiceWork(requestId: number) {
+    const imageCount = await this.serviceImageService.getImageCount(requestId);
+    if (imageCount.before <= 0) {
+      const message = this.i18n.translate("beforeImageRequiredToStartService");
+      this.notificationService.showError(message);
+      throw new Error(message);
+    }
+
     const updates: Partial<ServiceRequest> = {
       actual_start_datetime: new Date().toISOString(),
       status: "Em Progresso" as const,
