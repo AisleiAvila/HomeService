@@ -538,6 +538,14 @@ export class WorkflowServiceSimplified {
       await this.validateExecutionCompletion(previousStatus, currentUser);
       this.validateExecutionDuration(request);
 
+      // Regra de negócio: para concluir, profissional precisa ter pelo menos 1 imagem "depois"
+      if (currentUser?.role === "professional") {
+        const imageCount = await this.imageService.getImageCount(requestId);
+        if (imageCount.after <= 0) {
+          throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));
+        }
+      }
+
       await this.updateCompletionStatus(requestId, professionalId, notes);
       await this.recordCompletionAudit(requestId, previousStatus, currentUser, notes);
       await this.notifyCompletionToAdmin(request, requestId);
@@ -750,6 +758,14 @@ export class WorkflowServiceSimplified {
       const currentUser = await this.getCurrentUser();
       if (!currentUser || !this.canPerformTransition(previousStatus, "Concluído", currentUser.role)) {
         throw new Error("Usuário não tem permissão para finalizar serviço");
+      }
+
+      // Se por alguma regra o profissional conseguir finalizar por aqui, exigir imagem "depois"
+      if (currentUser.role === "professional") {
+        const imageCount = await this.imageService.getImageCount(requestId);
+        if (imageCount.after <= 0) {
+          throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));
+        }
       }
 
       const { error } = await this.supabase.client

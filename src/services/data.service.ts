@@ -1178,6 +1178,13 @@ export class DataService {
    * Registra o final real do atendimento (usado pelo profissional)
    */
   async finishServiceWork(requestId: number) {
+    const imageCount = await this.serviceImageService.getImageCount(requestId);
+    if (imageCount.after <= 0) {
+      const message = this.i18n.translate("afterImageRequiredToCompleteService");
+      this.notificationService.showError(message);
+      throw new Error(message);
+    }
+
     const updates: Partial<ServiceRequest> = {
       actual_end_datetime: new Date().toISOString(),
       status: "Concluído" as const,
