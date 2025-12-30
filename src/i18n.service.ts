@@ -93,6 +93,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     activeJobs: "Active Jobs",
     completedJobs: "Completed Jobs",
     totalEarnings: "Total Earnings",
+    page: "Page",
+    reportIssuedAt: "Issued at",
+    reportIssuedBy: "Issued by",
+    reportCharts: "Charts",
+    reportStatusDistribution: "Requests by status",
+    reportEarningsByMonth: "Earnings by month",
+    reportRequestsList: "Requests list",
 
     // Admin
     total: "Total",
@@ -1094,6 +1101,13 @@ const allTranslations: Record<Language, Record<string, string>> = {
     activeJobs: "Trabalhos Ativos",
     completedJobs: "Trabalhos Concluídos",
     totalEarnings: "Ganhos Totais",
+    page: "Página",
+    reportIssuedAt: "Emitido em",
+    reportIssuedBy: "Emitido por",
+    reportCharts: "Gráficos",
+    reportStatusDistribution: "Solicitações por status",
+    reportEarningsByMonth: "Ganhos por mês",
+    reportRequestsList: "Lista de solicitações",
 
     // Admin
     total: "Total",

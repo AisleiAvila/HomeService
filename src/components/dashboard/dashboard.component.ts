@@ -1,6 +1,5 @@
 import {
   Component,
-  ChangeDetectionStrategy,
   input,
   computed,
   output,
@@ -79,6 +78,9 @@ export class DashboardComponent implements OnInit {
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
   businessErrorMessage = signal<string>("");
+
+  // PDF report
+  isGeneratingPdfReport = signal(false);
   // Signal para controlar expansão dos filtros
   filtersExpanded = signal<boolean>(true);
   filterStatus = signal<string>("");
@@ -300,8 +302,9 @@ export class DashboardComponent implements OnInit {
     
     requests.forEach(r => {
       const addressParts = extractPtAddressParts(r);
-      if (addressParts.locality && addressParts.locality.trim()) {
-        localities.add(addressParts.locality.trim());
+      const locality = addressParts.locality?.trim();
+      if (locality) {
+        localities.add(locality);
       }
     });
     
@@ -316,8 +319,9 @@ export class DashboardComponent implements OnInit {
     const services = new Set<string>();
     
     requests.forEach(r => {
-      if (r.title && r.title.trim()) {
-        services.add(r.title.trim());
+      const title = r.title?.trim();
+      if (title) {
+        services.add(title);
       }
     });
     
@@ -332,8 +336,9 @@ export class DashboardComponent implements OnInit {
     const clients = new Set<string>();
     
     requests.forEach(r => {
-      if (r.client_name && r.client_name.trim()) {
-        clients.add(r.client_name.trim());
+      const clientName = r.client_name?.trim();
+      if (clientName) {
+        clients.add(clientName);
       }
     });
     
@@ -586,7 +591,7 @@ export class DashboardComponent implements OnInit {
     if (currentUser.role === "professional") {
       const earnings = requests
         .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
-        .reduce((sum, r) => sum + r.valor_prestador!, 0);
+        .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
 
       const baseStats: Array<{ label: string; value: string | number; icon: string }> = [
         {
@@ -650,6 +655,396 @@ export class DashboardComponent implements OnInit {
     this.businessErrorMessage.set(message);
     this.showBusinessError.set(true);
     setTimeout(() => this.showBusinessError.set(false), 6000);
+  }
+
+  async exportOverviewPdfReport(): Promise<void> {
+    if (this.isGeneratingPdfReport()) return;
+    this.isGeneratingPdfReport.set(true);
+
+    try {
+      const currentUser = this.user();
+      if (currentUser?.role !== "professional") {
+        throw new Error("Apenas profissionais podem gerar este relatório");
+      }
+
+      const [{ jsPDF }, autoTableModule] = await Promise.all([
+        import("jspdf"),
+        import("jspdf-autotable"),
+      ]);
+
+      const autoTable: any =
+        (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
+
+      const doc = new jsPDF({
+        orientation: "p",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 12;
+      let cursorY = 12;
+
+      // Header
+      const logoDataUrl = await this.loadReportLogoDataUrl();
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, "PNG", marginX, cursorY, 18, 18);
+      }
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.text("HomeService", marginX + 22, cursorY + 6);
+      doc.setFontSize(12);
+      doc.text(this.i18n.translate("overviewTitle"), marginX + 22, cursorY + 12);
+
+      const issuedAt = new Date();
+      doc.setFontSize(9);
+      doc.text(
+        `${this.i18n.translate("reportIssuedAt")}: ${issuedAt.toLocaleString("pt-PT")}`,
+        marginX,
+        cursorY + 24
+      );
+      doc.text(
+        `${this.i18n.translate("reportIssuedBy")}: ${currentUser.name} <${currentUser.email}>`,
+        marginX,
+        cursorY + 29
+      );
+
+      // KPI cards (same ones shown on the Overview screen)
+      const requests = this.filteredRequests();
+      const kpis = this.buildProfessionalReportKpis(requests, currentUser);
+      if (kpis.length > 0) {
+        cursorY += 36;
+
+        const cardGap = 6;
+        const availableWidth = pageWidth - marginX * 2;
+        const cardWidth = (availableWidth - cardGap * (kpis.length - 1)) / kpis.length;
+        const cardHeight = 18;
+
+        doc.setDrawColor(229, 231, 235);
+        doc.setTextColor(17, 24, 39);
+
+        for (let i = 0; i < kpis.length; i++) {
+          const kpi = kpis[i];
+          const x = marginX + i * (cardWidth + cardGap);
+          const y = cursorY;
+
+          // Card border
+          (doc as any).roundedRect?.(x, y, cardWidth, cardHeight, 2, 2, "S") ?? doc.rect(x, y, cardWidth, cardHeight);
+
+          doc.setFontSize(9);
+          doc.text(kpi.label, x + 3, y + 6);
+
+          doc.setFontSize(12);
+          doc.setFont(undefined, "bold");
+          doc.text(kpi.value, x + 3, y + 14);
+          doc.setFont(undefined, "normal");
+        }
+
+        cursorY += cardHeight + 8;
+      } else {
+        cursorY += 38;
+      }
+
+      // Active filters used for data query
+      const activeFilters = this.activeFilters();
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text(this.i18n.translate("activeFilters"), marginX, cursorY);
+      cursorY += 6;
+
+      doc.setFontSize(9);
+      doc.setTextColor(55, 65, 81);
+      if (activeFilters.length === 0) {
+        doc.text(this.i18n.translate("all"), marginX, cursorY);
+        cursorY += 6;
+      } else {
+        for (const f of activeFilters) {
+          const label = this.i18n.translate(f.label);
+          doc.text(`${label}: ${f.value}`, marginX, cursorY);
+          cursorY += 5;
+        }
+      }
+
+      // Requests list
+      cursorY += 6;
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text(this.i18n.translate("reportRequestsList"), marginX, cursorY);
+
+      const bodyRows = requests.map((r) => {
+        const requested = r.requested_datetime || r.requested_date;
+        const requestedStr = requested
+          ? new Date(requested).toLocaleString("pt-PT")
+          : "";
+        const providerValue =
+          r.valor_prestador !== undefined && r.valor_prestador !== null
+            ? `€ ${Number(r.valor_prestador).toFixed(2)}`
+            : "";
+
+        return [
+          String(r.id),
+          r.title || "",
+          r.client_name || "",
+          String(r.status || ""),
+          requestedStr,
+          providerValue,
+          String(r.payment_status || ""),
+        ];
+      });
+
+      autoTable(doc, {
+        startY: cursorY + 4,
+        head: [
+          [
+            "ID",
+            this.i18n.translate("service"),
+            this.i18n.translate("client"),
+            this.i18n.translate("status"),
+            this.i18n.translate("requestDate"),
+            this.i18n.translate("providerValue"),
+            this.i18n.translate("payment"),
+          ],
+        ],
+        body: bodyRows,
+        margin: { left: marginX, right: marginX, top: 10, bottom: 14 },
+        styles: { fontSize: 8, cellPadding: 1.5 },
+        headStyles: { fillColor: [245, 245, 245], textColor: 0 },
+        didDrawPage: () => {
+          // Leave space for footer (pagination is added after all content)
+        },
+      });
+
+      // Footer: page x / total
+      const totalPages = doc.getNumberOfPages();
+      doc.setFontSize(9);
+      for (let page = 1; page <= totalPages; page++) {
+        doc.setPage(page);
+        doc.text(
+          `${this.i18n.translate("page")} ${page} ${this.i18n.translate("of")} ${totalPages}`,
+          pageWidth - marginX,
+          pageHeight - 8,
+          { align: "right" }
+        );
+      }
+
+      const fileName = this.buildPdfFileName(issuedAt);
+      doc.save(fileName);
+    } catch (error) {
+      console.error("Erro ao gerar relatório PDF:", error);
+      const message =
+        error instanceof Error ? error.message : this.i18n.translate("exportError");
+      this.showBusinessRuleError(message);
+    } finally {
+      this.isGeneratingPdfReport.set(false);
+    }
+  }
+
+  private buildProfessionalReportKpis(
+    requests: ServiceRequest[],
+    currentUser: User
+  ): Array<{ label: string; value: string }> {
+    if (currentUser.role !== "professional") return [];
+
+    const activeStatuses = new Set<ServiceStatus>([
+      "Solicitado",
+      "Atribuído",
+      "Aguardando Confirmação",
+      "Aceito",
+      "Data Definida",
+      "Em Progresso",
+    ]);
+    const isActive = (status: string) => activeStatuses.has(status as ServiceStatus);
+
+    const activeJobs = requests.filter((r) => isActive(r.status)).length;
+    const completedJobs = requests.filter((r) => r.status === "Concluído").length;
+
+    const kpis: Array<{ label: string; value: string }> = [
+      { label: this.i18n.translate("activeJobs"), value: String(activeJobs) },
+      { label: this.i18n.translate("completedJobs"), value: String(completedJobs) },
+    ];
+
+    if (!currentUser.is_natan_employee) {
+      const earnings = requests
+        .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
+        .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
+      kpis.push({
+        label: this.i18n.translate("totalEarnings"),
+        value: `€ ${earnings.toFixed(2)}`,
+      });
+    }
+
+    return kpis;
+  }
+
+  private buildPdfFileName(issuedAt: Date): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const yyyy = issuedAt.getFullYear();
+    const mm = pad(issuedAt.getMonth() + 1);
+    const dd = pad(issuedAt.getDate());
+    const hh = pad(issuedAt.getHours());
+    const min = pad(issuedAt.getMinutes());
+    return `relatorio-visao-geral-${yyyy}${mm}${dd}-${hh}${min}.pdf`;
+  }
+
+  private async loadReportLogoDataUrl(): Promise<string | null> {
+    // Prefer Angular assets path
+    const candidates = ["assets/logo-new.png", "src/assets/logo-new.png"]; // fallback for legacy refs
+    for (const url of candidates) {
+      const dataUrl = await this.fetchAsDataUrl(url);
+      if (dataUrl) return dataUrl;
+    }
+    return null;
+  }
+
+  private async fetchAsDataUrl(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result;
+          if (typeof result !== "string") {
+            reject(new Error("Falha ao carregar imagem do relatório"));
+            return;
+          }
+          resolve(result);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  private renderStatusDistributionChartPng(requests: ServiceRequest[]): string {
+    const counts = new Map<string, number>();
+    for (const r of requests) {
+      const key = String(r.status || "");
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    const data = Array.from(counts.entries())
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+
+    const title = this.i18n.translate("reportStatusDistribution");
+    return this.renderSimpleBarChartPng(title, data);
+  }
+
+  private renderEarningsByMonthChartPng(requests: ServiceRequest[]): string {
+    const byMonth = new Map<string, number>();
+
+    for (const r of requests) {
+      if (r.payment_status !== "Paid") continue;
+      if (r.valor_prestador === null || r.valor_prestador === undefined) continue;
+
+      const dateStr = r.payment_date || r.completed_at || r.actual_end_datetime || r.requested_datetime || r.requested_date;
+      if (!dateStr) continue;
+      const date = new Date(dateStr);
+      if (Number.isNaN(date.getTime())) continue;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      byMonth.set(key, (byMonth.get(key) ?? 0) + Number(r.valor_prestador));
+    }
+
+    const data = Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-8)
+      .map(([label, value]) => ({ label, value: Math.round(value) }));
+
+    const title = this.i18n.translate("reportEarningsByMonth");
+    return this.renderSimpleBarChartPng(title, data, { valuePrefix: "€ " });
+  }
+
+  private renderSimpleBarChartPng(
+    title: string,
+    data: Array<{ label: string; value: number }>,
+    options?: { valuePrefix?: string }
+  ): string {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1100;
+    canvas.height = 360;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas.toDataURL("image/png");
+
+    // Background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Title
+    ctx.fillStyle = "#111827";
+    ctx.font = "bold 26px Arial";
+    ctx.fillText(title, 20, 40);
+
+    // Chart area
+    const left = 60;
+    const top = 70;
+    const right = canvas.width - 20;
+    const bottom = canvas.height - 40;
+
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(left, top);
+    ctx.lineTo(left, bottom);
+    ctx.lineTo(right, bottom);
+    ctx.stroke();
+
+    if (data.length === 0) {
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "16px Arial";
+      ctx.fillText(this.i18n.translate("noRequestsFound"), left + 20, top + 40);
+      return canvas.toDataURL("image/png");
+    }
+
+    const maxValue = Math.max(...data.map((d) => d.value), 1);
+
+    const plotLeft = left + 12;
+    const plotRight = right - 12;
+    const plotTop = top + 6;
+    const plotBottom = bottom - 24;
+    const plotWidth = Math.max(1, plotRight - plotLeft);
+    const plotHeight = Math.max(1, plotBottom - plotTop);
+
+    const slotWidth = plotWidth / Math.max(1, data.length);
+    const barWidth = Math.min(90, Math.max(18, Math.floor(slotWidth * 0.6)));
+
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    for (let i = 0; i < data.length; i++) {
+      const d = data[i];
+      const xCenter = plotLeft + i * slotWidth + slotWidth / 2;
+      const x = Math.round(xCenter - barWidth / 2);
+      const h = Math.round((plotHeight * d.value) / maxValue);
+      const y = plotBottom - h;
+
+      // Bar
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(x, y, barWidth, h);
+
+      // Value (above bar)
+      const prefix = options?.valuePrefix ?? "";
+      ctx.fillStyle = "#111827";
+      const valueY = Math.max(plotTop + 14, y - 6);
+      ctx.fillText(`${prefix}${d.value}`, xCenter, valueY);
+
+      // Label (truncate)
+      const label = d.label.length > 14 ? d.label.slice(0, 13) + "…" : d.label;
+      ctx.fillStyle = "#374151";
+      ctx.fillText(label, xCenter, bottom + 18);
+    }
+
+    ctx.textAlign = "start";
+    ctx.textBaseline = "alphabetic";
+
+    return canvas.toDataURL("image/png");
   }
 
   applyQuickFilter(status: string) {
