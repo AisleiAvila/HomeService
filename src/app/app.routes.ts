@@ -10,6 +10,10 @@ import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-sh
 import { DesignSystemShowcaseComponent } from '../components/design-system-showcase.component';
 export const routes: Routes = [
   {
+    path: 'technical-reports/:id/sign',
+    loadComponent: () => import('./pages/technical-report-sign/technical-report-sign.component').then(m => m.TechnicalReportSignComponent),
+  },
+  {
     path: 'confirmar-email',
     component: EmailConfirmationComponent,
   },

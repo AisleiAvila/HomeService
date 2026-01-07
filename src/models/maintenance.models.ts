@@ -757,6 +757,25 @@ export interface ServiceRequestImageUpload {
   description?: string;
 }
 
+// Interface para relatórios técnicos gerados
+export type TechnicalReportOriginKey = "worten_verde" | "worten_azul" | "radio_popular";
+
+export interface TechnicalReportRecord {
+  id: number;
+  service_request_id: number;
+  origin_id?: number | null;
+  origin_key: TechnicalReportOriginKey;
+  report_data: Record<string, any>;
+  generated_by: number;
+  generated_at: string;
+  storage_bucket: string;
+  storage_path: string;
+  file_url: string;
+  file_name: string;
+  file_size?: number | null;
+  mime_type?: string | null;
+}
+
 // Interface para notificações in-app
 export interface InAppNotification {
   id: number;

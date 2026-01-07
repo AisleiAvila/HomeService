@@ -193,6 +193,97 @@ export class WorkflowServiceSimplified {
    */
 
   /**
+   * Admin reatribui a solicitação para outro profissional, sem mudar o status.
+   *
+   * Importante: isso NÃO é a mesma coisa que a atribuição inicial.
+   * O fluxo de atribuição inicial (assignProfessional) força transição para
+   * "Atribuído" → "Aguardando Confirmação"; para status como "Data Definida"
+   * isso é inválido. Aqui apenas trocamos o professional_id e registramos auditoria.
+   */
+  async reassignProfessional(
+    requestId: number,
+    newProfessionalId: number,
+    adminId: number
+  ): Promise<boolean> {
+    console.log('🎯 [reassignProfessional] INICIANDO - requestId:', requestId, 'newProfessionalId:', newProfessionalId);
+    try {
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser || currentUser.role !== 'admin') {
+        throw new Error('Apenas administradores podem reatribuir solicitações');
+      }
+
+      const request = await this.getRequest(requestId);
+      if (!request) {
+        throw new Error('Solicitação não encontrada');
+      }
+
+      const previousStatus = request.status;
+      const previousProfessionalId = request.professional_id;
+
+      // Não permite reatribuição em estados finais
+      const normalizedStatus = (previousStatus || '').toString();
+      if (normalizedStatus === 'Concluído' || normalizedStatus === 'Cancelado' || normalizedStatus === 'Recusado') {
+        throw new Error(`Não é possível reatribuir a partir do status ${previousStatus}`);
+      }
+
+      if (!previousProfessionalId) {
+        // Se não há profissional anterior, é atribuição inicial — use assignProfessional
+        return await this.assignProfessional(requestId, newProfessionalId, adminId);
+      }
+
+      if (previousProfessionalId === newProfessionalId) {
+        return true;
+      }
+
+      const { error: updateError } = await this.supabase.client
+        .from('service_requests')
+        .update({
+          professional_id: newProfessionalId,
+          assigned_by_admin_id: adminId,
+        })
+        .eq('id', requestId);
+
+      if (updateError) throw updateError;
+
+      // Registrar no histórico (mantém o status atual, só adiciona uma entrada com notes)
+      await this.updateStatus(
+        requestId,
+        previousStatus,
+        adminId,
+        `Profissional reatribuído pelo admin (de ${previousProfessionalId} para ${newProfessionalId})`
+      );
+
+      // Auditoria (mantém o status)
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        previousStatus,
+        `Profissional reatribuído pelo admin (de ${previousProfessionalId} para ${newProfessionalId})`,
+        { previous_professional_id: previousProfessionalId, new_professional_id: newProfessionalId }
+      );
+
+      // Notificar novo profissional
+      await this.notifyProfessional(
+        newProfessionalId,
+        'serviceReassigned',
+        `Solicitação #${requestId} foi reatribuída para você`
+      );
+
+      this.notificationService.showSuccess(
+        this.i18n.translate('professionalAssigned')
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Erro ao reatribuir profissional:', error);
+      this.notificationService.showError(
+        error instanceof Error ? error.message : this.i18n.translate('errorAssigningProfessional')
+      );
+      return false;
+    }
+  }
+
+  /**
    * Admin atribui profissional à solicitação
    */
   async assignProfessional(
@@ -743,75 +834,20 @@ export class WorkflowServiceSimplified {
     onRefresh?: () => void
   ): Promise<boolean> {
     try {
-      // Buscar status atual antes da mudança
       const request = await this.getRequest(requestId);
       if (!request) throw new Error("Solicitação não encontrada");
 
-      const previousStatus = request.status;
-
-      // Validar transição
-      if (!this.canTransition(previousStatus, "Concluído")) {
-        throw new Error(`Não é possível finalizar a partir do status ${previousStatus}`);
-      }
-
-      // Validar permissão (admin ou profissional, conforme regras)
       const currentUser = await this.getCurrentUser();
-      if (!currentUser || !this.canPerformTransition(previousStatus, "Concluído", currentUser.role)) {
-        throw new Error("Usuário não tem permissão para finalizar serviço");
-      }
+      await this.validateFinalization(request.status, currentUser, requestId);
 
-      // Se por alguma regra o profissional conseguir finalizar por aqui, exigir imagem "depois"
-      if (currentUser.role === "professional") {
-        const imageCount = await this.imageService.getImageCount(requestId);
-        if (imageCount.after <= 0) {
-          throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));
-        }
-      }
-
-      const { error } = await this.supabase.client
-        .from("service_requests")
-        .update({
-          finalized_at: new Date().toISOString(),
-          finalized_by_admin_id: adminId,
-          admin_notes: adminNotes,
-          status: "Concluído",
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", requestId);
-
-      if (error) throw error;
-
-      // Registrar na tabela de histórico
-      if (currentUser) {
-        await this.updateStatus(
-          requestId, 
-          "Concluído", 
-          currentUser.id, 
-          "Serviço finalizado pelo administrador" + (adminNotes ? ": " + adminNotes : "")
-        );
-      }
-
-      // Auditoria: Log da finalização (Em Progresso → Concluído)
-      await this.auditService.logStatusChange(
-        requestId,
-        previousStatus,
-        "Concluído" as const,
-        "Serviço finalizado pelo administrador" + (adminNotes ? ": " + adminNotes : ""),
-        { finalized_at: new Date().toISOString(), admin_notes: adminNotes }
-      );
+      await this.updateFinalizationStatus(requestId, adminId, adminNotes);
+      await this.recordFinalizationAudit(requestId, request.status, currentUser, adminNotes);
 
       this.notificationService.showSuccess(
         this.i18n.translate("serviceFinalized")
       );
 
-      // Chama refresh da lista, se fornecido
-      if (onRefresh) {
-        try {
-          onRefresh();
-        } catch (refreshError) {
-          console.error("Erro ao atualizar lista após finalização:", refreshError);
-        }
-      }
+      this.handleRefreshCallback(onRefresh);
 
       return true;
     } catch (error) {
@@ -820,6 +856,77 @@ export class WorkflowServiceSimplified {
         error instanceof Error ? error.message : this.i18n.translate("errorFinalizingService")
       );
       return false;
+    }
+  }
+
+  private async validateFinalization(
+    previousStatus: ServiceStatus,
+    currentUser: any,
+    requestId: number
+  ): Promise<void> {
+    if (!this.canTransition(previousStatus, "Concluído")) {
+      throw new Error(`Não é possível finalizar a partir do status ${previousStatus}`);
+    }
+
+    if (!currentUser || !this.canPerformTransition(previousStatus, "Concluído", currentUser.role)) {
+      throw new Error("Usuário não tem permissão para finalizar serviço");
+    }
+
+    if (currentUser.role === "professional") {
+      const imageCount = await this.imageService.getImageCount(requestId);
+      if (imageCount.after <= 0) {
+        throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));
+      }
+    }
+  }
+
+  private async updateFinalizationStatus(
+    requestId: number,
+    adminId: number,
+    adminNotes?: string
+  ): Promise<void> {
+    const { error } = await this.supabase.client
+      .from("service_requests")
+      .update({
+        finalized_at: new Date().toISOString(),
+        finalized_by_admin_id: adminId,
+        admin_notes: adminNotes,
+        status: "Concluído",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", requestId);
+
+    if (error) throw error;
+  }
+
+  private async recordFinalizationAudit(
+    requestId: number,
+    previousStatus: ServiceStatus,
+    currentUser: any,
+    adminNotes?: string
+  ): Promise<void> {
+    const auditMessage = "Serviço finalizado pelo administrador" + (adminNotes ? ": " + adminNotes : "");
+
+    if (currentUser) {
+      await this.updateStatus(requestId, "Concluído", currentUser.id, auditMessage);
+    }
+
+    await this.auditService.logStatusChange(
+      requestId,
+      previousStatus,
+      "Concluído" as const,
+      auditMessage,
+      { finalized_at: new Date().toISOString(), admin_notes: adminNotes }
+    );
+  }
+
+  private handleRefreshCallback(onRefresh?: () => void): void {
+    if (onRefresh) {
+      try {
+        onRefresh();
+      } catch (refreshError) {
+        console.error("Erro ao atualizar lista após finalização:", refreshError);
+      }
     }
   }
 

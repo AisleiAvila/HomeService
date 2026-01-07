@@ -367,9 +367,9 @@ export class DashboardComponent implements OnInit {
       end.setHours(23, 59, 59, 999);
 
       reqs = reqs.filter((r) => {
-        if (!r.requested_date) return false;
-        const reqDate = new Date(r.requested_date);
-        return reqDate >= start && reqDate <= end;
+        if (!r.scheduled_start_datetime) return false;
+        const scheduledDate = new Date(r.scheduled_start_datetime);
+        return scheduledDate >= start && scheduledDate <= end;
       });
     }
 

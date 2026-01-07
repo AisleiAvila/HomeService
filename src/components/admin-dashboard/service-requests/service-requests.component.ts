@@ -258,9 +258,9 @@ viewDetails = output<ServiceRequest>();
             end.setHours(23, 59, 59, 999);
 
             reqs = reqs.filter((r) => {
-                if (!r.requested_date) return false;
-                const reqDate = new Date(r.requested_date);
-                return reqDate >= start && reqDate <= end;
+                if (!r.scheduled_start_datetime) return false;
+                const scheduledDate = new Date(r.scheduled_start_datetime);
+                return scheduledDate >= start && scheduledDate <= end;
             });
         }
 
@@ -592,16 +592,30 @@ viewDetails = output<ServiceRequest>();
             );
             return;
         }
+
+        if (!this.canChangeProfessional(request)) {
+            alert(
+                this.i18n.translate('reassignmentNotAllowed') ||
+                    'Não é possível redistribuir com o status atual.'
+            );
+            return;
+        }
         try {
-            await this.dataService.directAssignServiceRequest(
+            await this.dataService.reassignServiceRequestProfessional(
                 request.id,
-                Number.parseInt(professionalId, 10),
-                this.getExecutionDateValue(request)
+                Number.parseInt(professionalId, 10)
             );
             this.closeReassignmentModal();
+
+            const professionalName = this.getProfessionalName(
+                Number.parseInt(professionalId, 10)
+            );
+            const requestName = request.title || request.id.toString();
             alert(
-                this.i18n.translate('reassignmentSuccess') ||
-                    'Profissional atualizado com sucesso!'
+                (this.i18n.translate('reassignmentSuccess') ||
+                    'Solicitação "{name}" reatribuída com sucesso para {professional}')
+                    .replace('{name}', requestName)
+                    .replace('{professional}', professionalName)
             );
         } catch (error) {
             console.error('Error reassigning professional:', error);

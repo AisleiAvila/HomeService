@@ -7,6 +7,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
   en: {
     // General
     overviewTitle: "Overview",
+    technicalReport: "Technical Report",
     signIn: "Sign In",
     createAccount: "Create Account",
     email: "Email",
@@ -1010,11 +1011,16 @@ const allTranslations: Record<Language, Record<string, string>> = {
     myProfile: "My Profile",
     updateProfileInformation: "Update your profile information and email address",
     confirmPaymentMessage: "Are you sure you want to confirm the payment for this request?",
+    errorAssigningProfessional: "Error assigning professional. Please try again.",
+    reassignmentError: "Error reassigning professional. Please try again.",
+    reassignmentNotAllowed: "Reassignment is not allowed for the current status.",
+    reassignmentSuccess: "Request \"{name}\" successfully reassigned to {professional}",
 
   },
   pt: {
     // General
     overviewTitle: "Visão Geral",
+    technicalReport: "Relatório Técnico",
 
     signIn: "Entrar",
     createAccount: "Criar Conta",
@@ -1065,7 +1071,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     confirmRejectRegistration:
       "Tem certeza de que deseja rejeitar este registro?",
     confirmDeleteCategory:
-      'Tem certeza de que deseja excluir a categoria "{category}"?',
+      'Tem certeza de que deseja excluir a categoria "{category}"?', 
     backToHome: "Voltar para Início",
     forgotPassword: "Esqueceu sua senha?",
     dontHaveAccount: "Não tem uma conta?",
@@ -2025,7 +2031,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     myProfile: "Meu Perfil",
     updateProfileInformation: "Atualize as informações do seu perfil",
     confirmPaymentMessage: "Você está prestes a pagar {amount} para a solicitação #{id}. Deseja continuar?",
-    emailPlaceholder: "Digite o e-mail do cliente"
+    emailPlaceholder: "Digite o e-mail do cliente",
+    errorAssigningProfessional: "Erro ao atribuir profissional. Por favor, tente novamente.",
+    reassignmentError: "Erro ao reatribuir profissional. Por favor, tente novamente.",
+    reassignmentNotAllowed: "Não é possível redistribuir com o status atual.",
+    reassignmentSuccess: "Solicitação \"{name}\" reatribuída com sucesso para {professional}",
 
   },
 };

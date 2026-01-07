@@ -6,6 +6,7 @@ import {
   inject,
   computed,
   signal,
+  OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -13,6 +14,7 @@ import {
   User,
   Address,
   ServiceStatus,
+  ServiceRequestOrigin,
 } from "@/src/models/maintenance.models";
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { DataService } from "../../services/data.service";
@@ -20,6 +22,8 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
 import { I18nService } from "@/src/i18n.service";
 import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-utils";
+import { TechnicalReportModalComponent } from "../technical-report-modal/technical-report-modal.component";
+import { isTechnicalReportEligible } from "@/src/utils/technical-report-origin.util";
 
 @Component({
   selector: "app-service-list",
@@ -28,11 +32,12 @@ import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-util
     CommonModule,
     I18nPipe,
     PaymentModalComponent,
+    TechnicalReportModalComponent,
   ],
   templateUrl: "./service-list.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServiceListComponent {
+export class ServiceListComponent implements OnInit {
   constructor() {
     this.itemsPerPage.set(this.itemsPerPageDefault());
   }
@@ -70,11 +75,23 @@ export class ServiceListComponent {
   finishService = output<ServiceRequest>();
   confirmAssignment = output<ServiceRequest>();
   rejectAssignment = output<ServiceRequest>();
+
+  showTechnicalReportModal = signal(false);
+  selectedRequestForTechnicalReport = signal<ServiceRequest | null>(null);
   // Ids de requests com ação em andamento (controlado pelo pai)
   actionLoadingIds = input<number[]>([]);
 
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
+
+  private readonly originsById = computed(() => {
+    const map = new Map<number, ServiceRequestOrigin>();
+    const origins = this.dataService.origins();
+    for (const origin of origins || []) {
+      map.set(origin.id, origin);
+    }
+    return map;
+  });
 
   // Expose Math for template use
   Math = Math;
@@ -121,6 +138,31 @@ export class ServiceListComponent {
 
   ngOnInit() {
     console.log("[ServiceListComponent] currentUser:", this.currentUser().name);
+    // Garante que origens estejam disponíveis para resolver origin_id quando necessário.
+    if (this.dataService.origins().length === 0) {
+      this.dataService.fetchOrigins();
+    }
+  }
+
+  canShowTechnicalReport(request: ServiceRequest): boolean {
+    const user = this.currentUser();
+    if (user.role !== "professional") return false;
+
+    // Keep consistent with other professional-only actions: require ownership when available.
+    if (request.professional_id && request.professional_id !== user.id) return false;
+
+    return isTechnicalReportEligible(request, this.originsById());
+  }
+
+  openTechnicalReport(request: ServiceRequest): void {
+    if (!this.canShowTechnicalReport(request)) return;
+    this.selectedRequestForTechnicalReport.set(request);
+    this.showTechnicalReportModal.set(true);
+  }
+
+  closeTechnicalReport(): void {
+    this.showTechnicalReportModal.set(false);
+    this.selectedRequestForTechnicalReport.set(null);
   }
 
   // Método para lidar com clique na coluna
@@ -278,7 +320,6 @@ export class ServiceListComponent {
   statusClass(status: ServiceStatus): string {
     const baseClass =
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
-    const color = StatusUtilsService.getColor(status);
     // Gera classes Tailwind a partir da cor hex (padrão: bg-[cor] text-white)
     // Para manter compatibilidade, usa bg-[cor] inline style e text color fixo
     return `${baseClass} text-white`;

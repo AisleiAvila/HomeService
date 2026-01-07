@@ -17,7 +17,7 @@ export class AuthService {
     readonly pendingEmailConfirmation = signal<string | null>(null);
 
   private readonly sessionStorageKey = "homeservice_session";
-  private sessionExpiryTimer: number | null = null;
+  private sessionExpiryTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readStoredSession(): { token: string; expiresAt: string; user?: User } | null {
     try {
@@ -37,6 +37,11 @@ export class AuthService {
     sessionStorage.removeItem(this.sessionStorageKey);
   }
 
+  getCustomSessionToken(): string | null {
+    const stored = this.readStoredSession();
+    return stored?.token || null;
+  }
+
   private scheduleAutoLogout(expiresAtIso: string): void {
     if (this.sessionExpiryTimer) {
       clearTimeout(this.sessionExpiryTimer);
@@ -50,7 +55,7 @@ export class AuthService {
       return;
     }
 
-    this.sessionExpiryTimer = window.setTimeout(() => {
+    this.sessionExpiryTimer = globalThis.setTimeout(() => {
       void this.logout();
     }, ms);
   }
@@ -260,8 +265,8 @@ export class AuthService {
     console.log("✅ AuthService inicializado (autenticação customizada)");
 
     // Best-effort: revogar sessão ao fechar aba/app
-    window.addEventListener("pagehide", () => this.revokeSessionOnExit());
-    window.addEventListener("beforeunload", () => this.revokeSessionOnExit());
+    globalThis.addEventListener("pagehide", () => this.revokeSessionOnExit());
+    globalThis.addEventListener("beforeunload", () => this.revokeSessionOnExit());
   }
 
   private async handleUnverifiedEmail(

@@ -697,6 +697,34 @@ export class DataService {
     }
   }
 
+  /**
+   * Reatribui uma solicitação já atribuída para outro profissional,
+   * sem forçar transições de status.
+   */
+  async reassignServiceRequestProfessional(
+    requestId: number,
+    professionalId: number
+  ): Promise<void> {
+    const currentUser = this.authService.appUser();
+    if (currentUser?.role !== 'admin') {
+      throw new Error('Only administrators can reassign service requests');
+    }
+
+    const success = await this.workflowService.reassignProfessional(
+      requestId,
+      professionalId,
+      currentUser.id
+    );
+
+    if (!success) {
+      throw new Error('Failed to reassign professional');
+    }
+
+    if (currentUser) {
+      await this.fetchServiceRequests(currentUser);
+    }
+  }
+
   async updateServiceRequest(id: number, updates: Partial<ServiceRequest>) {
     // Get current request to track status changes
     const currentRequest = this.getServiceRequestById(id);

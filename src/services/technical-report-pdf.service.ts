@@ -1,0 +1,306 @@
+import { Injectable } from "@angular/core";
+import type { ServiceRequest } from "../models/maintenance.models";
+
+export type TechnicalReportOriginKey =
+  | "worten_verde"
+  | "worten_azul"
+  | "radio_popular";
+
+export interface WortenVerdeMaterialItem {
+  description: string;
+  totalWithVat: number | null;
+}
+
+export interface WortenVerdeReportData {
+  process: string;
+  serviceType:
+    | "Instalação"
+    | "Reparação"
+    | "Garantia"
+    | "Extensão de Garantia"
+    | "Orçamento"
+    | "SAT24";
+  typology: string;
+  brand: string;
+  model: string;
+  serialNumber: string;
+  productCode: string;
+  reportedFailure: string;
+  oldItemCollected: boolean;
+  itemPickedUpAtWorkshop: boolean;
+  technicalNotes: string;
+  materials: WortenVerdeMaterialItem[];
+}
+
+export interface WortenAzulReportData {
+  invoiceNumber: string;
+  serviceNumber: string;
+  reportNotes: string;
+}
+
+export interface RadioPopularReportData {
+  serviceNote: string;
+  installation: string;
+  workDescription: string;
+  extraServicesInstalled: string;
+}
+
+export type TechnicalReportData =
+  | { origin: "worten_verde"; data: WortenVerdeReportData }
+  | { origin: "worten_azul"; data: WortenAzulReportData }
+  | { origin: "radio_popular"; data: RadioPopularReportData };
+
+@Injectable({ providedIn: "root" })
+export class TechnicalReportPdfService {
+  async generateAndDownload(request: ServiceRequest, payload: TechnicalReportData): Promise<void> {
+    const { doc, fileName } = await this.generateDocument(request, payload);
+    doc.save(fileName);
+  }
+
+  async generatePdfBlob(request: ServiceRequest, payload: TechnicalReportData): Promise<{ blob: Blob; fileName: string; issuedAt: Date }>{
+    const { doc, fileName, issuedAt } = await this.generateDocument(request, payload);
+    const blob: Blob = doc.output("blob");
+    return { blob, fileName, issuedAt };
+  }
+
+  private async generateDocument(
+    request: ServiceRequest,
+    payload: TechnicalReportData
+  ): Promise<{ doc: any; fileName: string; issuedAt: Date }> {
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
+    const autoTable: any =
+      (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
+
+    const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
+
+    const originLabel = this.getOriginLabel(payload.origin);
+    const issuedAt = new Date();
+
+    // Try to use a background PDF template if it exists.
+    // Place template PDFs in: src/assets/technical-report-templates/
+    // Expected filenames:
+    // - worten-formulario.pdf (Worten Resolve - Verde)
+    // - worten-azul-formulario.pdf (Worten Resolve - Azul)
+    // - radio-popular-formulario.pdf
+    await this.tryAddTemplateBackground(doc, payload.origin);
+
+    // Fallback/simple layout (also overlays on top of template backgrounds)
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.text("Relatório Técnico", 12, 16);
+
+    doc.setFontSize(9);
+    doc.text(`Origem: ${originLabel}`, 12, 22);
+    doc.text(`Serviço ID: ${String(request.id)}`, 12, 27);
+    doc.text(`Data: ${issuedAt.toLocaleDateString("pt-PT")}`, 12, 32);
+
+    let y = 40;
+
+    const writeLabelValue = (label: string, value: string) => {
+      doc.setFont(undefined, "bold");
+      doc.text(label, 12, y);
+      doc.setFont(undefined, "normal");
+      const lines = doc.splitTextToSize(value || "—", 180);
+      doc.text(lines, 55, y);
+      y += Math.max(6, lines.length * 5);
+    };
+
+    if (payload.origin === "worten_verde") {
+      const d = payload.data;
+      writeLabelValue("Processo:", d.process);
+      writeLabelValue("Tipo de Serviço:", d.serviceType);
+      writeLabelValue("Tipologia:", d.typology);
+      writeLabelValue("Marca:", d.brand);
+      writeLabelValue("Modelo:", d.model);
+      writeLabelValue("Número de Série:", d.serialNumber);
+      writeLabelValue("Código do Produto:", d.productCode);
+      writeLabelValue("Avaria Reportada:", d.reportedFailure);
+      writeLabelValue("Artigo antigo recolhido?:", d.oldItemCollected ? "Sim" : "Não");
+      writeLabelValue("Artigo levantado oficina?:", d.itemPickedUpAtWorkshop ? "Sim" : "Não");
+      writeLabelValue("Observações técnicas:", d.technicalNotes);
+
+      if (d.materials.length > 0) {
+        y += 2;
+        doc.setFont(undefined, "bold");
+        doc.text("Material", 12, y);
+        doc.setFont(undefined, "normal");
+        y += 3;
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Descrição", "Total c/ IVA"]],
+          body: d.materials.map((m) => [
+            m.description || "",
+            m.totalWithVat !== null && m.totalWithVat !== undefined
+              ? new Intl.NumberFormat("pt-PT", {
+                  style: "currency",
+                  currency: "EUR",
+                }).format(m.totalWithVat)
+              : "",
+          ]),
+          margin: { left: 12, right: 12 },
+          styles: { fontSize: 9, cellPadding: 2 },
+          headStyles: { fillColor: [245, 245, 245], textColor: 0 },
+        });
+      }
+    }
+
+    if (payload.origin === "worten_azul") {
+      const d = payload.data;
+      writeLabelValue("Número da Fatura:", d.invoiceNumber);
+      writeLabelValue("Número do Serviço:", d.serviceNumber);
+      writeLabelValue("Relatório Técnico / Observações:", d.reportNotes);
+    }
+
+    if (payload.origin === "radio_popular") {
+      const d = payload.data;
+      writeLabelValue("Nota Serviço:", d.serviceNote);
+      writeLabelValue("Instalação:", d.installation);
+      writeLabelValue("Descrição dos trabalhos:", d.workDescription);
+      writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
+    }
+
+    const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
+    return { doc, fileName, issuedAt };
+  }
+
+  private getOriginLabel(origin: TechnicalReportOriginKey): string {
+    switch (origin) {
+      case "worten_verde":
+        return "Worten Resolve (Verde)";
+      case "worten_azul":
+        return "Worten Resolve (Azul)";
+      case "radio_popular":
+        return "Rádio Popular";
+    }
+  }
+
+  private buildFileName(origin: TechnicalReportOriginKey, requestId: number, issuedAt: Date): string {
+    const yyyy = issuedAt.getFullYear();
+    const mm = String(issuedAt.getMonth() + 1).padStart(2, "0");
+    const dd = String(issuedAt.getDate()).padStart(2, "0");
+
+    const originPart = this.getOriginLabel(origin)
+      .replaceAll(/[\s()]+/g, "_")
+      .replaceAll(/_+/g, "_")
+      .replaceAll(/[^A-Za-z0-9_À-ÿ]/g, "")
+      .trim();
+
+    return `Relatorio_${originPart}_${requestId}_${yyyy}${mm}${dd}.pdf`;
+  }
+
+  private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
+    const pdfTemplateFile = this.getTemplatePdfFile(origin);
+    const pdfUrl = `assets/technical-report-templates/${pdfTemplateFile}`;
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const pdfAsPngDataUrl = await this.tryRenderPdfFirstPageAsPngDataUrl(pdfUrl);
+    if (pdfAsPngDataUrl) {
+      doc.addImage(pdfAsPngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+      return;
+    }
+
+    // Backward compatible fallback: allow PNG templates too.
+    let pngFallback: string;
+    switch (origin) {
+      case "worten_verde":
+        pngFallback = "worten-verde.png";
+        break;
+      case "worten_azul":
+        pngFallback = "worten-azul.png";
+        break;
+      case "radio_popular":
+        pngFallback = "radio-popular.png";
+        break;
+    }
+
+    const pngUrl = `assets/technical-report-templates/${pngFallback}`;
+    const pngDataUrl = await this.tryLoadImageAsDataUrl(pngUrl);
+    if (!pngDataUrl) return;
+    doc.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+  }
+
+  private getTemplatePdfFile(origin: TechnicalReportOriginKey): string {
+    switch (origin) {
+      case "worten_verde":
+        return "worten-formulario.pdf";
+      case "worten_azul":
+        return "worten-azul-formulario.pdf";
+      case "radio_popular":
+        return "radio-popular-formulario.pdf";
+    }
+  }
+
+  private async tryRenderPdfFirstPageAsPngDataUrl(url: string): Promise<string | null> {
+    // Avoid attempting in non-browser contexts.
+    if (globalThis.window === undefined || globalThis.document === undefined) return null;
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+
+      const arrayBuffer = await resp.arrayBuffer();
+
+      // Use legacy build to reduce bundler/worker friction.
+      const pdfjsSpecifier = "pdfjs-dist/legacy/build/pdf.mjs";
+      const pdfjsLib: any = await import(
+        /* @vite-ignore */ pdfjsSpecifier
+      );
+
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, disableWorker: true });
+      const pdf = await loadingTask.promise;
+
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 2 });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+
+      const renderTask = page.render({ canvasContext: ctx, viewport });
+      await renderTask.promise;
+
+      // Cleanup is best-effort.
+      try {
+        page.cleanup();
+      } catch {
+        // ignore
+      }
+
+      return canvas.toDataURL("image/png");
+    } catch {
+      return null;
+    }
+  }
+
+  private async tryLoadImageAsDataUrl(url: string): Promise<string | null> {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+      const blob = await resp.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+            return;
+          }
+          reject(new Error("Unexpected template read result"));
+        };
+        reader.onerror = () => reject(new Error("Failed to read template"));
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  }
+}

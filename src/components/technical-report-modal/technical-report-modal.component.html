@@ -1,0 +1,333 @@
+<dialog
+  *ngIf="show()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  aria-labelledby="technical-report-modal-title"
+  (keydown)="onModalKeydown($event)"
+  open
+  #modalContainer
+>
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full p-6 relative max-h-[90vh] overflow-auto">
+    <button
+      (click)="handleClose()"
+      [disabled]="generating()"
+      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
+      aria-label="{{ 'close' | i18n }}"
+      type="button"
+      tabindex="0"
+    >
+      <i class="fas fa-times" aria-hidden="true"></i>
+    </button>
+
+    <h2 id="technical-report-modal-title" class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+      {{ 'technicalReport' | i18n }}
+    </h2>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+      {{ 'origin' | i18n }}: <span class="font-semibold">{{ originLabel() }}</span>
+    </p>
+
+    @if (needsWortenVariantSelection()) {
+      <div class="mb-4 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          Selecione o tipo de relatório Worten:
+        </p>
+        <div class="flex gap-3">
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="radio"
+              name="wortenVariant"
+              [checked]="selectedWortenVariant() === 'worten_verde'"
+              (change)="selectedWortenVariant.set('worten_verde')"
+            />
+            Verde
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="radio"
+              name="wortenVariant"
+              [checked]="selectedWortenVariant() === 'worten_azul'"
+              (change)="selectedWortenVariant.set('worten_azul')"
+            />
+            Azul
+          </label>
+        </div>
+      </div>
+    }
+
+    <div *ngIf="error()" class="mb-4 text-sm text-red-600 dark:text-red-400 flex items-center">
+      <i class="fas fa-exclamation-circle mr-2"></i>
+      {{ error() }}
+    </div>
+
+    @if (activeOriginKey() === 'worten_verde') {
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="verdeProcess" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Processo *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeProcess"
+              [ngModel]="verdeProcess()" (ngModelChange)="verdeProcess.set($event)" />
+          </div>
+
+          <div>
+            <label for="verdeServiceType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Serviço *</label>
+            <select class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeServiceType"
+              [ngModel]="verdeServiceType()" (ngModelChange)="verdeServiceType.set($event)">
+              <option value="Instalação">Instalação</option>
+              <option value="Reparação">Reparação</option>
+              <option value="Garantia">Garantia</option>
+              <option value="Extensão de Garantia">Extensão de Garantia</option>
+              <option value="Orçamento">Orçamento</option>
+              <option value="SAT24">SAT24</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="verdeTypology" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipologia</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeTypology"
+              [ngModel]="verdeTypology()" (ngModelChange)="verdeTypology.set($event)" />
+          </div>
+
+          <div>
+            <label for="verdeBrand" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marca *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeBrand"
+              [ngModel]="verdeBrand()" (ngModelChange)="verdeBrand.set($event)" />
+          </div>
+
+          <div>
+            <label for="verdeModel" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modelo *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeModel"
+              [ngModel]="verdeModel()" (ngModelChange)="verdeModel.set($event)" />
+          </div>
+
+          <div>
+            <label for="verdeSerialNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Série *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeSerialNumber"
+              [ngModel]="verdeSerialNumber()" (ngModelChange)="verdeSerialNumber.set($event)" />
+          </div>
+
+          <div>
+            <label for="verdeProductCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código do Produto</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeProductCode"
+              [ngModel]="verdeProductCode()" (ngModelChange)="verdeProductCode.set($event)" />
+          </div>
+        </div>
+
+        <div>
+          <label for="verdeReportedFailure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avaria Reportada *</label>
+          <textarea rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+            id="verdeReportedFailure"
+            [ngModel]="verdeReportedFailure()" (ngModelChange)="verdeReportedFailure.set($event)"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" class="rounded" [ngModel]="verdeOldItemCollected()" (ngModelChange)="verdeOldItemCollected.set($event)" />
+            Artigo antigo recolhido?
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" class="rounded" [ngModel]="verdeItemPickedUpAtWorkshop()" (ngModelChange)="verdeItemPickedUpAtWorkshop.set($event)" />
+            Artigo levantado oficina?
+          </label>
+        </div>
+
+        <div>
+          <label for="verdeTechnicalNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observações técnicas *</label>
+          <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+            id="verdeTechnicalNotes"
+            [ngModel]="verdeTechnicalNotes()" (ngModelChange)="verdeTechnicalNotes.set($event)"></textarea>
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Material</h3>
+            <button type="button" (click)="addMaterialItem()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">
+              + Adicionar
+            </button>
+          </div>
+
+          @if (verdeMaterials().length === 0) {
+            <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum item adicionado.</p>
+          } @else {
+            <div class="space-y-3">
+              @for (item of verdeMaterials(); track $index; let idx = $index) {
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                  <div class="md:col-span-2">
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      [attr.for]="'materialDesc' + idx"
+                    >Descrição *</label>
+                    <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                      [attr.id]="'materialDesc' + idx"
+                      [ngModel]="item.description" (ngModelChange)="updateMaterialDescription(idx, $event)" />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      [attr.for]="'materialTotal' + idx"
+                    >Total com IVA (€) *</label>
+                    <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                      [attr.id]="'materialTotal' + idx"
+                      [ngModel]="item.totalWithVat" (ngModelChange)="updateMaterialTotal(idx, $event)" />
+                  </div>
+                  <div class="md:col-span-3 flex justify-end">
+                    <button type="button" (click)="removeMaterialItem(idx)" class="text-sm text-red-600">
+                      Remover
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeOriginKey() === 'worten_azul') {
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="azulInvoiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número da Fatura *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="azulInvoiceNumber"
+              [ngModel]="azulInvoiceNumber()" (ngModelChange)="azulInvoiceNumber.set($event)" />
+          </div>
+          <div>
+            <label for="azulServiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número do Serviço *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="azulServiceNumber"
+              [ngModel]="azulServiceNumber()" (ngModelChange)="azulServiceNumber.set($event)" />
+          </div>
+        </div>
+
+        <div>
+          <label for="azulReportNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Relatório Técnico / Observações *</label>
+          <textarea rows="5" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+            id="azulReportNotes"
+            [ngModel]="azulReportNotes()" (ngModelChange)="azulReportNotes.set($event)"></textarea>
+        </div>
+      </div>
+    }
+
+    @if (activeOriginKey() === 'radio_popular') {
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="radioServiceNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nota Serviço *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="radioServiceNote"
+              [ngModel]="radioServiceNote()" (ngModelChange)="radioServiceNote.set($event)" />
+          </div>
+          <div>
+            <label for="radioInstallation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instalação *</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="radioInstallation"
+              [ngModel]="radioInstallation()" (ngModelChange)="radioInstallation.set($event)" />
+          </div>
+        </div>
+
+        <div>
+          <label for="radioWorkDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição dos trabalhos *</label>
+          <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+            id="radioWorkDescription"
+            [ngModel]="radioWorkDescription()" (ngModelChange)="radioWorkDescription.set($event)"></textarea>
+        </div>
+
+        <div>
+          <label for="radioExtraServicesInstalled" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serviços Extras Instalados</label>
+          <textarea rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+            id="radioExtraServicesInstalled"
+            [ngModel]="radioExtraServicesInstalled()" (ngModelChange)="radioExtraServicesInstalled.set($event)"></textarea>
+        </div>
+      </div>
+    }
+
+    <div class="mt-6 flex gap-3">
+      <button
+        (click)="handleGenerate()"
+        [disabled]="generating()"
+        class="flex-1 bg-brand-primary-600 hover:bg-brand-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
+        type="button"
+      >
+        <i
+          [class]="generating() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-file-pdf mr-2'"
+          aria-hidden="true"
+        ></i>
+        <span>{{ 'generateReport' | i18n }}</span>
+      </button>
+      <button
+        (click)="handleClose()"
+        [disabled]="generating()"
+        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+        type="button"
+      >
+        {{ 'close' | i18n }}
+      </button>
+    </div>
+
+    @if (generatedReport()) {
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
+          Assinatura do cliente
+        </h3>
+
+        @if (clientLinkError()) {
+          <div class="mb-3 text-sm text-red-600 dark:text-red-400 flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            {{ clientLinkError() }}
+          </div>
+        }
+
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="handleGenerateClientLink()"
+            [disabled]="clientLinkGenerating()"
+            class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 disabled:opacity-50"
+          >
+            <i
+              [class]="clientLinkGenerating() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-link mr-2'"
+              aria-hidden="true"
+            ></i>
+            Gerar link
+          </button>
+
+          @if (clientSignUrl()) {
+            <button
+              type="button"
+              (click)="copyClientSignUrl()"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Copiar
+            </button>
+
+            <button
+              type="button"
+              (click)="openClientSigningInApp()"
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Assinar na aplicação
+            </button>
+          }
+        </div>
+
+        @if (clientSignUrl()) {
+          <div class="mt-3">
+            <label for="clientSignUrlInput" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Link</label>
+            <input
+              id="clientSignUrlInput"
+              class="block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              [value]="clientSignUrl()"
+              readonly
+            />
+          </div>
+        }
+      </div>
+    }
+  </div>
+</dialog>

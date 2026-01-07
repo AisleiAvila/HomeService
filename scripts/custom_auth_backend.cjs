@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 require('dotenv').config();
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 const PORT = process.env.AUTH_SERVER_PORT || 4002;
@@ -42,8 +43,300 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
 
+// SendGrid (OTP e notificações)
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+const FROM_EMAIL = process.env.FROM_EMAIL;
+
 function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function hashOtp(otp) {
+  return crypto.createHash('sha256').update(String(otp)).digest('hex');
+}
+
+function generateOtp6() {
+  const n = crypto.randomInt(0, 1000000);
+  return String(n).padStart(6, '0');
+}
+
+async function sendOtpEmail(to, otp, context) {
+  if (!process.env.SENDGRID_API_KEY || !FROM_EMAIL) {
+    throw new Error('Servidor sem configuração de e-mail (SENDGRID_API_KEY/FROM_EMAIL)');
+  }
+
+  const subject = 'Código de assinatura do Relatório Técnico';
+  const text = `Seu código (OTP) para assinar o Relatório Técnico é: ${otp}.\n\nExpira em 10 minutos.\n\n${context || ''}`;
+
+  await sgMail.send({
+    to,
+    from: FROM_EMAIL,
+    subject,
+    text,
+  });
+}
+
+async function requireValidSession(req) {
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    const err = new Error('Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)');
+    err.statusCode = 503;
+    throw err;
+  }
+
+  const auth = req.headers.authorization || '';
+  const bearerMatch = typeof auth === 'string' ? auth.match(/^Bearer\s+(.+)$/i) : null;
+  const token = bearerMatch ? bearerMatch[1] : null;
+  if (!token) {
+    const err = new Error('Token ausente');
+    err.statusCode = 401;
+    throw err;
+  }
+
+  const tokenHash = hashToken(token);
+  const { data: session, error: sessionError } = await supabase
+    .from('user_sessions')
+    .select('id,user_id,expires_at,revoked_at')
+    .eq('token_hash', tokenHash)
+    .maybeSingle();
+
+  if (sessionError) {
+    const err = new Error(sessionError.message);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  if (!session || session.revoked_at || new Date(session.expires_at).getTime() <= Date.now()) {
+    const err = new Error('Sessão inválida ou expirada');
+    err.statusCode = 401;
+    throw err;
+  }
+
+  return session;
+}
+
+async function loadTechnicalReportForSigning(reportId) {
+  const { data: report, error: reportError } = await supabase
+    .from('technical_reports')
+    .select('id,service_request_id,generated_by,client_sign_token,storage_bucket,storage_path,file_url,file_name,latest_file_url,latest_storage_path,status,professional_signed_at,client_signed_at')
+    .eq('id', reportId)
+    .single();
+
+  if (reportError) {
+    // PostgREST uses PGRST116 when .single() finds 0 (or multiple) rows
+    if (reportError.code === 'PGRST116') {
+      const err = new Error('Relatório não encontrado');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const err = new Error(reportError.message || 'Erro ao carregar relatório');
+    err.statusCode = 500;
+    throw err;
+  }
+
+  if (!report) {
+    const err = new Error('Relatório não encontrado');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return report;
+}
+
+async function loadTechnicalReportSignatureRow(reportId, signerType) {
+  const { data, error } = await supabase
+    .from('technical_report_signatures')
+    .select('id,technical_report_id,signer_type,signer_email,otp_hash,otp_expires_at,otp_verified_at,otp_attempts,otp_locked_at,signature_image_data_url,signed_storage_path,signed_file_url,signed_at')
+    .eq('technical_report_id', reportId)
+    .eq('signer_type', signerType)
+    .maybeSingle();
+
+  if (error) {
+    const err = new Error(error.message);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  return data;
+}
+
+function requireClientToken(report, clientToken) {
+  if (!clientToken || String(clientToken) !== String(report.client_sign_token)) {
+    const err = new Error('Token do cliente inválido');
+    err.statusCode = 403;
+    throw err;
+  }
+}
+
+async function verifyOtpForSignature({ reportId, signerType, otp }) {
+  const row = await loadTechnicalReportSignatureRow(reportId, signerType);
+
+  // If no row exists yet, force requesting OTP first.
+  if (!row || !row.otp_hash) {
+    const err = new Error('OTP não solicitado');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (row.otp_locked_at) {
+    const err = new Error('OTP bloqueado por muitas tentativas');
+    err.statusCode = 423;
+    throw err;
+  }
+
+  const expiresAtMs = row.otp_expires_at ? new Date(row.otp_expires_at).getTime() : 0;
+  if (!expiresAtMs || expiresAtMs <= Date.now()) {
+    const err = new Error('OTP expirado. Solicite um novo código.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const providedHash = hashOtp(otp);
+  if (providedHash !== row.otp_hash) {
+    const nextAttempts = Number(row.otp_attempts || 0) + 1;
+    const lockedAt = nextAttempts >= 5 ? new Date().toISOString() : null;
+    await supabase
+      .from('technical_report_signatures')
+      .update({ otp_attempts: nextAttempts, otp_locked_at: lockedAt })
+      .eq('technical_report_id', reportId)
+      .eq('signer_type', signerType);
+
+    const err = new Error('OTP inválido');
+    err.statusCode = 401;
+    throw err;
+  }
+
+  const verifiedAt = new Date().toISOString();
+  await supabase
+    .from('technical_report_signatures')
+    .update({ otp_verified_at: verifiedAt })
+    .eq('technical_report_id', reportId)
+    .eq('signer_type', signerType);
+
+  return { verifiedAt };
+}
+
+function parseDataUrlImage(dataUrl) {
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+    const err = new Error('Assinatura inválida (data URL esperado)');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const match = dataUrl.match(/^data:(image\/(png|jpeg));base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) {
+    const err = new Error('Assinatura inválida (apenas PNG/JPEG base64)');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const mimeType = match[1];
+  const base64 = match[3];
+  const bytes = Buffer.from(base64, 'base64');
+
+  // 1.5MB max to avoid abuse
+  if (bytes.length > 1_500_000) {
+    const err = new Error('Assinatura muito grande');
+    err.statusCode = 413;
+    throw err;
+  }
+
+  return { mimeType, bytes };
+}
+
+async function downloadReportPdfBytes(report) {
+  const bucket = report.storage_bucket || 'technical-reports';
+  const storagePath = report.latest_storage_path || report.storage_path;
+  if (!storagePath) {
+    const err = new Error('Relatório sem storage_path');
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const { data, error } = await supabase.storage.from(bucket).download(storagePath);
+  if (error || !data) {
+    const err = new Error(error?.message || 'Falha ao baixar PDF');
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const arrayBuffer = await data.arrayBuffer();
+  return { bucket, storagePath, bytes: Buffer.from(arrayBuffer) };
+}
+
+async function uploadSignedPdf({ bucket, signedPath, pdfBytes }) {
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(signedPath, pdfBytes, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: 'application/pdf',
+    });
+
+  if (uploadError) {
+    const err = new Error(uploadError.message);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(signedPath);
+  return { publicUrl: urlData.publicUrl };
+}
+
+async function stampSignatureOnPdf({ pdfBytes, signatureBytes, signatureMimeType, signerType }) {
+  const { PDFDocument } = require('pdf-lib');
+
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+  const page = pages[pages.length - 1];
+  const { width } = page.getSize();
+
+  const image = signatureMimeType.endsWith('png')
+    ? await pdfDoc.embedPng(signatureBytes)
+    : await pdfDoc.embedJpg(signatureBytes);
+
+  // Simple placement: bottom area. Keep conservative size.
+  const targetWidth = Math.min(180, width * 0.45);
+  const scale = targetWidth / image.width;
+  const targetHeight = image.height * scale;
+
+  const margin = 28;
+  const y = margin;
+  const x = signerType === 'client' ? margin : Math.max(margin, width - margin - targetWidth);
+
+  page.drawImage(image, {
+    x,
+    y,
+    width: targetWidth,
+    height: targetHeight,
+    opacity: 0.95,
+  });
+
+  const signedBytes = await pdfDoc.save();
+  return Buffer.from(signedBytes);
+}
+
+async function resolveSignerEmail({ signerType, reportId, serviceRequestId, generatedBy, emailFromBody }) {
+  if (emailFromBody) return emailFromBody;
+
+  if (signerType === 'professional') {
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('email')
+      .eq('id', generatedBy)
+      .single();
+    return userRow?.email;
+  }
+
+  const { data: srRow } = await supabase
+    .from('service_requests')
+    .select('email_client')
+    .eq('id', serviceRequestId)
+    .single();
+  return srRow?.email_client;
 }
 
 function sanitizeUserRow(row) {
@@ -328,6 +621,375 @@ app.post('/api/change-password', async (req, res) => {
  */
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Servidor de autenticação em execução.' });
+});
+
+/**
+ * POST /api/technical-reports/:reportId/request-otp
+ * Body: { signerType: 'professional'|'client', email?: string, clientToken?: string }
+ * Envia OTP por e-mail para autorizar assinatura PAdES.
+ */
+app.post('/api/technical-reports/:reportId/request-otp', async (req, res) => {
+  try {
+    const reportId = Number(req.params.reportId);
+    const signerType = req.body?.signerType;
+    const emailFromBody = req.body?.email;
+    const clientToken = req.body?.clientToken;
+
+    if (!Number.isFinite(reportId)) {
+      return res.status(400).json({ success: false, error: 'reportId inválido' });
+    }
+    if (signerType !== 'professional' && signerType !== 'client') {
+      return res.status(400).json({ success: false, error: 'signerType inválido' });
+    }
+
+    // Professional must be authenticated. Client can use token.
+    let sessionUserId = null;
+    if (signerType === 'professional') {
+      const session = await requireValidSession(req);
+      sessionUserId = session.user_id;
+    }
+
+    const report = await loadTechnicalReportForSigning(reportId);
+
+    if (signerType === 'professional' && sessionUserId !== report.generated_by) {
+      return res.status(403).json({ success: false, error: 'Apenas o profissional que gerou pode solicitar OTP' });
+    }
+
+    if (signerType === 'client' && (!clientToken || String(clientToken) !== String(report.client_sign_token))) {
+      return res.status(403).json({ success: false, error: 'Token do cliente inválido' });
+    }
+
+    const signerEmail = await resolveSignerEmail({
+      signerType,
+      reportId,
+      serviceRequestId: report.service_request_id,
+      generatedBy: report.generated_by,
+      emailFromBody,
+    });
+
+    if (!signerEmail) {
+      return res.status(400).json({ success: false, error: 'E-mail do assinante ausente' });
+    }
+
+    const otp = generateOtp6();
+    const otpHash = hashOtp(otp);
+    const ttlMinutes = Number(process.env.TECH_REPORT_OTP_TTL_MINUTES || 10);
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000).toISOString();
+
+    await supabase
+      .from('technical_report_signatures')
+      .upsert({
+        technical_report_id: reportId,
+        signer_type: signerType,
+        signer_email: signerEmail,
+        otp_hash: otpHash,
+        otp_expires_at: expiresAt,
+        otp_verified_at: null,
+        otp_attempts: 0,
+        otp_locked_at: null,
+      }, { onConflict: 'technical_report_id,signer_type' });
+
+    await sendOtpEmail(signerEmail, otp, `Relatório #${reportId} (${signerType})`);
+
+    return res.json({ success: true, expiresAt, email: signerEmail });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    console.error('❌ Erro em /api/technical-reports/:reportId/request-otp:', err.message);
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao solicitar OTP' });
+  }
+});
+
+/**
+ * POST /api/technical-reports/:reportId/client-link
+ * Cria (ou reaproveita) token de assinatura do cliente.
+ * Requer sessão do profissional.
+ */
+app.post('/api/technical-reports/:reportId/client-link', async (req, res) => {
+  try {
+    const reportId = Number(req.params.reportId);
+    if (!Number.isFinite(reportId)) {
+      return res.status(400).json({ success: false, error: 'reportId inválido' });
+    }
+
+    const session = await requireValidSession(req);
+
+    const { data: report, error: reportError } = await supabase
+      .from('technical_reports')
+      .select('id,generated_by,client_sign_token')
+      .eq('id', reportId)
+      .single();
+
+    if (reportError) {
+      if (reportError.code === 'PGRST116') {
+        return res.status(404).json({ success: false, error: 'Relatório não encontrado' });
+      }
+      console.error('❌ Supabase erro ao buscar technical_reports:', reportError);
+      return res.status(500).json({ success: false, error: reportError.message || 'Erro ao buscar relatório' });
+    }
+    if (!report) {
+      return res.status(404).json({ success: false, error: 'Relatório não encontrado' });
+    }
+    if (session.user_id !== report.generated_by) {
+      return res.status(403).json({ success: false, error: 'Apenas o profissional que gerou pode criar link' });
+    }
+
+    const token = report.client_sign_token || crypto.randomUUID();
+    const { error: updateError } = await supabase
+      .from('technical_reports')
+      .update({ client_sign_token: token })
+      .eq('id', reportId);
+
+    if (updateError) {
+      return res.status(500).json({ success: false, error: updateError.message });
+    }
+
+    // Keep compatibility with both payload formats
+    return res.json({ success: true, token, clientToken: token });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    console.error('❌ Erro em /api/technical-reports/:reportId/client-link:', err.message);
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao criar link' });
+  }
+});
+
+/**
+ * GET /api/technical-reports/:reportId
+ * Query: ?clientToken=...
+ * - Professional: requer sessão e ownership
+ * - Client: requer clientToken
+ */
+app.get('/api/technical-reports/:reportId', async (req, res) => {
+  try {
+    const reportId = Number(req.params.reportId);
+    if (!Number.isFinite(reportId)) {
+      return res.status(400).json({ success: false, error: 'reportId inválido' });
+    }
+
+    const clientToken = req.query?.clientToken;
+
+    const report = await loadTechnicalReportForSigning(reportId);
+
+    // If clientToken is present, allow access for client.
+    if (clientToken) {
+      requireClientToken(report, clientToken);
+    } else {
+      // Otherwise require professional session and ownership
+      const session = await requireValidSession(req);
+      if (session.user_id !== report.generated_by) {
+        return res.status(403).json({ success: false, error: 'Apenas o profissional que gerou pode acessar' });
+      }
+    }
+
+    const fileUrl = report.latest_file_url || report.file_url;
+
+    return res.json({
+      success: true,
+      report: {
+        id: report.id,
+        service_request_id: report.service_request_id,
+        status: report.status,
+        file_url: fileUrl,
+        file_name: report.file_name,
+        professional_signed_at: report.professional_signed_at,
+        client_signed_at: report.client_signed_at,
+      },
+    });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao obter relatório' });
+  }
+});
+
+/**
+ * POST /api/technical-reports/:reportId/verify-otp
+ * Body: { signerType: 'professional'|'client', otp: string, clientToken?: string }
+ */
+app.post('/api/technical-reports/:reportId/verify-otp', async (req, res) => {
+  try {
+    const reportId = Number(req.params.reportId);
+    const signerType = req.body?.signerType;
+    const otp = String(req.body?.otp || '').trim();
+    const clientToken = req.body?.clientToken;
+
+    if (!Number.isFinite(reportId)) {
+      return res.status(400).json({ success: false, error: 'reportId inválido' });
+    }
+    if (signerType !== 'professional' && signerType !== 'client') {
+      return res.status(400).json({ success: false, error: 'signerType inválido' });
+    }
+    if (!otp) {
+      return res.status(400).json({ success: false, error: 'OTP ausente' });
+    }
+
+    if (signerType === 'professional') {
+      const session = await requireValidSession(req);
+      const report = await loadTechnicalReportForSigning(reportId);
+      if (session.user_id !== report.generated_by) {
+        return res.status(403).json({ success: false, error: 'Apenas o profissional que gerou pode verificar OTP' });
+      }
+    } else {
+      const report = await loadTechnicalReportForSigning(reportId);
+      requireClientToken(report, clientToken);
+    }
+
+    const { verifiedAt } = await verifyOtpForSignature({ reportId, signerType, otp });
+    return res.json({ success: true, verifiedAt });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao verificar OTP' });
+  }
+});
+
+async function validateSignatureSubmissionRequest(reportId, signerType, otp) {
+  if (!Number.isFinite(reportId)) {
+    const err = new Error('reportId inválido');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (signerType !== 'professional' && signerType !== 'client') {
+    const err = new Error('signerType inválido');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!otp) {
+    const err = new Error('OTP ausente');
+    err.statusCode = 400;
+    throw err;
+  }
+}
+
+async function verifySignerPermissions(req, report, signerType, clientToken) {
+  if (signerType === 'professional') {
+    const session = await requireValidSession(req);
+    if (session.user_id !== report.generated_by) {
+      const err = new Error('Apenas o profissional que gerou pode assinar');
+      err.statusCode = 403;
+      throw err;
+    }
+  } else {
+    requireClientToken(report, clientToken);
+  }
+}
+
+function computeReportStatus(signerType, signedAt, report) {
+  const nextProfessionalSignedAt = signerType === 'professional' ? signedAt : report.professional_signed_at;
+  const nextClientSignedAt = signerType === 'client' ? signedAt : report.client_signed_at;
+  
+  if (nextProfessionalSignedAt && nextClientSignedAt) {
+    return 'fully_signed';
+  }
+  if (nextProfessionalSignedAt) {
+    return 'professional_signed';
+  }
+  if (nextClientSignedAt) {
+    return 'client_signed';
+  }
+  return report.status || 'generated';
+}
+
+async function saveSignatureToDatabase({ reportId, signerType, signatureDataUrl, signedPath, publicUrl, signedAt, report }) {
+  const signerEmail = await resolveSignerEmail({
+    signerType,
+    reportId,
+    serviceRequestId: report.service_request_id,
+    generatedBy: report.generated_by,
+    emailFromBody: null,
+  });
+
+  await supabase
+    .from('technical_report_signatures')
+    .upsert({
+      technical_report_id: reportId,
+      signer_type: signerType,
+      signer_email: signerEmail || 'unknown',
+      signature_image_data_url: signatureDataUrl,
+      signed_storage_path: signedPath,
+      signed_file_url: publicUrl,
+      signed_at: signedAt,
+    }, { onConflict: 'technical_report_id,signer_type' });
+}
+
+async function updateReportWithSignature({ reportId, signerType, signedAt, publicUrl, signedPath, report }) {
+  const reportUpdate = {
+    latest_file_url: publicUrl,
+    latest_storage_path: signedPath,
+  };
+
+  if (signerType === 'professional') {
+    reportUpdate.professional_signed_at = signedAt;
+  } else {
+    reportUpdate.client_signed_at = signedAt;
+  }
+
+  reportUpdate.status = computeReportStatus(signerType, signedAt, report);
+
+  const { error: reportUpdateError } = await supabase
+    .from('technical_reports')
+    .update(reportUpdate)
+    .eq('id', reportId);
+
+  if (reportUpdateError) {
+    const err = new Error(reportUpdateError.message);
+    err.statusCode = 500;
+    throw err;
+  }
+
+  return reportUpdate.status;
+}
+
+/**
+ * POST /api/technical-reports/:reportId/submit-signature
+ * Body: { signerType: 'professional'|'client', otp: string, signatureDataUrl: string, clientToken?: string }
+ */
+app.post('/api/technical-reports/:reportId/submit-signature', async (req, res) => {
+  try {
+    const reportId = Number(req.params.reportId);
+    const signerType = req.body?.signerType;
+    const otp = String(req.body?.otp || '').trim();
+    const signatureDataUrl = req.body?.signatureDataUrl;
+    const clientToken = req.body?.clientToken;
+
+    await validateSignatureSubmissionRequest(reportId, signerType, otp);
+
+    const report = await loadTechnicalReportForSigning(reportId);
+    await verifySignerPermissions(req, report, signerType, clientToken);
+    await verifyOtpForSignature({ reportId, signerType, otp });
+
+    const { mimeType, bytes: signatureBytes } = parseDataUrlImage(signatureDataUrl);
+    const { bytes: pdfBytes } = await downloadReportPdfBytes(report);
+
+    const signedPdfBytes = await stampSignatureOnPdf({
+      pdfBytes,
+      signatureBytes,
+      signatureMimeType: mimeType,
+      signerType,
+    });
+
+    const ts = Date.now();
+    const baseName = (report.file_name || `Relatorio_${reportId}.pdf`).replace(/\.pdf$/i, '');
+    const signedPath = `request_${report.service_request_id}/signed/${reportId}_${signerType}_${ts}_${baseName}.pdf`;
+
+    const { publicUrl } = await uploadSignedPdf({
+      bucket: report.storage_bucket || 'technical-reports',
+      signedPath,
+      pdfBytes: signedPdfBytes,
+    });
+
+    const signedAt = new Date().toISOString();
+
+    await saveSignatureToDatabase({ reportId, signerType, signatureDataUrl, signedPath, publicUrl, signedAt, report });
+    const status = await updateReportWithSignature({ reportId, signerType, signedAt, publicUrl, signedPath, report });
+
+    return res.json({
+      success: true,
+      signedAt,
+      signedFileUrl: publicUrl,
+      status,
+    });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao assinar relatório' });
+  }
 });
 
 // Iniciar servidor
