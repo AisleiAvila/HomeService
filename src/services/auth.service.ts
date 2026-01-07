@@ -18,22 +18,39 @@ export class AuthService {
 
   private readonly sessionStorageKey = "homeservice_session";
   private sessionExpiryTimer: ReturnType<typeof setTimeout> | null = null;
+  private sessionHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly sessionHeartbeatMs = 5 * 60 * 1000;
 
   private readStoredSession(): { token: string; expiresAt: string; user?: User } | null {
     try {
-      const raw = sessionStorage.getItem(this.sessionStorageKey);
+      // Prefer localStorage for persistence across app restarts (mobile/PWA).
+      // Fallback to sessionStorage for legacy sessions and migrate on read.
+      const raw =
+        localStorage.getItem(this.sessionStorageKey) ||
+        sessionStorage.getItem(this.sessionStorageKey);
       if (!raw) return null;
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+
+      // Best-effort migration: if only sessionStorage had it, persist to localStorage.
+      if (!localStorage.getItem(this.sessionStorageKey)) {
+        localStorage.setItem(this.sessionStorageKey, raw);
+      }
+
+      return parsed;
     } catch {
       return null;
     }
   }
 
   private writeStoredSession(session: { token: string; expiresAt: string; user: User }): void {
-    sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(session));
+    const payload = JSON.stringify(session);
+    localStorage.setItem(this.sessionStorageKey, payload);
+    // Keep sessionStorage in sync for backwards compatibility.
+    sessionStorage.setItem(this.sessionStorageKey, payload);
   }
 
   private clearStoredSession(): void {
+    localStorage.removeItem(this.sessionStorageKey);
     sessionStorage.removeItem(this.sessionStorageKey);
   }
 
@@ -60,27 +77,50 @@ export class AuthService {
     }, ms);
   }
 
-  private revokeSessionOnExit(): void {
-    const stored = this.readStoredSession();
-    if (!stored?.token) return;
-
-    const payload = JSON.stringify({ action: "revoke", token: stored.token, reason: "exit" });
-    const url = environment.sessionApiUrl;
-
-    try {
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(url, new Blob([payload], { type: "application/json" }));
-      } else {
-        fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: payload,
-          keepalive: true,
-        }).catch(() => undefined);
-      }
-    } catch {
-      // best-effort
+  private stopSessionHeartbeat(): void {
+    if (this.sessionHeartbeatTimer) {
+      clearInterval(this.sessionHeartbeatTimer);
+      this.sessionHeartbeatTimer = null;
     }
+  }
+
+  private startSessionHeartbeat(): void {
+    this.stopSessionHeartbeat();
+
+    this.sessionHeartbeatTimer = globalThis.setInterval(async () => {
+      const stored = this.readStoredSession();
+      if (!stored?.token) return;
+
+      try {
+        const res = await fetch(environment.sessionApiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${stored.token}`,
+          },
+          body: JSON.stringify({ action: "validate" }),
+        });
+
+        // Only force logout on definitive auth failures.
+        if (res.status === 401 || res.status === 403) {
+          await this.logout();
+          return;
+        }
+
+        if (!res.ok) return;
+
+        const json = await res.json().catch(() => ({}));
+        if (!json?.success || !json?.user) return;
+
+        const user = json.user as User;
+        const expiresAt = json.session?.expiresAt || stored.expiresAt;
+        this.appUser.set(user);
+        this.writeStoredSession({ token: stored.token, expiresAt, user });
+        this.scheduleAutoLogout(expiresAt);
+      } catch {
+        // Network/transient errors: keep user logged in locally.
+      }
+    }, this.sessionHeartbeatMs);
   }
   /**
    * Login customizado via backend próprio
@@ -109,6 +149,7 @@ export class AuthService {
         this.appUser.set(user);
         this.writeStoredSession({ token: session.token, expiresAt: session.expiresAt, user });
         this.scheduleAutoLogout(session.expiresAt);
+        this.startSessionHeartbeat();
         console.log("✅ Usuário autenticado e sessão salva:", user.email);
         console.log("📷 Avatar URL recebido do backend:", user.avatar_url);
         console.log("👤 Nome recebido do backend:", user.name);
@@ -129,8 +170,8 @@ export class AuthService {
   }
 
   /**
-   * Recupera a sessão do usuário do sessionStorage no bootstrap
-   * (sessionStorage invalida automaticamente ao fechar a aba/app)
+   * Recupera a sessão do usuário no bootstrap.
+   * Preferimos localStorage para evitar logout frequente em mobile/PWA.
    */
   async restoreSessionFromStorage(): Promise<void> {
     try {
@@ -139,50 +180,67 @@ export class AuthService {
 
       const stored = this.readStoredSession();
       if (!stored?.token || !stored?.expiresAt) {
-        console.log("ℹ️ Nenhuma sessão encontrada no sessionStorage");
+        console.log("ℹ️ Nenhuma sessão encontrada no armazenamento");
         this.appUser.set(null);
         return;
       }
 
       if (new Date(stored.expiresAt).getTime() <= Date.now()) {
-        console.log("⏰ Sessão expirada (sessionStorage)");
+        console.log("⏰ Sessão expirada (armazenamento)");
         this.clearStoredSession();
         this.appUser.set(null);
         return;
       }
 
       // Validar sessão no backend para garantir revogação/expiração server-side
-      const validateRes = await fetch(environment.sessionApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${stored.token}`,
-        },
-        body: JSON.stringify({ action: "validate" }),
-      });
+      let user = stored.user || null;
+      let expiresAt = stored.expiresAt;
 
-      const validateJson = await validateRes.json().catch(() => ({}));
-      if (!validateRes.ok || !validateJson.success || !validateJson.user) {
-        console.log("ℹ️ Sessão inválida no servidor; limpando");
-        this.clearStoredSession();
+      try {
+        const validateRes = await fetch(environment.sessionApiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${stored.token}`,
+          },
+          body: JSON.stringify({ action: "validate" }),
+        });
+
+        // Definitive auth failures: clean up.
+        if (validateRes.status === 401 || validateRes.status === 403) {
+          console.log("ℹ️ Sessão revogada/expirada no servidor; limpando");
+          this.clearStoredSession();
+          this.appUser.set(null);
+          return;
+        }
+
+        const validateJson = await validateRes.json().catch(() => ({}));
+        if (validateRes.ok && validateJson.success && validateJson.user) {
+          user = validateJson.user as User;
+          expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
+        }
+      } catch {
+        // Transient failure: keep local session.
+      }
+
+      if (!user) {
+        // No user info to restore.
         this.appUser.set(null);
         return;
       }
 
-      const user = validateJson.user as User;
-      const expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
-
       this.appUser.set(user);
       this.writeStoredSession({ token: stored.token, expiresAt, user });
       this.scheduleAutoLogout(expiresAt);
+      this.startSessionHeartbeat();
 
-      console.log("🔄 Sessão validada e restaurada:", user.email);
+      console.log("🔄 Sessão restaurada:", user.email);
 
       // Refrescar os dados do usuário (avatar etc.)
       console.log("🔄 Refrescando dados do perfil do servidor...");
       await this.refreshAppUser(user.email);
     } catch (err) {
-      console.error("❌ Erro ao recuperar sessão do localStorage:", err);
+      console.error("❌ Erro ao recuperar sessão do armazenamento:", err);
       this.clearStoredSession();
       this.appUser.set(null);
     }
@@ -263,10 +321,6 @@ export class AuthService {
     // AuthService agora usa autenticação customizada (não Supabase Auth)
     // A sessão é restaurada via restoreSessionFromStorage() chamado no bootstrap
     console.log("✅ AuthService inicializado (autenticação customizada)");
-
-    // Best-effort: revogar sessão ao fechar aba/app
-    globalThis.addEventListener("pagehide", () => this.revokeSessionOnExit());
-    globalThis.addEventListener("beforeunload", () => this.revokeSessionOnExit());
   }
 
   private async handleUnverifiedEmail(
@@ -973,6 +1027,8 @@ export class AuthService {
     console.log("🔓 AuthService - executando logout");
 
     try {
+      this.stopSessionHeartbeat();
+
       const stored = this.readStoredSession();
       if (stored?.token) {
         try {
@@ -999,7 +1055,7 @@ export class AuthService {
       console.log("✅ Estado do usuário limpo");
     } catch (error) {
       console.error("❌ Erro durante logout, limpando localmente:", error);
-      await this.clearLocalSession();
+      this.stopSessionHeartbeat();
       this.appUser.set(null);
       this.clearStoredSession();
     }
