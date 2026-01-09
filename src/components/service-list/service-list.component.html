@@ -412,8 +412,8 @@
       @for (request of displayedRequests(); track request.id) {
       <div class="service-request-card p-4 sm:p-5">
         <!-- Header with Category and Status -->
-        <div class="flex items-start justify-between mb-3 sm:mb-4 gap-3">
-          <div class="flex-1 min-w-0">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
+          <div class="min-w-0">
             <h3
               class="service-request-title text-gray-900 text-base sm:text-lg font-semibold leading-tight"
             >
@@ -423,7 +423,7 @@
               {{ request.title }}
             </p>
           </div>
-          <div class="flex-shrink-0">
+          <div class="flex-shrink-0 self-end sm:self-auto">
             <span
               [class]="statusClass(request.status)"
               class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap"
