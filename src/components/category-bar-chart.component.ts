@@ -520,7 +520,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     
-    const text = value.toString();
+    const text = this.formatValue(value);
     const textMetrics = ctx.measureText(text);
     const textHeight = isMobile ? 12 : 14;
     const padding = isMobile ? 2 : 3;
