@@ -419,10 +419,6 @@
             >
               {{ request.category?.name }}
             </h3>
-            <p class="text-xs text-gray-500 mt-1">
-              <span class="font-semibold">{{ 'origin' | i18n }}:</span>
-              <span class="ml-1">{{ getOriginLabel(request) }}</span>
-            </p>
             <p class="text-sm text-gray-600 mt-1 line-clamp-2 leading-relaxed">
               {{ request.title }}
             </p>
@@ -487,6 +483,31 @@
         <div
           class="service-request-details space-y-2 sm:space-y-3 mb-3 sm:mb-4"
         >
+          <!-- Origin (mobile simplified) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 7h.01M3 11.5V7a4 4 0 014-4h4.5a2 2 0 011.414.586l8.5 8.5a2 2 0 010 2.828l-6.672 6.672a2 2 0 01-2.828 0l-8.5-8.5A2 2 0 013 11.5z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="font-medium break-words">
+                  <span class="font-semibold">{{ 'origin' | i18n }}:</span>
+                  <span class="ml-1">{{ getOriginLabel(request) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Locality (mobile simplified) -->
           <div class="service-request-info-item">
             <div class="flex items-start gap-2 sm:gap-3">
