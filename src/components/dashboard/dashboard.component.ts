@@ -87,6 +87,7 @@ export class DashboardComponent implements OnInit {
   filterStartDate = signal<string>("");
   filterEndDate = signal<string>("");
   filterCategory = signal<string>("");
+  filterOrigin = signal<string>("");
   filterLocality = signal<string>("");
   filterService = signal<string>("");
   filterClient = signal<string>("");
@@ -264,6 +265,7 @@ export class DashboardComponent implements OnInit {
 
     // Recarrega as solicitações quando o componente é inicializado
     console.log('[Dashboard] ngOnInit - Recarregando solicitações de serviço');
+    this.dataService.fetchOrigins();
     this.dataService.reloadServiceRequests();
   }
 
@@ -347,6 +349,13 @@ export class DashboardComponent implements OnInit {
     );
   });
 
+  availableOrigins = computed(() => {
+    const origins = this.dataService.origins();
+    return [...(origins || [])].sort((a, b) =>
+      (a.name || "").localeCompare(b.name || "", 'pt-PT', { sensitivity: 'base' })
+    );
+  });
+
   // Computed para filtrar e pesquisar solicitações
   filteredRequests = computed(() => {
     let reqs = this.userRequests();
@@ -354,6 +363,7 @@ export class DashboardComponent implements OnInit {
     const startDate = this.filterStartDate();
     const endDate = this.filterEndDate();
     const category = this.filterCategory();
+    const origin = this.filterOrigin();
     const search = this.searchTerm().toLowerCase();
 
     // Filtro por status
@@ -374,6 +384,10 @@ export class DashboardComponent implements OnInit {
     }
 
     if (category) reqs = reqs.filter((r) => String(r.category_id) === category);
+
+    if (origin) {
+      reqs = reqs.filter((r) => String(r.origin_id ?? r.origin?.id ?? "") === origin);
+    }
     
     // Filtro por localidade (comparação exata)
     const locality = this.filterLocality();
@@ -461,6 +475,35 @@ export class DashboardComponent implements OnInit {
     const sortOrder = this.sortOrder();
     const multiplier = sortOrder === "asc" ? 1 : -1;
 
+    const getOriginName = (r: ServiceRequest): string => {
+      const joined = r.origin?.name?.trim();
+      if (joined) return joined;
+      const originId = r.origin_id;
+      if (!originId) return "";
+      return this.dataService.origins().find((o) => o.id === originId)?.name?.trim() || "";
+    };
+
+    const getLocalityValue = (r: ServiceRequest): string => {
+      return extractPtAddressParts(r).locality?.trim() || "";
+    };
+
+    const getClientValue = (r: ServiceRequest): string => {
+      return r.client_name?.trim() || "";
+    };
+
+    const getExecutionTime = (r: ServiceRequest): number => {
+      const raw = r.scheduled_start_datetime || r.requested_datetime || r.requested_date || "";
+      if (!raw) return 0;
+      const parsed = new Date(raw);
+      const time = parsed.getTime();
+      return Number.isNaN(time) ? 0 : time;
+    };
+
+    const getValueAmount = (r: ServiceRequest): number => {
+      const amount = r.valor_prestador ?? r.valor ?? 0;
+      return Number.isFinite(amount) ? amount : 0;
+    };
+
     return [...requests].sort((a, b) => {
       let compareResult = 0;
 
@@ -486,6 +529,31 @@ export class DashboardComponent implements OnInit {
           const catA = this.dataService.categories().find(c => c.id === a.category_id)?.name || "";
           const catB = this.dataService.categories().find(c => c.id === b.category_id)?.name || "";
           compareResult = catA.localeCompare(catB);
+          break;
+        }
+
+        case "origin": {
+          compareResult = getOriginName(a).localeCompare(getOriginName(b), 'pt-PT', { sensitivity: 'base' });
+          break;
+        }
+
+        case "locality": {
+          compareResult = getLocalityValue(a).localeCompare(getLocalityValue(b), 'pt-PT', { sensitivity: 'base' });
+          break;
+        }
+
+        case "client": {
+          compareResult = getClientValue(a).localeCompare(getClientValue(b), 'pt-PT', { sensitivity: 'base' });
+          break;
+        }
+
+        case "execution": {
+          compareResult = getExecutionTime(a) - getExecutionTime(b);
+          break;
+        }
+
+        case "value": {
+          compareResult = getValueAmount(a) - getValueAmount(b);
           break;
         }
       }
@@ -523,6 +591,16 @@ export class DashboardComponent implements OnInit {
         type: "category",
         label: "category",
         value: catName,
+      });
+    }
+    if (this.filterOrigin()) {
+      const originName = this.availableOrigins().find(
+        (o) => String(o.id) === String(this.filterOrigin())
+      )?.name || "";
+      filters.push({
+        type: "origin",
+        label: "origin",
+        value: originName,
       });
     }
     if (this.filterLocality()) {
@@ -1056,6 +1134,7 @@ export class DashboardComponent implements OnInit {
     this.filterStartDate.set("");
     this.filterEndDate.set("");
     this.filterCategory.set("");
+    this.filterOrigin.set("");
     this.filterLocality.set("");
     this.filterService.set("");
     this.filterClient.set("");
@@ -1063,7 +1142,7 @@ export class DashboardComponent implements OnInit {
   }
 
   removeFilter(
-    filterType: "status" | "period" | "category" | "locality" | "service" | "client" | "search"
+    filterType: "status" | "period" | "category" | "origin" | "locality" | "service" | "client" | "search"
   ) {
     switch (filterType) {
       case "status":
@@ -1075,6 +1154,9 @@ export class DashboardComponent implements OnInit {
         break;
       case "category":
         this.filterCategory.set("");
+        break;
+      case "origin":
+        this.filterOrigin.set("");
         break;
       case "locality":
         this.filterLocality.set("");
