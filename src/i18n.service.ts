@@ -1033,6 +1033,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     genericOverdueDescription: "This action is overdue. Please address it as soon as possible to ensure smooth service delivery.",
     overdueRequestsAwaitingAction: "You have {count} overdue requests awaiting your action.",
     overdueRequestsAdminDescription: "These requests require your immediate attention to ensure timely processing and client satisfaction.",
+    priced: "Priced",
+    quoted: "Quoted",
 
   },
   pt: {
@@ -2072,6 +2074,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     genericOverdueDescription: "Esta ação está atrasada. Por favor, resolva o mais rápido possível para garantir a entrega suave do serviço.",
     overdueRequestsAwaitingAction: "Você tem {count} solicitações atrasadas aguardando sua ação.",
     overdueRequestsAdminDescription: "Estas solicitações requerem sua atenção imediata para garantir o processamento em tempo hábil e a satisfação do cliente.",
+    priced: "Orçado",
+    quoted: "Atribuído",
 
   },
 };

@@ -787,11 +787,12 @@
 
             <!-- Actions -->
             <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
-                <div class="flex flex-wrap gap-2">
+                <div class="grid grid-cols-4 gap-2">
                     <!-- Botão de Pagamento - Apenas Admin, status 'Concluído' e pagamento pendente -->
                     @if (canShowPayRequestAction(req)) {
                     <button (click)="handlePayRequest(req)" title="{{ 'payRequest' | i18n }}"
-                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-brand-primary-500 hover:bg-brand-primary-600 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        class="w-10 h-10 inline-flex items-center justify-center text-white bg-brand-primary-500 hover:bg-brand-primary-600 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'payRequest' | i18n">
                         <i class="fas fa-credit-card"></i>
                     </button>
                     }
@@ -799,7 +800,8 @@
                     <!-- Botão marcar como Finalizado - Apenas Admin, status 'Concluído' -->
                     @if (canShowMarkAsFinalizedAction(req)) {
                     <button (click)="handleMarkAsFinalized(req)" title="{{ 'markAsFinalized' | i18n }}"
-                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        class="w-10 h-10 inline-flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'markAsFinalized' | i18n">
                         <i class="fas fa-check-double"></i>
                     </button>
                     }
@@ -807,7 +809,8 @@
                     <!-- Botão de Finalização - Apenas Admin, status 'Em Progresso' -->
                     @if (currentUser() && currentUser()!.role === 'admin' && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
                     <button (click)="handleFinalizeService(req)" title="{{ 'finalizeService' | i18n }}"
-                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        class="w-10 h-10 inline-flex items-center justify-center text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'finalizeService' | i18n">
                         <i class="fas fa-check-circle"></i>
                     </button>
                     }
@@ -815,7 +818,8 @@
                     <!-- Botão de Direcionamento Direto - Apenas para Admin e status Solicitado -->
                     @if (currentUser() && currentUser()!.role !== 'professional' && req.status === 'Solicitado' && !req.professional_id) {
                     <button (click)="openDirectAssignmentModal(req)" title="{{ 'directAssign' | i18n }}"
-                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        class="w-10 h-10 inline-flex items-center justify-center text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'directAssign' | i18n">
                         <i class="fas fa-user-clock"></i>
                     </button>
                     }
@@ -823,38 +827,42 @@
                     <!-- Trocar Profissional - Apenas Admin/gestores com profissional definido -->
                     @if (currentUser() && currentUser()!.role !== 'professional' && canChangeProfessional(req)) {
                     <button (click)="openReassignmentModal(req)" title="Trocar profissional"
-                        class="flex-1 min-w-[40px] px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200 flex items-center justify-center">
+                        class="w-10 h-10 inline-flex items-center justify-center text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors duration-200"
+                        aria-label="Trocar profissional">
                         <i class="fas fa-user-edit"></i>
                     </button>
                     }
 
-                    <!-- Always Available Actions Row -->
-                    <div class="flex w-full gap-2">
-                        <button (click)="handleOpenGeolocation(req)" title="{{ 'geolocation' | i18n }}"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-md transition-colors duration-200 flex items-center justify-center">
-                            <i class="fas fa-location-crosshairs"></i>
-                        </button>
-                        <button (click)="handleViewDetails(req)" title="{{ 'viewDetails' | i18n }}"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200 flex items-center justify-center">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                            @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
-                        <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200 flex items-center justify-center">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        }
-                        @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
-                        <button (click)="openDeleteRequestModal(req)" title="{{ 'deleteRequest' | i18n }}"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200 flex items-center justify-center">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                        }
-                        <button (click)="handleOpenChat(req)" title="{{ 'chat' | i18n }}"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center justify-center">
-                            <i class="fas fa-comments"></i>
-                        </button>
-                    </div>
+                    <!-- Always Available Actions -->
+                    <button (click)="handleOpenGeolocation(req)" title="{{ 'geolocation' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'geolocation' | i18n">
+                        <i class="fas fa-location-crosshairs"></i>
+                    </button>
+                    <button (click)="handleViewDetails(req)" title="{{ 'viewDetails' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'viewDetails' | i18n">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                        @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
+                    <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'edit' | i18n">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    }
+                    @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
+                    <button (click)="openDeleteRequestModal(req)" title="{{ 'deleteRequest' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'deleteRequest' | i18n">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    }
+                    <button (click)="handleOpenChat(req)" title="{{ 'chat' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'chat' | i18n">
+                        <i class="fas fa-comments"></i>
+                    </button>
                 </div>
             </div>
         </div>
