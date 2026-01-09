@@ -93,6 +93,12 @@ export class ServiceListComponent implements OnInit {
     return map;
   });
 
+  getOriginLabel(request: ServiceRequest): string {
+    const rawId = (request as any)?.origin_id ?? request?.origin?.id ?? 0;
+    const originId = typeof rawId === "number" ? rawId : Number(rawId) || 0;
+    return this.originsById().get(originId)?.name || request?.origin?.name || "—";
+  }
+
   // Expose Math for template use
   Math = Math;
 
