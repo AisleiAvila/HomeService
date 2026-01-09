@@ -220,31 +220,35 @@
             <button
               type="button"
               (click)="showDetails(cat)"
-              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              title="{{ 'details' | i18n }}"
             >
               <i class="fas fa-eye mr-2"></i>
-              {{ "details" | i18n }}
+              <span class="sr-only sm:not-sr-only">{{ "details" | i18n }}</span>
             </button>
             <button
               type="button"
               (click)="startEditCategory(cat)"
-              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              title="{{ 'edit' | i18n }}"
             >
               <i class="fas fa-edit mr-2"></i>
-              {{ "edit" | i18n }}
+              <span class="sr-only sm:not-sr-only">{{ "edit" | i18n }}</span>
             </button>
             <button
               type="button"
               (click)="manageSubcategories(cat)"
-              class="flex-1 min-w-[80px] px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+              title="{{ 'addSubcategory' | i18n }}"
             >
               <i class="fas fa-plus mr-2"></i>
-              {{ "add" | i18n }}
+              <span class="sr-only sm:not-sr-only">{{ "add" | i18n }}</span>
             </button>
             <button
               type="button"
               (click)="requestDeleteCategory(cat)"
               class="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-gray-600 rounded-md transition-colors"
+              title="{{ 'delete' | i18n }}"
             >
               <i class="fas fa-trash"></i>
             </button>
@@ -292,25 +296,28 @@
                         type="button"
                         (click)="showSubcategoryDetails(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+                        title="{{ 'details' | i18n }}"
                       >
                         <i class="fas fa-eye mr-1"></i>
-                        {{ "details" | i18n }}
+                        <span class="sr-only sm:not-sr-only">{{ "details" | i18n }}</span>
                       </button>
                       <button
                         type="button"
                         (click)="startEditSubcategory(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
+                        title="{{ 'edit' | i18n }}"
                       >
                         <i class="fas fa-edit mr-1"></i>
-                        {{ "edit" | i18n }}
+                        <span class="sr-only sm:not-sr-only">{{ "edit" | i18n }}</span>
                       </button>
                       <button
                         type="button"
                         (click)="requestDeleteSubcategory(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors flex items-center justify-center"
+                        title="{{ 'delete' | i18n }}"
                       >
                         <i class="fas fa-times mr-1"></i>
-                        {{ "delete" | i18n }}
+                        <span class="sr-only sm:not-sr-only">{{ "delete" | i18n }}</span>
                       </button>
                     </div>
                   </div>
