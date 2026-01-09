@@ -1142,7 +1142,6 @@ export class WorkflowServiceSimplified {
       "Scheduled": "Data Definida",
       "Awaiting Finalization": "Concluído",
       "Payment Made": "Concluído",
-      "Completed": "Concluído",
       "Cancelled": "Cancelado",
     };
     

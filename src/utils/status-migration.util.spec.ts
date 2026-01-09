@@ -17,7 +17,7 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.migrateStatus("InAnalysis")).toBe("Solicitado");
       expect(StatusMigrationUtil.migrateStatus("Scheduled")).toBe("Data Definida");
       expect(StatusMigrationUtil.migrateStatus("InProgress")).toBe("Em Progresso");
-      expect(StatusMigrationUtil.migrateStatus("Completed")).toBe("Concluído");
+      expect(StatusMigrationUtil.migrateStatus("completed")).toBe("Concluído");
     });
     
     it("deve retornar o mesmo status se já for novo", () => {

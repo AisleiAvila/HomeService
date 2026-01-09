@@ -197,7 +197,7 @@ export class AdminOverviewComponent implements OnInit {
 
         // Calculate financial stats with null safety
         const completed = requests.filter(
-            (r) => (r.status === "Concluído" || r.status === ("Completed" as any)) && r.valor != null
+            (r) => r.status === "Concluído" && r.valor != null
         );
         const totalRevenue = completed
             .filter((r) => this.isPaymentMarkedAsPaid(r.payment_status))

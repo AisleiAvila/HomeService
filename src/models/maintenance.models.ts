@@ -95,7 +95,7 @@ export type SchedulingStatus =
   | "Scheduled Today"
   | "Delayed"
   | "In Progress"
-  | "Completed"
+  | "Concluído"
   | "Pending";
 
 export interface TimeControlData {

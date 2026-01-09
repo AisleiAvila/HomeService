@@ -87,7 +87,6 @@ export class StatusMigrationUtil {
     "Scheduled": "Data Definida",
     "InProgress": "Em Progresso",
     "CompletedAwaitingApproval": "Concluído",
-    "Completed": "Concluído",
     "Cancelled": "Cancelado",
     "Paid": "Concluído",
   };
@@ -123,12 +122,19 @@ export class StatusMigrationUtil {
    * ```
    */
   static migrateStatus(oldStatus: string): ServiceStatus {
+    const normalizedInput = String(oldStatus ?? "").trim();
+
     // Se já é um status novo, retorna direto
-    if (this.isNewStatus(oldStatus)) {
-      return oldStatus;
+    if (this.isNewStatus(normalizedInput)) {
+      return normalizedInput;
+    }
+
+    // Compatibilidade: normaliza status legado para o novo fluxo
+    if (normalizedInput.toLowerCase() === "completed") {
+      return "Concluído";
     }
     // Busca no mapa de conversão
-    const newStatus = this.migrationMap[oldStatus];
+    const newStatus = this.migrationMap[normalizedInput];
     if (newStatus) {
       return newStatus;
     }

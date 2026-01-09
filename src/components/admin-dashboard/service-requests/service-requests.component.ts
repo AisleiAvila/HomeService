@@ -93,7 +93,6 @@ export class ServiceRequestsComponent implements OnInit {
             "concluída",
             "concluida",
             "in progress",
-            "completed",
             "payment pending",
         ].map((status) => status.toLowerCase())
     );

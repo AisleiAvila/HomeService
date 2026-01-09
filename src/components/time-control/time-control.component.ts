@@ -103,7 +103,7 @@ export class TimeControlComponent {
 
   getStatusClass(status: SchedulingStatus): string {
     switch (status) {
-      case "Completed":
+      case "Concluído":
         return "bg-green-100 text-green-800";
       case "In Progress":
         return "bg-brand-primary-100 text-brand-primary-800";

@@ -1273,7 +1273,7 @@ export class DataService {
 
     // Se o servi├ºo est├í conclu├¡do
     if (request.status === "Concluído" && request.actual_end_datetime) {
-      return "Completed";
+      return "Concluído";
     }
 
     // Se o servi├ºo est├í em progresso

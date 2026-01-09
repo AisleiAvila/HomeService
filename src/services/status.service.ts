@@ -17,6 +17,5 @@ export enum StatusService {
   Scheduled = "Scheduled",
   InProgress = "InProgress",
   CompletedAwaitingApproval = "CompletedAwaitingApproval",
-  Completed = "Completed",
   Cancelled = "Cancelled",
 }
