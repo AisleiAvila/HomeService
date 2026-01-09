@@ -34,7 +34,7 @@ export class AlertService {
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
-      .not("status", "in", '("Concluído","Cancelado")');
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")');
 
     if (error) {
       console.error("Error fetching requests for overdue check:", error);
@@ -54,7 +54,7 @@ export class AlertService {
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
-      .not("status", "in", '("Concluído","Cancelado")');
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")');
 
     if (error) {
       console.error("Error fetching requests for deadline warnings:", error);
@@ -167,6 +167,7 @@ export class AlertService {
         stakeholders = ["admin"];
         break;
       case "Concluído":
+      case "Finalizado":
         stakeholders = ["admin", "professional"];
         break;
       default:
@@ -219,7 +220,7 @@ export class AlertService {
     // Determinar status mais crítico
     let mostCriticalStatus: ServiceStatus | null = null;
     const statusPriority: Record<ServiceStatus, number> = {
-      // Novos status (9 status simplificados)
+      // Novos status (10 status simplificados)
       "Solicitado": 1,
       "Atribuído": 2,
       "Aguardando Confirmação": 2,
@@ -229,6 +230,7 @@ export class AlertService {
       "Em Progresso": 4,
       "In Progress": 4,
       "Concluído": 0,
+      "Finalizado": 0,
       "Cancelado": 0,
     };
 
@@ -294,6 +296,7 @@ export class AlertService {
       case "Aceito":
         return this.checkPaymentOverdue(request, now);
       case "Concluído":
+      case "Finalizado":
         return this.checkEvaluationOverdue(request, now);
       default:
         return { isOverdue: false, message: "" };
@@ -445,7 +448,7 @@ export class AlertService {
       .select("*")
       .is("deleted_at", null)
       .eq("overdue", true)
-      .not("status", "in", '("Concluído","Cancelado")')
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")')
       .order("updated_at", { ascending: true });
 
     if (error) {
@@ -462,7 +465,7 @@ export class AlertService {
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
-      .not("status", "in", '("Concluído","Cancelado")')
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")')
       .order("updated_at", { ascending: true })
       .limit(20);
 

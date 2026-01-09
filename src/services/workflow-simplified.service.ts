@@ -24,7 +24,7 @@ import {
  * - Admin paga e finaliza
  * 
  * Fluxo: Solicitado → Atribuído → Aceito → Data Definida → 
- *        Em Progresso → Concluído (pagamento tratado em paralelo)
+ *        Em Progresso → Concluído → Finalizado (pagamento tratado em paralelo)
  */
 @Injectable({
   providedIn: "root",
@@ -67,7 +67,8 @@ export class WorkflowServiceSimplified {
     "In Progress": ["Concluído", "Cancelado"],
     
     // Estados finais
-    "Concluído": [],
+    "Concluído": ["Finalizado"],
+    "Finalizado": [],
     "Cancelado": [],
   };
 
@@ -208,7 +209,7 @@ export class WorkflowServiceSimplified {
     console.log('🎯 [reassignProfessional] INICIANDO - requestId:', requestId, 'newProfessionalId:', newProfessionalId);
     try {
       const currentUser = await this.getCurrentUser();
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (currentUser?.role !== 'admin') {
         throw new Error('Apenas administradores podem reatribuir solicitações');
       }
 
@@ -222,7 +223,7 @@ export class WorkflowServiceSimplified {
 
       // Não permite reatribuição em estados finais
       const normalizedStatus = (previousStatus || '').toString();
-      if (normalizedStatus === 'Concluído' || normalizedStatus === 'Cancelado' || normalizedStatus === 'Recusado') {
+      if (normalizedStatus === 'Concluído' || normalizedStatus === 'Finalizado' || normalizedStatus === 'Cancelado' || normalizedStatus === 'Recusado') {
         throw new Error(`Não é possível reatribuir a partir do status ${previousStatus}`);
       }
 
@@ -859,6 +860,70 @@ export class WorkflowServiceSimplified {
     }
   }
 
+  /**
+   * Admin marca uma solicitação como "Finalizado".
+   *
+   * Usado quando o admin já deu baixa/encerramento na Origem e deseja fechar o ciclo administrativo.
+   */
+  async markAsFinalized(
+    requestId: number,
+    adminId: number,
+    adminNotes?: string,
+    onRefresh?: () => void
+  ): Promise<boolean> {
+    try {
+      const request = await this.getRequest(requestId);
+      if (!request) throw new Error("Solicitação não encontrada");
+
+      const currentUser = await this.getCurrentUser();
+      if (currentUser?.role !== "admin") {
+        throw new Error("Apenas administradores podem marcar como finalizado");
+      }
+
+      const previousStatus = request.status;
+      if (!this.canTransition(previousStatus, "Finalizado")) {
+        throw new Error(`Não é possível marcar como finalizado a partir do status ${previousStatus}`);
+      }
+
+      const { error } = await this.supabase.client
+        .from("service_requests")
+        .update({
+          status: "Finalizado",
+          finalized_at: new Date().toISOString(),
+          finalized_by_admin_id: adminId,
+          admin_notes: adminNotes ?? request.admin_notes ?? null,
+        })
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      const auditMessage = "Solicitação marcada como Finalizado pelo administrador" +
+        (adminNotes ? ": " + adminNotes : "");
+
+      await this.updateStatus(requestId, "Finalizado", adminId, auditMessage);
+      await this.auditService.logStatusChange(
+        requestId,
+        previousStatus,
+        "Finalizado" as const,
+        auditMessage,
+        { finalized_at: new Date().toISOString(), admin_notes: adminNotes }
+      );
+
+      this.notificationService.showSuccess(
+        this.i18n.translate("serviceMarkedFinalized")
+      );
+
+      this.handleRefreshCallback(onRefresh);
+      return true;
+    } catch (error) {
+      console.error("Erro ao marcar como finalizado:", error);
+      this.notificationService.showError(
+        error instanceof Error ? error.message : this.i18n.translate("errorMarkingFinalized")
+      );
+      return false;
+    }
+  }
+
   private async validateFinalization(
     previousStatus: ServiceStatus,
     currentUser: any,
@@ -1142,6 +1207,7 @@ export class WorkflowServiceSimplified {
       "Scheduled": "Data Definida",
       "Awaiting Finalization": "Concluído",
       "Payment Made": "Concluído",
+      "Finalized": "Finalizado",
       "Cancelled": "Cancelado",
     };
     
@@ -1157,6 +1223,7 @@ export class WorkflowServiceSimplified {
       "Em Progresso": "Serviço em execução",
       "In Progress": "Serviço em execução",
       "Concluído": "Serviço finalizado",
+      "Finalizado": "Solicitação encerrada pelo administrador",
       "Cancelado": "Serviço cancelado",
     };
 
@@ -1187,7 +1254,7 @@ export class WorkflowServiceSimplified {
         if (!request) throw new Error("Solicitação não encontrada");
 
         // Permitir edição apenas se não estiver em estado final
-        if (["Concluído", "Cancelado"].includes(request.status)) {
+        if (["Concluído", "Finalizado", "Cancelado"].includes(request.status)) {
           throw new Error("Não é possível editar uma solicitação finalizada ou cancelada");
         }
 

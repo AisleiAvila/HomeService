@@ -72,6 +72,26 @@ export class ServiceRequestsComponent implements OnInit {
                 await this.dataService.reloadServiceRequests();
             }
         }
+
+        async handleMarkAsFinalized(req: ServiceRequest) {
+            const confirm = globalThis.confirm(
+                this.i18n.translate('confirmMarkAsFinalized') ||
+                'Confirma que a baixa já foi realizada na Origem e deseja marcar como Finalizado?'
+            );
+
+            if (!confirm) return;
+
+            const success = await this.workflowService.markAsFinalized(
+                req.id,
+                this.currentUser()?.id ?? 0,
+                'Baixa confirmada na Origem - marcado como Finalizado',
+                () => this.dataService.reloadServiceRequests()
+            );
+
+            if (success) {
+                await this.dataService.reloadServiceRequests();
+            }
+        }
     private readonly dataService = inject(DataService);
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
@@ -205,6 +225,7 @@ viewDetails = output<ServiceRequest>();
             "Data Definida",
             "Em Progresso",
             "Concluído",
+            "Finalizado",
             "Cancelado"
         ];
         
@@ -498,7 +519,21 @@ viewDetails = output<ServiceRequest>();
             request.ispaid === true ||
             !!request.payment_date ||
             this.completedPaymentStatuses.has(request.payment_status);
-        return request.status === "Concluído" && !paymentConfirmed;
+        return (
+            request.status === "Concluído" ||
+            request.status === "Finalizado"
+        ) && !paymentConfirmed;
+    }
+
+    canShowMarkAsFinalizedAction(request: ServiceRequest): boolean {
+        if (!request) {
+            return false;
+        }
+        const user = this.currentUser();
+        if (user?.role !== 'admin') {
+            return false;
+        }
+        return request.status === 'Concluído';
     }
     canDeleteRequest(request: ServiceRequest): boolean {
         if (!request) {

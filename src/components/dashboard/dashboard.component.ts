@@ -131,6 +131,7 @@ export class DashboardComponent implements OnInit {
     { status: "Atribuído", label: "statusAssigned" },
     { status: "Data Definida", label: "statusScheduled" },
     { status: "Concluído", label: "statusCompleted" },
+    { status: "Finalizado", label: "statusFinalized" },
   ];
 
   // Método utilitário para uso no template
@@ -235,6 +236,7 @@ export class DashboardComponent implements OnInit {
       "Data Definida",
       "Em Progresso",
       "Concluído",
+      "Finalizado",
       "Cancelado"
     ];
     
@@ -660,7 +662,9 @@ export class DashboardComponent implements OnInit {
         },
         {
           label: this.i18n.translate("completedRequests"),
-          value: requests.filter((r) => r.status === "Concluído").length,
+          value: requests.filter(
+            (r) => r.status === "Concluído" || r.status === "Finalizado"
+          ).length,
           icon: "fas fa-check-circle text-green-500",
         },
       ];
@@ -679,7 +683,9 @@ export class DashboardComponent implements OnInit {
         },
         {
           label: this.i18n.translate("completedJobs"),
-          value: requests.filter((r) => r.status === "Concluído").length,
+          value: requests.filter(
+            (r) => r.status === "Concluído" || r.status === "Finalizado"
+          ).length,
           icon: "fas fa-check-double text-green-500",
         },
       ];
@@ -936,7 +942,9 @@ export class DashboardComponent implements OnInit {
     const isActive = (status: string) => activeStatuses.has(status as ServiceStatus);
 
     const activeJobs = requests.filter((r) => isActive(r.status)).length;
-    const completedJobs = requests.filter((r) => r.status === "Concluído").length;
+    const completedJobs = requests.filter(
+      (r) => r.status === "Concluído" || r.status === "Finalizado"
+    ).length;
 
     const kpis: Array<{ label: string; value: string }> = [
       { label: this.i18n.translate("activeJobs"), value: String(activeJobs) },

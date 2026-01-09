@@ -741,7 +741,7 @@ export class ServiceRequestDetailsComponent {
         loading: false,
         condition:
           user.role === "admin" &&
-          req.status === "Concluído" &&
+          (req.status === "Concluído" || req.status === "Finalizado") &&
           !req.payment_date,
       },
       {

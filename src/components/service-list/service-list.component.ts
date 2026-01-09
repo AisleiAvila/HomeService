@@ -378,6 +378,7 @@ export class ServiceListComponent implements OnInit {
       case "Aceito":
         return this.i18n.translate("paymentLate") || "Pagamento atrasado";
       case "Concluído":
+      case "Finalizado":
         return this.i18n.translate("evaluationLate") || "Avaliação pendente";
       case "Aguardando Confirmação":
         return (
@@ -408,6 +409,7 @@ export class ServiceListComponent implements OnInit {
           "O pagamento não foi confirmado dentro do prazo esperado."
         ) + serviceNameTag;
       case "Concluído":
+      case "Finalizado":
         return (
           this.i18n.translate("evaluationOverdueDescription") ||
           "As avaliações do serviço ainda não foram preenchidas."

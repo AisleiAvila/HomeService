@@ -9,7 +9,7 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.migrateStatus("Em análise")).toBe("Solicitado");
       expect(StatusMigrationUtil.migrateStatus("Agendado")).toBe("Data Definida");
       expect(StatusMigrationUtil.migrateStatus("Em execução")).toBe("Em Progresso");
-      expect(StatusMigrationUtil.migrateStatus("Finalizado")).toBe("Concluído");
+      expect(StatusMigrationUtil.migrateStatus("Finalizado")).toBe("Finalizado");
       expect(StatusMigrationUtil.migrateStatus("Aprovado")).toBe("Concluído");
     });
     
@@ -68,7 +68,7 @@ describe("StatusMigrationUtil", () => {
         "Solicitado",
         "Data Definida",
         "Em Progresso",
-        "Concluído",
+        "Finalizado",
         "Solicitado",
       ]);
     });
@@ -89,6 +89,7 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.isNewStatus("Data Definida")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Em Progresso")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Concluído")).toBe(true);
+      expect(StatusMigrationUtil.isNewStatus("Finalizado")).toBe(true);
       expect(StatusMigrationUtil.isNewStatus("Cancelado")).toBe(true);
     });
     
@@ -96,7 +97,6 @@ describe("StatusMigrationUtil", () => {
       expect(StatusMigrationUtil.isNewStatus("Em análise")).toBe(false);
       expect(StatusMigrationUtil.isNewStatus("Agendado")).toBe(false);
       expect(StatusMigrationUtil.isNewStatus("Em execução")).toBe(false);
-      expect(StatusMigrationUtil.isNewStatus("Finalizado")).toBe(false);
       expect(StatusMigrationUtil.isNewStatus("Orçamento enviado")).toBe(false);
     });
   });
@@ -106,13 +106,13 @@ describe("StatusMigrationUtil", () => {
     it("deve retornar true para status deprecated", () => {
       expect(StatusMigrationUtil.isDeprecatedStatus("Em análise")).toBe(true);
       expect(StatusMigrationUtil.isDeprecatedStatus("Agendado")).toBe(true);
-      expect(StatusMigrationUtil.isDeprecatedStatus("Finalizado")).toBe(true);
     });
     
     it("deve retornar false para status novos", () => {
       expect(StatusMigrationUtil.isDeprecatedStatus("Solicitado")).toBe(false);
       expect(StatusMigrationUtil.isDeprecatedStatus("Em Progresso")).toBe(false);
       expect(StatusMigrationUtil.isDeprecatedStatus("Concluído")).toBe(false);
+      expect(StatusMigrationUtil.isDeprecatedStatus("Finalizado")).toBe(false);
     });
   });
   

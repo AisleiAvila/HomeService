@@ -136,7 +136,7 @@ export class EvaluationService {
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
-      .in("status", ["Concluído"])
+      .in("status", ["Concluído", "Finalizado"])
       .eq("mutual_evaluation_completed", false);
 
     // Avaliações recentes

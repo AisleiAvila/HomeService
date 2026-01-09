@@ -15,7 +15,8 @@ export type ServiceStatus =
   | "Recusado"                      // Profissional recusou
   | "Data Definida"                 // Profissional definiu data
   | "Em Progresso"                  // Serviço em execução
-  | "Concluído"                     // Admin finalizou
+  | "Concluído"                     // Execução concluída (aguardando baixa/encerramento administrativo)
+  | "Finalizado"                    // Encerramento administrativo após baixa na Origem
   | "Cancelado"                     // Cancelado
   | "In Progress";                  // Sinônimo para "Em Progresso"
 

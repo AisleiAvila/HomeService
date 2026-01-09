@@ -153,7 +153,7 @@ export class AdminOverviewComponent implements OnInit {
             
             // Serviços ativos por dia (usando filteredRequests para respeitar período/profissional selecionado)
             const dayActive = this.filteredRequests().filter(r => 
-                r.status !== "Concluído" && r.status !== "Cancelado" && 
+                r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && 
                 r.created_at?.startsWith(dateStr)
             ).length;
             last7Days.activeServices.push(dayActive);
@@ -197,7 +197,7 @@ export class AdminOverviewComponent implements OnInit {
 
         // Calculate financial stats with null safety
         const completed = requests.filter(
-            (r) => r.status === "Concluído" && r.valor != null
+            (r) => (r.status === "Concluído" || r.status === "Finalizado") && r.valor != null
         );
         const totalRevenue = completed
             .filter((r) => this.isPaymentMarkedAsPaid(r.payment_status))
@@ -207,6 +207,7 @@ export class AdminOverviewComponent implements OnInit {
             "Em Progresso",
             "In Progress",
             "Concluído",
+            "Finalizado",
         ]);
         const unpaidInProgressRevenue = requests
             .filter((r) => r.valor != null && unpaidInProgressStatuses.has(r.status || ""))
@@ -214,7 +215,7 @@ export class AdminOverviewComponent implements OnInit {
             .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
 
         // Calculate active services
-        const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Cancelado').length;
+        const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Finalizado' && r.status !== 'Cancelado').length;
 
         // Cálculo real das tendências mês a mês
         const now = new Date();
@@ -241,8 +242,8 @@ export class AdminOverviewComponent implements OnInit {
             : "+0%";
 
         // Serviços ativos
-        const activeThisMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfMonth).length;
-        const activeLastMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfPrevMonth && new Date(r.created_at) <= endOfPrevMonth).length;
+        const activeThisMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfMonth).length;
+        const activeLastMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfPrevMonth && new Date(r.created_at) <= endOfPrevMonth).length;
         const activeTrend = activeLastMonth > 0
             ? (((activeThisMonth - activeLastMonth) / activeLastMonth) * 100).toFixed(1) + "%"
             : "+0%";

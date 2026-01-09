@@ -152,6 +152,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         "Em Progresso": "#9333ea",
         "In Progress": "#9333ea",
         "Concluído": "#14b8a6",
+        "Finalizado": "#14b8a6",
         "Cancelado": "#dc2626",
         Cancelled: "#dc2626",
         Unknown: "#94a3b8",
@@ -229,7 +230,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     completedRequests = computed(() =>
         this.dataService.serviceRequests().filter(
             (r) =>
-                r.status === "Concluído" &&
+                (r.status === "Concluído" || r.status === "Finalizado") &&
                 r.valor
         )
     );

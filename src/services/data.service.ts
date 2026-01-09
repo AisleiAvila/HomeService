@@ -1272,7 +1272,10 @@ export class DataService {
     const now = new Date();
 
     // Se o servi├ºo est├í conclu├¡do
-    if (request.status === "Concluído" && request.actual_end_datetime) {
+    if (
+      (request.status === "Concluído" || request.status === "Finalizado") &&
+      request.actual_end_datetime
+    ) {
       return "Concluído";
     }
 
@@ -1356,7 +1359,8 @@ export class DataService {
     return professionals.map((professional) => {
       const services = this.serviceRequests().filter(
         (r) =>
-          r.professional_id === professional.id && r.status === "Concluído" // Novo status simplificado
+          r.professional_id === professional.id &&
+          (r.status === "Concluído" || r.status === "Finalizado") // Novo status simplificado
       );
 
       const completedServices = services.length;

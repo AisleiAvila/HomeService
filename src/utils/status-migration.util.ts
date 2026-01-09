@@ -4,7 +4,7 @@ import { ServiceStatus } from "@/src/models/maintenance.models";
  * Utilitário de Migração de Status
  * 
  * Mapeia status do sistema antigo (23 status com fluxo de cliente e orçamento)
- * para o novo sistema simplificado (9 status - Admin → Professional → Admin)
+ * para o novo sistema simplificado (10 status - Admin → Professional → Admin)
  * 
  * Contexto da Migração:
  * - Sistema antigo: Cliente criava solicitação → Admin enviava orçamento → Cliente aprovava
@@ -92,7 +92,7 @@ export class StatusMigrationUtil {
   };
   
   /**
-   * Lista de todos os status do novo sistema (9 status)
+   * Lista de todos os status do novo sistema (10 status)
    * Usado para validação rápida
    */
   private static readonly newStatuses: ServiceStatus[] = [
@@ -104,6 +104,7 @@ export class StatusMigrationUtil {
     "Data Definida",
     "Em Progresso",
     "Concluído",
+    "Finalizado",
     "Cancelado",
   ];
   

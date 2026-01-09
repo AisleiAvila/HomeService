@@ -17,6 +17,7 @@ export class StatusUtilsService {
     "Em Progresso": "#8b5cf6",
     "In Progress": "#8b5cf6",
     "Concluído": "#059669",
+    "Finalizado": "#059669",
     "Cancelado": "#6b7280",
   };
 
@@ -31,6 +32,7 @@ export class StatusUtilsService {
     "Em Progresso": "statusInProgress",
     "In Progress": "statusInProgress",
     "Concluído": "statusCompleted",
+    "Finalizado": "statusFinalized",
     "Cancelado": "statusCancelled",
   };
 
