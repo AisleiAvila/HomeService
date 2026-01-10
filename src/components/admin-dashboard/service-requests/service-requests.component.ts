@@ -9,6 +9,7 @@ import { PaymentStatus, ServiceRequest, ServiceStatus, User } from "../../../mod
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
+import { PortugalAddressValidationService } from "../../../services/portugal-address-validation.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
 
@@ -28,6 +29,7 @@ export class ServiceRequestsComponent implements OnInit {
         console.log('[ServiceRequestsComponent] Inicializando - recarregando dados de solicitações');
         this.dataService.reloadServiceRequests();
         this.dataService.fetchOrigins();
+        void this.loadDistrictOptions();
     }
 
     async processPayment(request: ServiceRequest) {
@@ -96,6 +98,7 @@ export class ServiceRequestsComponent implements OnInit {
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    private readonly portugalAddressValidation = inject(PortugalAddressValidationService);
     private readonly workflowService = inject(WorkflowServiceSimplified);
     readonly uiState = inject(UiStateService);
     private readonly completedPaymentStatuses = new Set<PaymentStatus>(["Paid", "Released"]);
@@ -206,14 +209,31 @@ viewDetails = output<ServiceRequest>();
         }
     }
 
-    districtOptions = [
-        "Lisboa",
-        "Porto",
-        "Setúbal",
-        "Braga",
-        "Coimbra",
-        "Aveiro",
-    ];
+    private readonly districtsFromDb = signal<string[]>([]);
+
+    private async loadDistrictOptions(): Promise<void> {
+        try {
+            // Preferencialmente vem da tabela `distritos` (fallback offline se falhar)
+            const districts = await this.portugalAddressValidation.getPortugueseDistricts();
+            this.districtsFromDb.set(districts);
+        } catch (error) {
+            console.error("Erro ao carregar distritos:", error);
+            this.districtsFromDb.set([]);
+        }
+    }
+
+    private normalizeDistrict(value: string | null | undefined): string {
+        return (value ?? "").trim().replaceAll(/\s+/g, " ");
+    }
+
+    private normalizeDistrictKey(value: string | null | undefined): string {
+        return this.normalizeDistrict(value).toLocaleLowerCase("pt-PT");
+    }
+
+    districtOptions = computed(() => {
+        const options = this.districtsFromDb();
+        return [...options].sort((a, b) => a.localeCompare(b, "pt-PT", { sensitivity: "base" }));
+    });
 
     statusOptions = computed(() => {
         const allStatus: ServiceStatus[] = [
@@ -284,7 +304,10 @@ viewDetails = output<ServiceRequest>();
             });
         }
 
-        if (district) reqs = reqs.filter((r) => r.state === district);
+        if (district) {
+            const selectedKey = this.normalizeDistrictKey(district);
+            reqs = reqs.filter((r) => this.normalizeDistrictKey(r.state) === selectedKey);
+        }
         if (professional)
             reqs = reqs.filter(
                 (r) => String(r.professional_id) === String(professional)
