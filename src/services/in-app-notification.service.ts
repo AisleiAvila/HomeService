@@ -53,6 +53,13 @@ export class InAppNotificationService {
         .single();
 
       if (error) {
+        const anyErr = error as any;
+        const code = anyErr?.code;
+        const msg = String(anyErr?.message || '');
+        const isUniqueViolation = code === '23505' || msg.toLowerCase().includes('duplicate key');
+        if (isUniqueViolation) {
+          return null;
+        }
         console.error("Erro ao criar notificação:", error);
         return null;
       }

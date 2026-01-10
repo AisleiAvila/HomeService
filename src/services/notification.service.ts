@@ -116,6 +116,15 @@ export class NotificationService {
       .single();
 
     if (error) {
+      // Se existe dedupe no banco (unique index), uma tentativa duplicada pode falhar com 23505.
+      // Isso não deve gerar fallback/toast, pois significa "já existe".
+      const anyErr = error as any;
+      const code = anyErr?.code;
+      const msg = String(anyErr?.message || '');
+      const isUniqueViolation = code === '23505' || msg.toLowerCase().includes('duplicate key');
+      if (isUniqueViolation) {
+        return;
+      }
       console.error("Error creating enhanced notification:", error);
       // Fallback para notificação simples
       this.addNotification(message);
