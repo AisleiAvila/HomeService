@@ -88,17 +88,22 @@ export class TechnicalReportPdfService {
     // - radio-popular-formulario.pdf
     await this.tryAddTemplateBackground(doc, payload.origin);
 
+    // Brand header (specific requirements per origin)
+    const header = await this.resolveHeaderImage(doc, payload.origin);
+    if (header) this.drawHeaderImage(doc, header);
+    const headerBaseY = header ? header.heightMm + 6 : 16;
+
     // Fallback/simple layout (also overlays on top of template backgrounds)
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(14);
-    doc.text("Relatório Técnico", 12, 16);
+    doc.text("Relatório Técnico", 12, headerBaseY);
 
     doc.setFontSize(9);
-    doc.text(`Origem: ${originLabel}`, 12, 22);
-    doc.text(`Serviço ID: ${String(request.id)}`, 12, 27);
-    doc.text(`Data: ${issuedAt.toLocaleDateString("pt-PT")}`, 12, 32);
+    doc.text(`Origem: ${originLabel}`, 12, headerBaseY + 6);
+    doc.text(`Serviço ID: ${String(request.id)}`, 12, headerBaseY + 11);
+    doc.text(`Data: ${issuedAt.toLocaleDateString("pt-PT")}`, 12, headerBaseY + 16);
 
-    let y = 40;
+    let y = Math.max(40, headerBaseY + 24);
 
     const writeLabelValue = (label: string, value: string) => {
       doc.setFont(undefined, "bold");
@@ -130,6 +135,8 @@ export class TechnicalReportPdfService {
         doc.setFont(undefined, "normal");
         y += 3;
 
+        const marginTop = header ? Math.max(header.heightMm + 8, 10) : 10;
+
         autoTable(doc, {
           startY: y,
           head: [["Descrição", "Total c/ IVA"]],
@@ -142,9 +149,12 @@ export class TechnicalReportPdfService {
                 }).format(m.totalWithVat)
               : "",
           ]),
-          margin: { left: 12, right: 12 },
+          margin: { left: 12, right: 12, top: marginTop, bottom: 14 },
           styles: { fontSize: 9, cellPadding: 2 },
           headStyles: { fillColor: [245, 245, 245], textColor: 0 },
+          didDrawPage: () => {
+            if (header) this.drawHeaderImage(doc, header);
+          },
         });
       }
     }
@@ -235,6 +245,44 @@ export class TechnicalReportPdfService {
       case "radio_popular":
         return "radio-popular-formulario.pdf";
     }
+  }
+
+  private async resolveHeaderImage(
+    doc: any,
+    origin: TechnicalReportOriginKey
+  ): Promise<{ dataUrl: string; heightMm: number } | null> {
+    // Only apply where explicitly required.
+    if (origin !== "worten_verde") return null;
+
+    const candidates = ["assets/Header_Worten_Green.png", "src/assets/Header_Worten_Green.png"];
+    let dataUrl: string | null = null;
+    for (const url of candidates) {
+      dataUrl = await this.tryLoadImageAsDataUrl(url);
+      if (dataUrl) break;
+    }
+    if (!dataUrl) return null;
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Preserve aspect ratio when possible.
+    let targetHeight = 22;
+    try {
+      const props = doc.getImageProperties?.(dataUrl);
+      if (props?.width && props?.height) {
+        targetHeight = (props.height * pageWidth) / props.width;
+      }
+    } catch {
+      // Ignore and fallback to a sensible default height.
+    }
+
+    // Avoid taking too much vertical space.
+    const heightMm = Math.min(Math.max(targetHeight, 16), 32);
+    return { dataUrl, heightMm };
+  }
+
+  private drawHeaderImage(doc: any, header: { dataUrl: string; heightMm: number }): void {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.addImage(header.dataUrl, "PNG", 0, 0, pageWidth, header.heightMm);
   }
 
   private async tryRenderPdfFirstPageAsPngDataUrl(url: string): Promise<string | null> {
