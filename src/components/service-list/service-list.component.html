@@ -403,6 +403,46 @@
 
   <!-- Mobile Card View -->
   <div class="md:hidden">
+    <!-- Mobile sorting controls -->
+    @if (displayedRequests().length > 1) {
+    <div class="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-semibold text-gray-600 dark:text-neutral-300 whitespace-nowrap">
+          {{ "sortBy" | i18n }}
+        </span>
+
+        <select
+          class="flex-1 min-w-0 border border-gray-300 dark:border-neutral-600 rounded-md px-2 py-2 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50"
+          [value]="sortBy()"
+          (change)="handleSortColumn($any($event.target).value)"
+          [attr.aria-label]="'sortBy' | i18n"
+        >
+          <option value="date">{{ "sortByDate" | i18n }}</option>
+          <option value="status">{{ "sortByStatus" | i18n }}</option>
+          <option value="category">{{ "sortByCategory" | i18n }}</option>
+          <option value="origin">{{ "origin" | i18n }}</option>
+          <option value="locality">{{ "locality" | i18n }}</option>
+          <option value="client">{{ "sortByClient" | i18n }}</option>
+          <option value="execution">{{ "executionTimeline" | i18n }}</option>
+          @if (shouldShowValueColumn()) {
+          <option value="value">{{ "value" | i18n }}</option>
+          }
+          <option value="id">{{ "sortById" | i18n }}</option>
+        </select>
+
+        <button
+          type="button"
+          class="inline-flex items-center justify-center w-10 h-10 rounded-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-700 dark:text-neutral-100"
+          (click)="handleSortColumn(sortBy())"
+          [attr.aria-label]="(sortOrder() === 'asc' ? ('ascending' | i18n) : ('descending' | i18n))"
+          [attr.title]="(sortOrder() === 'asc' ? ('ascending' | i18n) : ('descending' | i18n))"
+        >
+          <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'"></i>
+        </button>
+      </div>
+    </div>
+    }
+
     @if (displayedRequests().length === 0) {
     <div class="p-4 sm:p-6 text-center text-gray-500">
       {{ "noServiceRequestsFound" | i18n }}
