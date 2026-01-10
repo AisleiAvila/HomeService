@@ -259,6 +259,12 @@ export class TechnicalReportPdfService {
       case "worten_azul":
         candidates = ["assets/Header_Worten_Blue.png", "src/assets/Header_Worten_Blue.png"];
         break;
+      case "radio_popular":
+        candidates = [
+          "assets/Header_Radio_Popular_Blue.png",
+          "src/assets/Header_Radio_Popular_Blue.png",
+        ];
+        break;
       default:
         return null;
     }

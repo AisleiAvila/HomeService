@@ -259,24 +259,12 @@ export class AppComponent implements OnInit {
         if (user.status === "Active") {
           this.view.set("app");
 
-          // Importante: não forçar navegação em TODO refresh.
+          // Importante: não forçar navegação a cada refresh.
           // Se o usuário der refresh numa rota profunda (ex: /admin/request-details/:id),
           // manter a URL atual para o Router reidratar a tela corretamente.
           const currentUrl = this.router.url || globalThis.window.location.pathname;
 
-          if (user.role === 'admin') {
-            // Admin deve permanecer em /admin/* (se estiver em outra seção, redireciona).
-            if (!currentUrl.startsWith('/admin')) {
-              console.log('[AppComponent] Admin detectado, redirecionando para /admin');
-              this.router.navigate(['/admin']);
-            }
-          } else {
-            // Não-admin não deve permanecer em /admin/*.
-            if (currentUrl.startsWith('/admin')) {
-              console.log('[AppComponent] Usuário não-admin em rota /admin, redirecionando para /');
-              this.router.navigate(['/']);
-            }
-          }
+          this.ensureRoleRouteConsistency(user.role, currentUrl);
 
           // Default do nav interno (usado quando não há rota específica na URL)
           this.currentNav.set('dashboard');
@@ -385,6 +373,38 @@ export class AppComponent implements OnInit {
       this.currentNav.set(nav);
     }
     if (this.isMobile()) this.isSidebarOpen.set(false);
+  }
+
+  private isAdminAllowedOutsideAdminRoute(currentUrl: string): boolean {
+    return (
+      currentUrl === '/' ||
+      currentUrl.startsWith('/?') ||
+      currentUrl.startsWith('/create-service-request') ||
+      currentUrl.startsWith('/admin-create-service-request') ||
+      currentUrl.startsWith('/technical-reports/') ||
+      currentUrl.startsWith('/requests/') ||
+      currentUrl.startsWith('/confirmar-email') ||
+      currentUrl.startsWith('/reset-password') ||
+      currentUrl.startsWith('/design-system') ||
+      currentUrl.startsWith('/ui-components')
+    );
+  }
+
+  private ensureRoleRouteConsistency(role: string | undefined, currentUrl: string): void {
+    if (role === 'admin') {
+      // Admin deve permanecer em /admin/* (exceto rotas explícitas fora de /admin)
+      if (!currentUrl.startsWith('/admin') && !this.isAdminAllowedOutsideAdminRoute(currentUrl)) {
+        console.log('[AppComponent] Admin detectado, redirecionando para /admin');
+        this.router.navigate(['/admin']);
+      }
+      return;
+    }
+
+    // Não-admin não deve permanecer em /admin/*.
+    if (currentUrl.startsWith('/admin')) {
+      console.log('[AppComponent] Usuário não-admin em rota /admin, redirecionando para /');
+      this.router.navigate(['/']);
+    }
   }
 
   async handleLogin(payload: LoginPayload) {
