@@ -251,10 +251,18 @@ export class TechnicalReportPdfService {
     doc: any,
     origin: TechnicalReportOriginKey
   ): Promise<{ dataUrl: string; heightMm: number } | null> {
-    // Only apply where explicitly required.
-    if (origin !== "worten_verde") return null;
+    let candidates: string[] | null = null;
+    switch (origin) {
+      case "worten_verde":
+        candidates = ["assets/Header_Worten_Green.png", "src/assets/Header_Worten_Green.png"];
+        break;
+      case "worten_azul":
+        candidates = ["assets/Header_Worten_Blue.png", "src/assets/Header_Worten_Blue.png"];
+        break;
+      default:
+        return null;
+    }
 
-    const candidates = ["assets/Header_Worten_Green.png", "src/assets/Header_Worten_Green.png"];
     let dataUrl: string | null = null;
     for (const url of candidates) {
       dataUrl = await this.tryLoadImageAsDataUrl(url);
