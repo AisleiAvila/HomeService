@@ -144,7 +144,8 @@ export class AlertService {
   async notifyStakeholders(
     requestId: number,
     type: "deadline_warning" | "overdue_alert",
-    message: string
+    message: string,
+    alreadyMarkedSent?: boolean
   ): Promise<void> {
     const request = await this.getServiceRequest(requestId);
     if (!request) return;
@@ -194,7 +195,10 @@ export class AlertService {
     );
 
     // Marcar alerta como enviado
-    await this.markAlertSent(requestId, type);
+    // Se já marcamos via RPC atômico, não marcar novamente (evita duplicar no array).
+    if (!alreadyMarkedSent) {
+      await this.markAlertSent(requestId, type);
+    }
   }
 
   /**
@@ -280,8 +284,24 @@ export class AlertService {
     const overdueCheck = this.getOverdueStatus(request);
     
     if (overdueCheck.isOverdue) {
+      // Evita duplicar alertas em verificações periódicas:
+      // o serviço roda no startup, no login e a cada 10 minutos.
+      // Para overdue_alert, usamos o mesmo "anti-spam diário" de deadline_warning.
       await this.markRequestOverdue(request.id);
-      await this.notifyStakeholders(request.id, "overdue_alert", overdueCheck.message);
+
+      // Fast-path local (não-atômico): evita RPC se já está marcado no objeto atual.
+      if (this.wasAlertSent(request, "overdue_alert")) return;
+
+      // Trava atômica no banco para evitar duplicação entre múltiplas sessões/tabs.
+      const marked = await this.tryMarkDailyAlertSent(request.id, "overdue_alert");
+      if (marked === false) return;
+
+      await this.notifyStakeholders(
+        request.id,
+        "overdue_alert",
+        overdueCheck.message,
+        marked === true
+      );
     }
   }
 
@@ -385,9 +405,18 @@ export class AlertService {
   private async checkRequestDeadlines(request: ServiceRequest): Promise<void> {
     const warning = this.getDeadlineWarning(request);
     
-    if (warning && !this.wasAlertSent(request, "deadline_warning")) {
-      await this.notifyStakeholders(request.id, "deadline_warning", warning);
-    }
+    if (!warning) return;
+    if (this.wasAlertSent(request, "deadline_warning")) return;
+
+    const marked = await this.tryMarkDailyAlertSent(request.id, "deadline_warning");
+    if (marked === false) return;
+
+    await this.notifyStakeholders(
+      request.id,
+      "deadline_warning",
+      warning,
+      marked === true
+    );
   }
 
   private getDeadlineWarning(request: ServiceRequest): string | null {
@@ -532,6 +561,44 @@ export class AlertService {
     const alertKey = `${alertType}_${today}`;
 
     return alerts.includes(alertKey);
+  }
+
+  /**
+   * Marca um alerta do dia no banco de forma atômica.
+   * Retorna:
+   * - true: marcado agora (deve enviar; e não precisa chamar markAlertSent)
+   * - false: já estava marcado (não enviar)
+   * - null: RPC indisponível/erro (caller deve usar fallback existente)
+   */
+  private async tryMarkDailyAlertSent(
+    requestId: number,
+    alertType: "deadline_warning" | "overdue_alert"
+  ): Promise<boolean | null> {
+    try {
+      const { data, error } = await this.supabase.client.rpc(
+        "mark_service_request_daily_alert_sent",
+        {
+          request_id: requestId,
+          alert_type: alertType,
+        }
+      );
+
+      if (error) {
+        console.warn(
+          "[AlertService] RPC mark_service_request_daily_alert_sent falhou (usando fallback):",
+          error
+        );
+        return null;
+      }
+
+      return Boolean(data);
+    } catch (e) {
+      console.warn(
+        "[AlertService] RPC mark_service_request_daily_alert_sent indisponível (usando fallback):",
+        e
+      );
+      return null;
+    }
   }
 
   private schedulePeriodicChecks(): void {

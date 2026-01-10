@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { User, ServiceRequest, ServiceStatus } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
@@ -31,6 +31,27 @@ import { extractPtAddressParts } from "../../utils/address-utils";
 export class DashboardComponent implements OnInit {
     public selectedRequest = signal<ServiceRequest | null>(null);
     viewDetails = output<ServiceRequest>();
+
+  private readonly activatedRoute = inject(ActivatedRoute);
+
+  // Persistência de detalhes via query param (permite refresh no mobile sem voltar para a lista)
+  private readonly requestIdFromUrl = signal<number | null>(null);
+
+  private readRequestIdFromUrl(): void {
+    const qs = globalThis.window?.location?.search ?? '';
+    const sp = new URLSearchParams(qs);
+    const raw = sp.get('requestId') ?? sp.get('sr');
+    const parsed = Number.parseInt(String(raw ?? ''), 10);
+    this.requestIdFromUrl.set(Number.isFinite(parsed) ? parsed : null);
+  }
+
+  private setRequestIdInUrl(requestId: number | null): void {
+    void this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { requestId },
+      queryParamsHandling: 'merge',
+    });
+  }
   // Handler para detalhar solicitação
   handleViewDetails(request: ServiceRequest) {
     console.log('[Dashboard] handleViewDetails chamado com request:', request);
@@ -50,6 +71,10 @@ export class DashboardComponent implements OnInit {
     this.selectedRequest.set(request);
     console.log('[Dashboard] selectedRequest após set:', this.selectedRequest());
     this.viewDetails.emit(request);
+
+    // Persistir na URL para sobreviver a refresh
+    this.requestIdFromUrl.set(request.id);
+    this.setRequestIdInUrl(request.id);
   }
 
   handleViewGeolocation(request: ServiceRequest) {
@@ -70,10 +95,30 @@ export class DashboardComponent implements OnInit {
   readonly _logSelectedRequestEffect = effect(() => {
     console.log('[Dashboard] selectedRequest mudou:', this.selectedRequest());
   });
+
+  // Reidrata o request selecionado a partir do query param após refresh
+  readonly _rehydrateSelectedRequestEffect = effect(() => {
+    const idFromUrl = this.requestIdFromUrl();
+    const currentSelected = this.selectedRequest();
+    const requests = this.dataService.serviceRequests();
+
+    if (!idFromUrl) return;
+    if (currentSelected?.id === idFromUrl) return;
+    if (!Array.isArray(requests) || requests.length === 0) return;
+
+    const found = requests.find((r) => r.id === idFromUrl);
+    if (found) {
+      this.selectedRequest.set(found);
+    }
+  });
     logAndCloseDetails() {
     console.log('closeDetails recebido (pai dashboard)');
     this.selectedRequest.set(null);
     console.log('[Dashboard] selectedRequest após fechar:', this.selectedRequest());
+
+    // Limpar persistência da URL
+    this.requestIdFromUrl.set(null);
+    this.setRequestIdInUrl(null);
   }
   // Signal para exibir erro de negócio
   showBusinessError = signal(false);
@@ -227,6 +272,9 @@ export class DashboardComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    // Ler query param no bootstrap (refresh)
+    this.readRequestIdFromUrl();
+
     const allStatus: ServiceStatus[] = [
       "Solicitado",
       "Atribuído",

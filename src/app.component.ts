@@ -9,7 +9,7 @@ import {
   signal,
   ViewChild,
 } from "@angular/core";
-import { Router, RouterModule } from "@angular/router";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 
 // Services
 import { AuthService } from "./services/auth.service";
@@ -103,6 +103,7 @@ export class AppComponent implements OnInit {
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly pushNotificationService = inject(PushNotificationService);
   private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
 
   // App State
   view = signal<View>("landing");
@@ -209,7 +210,20 @@ export class AppComponent implements OnInit {
   private lastLoadedUserId: number | undefined = undefined;
   private lastAlertSyncUserId: number | undefined = undefined;
 
+  // Persistência de navegação (profissional): permite dar refresh em "Detalhes" sem voltar para Visão Geral.
+  private readonly pendingDetailsRequestId = signal<number | null>(null);
+
   constructor() {
+    // Reidratar request id de detalhes a partir da URL (refresh/deep link)
+    // (Usar window.location.search é mais confiável aqui do que router.url durante o bootstrap.)
+    const qs = globalThis.window?.location?.search ?? '';
+    const sp = new URLSearchParams(qs);
+    const requestIdFromUrl = sp.get('requestId') ?? sp.get('sr');
+    const parsedId = Number.parseInt(String(requestIdFromUrl ?? ''), 10);
+    if (Number.isFinite(parsedId)) {
+      this.pendingDetailsRequestId.set(parsedId);
+    }
+
     // Detecta link de confirmação de e-mail e redireciona para redefinição de senha
     const urlParams = new URLSearchParams(globalThis.window.location.search);
     const token = urlParams.get('token') || urlParams.get('access_token');
@@ -244,18 +258,28 @@ export class AppComponent implements OnInit {
       } else if (user) {
         if (user.status === "Active") {
           this.view.set("app");
-          
-          // Redirecionar admin para /admin após login
+
+          // Importante: não forçar navegação em TODO refresh.
+          // Se o usuário der refresh numa rota profunda (ex: /admin/request-details/:id),
+          // manter a URL atual para o Router reidratar a tela corretamente.
+          const currentUrl = this.router.url || globalThis.window.location.pathname;
+
           if (user.role === 'admin') {
-            console.log('[AppComponent] Admin detectado, redirecionando para /admin');
-            this.router.navigate(['/admin']);
-            this.currentNav.set('dashboard');
+            // Admin deve permanecer em /admin/* (se estiver em outra seção, redireciona).
+            if (!currentUrl.startsWith('/admin')) {
+              console.log('[AppComponent] Admin detectado, redirecionando para /admin');
+              this.router.navigate(['/admin']);
+            }
           } else {
-            // Garantir que não-admin está na rota raiz
-            console.log('[AppComponent] Usuário não-admin, garantindo rota raiz');
-            this.router.navigate(['/']);
-            this.currentNav.set('dashboard');
+            // Não-admin não deve permanecer em /admin/*.
+            if (currentUrl.startsWith('/admin')) {
+              console.log('[AppComponent] Usuário não-admin em rota /admin, redirecionando para /');
+              this.router.navigate(['/']);
+            }
           }
+
+          // Default do nav interno (usado quando não há rota específica na URL)
+          this.currentNav.set('dashboard');
           
           // Only load data if we haven't loaded it for this user yet
           if (this.lastLoadedUserId === user.id) {
@@ -283,6 +307,34 @@ export class AppComponent implements OnInit {
         this.dataService.clearData();
         this.lastLoadedUserId = undefined;
         this.lastAlertSyncUserId = undefined;
+      }
+    });
+
+    // Reidrata a tela de detalhes para profissional a partir do query param.
+    // Observa serviceRequests() para funcionar mesmo se o refresh ocorrer antes do loadInitialData terminar.
+    effect(() => {
+      const user = this.currentUser();
+      const requestId = this.pendingDetailsRequestId();
+      const requests = this.dataService.serviceRequests();
+
+      if (!user || user.role === 'admin') {
+        return;
+      }
+
+      if (!requestId) {
+        return;
+      }
+
+      // Se já está em detalhes com o mesmo request, não faz nada.
+      const selected = this.selectedRequest();
+      if (selected?.id === requestId && this.currentNav() === 'details') {
+        return;
+      }
+
+      const found = requests.find((r) => r.id === requestId);
+      if (found) {
+        this.selectedRequest.set(found);
+        this.currentNav.set('details');
       }
     });
   }
@@ -499,10 +551,28 @@ export class AppComponent implements OnInit {
   openDetails(request: ServiceRequest) {
     this.selectedRequest.set(request);
     this.currentNav.set("details");
+
+    // Persistir na URL para sobreviver a refresh (principalmente no mobile)
+    if (this.currentUser()?.role !== 'admin') {
+      this.pendingDetailsRequestId.set(request.id);
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: { requestId: request.id },
+        queryParamsHandling: 'merge',
+      });
+    }
   }
   goBackFromDetails() {
     this.selectedRequest.set(null);
     this.currentNav.set("dashboard");
+
+    // Limpa a persistência da URL
+    this.pendingDetailsRequestId.set(null);
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { requestId: null },
+      queryParamsHandling: 'merge',
+    });
   }
   openClarificationModal(request: ServiceRequest) {
     this.selectedRequest.set(request);

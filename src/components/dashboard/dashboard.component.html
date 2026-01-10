@@ -80,7 +80,7 @@
       [requestInput]="selectedRequest()!"
       [currentUserInput]="user()!"
       (closeDetails)="logAndCloseDetails()"
-      (refreshRequest)="selectedRequest.set(null)"
+      (refreshRequest)="logAndCloseDetails()"
     ></app-service-request-details>
   }
   
