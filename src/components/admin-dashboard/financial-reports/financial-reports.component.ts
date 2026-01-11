@@ -25,6 +25,11 @@ type SubcategoryBreakdownId = number | "uncategorized";
 type SubcategoryServiceRow = {
     id: number | string;
     title: string;
+    originName?: string;
+    os?: string | null;
+    serviceStartAt?: string | null;
+    serviceEndAt?: string | null;
+    status?: string;
     serviceValue: number;
     paidAmount: number;
     pendingAmount: number;
@@ -946,9 +951,22 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             item.paidAmount += paidAmount;
             item.pendingAmount += pendingAmount;
             item.finalAmount += finalAmount;
+
+            const originFallback = this.i18n.translate("unknownOrigin") || "Origem Desconhecida";
+            const originName = request.origin?.name || originFallback;
+            const statusFallback = this.i18n.translate("unknownStatus") || "Unknown";
+            const status = (request.status && String(request.status).trim()) || statusFallback;
+            const serviceStartAt = request.actual_start_datetime ?? request.started_at ?? request.scheduled_start_datetime ?? null;
+            const serviceEndAt = request.actual_end_datetime ?? request.completed_at ?? null;
+
             item.services.push({
                 id: request.id ?? `${key}-${item.services.length}`,
                 title: request.title || this.i18n.translate("service") || "Serviço",
+                originName,
+                os: request.os ?? null,
+                serviceStartAt,
+                serviceEndAt,
+                status,
                 serviceValue,
                 paidAmount,
                 pendingAmount,
@@ -1268,6 +1286,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                     minimumFractionDigits: 1,
                     maximumFractionDigits: 1,
                 }).format(value / 100);
+            const formatDateTime = (iso: string | null | undefined) => {
+                if (!iso) return "";
+                const date = new Date(iso);
+                if (Number.isNaN(date.getTime())) return "";
+                return date.toLocaleString("pt-PT", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            };
             const encodeHtml = (value: string | number | null | undefined) =>
                 String(value ?? "")
                     .replaceAll("&", "&amp;")
@@ -1283,6 +1313,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const paymentLabel = this.i18n.translate("payment") ?? "Pagamento";
             const subcategoryLabel = this.i18n.translate("subcategory") ?? "Subcategoria";
             const serviceLabel = this.i18n.translate("service") ?? "Serviço";
+            const originLabel = this.i18n.translate("origin") ?? "Origem";
+            const osLabel = this.i18n.translate("osOptional") ?? "Ordem de Serviço";
+            const statusLabel = this.i18n.translate("status") ?? "Status";
+            const serviceStartLabel = "Início Atendimento";
+            const serviceEndLabel = "Fim Atendimento";
             const notApplicableLabel = this.i18n.translate("notApplicable") ?? "-";
             const unassignedLabel = this.i18n.translate("unassigned") ?? "N/A";
             const noDataLabel = this.i18n.translate("noDataAvailable") ?? "Sem dados";
@@ -1572,6 +1607,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
                                         subcategory.services.forEach((service) => {
                                                 const serviceTitle = encodeHtml(service.title || "-");
+                                                const serviceOriginName = encodeHtml(service.originName || (this.i18n.translate("unknownOrigin") ?? "Origem Desconhecida"));
+                                                const serviceOs = encodeHtml(service.os || notApplicableLabel);
+                                                const serviceStatus = encodeHtml(service.status || (this.i18n.translate("unknownStatus") ?? "Unknown"));
+                                                const serviceStartAt = encodeHtml(service.serviceStartAt ? formatDateTime(service.serviceStartAt) : notApplicableLabel);
+                                                const serviceEndAt = encodeHtml(service.serviceEndAt ? formatDateTime(service.serviceEndAt) : notApplicableLabel);
                                                 const serviceServiceValue = encodeHtml(formatCurrency(service.serviceValue));
                                                 const servicePaidAmount = encodeHtml(formatCurrency(service.paidAmount));
                                                 const servicePendingAmount = encodeHtml(formatCurrency(service.pendingAmount));
@@ -1579,7 +1619,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                                                 html += `
             <tr class="service-row">
                 <td></td>
-                <td><div style="padding-left: 32px;"><span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}</div></td>
+                <td>
+                    <div style="padding-left: 32px;">
+                        <span class="row-label">${encodeHtml(serviceLabel)}</span>${serviceTitle}
+                        <div style="margin-top: 6px;">
+                            <span class="row-label">${encodeHtml(originLabel)}</span>${serviceOriginName}
+                            <span class="row-label">${encodeHtml(osLabel)}</span>${serviceOs}
+                            <span class="row-label">${encodeHtml(statusLabel)}</span>${serviceStatus}
+                            <span class="row-label">${encodeHtml(serviceStartLabel)}</span>${serviceStartAt}
+                            <span class="row-label">${encodeHtml(serviceEndLabel)}</span>${serviceEndAt}
+                        </div>
+                    </div>
+                </td>
                 <td>${serviceServiceValue}</td>
                 <td>${servicePendingAmount}</td>
                 <td>${servicePaidAmount}</td>
@@ -1614,6 +1665,9 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             }
 
             printWindow.document.documentElement.innerHTML = html;
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();

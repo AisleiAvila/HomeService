@@ -820,21 +820,27 @@ export class AdminOverviewComponent implements OnInit {
             
             // Abrir em nova janela para impressão/salvamento como PDF
             const printWindow = window.open('', '_blank');
-            if (printWindow) {
-                printWindow.document.open();
-                printWindow.document.documentElement.innerHTML = html;
-                printWindow.document.close();
-                
-                // Aguardar carregamento e abrir diálogo de impressão
-                setTimeout(() => {
-                    printWindow.focus();
-                    printWindow.print();
-                }, 250);
-                
+            if (!printWindow) {
                 this.notificationService.addNotification(
-                    this.i18n.translate('exportSuccessPDF') || 'Relatório PDF aberto para impressão!'
+                    this.i18n.translate('popupBlocked') ||
+                        'Não foi possível abrir a janela do relatório. Verifique o bloqueador de pop-ups.'
                 );
+                return;
             }
+
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
+            
+            // Aguardar carregamento e abrir diálogo de impressão
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+            }, 250);
+            
+            this.notificationService.addNotification(
+                this.i18n.translate('exportSuccessPDF') || 'Relatório PDF aberto para impressão!'
+            );
         } catch (error) {
             console.error('Erro ao exportar PDF:', error);
             this.notificationService.addNotification(
