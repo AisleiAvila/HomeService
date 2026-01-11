@@ -227,7 +227,16 @@
             </div>
           </td>
           <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[24ch] leading-snug">
-            {{ getOriginLabel(request) }}
+            <div class="flex flex-col gap-1">
+              <span class="font-semibold text-gray-700 dark:text-gray-200">
+                {{ getOriginLabel(request) }}
+              </span>
+              @if (request.os) {
+              <span class="text-gray-500 dark:text-gray-400 text-[10px] font-normal">
+                {{ 'os' | i18n }}: {{ request.os }}
+              </span>
+              }
+            </div>
           </td>
           <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[26ch] leading-snug">
             {{ getAddressParts(request).locality || request.city || request.state || request.zip_code || '—' }}
@@ -534,6 +543,11 @@
                   <span class="font-semibold">{{ 'origin' | i18n }}:</span>
                   <span class="ml-1">{{ getOriginLabel(request) }}</span>
                 </div>
+                @if (request.os) {
+                <div class="text-[10px] text-gray-500 mt-1 break-words">
+                  {{ 'os' | i18n }}: {{ request.os }}
+                </div>
+                }
               </div>
             </div>
           </div>

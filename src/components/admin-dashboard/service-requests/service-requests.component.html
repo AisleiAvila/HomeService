@@ -593,7 +593,7 @@
                             </span>
                             @if (req.os) {
                             <span class="text-gray-500 dark:text-gray-400 text-[10px]">
-                                OS: {{ req.os }}
+                                {{ 'os' | i18n }}: {{ req.os }}
                             </span>
                             }
                         </div>
