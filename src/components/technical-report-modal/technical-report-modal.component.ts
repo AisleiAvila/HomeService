@@ -5,6 +5,7 @@ import {
   output,
   signal,
   computed,
+  effect,
   inject,
   AfterViewChecked,
 } from "@angular/core";
@@ -67,7 +68,28 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
 
   private readonly isWortenOrigin = computed(() => this.request().origin_id === 2);
 
+  private readonly autoWortenVariant = computed<"worten_verde" | "worten_azul" | null>(() => {
+    if (!this.isWortenOrigin()) return null;
+
+    const sub = this.request().subcategory;
+    const haystack = `${sub?.description ?? ""} ${sub?.name ?? ""}`.toUpperCase();
+    return haystack.includes("-ELAR") ? "worten_azul" : "worten_verde";
+  });
+
   selectedWortenVariant = signal<"worten_verde" | "worten_azul" | null>(null);
+
+  private readonly _syncWortenVariant = effect(
+    () => {
+      if (!this.isWortenOrigin()) {
+        this.selectedWortenVariant.set(null);
+        return;
+      }
+
+      const variant = this.autoWortenVariant();
+      if (variant) this.selectedWortenVariant.set(variant);
+    },
+    { allowSignalWrites: true }
+  );
 
   activeOriginKey = computed<TechnicalReportOriginKey | null>(() => {
     const resolved = this.originKey();

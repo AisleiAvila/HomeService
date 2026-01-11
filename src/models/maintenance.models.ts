@@ -38,6 +38,7 @@ export interface ServiceSubcategory {
   id: number;
   name: string;
   category_id: number; // FK para ServiceCategory
+  description?: string | null;
 }
 
 // Extended subcategory fields for pricing/quoting and description
@@ -46,7 +47,6 @@ export interface ServiceSubcategoryExtended extends ServiceSubcategory {
   type?: "precificado" | "orçado";
   average_time_minutes?: number | null;
   price?: number | null;
-  description?: string | null;
 }
 
 // Novos tipos para o fluxo de trabalho expandido
