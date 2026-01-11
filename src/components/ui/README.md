@@ -392,7 +392,7 @@ Para adicionar novos componentes:
 
 ## 📝 Licença
 
-Desenvolvido para Natan Construtora - Plataforma HomeService
+Desenvolvido para Natan Construtora - Plataforma Natan General Service
 
 ---
 

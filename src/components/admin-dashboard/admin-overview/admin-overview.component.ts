@@ -737,7 +737,7 @@ export class AdminOverviewComponent implements OnInit {
                     </style>
                 </head>
                 <body>
-                    <h1>📊 Relatório de Visão Geral - HomeService</h1>
+                    <h1>📊 Relatório de Visão Geral - Natan General Service</h1>
                     <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-PT', { 
                         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
                     })}</p>
@@ -811,8 +811,8 @@ export class AdminOverviewComponent implements OnInit {
                     </table>
                     
                     <div class="footer">
-                        <p>Relatório gerado automaticamente pelo sistema HomeService</p>
-                        <p>© ${new Date().getFullYear()} HomeService - Natan Construtora</p>
+                        <p>Relatório gerado automaticamente pelo sistema Natan General Service</p>
+                        <p>© ${new Date().getFullYear()} Natan General Service - Natan Construtora</p>
                     </div>
                 </body>
                 </html>

@@ -1321,7 +1321,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const notApplicableLabel = this.i18n.translate("notApplicable") ?? "-";
             const unassignedLabel = this.i18n.translate("unassigned") ?? "N/A";
             const noDataLabel = this.i18n.translate("noDataAvailable") ?? "Sem dados";
-            const appName = this.i18n.translate("appNameFull") ?? this.i18n.translate("appName") ?? "HomeService";
+            const appName = this.i18n.translate("appNameFull") ?? this.i18n.translate("appName") ?? "NatanGeneralService";
             const financialReportsLabel = this.i18n.translate("financialReports") ?? "Relatórios Financeiros";
             const legendLabel = this.i18n.translate("legend") ?? "Legenda";
             const quantityLabel = this.i18n.translate("quantity") ?? "Qtde";
@@ -1665,8 +1665,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     </tbody>
   </table>
   <div class="footer">
-    <p>Relatório gerado automaticamente pelo HomeService</p>
-    <p>© ${new Date().getFullYear()} HomeService</p>
+    <p>Relatório gerado automaticamente pelo Natan General Service</p>
+    <p>© ${new Date().getFullYear()} Natan General Service</p>
   </div>
 </body>
 </html>`;

@@ -41,7 +41,7 @@ export interface SmsHistory {
 /**
  * SmsService - Serviço para envio de SMS via Twilio
  * 
- * Segue os padrões da plataforma HomeService:
+ * Segue os padrões da plataforma Natan General Service:
  * - Angular Signals para estado reativo
  * - Injeção de dependências via inject()
  * - Integração com I18nService para mensagens multilíngues
@@ -353,14 +353,14 @@ export class SmsService {
   private getSmsTemplates() {
     return {
       // Templates em Português
-      verification_pt: 'HomeService: Seu código de verificação é {{code}}. Válido por {{expiresIn}} minutos.',
-      notification_pt: 'HomeService: Atualização do pedido #{{requestId}}. Novo status: {{status}}.',
-      reminder_pt: 'HomeService: Lembrete - {{serviceName}} agendado para {{date}}.',
+      verification_pt: 'Natan General Service: Seu código de verificação é {{code}}. Válido por {{expiresIn}} minutos.',
+      notification_pt: 'Natan General Service: Atualização do pedido #{{requestId}}. Novo status: {{status}}.',
+      reminder_pt: 'Natan General Service: Lembrete - {{serviceName}} agendado para {{date}}.',
       
       // Templates em Inglês
-      verification_en: 'HomeService: Your verification code is {{code}}. Valid for {{expiresIn}} minutes.',
-      notification_en: 'HomeService: Update on request #{{requestId}}. New status: {{status}}.',
-      reminder_en: 'HomeService: Reminder - {{serviceName}} scheduled for {{date}}.',
+      verification_en: 'Natan General Service: Your verification code is {{code}}. Valid for {{expiresIn}} minutes.',
+      notification_en: 'Natan General Service: Update on request #{{requestId}}. New status: {{status}}.',
+      reminder_en: 'Natan General Service: Reminder - {{serviceName}} scheduled for {{date}}.',
     };
   }
 

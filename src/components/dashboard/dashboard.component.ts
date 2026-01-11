@@ -969,14 +969,14 @@ export class DashboardComponent implements OnInit {
       let cursorY = 12;
 
       // Header
-      const logoDataUrl = await this.loadReportLogoDataUrl();
-      if (logoDataUrl) {
-        doc.addImage(logoDataUrl, "PNG", marginX, cursorY, 18, 18);
+      const logo = await this.loadReportLogoForJsPdf();
+      if (logo) {
+        doc.addImage(logo.dataUrl, logo.format, marginX, cursorY, 18, 18);
       }
 
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(16);
-      doc.text("HomeService", marginX + 22, cursorY + 6);
+      doc.text("NatanGeneralService", marginX + 22, cursorY + 6);
       doc.setFontSize(12);
       doc.text(this.i18n.translate("overviewTitle"), marginX + 22, cursorY + 12);
 
@@ -1173,20 +1173,126 @@ export class DashboardComponent implements OnInit {
   }
 
   private async loadReportLogoDataUrl(): Promise<string | null> {
-    // Prefer Angular assets path
-    const candidates = ["assets/logo-new.png", "src/assets/logo-new.png"]; // fallback for legacy refs
+    const logo = await this.loadReportLogoForJsPdf();
+    return logo?.dataUrl ?? null;
+  }
+
+  private async loadReportLogoForJsPdf(): Promise<
+    | { dataUrl: string; format: "PNG" | "JPEG" | "WEBP" }
+    | null
+  > {
+    // Prefer Angular assets path (resolved against <base href="...">)
+    const candidates = [
+      "assets/logo-new.png",
+      "assets/logo.png",
+      "assets/logo-natan.png",
+    ];
+
     for (const url of candidates) {
       const dataUrl = await this.fetchAsDataUrl(url);
-      if (dataUrl) return dataUrl;
+      if (!dataUrl) continue;
+
+      const parsed = this.parseImageDataUrlForJsPdf(dataUrl);
+      if (parsed) return parsed;
     }
+
     return null;
+  }
+
+  private parseImageDataUrlForJsPdf(
+    dataUrl: string
+  ): { dataUrl: string; format: "PNG" | "JPEG" | "WEBP" } | null {
+    const trimmed = dataUrl.trim();
+
+    if (trimmed.startsWith("data:image/png;base64,")) {
+      const base64 = trimmed.slice("data:image/png;base64,".length);
+      return this.base64HasPngSignature(base64)
+        ? { dataUrl: trimmed, format: "PNG" }
+        : null;
+    }
+
+    if (
+      trimmed.startsWith("data:image/jpeg;base64,") ||
+      trimmed.startsWith("data:image/jpg;base64,")
+    ) {
+      const base64 = trimmed.replace(/^data:image\/(jpeg|jpg);base64,/, "");
+      return this.base64HasJpegSignature(base64)
+        ? { dataUrl: trimmed, format: "JPEG" }
+        : null;
+    }
+
+    if (trimmed.startsWith("data:image/webp;base64,")) {
+      // jsPDF supports WEBP in modern builds, but still validate it's not HTML.
+      const base64 = trimmed.slice("data:image/webp;base64,".length);
+      return this.base64HasRiffSignature(base64)
+        ? { dataUrl: trimmed, format: "WEBP" }
+        : null;
+    }
+
+    // Avoid SVG/text/html etc (common source of "wrong PNG signature" when an asset path resolves to index.html)
+    return null;
+  }
+
+  private base64HasPngSignature(base64: string): boolean {
+    // PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
+    const bytes = this.decodeBase64Prefix(base64, 12);
+    return (
+      bytes.length >= 8 &&
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a
+    );
+  }
+
+  private base64HasJpegSignature(base64: string): boolean {
+    // JPEG magic bytes: FF D8 FF
+    const bytes = this.decodeBase64Prefix(base64, 8);
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+
+  private base64HasRiffSignature(base64: string): boolean {
+    // WEBP/RIFF magic bytes: 52 49 46 46 ("RIFF")
+    const bytes = this.decodeBase64Prefix(base64, 8);
+    return (
+      bytes.length >= 4 &&
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46
+    );
+  }
+
+  private decodeBase64Prefix(base64: string, maxBytes: number): number[] {
+    try {
+      // Decode only a small prefix (rounded up to base64 4-char blocks).
+      const neededChars = Math.ceil((maxBytes / 3) * 4);
+      const slice = base64.replace(/\s/g, "").slice(0, neededChars);
+      const decoded = atob(slice);
+      const out: number[] = [];
+      for (let i = 0; i < decoded.length && out.length < maxBytes; i++) {
+        out.push(decoded.charCodeAt(i));
+      }
+      return out;
+    } catch {
+      return [];
+    }
   }
 
   private async fetchAsDataUrl(url: string): Promise<string | null> {
     try {
-      const response = await fetch(url);
+      const resolvedUrl = new URL(url, document.baseURI).toString();
+      const response = await fetch(resolvedUrl);
       if (!response.ok) return null;
       const blob = await response.blob();
+
+      // Prevent passing HTML/text to jsPDF as an image (common in SPA route fallbacks)
+      if (!blob.type || !blob.type.startsWith("image/")) return null;
+
       return await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {

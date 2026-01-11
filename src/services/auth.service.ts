@@ -16,7 +16,7 @@ export class AuthService {
     readonly appUser = signal<User | null>(null);
     readonly pendingEmailConfirmation = signal<string | null>(null);
 
-  private readonly sessionStorageKey = "homeservice_session";
+  private readonly sessionStorageKey = "natangeneralservice_session";
   private sessionExpiryTimer: ReturnType<typeof setTimeout> | null = null;
   private sessionHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private readonly sessionHeartbeatMs = 5 * 60 * 1000;
@@ -176,7 +176,7 @@ export class AuthService {
   async restoreSessionFromStorage(): Promise<void> {
     try {
       // Limpar formato legado (sem token)
-      localStorage.removeItem("homeservice_user_session");
+      localStorage.removeItem("natangeneralservice_user_session");
 
       const stored = this.readStoredSession();
       if (!stored?.token || !stored?.expiresAt) {
@@ -551,7 +551,7 @@ export class AuthService {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: email,
-          subject: "Confirmação de cadastro - HomeService",
+          subject: "Confirmação de cadastro - Natan General Service",
           html: `<p>Olá ${name},</p><p>Seu cadastro como profissional foi realizado com sucesso.<br>Por favor, confirme seu e-mail clicando no link abaixo:</p><p><a href='${confirmUrl}'>Confirmar e-mail</a></p>`
         })
       });
@@ -810,7 +810,7 @@ export class AuthService {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: email,
-            subject: "Redefinição de senha - HomeService",
+            subject: "Redefinição de senha - Natan General Service",
             html: `
               <p>Olá ${existingUser.name || 'usuário'},</p>
               <p>Você solicitou a redefinição de sua senha.</p>

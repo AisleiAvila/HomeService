@@ -62,7 +62,7 @@ async function testSimpleSms(phoneNumber) {
   try {
     const response = await axios.post(SMS_ENDPOINT, {
       to: phoneNumber,
-      message: 'HomeService: Esta é uma mensagem de teste do serviço de SMS.',
+      message: 'Natan General Service: Esta é uma mensagem de teste do serviço de SMS.',
     });
     
     if (response.data.success) {
@@ -101,7 +101,7 @@ async function testVerificationSms(phoneNumber) {
   try {
     const response = await axios.post(SMS_ENDPOINT, {
       to: phoneNumber,
-      message: `HomeService: Seu código de verificação é ${verificationCode}. Válido por 5 minutos.`,
+      message: `Natan General Service: Seu código de verificação é ${verificationCode}. Válido por 5 minutos.`,
       template: 'verification',
     });
     
@@ -133,7 +133,7 @@ async function testNotificationSms(phoneNumber) {
   try {
     const response = await axios.post(SMS_ENDPOINT, {
       to: phoneNumber,
-      message: 'HomeService: Atualização do pedido #SR-001. Novo status: Em Progresso.',
+      message: 'Natan General Service: Atualização do pedido #SR-001. Novo status: Em Progresso.',
       template: 'notification',
     });
     
@@ -266,7 +266,7 @@ function getPhoneNumber() {
 
 function displayTestHeader(phoneNumber) {
   log('\n╔════════════════════════════════════════════════════════════╗', 'cyan');
-  log('║       TESTE DO SERVIÇO DE SMS - HOMESERVICE               ║', 'cyan');
+  log('║       TESTE DO SERVIÇO DE SMS - NATAN GENERAL SERVICE               ║', 'cyan');
   log('╚════════════════════════════════════════════════════════════╝', 'cyan');
   
   if (phoneNumber) {

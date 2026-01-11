@@ -19,7 +19,7 @@ async function validateEmailConfirmation() {
 
   const testUser = {
     name: "Validação Final",
-    email: `validation-${Date.now()}@homeservice.test`,
+    email: `validation-${Date.now()}@natangeneralservice.test`,
     password: "ValidacaoSegura123!",
   };
 

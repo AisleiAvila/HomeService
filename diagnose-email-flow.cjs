@@ -8,7 +8,7 @@ const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL;
 
 console.log('\n╔════════════════════════════════════════════════════════════╗');
-console.log('║   DIAGNÓSTICO COMPLETO DO SISTEMA DE E-MAIL - HomeService  ║');
+console.log('║   DIAGNÓSTICO COMPLETO DO SISTEMA DE E-MAIL - Natan General Service  ║');
 console.log('╚════════════════════════════════════════════════════════════╝\n');
 
 // ========== ETAPA 1: Verificar variáveis de ambiente ==========
@@ -64,19 +64,19 @@ async function testSendGridConnection() {
     const testEmail = FROM_EMAIL; // Enviar para o próprio remetente
     
     console.log('Enviando e-mail de teste para:', testEmail);
-    console.log('Assunto: Teste de Reset de Senha - HomeService\n');
+    console.log('Assunto: Teste de Reset de Senha - Natan General Service\n');
     
     const msg = {
       to: testEmail,
       from: FROM_EMAIL,
-      subject: 'Teste de Reset de Senha - HomeService',
+      subject: 'Teste de Reset de Senha - Natan General Service',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #22c55e;">✅ Teste de E-mail - HomeService</h2>
+          <h2 style="color: #22c55e;">✅ Teste de E-mail - Natan General Service</h2>
           
           <p>Olá,</p>
           
-          <p>Este é um e-mail de teste do sistema de reset de senha do HomeService.</p>
+          <p>Este é um e-mail de teste do sistema de reset de senha do Natan General Service.</p>
           
           <p>Você solicitou a redefinição de sua senha. Use o código abaixo:</p>
           

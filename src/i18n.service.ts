@@ -167,7 +167,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     enableLocation: "Enable Location",
     geolocationUnavailable:
       "Geolocation unavailable for this request. Please confirm the service address contains valid coordinates.",
-    appName: "HomeService",
+    appName: "NatanGeneralService",
     menu: "Menu",
     newRequest: "New Request",
     loadingUser: "Loading user...",
@@ -214,7 +214,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     save: "Save",
     companyAddress: "123 Service Lane, Anytown",
     invoice: "Invoice",
-    appNameFull: "HomeService Solutions",
+    appNameFull: "Natan General Service Solutions",
     details: "Details",
     scheduleAppointmentFor: "Schedule Appointment for",
     selectProfessional: "Select Professional",
@@ -1203,7 +1203,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     geolocationUnavailable:
       "Geolocalização indisponível para esta solicitação. Confirme se o endereço possui coordenadas válidas.",
     retry: "Tentar Novamente",
-    appName: "HomeService",
+    appName: "NatanGeneralService",
     menu: "Menu",
     newRequest: "Nova Solicitação",
     loadingUser: "Carregando usuário...",
@@ -1252,7 +1252,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     actions: "Ações",
     companyAddress: "Rua dos Serviços, 123, Lisboa",
     invoice: "Fatura",
-    appNameFull: "HomeService Solutions",
+    appNameFull: "NatanGeneralService Solutions",
     details: "Detalhes",
     scheduleAppointmentFor: "Agendar Compromisso para",
     selectProfessional: "Selecionar Profissional",
@@ -2094,7 +2094,7 @@ export class I18nService {
 
   constructor() {
     // Carregar idioma salvo do localStorage
-    const savedLang = localStorage.getItem("homeservice-language") as Language;
+    const savedLang = localStorage.getItem("natangeneralservice-language") as Language;
     if (savedLang && (savedLang === "en" || savedLang === "pt")) {
       this.language.set(savedLang);
       console.log(`🌍 [I18N] Idioma carregado do localStorage: ${savedLang}`);
@@ -2110,7 +2110,7 @@ export class I18nService {
 
   setLanguage(lang: Language) {
     this.language.set(lang);
-    localStorage.setItem("homeservice-language", lang);
+    localStorage.setItem("natangeneralservice-language", lang);
     console.log(`🌍 [I18N] Idioma alterado para: ${lang}`);
     // Agora a troca de idioma é reativa via signals, sem reload.
   }

@@ -32,7 +32,7 @@ const TEST_EMAIL = FROM_EMAIL; // ou substitua por seu e-mail pessoal
 const msg = {
   to: TEST_EMAIL,
   from: FROM_EMAIL,
-  subject: 'Teste SendGrid - HomeService',
+  subject: 'Teste SendGrid - Natan General Service',
   html: `
     <h2>Teste de Envio SendGrid</h2>
     <p>Este é um e-mail de teste para verificar se o SendGrid está configurado corretamente.</p>

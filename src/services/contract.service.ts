@@ -210,7 +210,7 @@ export class ContractService {
       <body>
         <div class="header">
           <h1>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h1>
-          <p>HomeService - Plataforma de Serviços</p>
+          <p>Natan General Service - Plataforma de Serviços</p>
           <p>Contrato #${contract.id} | Gerado em ${new Date(
       contract.generated_at
     ).toLocaleDateString("pt-PT")}</p>
@@ -316,7 +316,7 @@ export class ContractService {
       "Eventuais materiais necessários serão acordados previamente entre as partes.",
       "O pagamento deve ser efetuado conforme as condições estabelecidas.",
       "Ambas as partes podem cancelar o contrato com 24h de antecedência, salvo casos urgentes.",
-      "A HomeService atua como intermediadora da transação.",
+      "A Natan General Service atua como intermediadora da transação.",
       "Disputas serão resolvidas através do sistema de mediação da plataforma.",
       "Este contrato é regido pelas leis portuguesas.",
     ];
@@ -327,7 +327,7 @@ export class ContractService {
       "Pagamento após aprovação do trabalho pelo cliente.",
       "Prazo máximo de 7 dias após aprovação.",
       "Taxa da plataforma: 7% do valor total.",
-      "Pagamentos processados através da plataforma HomeService.",
+      "Pagamentos processados através da plataforma Natan General Service.",
       "Reembolsos serão processados conforme política da plataforma.",
     ];
   }

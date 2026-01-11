@@ -26,7 +26,7 @@ async function tryRoutingServer(serverUrl, startLat, startLng, endLat, endLng) {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'HomeService-Portugal/1.0',
+        'User-Agent': 'natanGeneralService-Portugal/1.0',
       },
       signal: controller.signal,
     });

@@ -44,8 +44,8 @@
     "en": "Reminder: {{serviceName}} scheduled for {{date}}"
   },
   "sms_welcome": {
-    "pt": "Bem-vindo ao HomeService! Seu cadastro foi confirmado.",
-    "en": "Welcome to HomeService! Your registration has been confirmed."
+    "pt": "Bem-vindo ao Natan General Service! Seu cadastro foi confirmado.",
+    "en": "Welcome to Natan General Service! Your registration has been confirmed."
   },
   "sms_password_reset": {
     "pt": "Seu código de recuperação de senha é: {{code}}. Válido por {{expiresIn}} minutos.",
@@ -60,8 +60,8 @@
     "en": "Payment received for request #{{requestId}}. Amount: €{{amount}}"
   },
   "sms_service_completed": {
-    "pt": "Serviço #{{requestId}} concluído. Obrigado por usar o HomeService!",
-    "en": "Service #{{requestId}} completed. Thank you for using HomeService!"
+    "pt": "Serviço #{{requestId}} concluído. Obrigado por usar o Natan General Service!",
+    "en": "Service #{{requestId}} completed. Thank you for using Natan General Service!"
   },
   "sms_preferences_updated": {
     "pt": "Preferências de SMS atualizadas com sucesso",

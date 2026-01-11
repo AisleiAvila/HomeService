@@ -52,7 +52,7 @@ async function testSignUpEmail() {
 async function testPasswordResetEmail() {
   console.log("🧪 Testando e-mail de recuperação de senha...");
 
-  const testEmail = "admin@homeservice.com"; // Use um e-mail existente
+  const testEmail = "admin@natangeneralservice.com"; // Use um e-mail existente
 
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(testEmail, {

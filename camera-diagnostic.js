@@ -1,4 +1,4 @@
-// 🔬 DIAGNÓSTICO COMPLETO DA CÂMERA - HomeService
+// 🔬 DIAGNÓSTICO COMPLETO DA CÂMERA - Natan General Service
 // Cole este código no console do navegador (F12 → Console)
 
 console.log("🔬 Iniciando diagnóstico completo da câmera...");
@@ -182,7 +182,7 @@ async function diagnosticoCompleto() {
 
   if (resultados.camera.funcionando) {
     console.log("✅ RESULTADO: Câmera funcionando! ✅");
-    console.log("🎯 A funcionalidade deve funcionar na aplicação HomeService");
+    console.log("🎯 A funcionalidade deve funcionar na aplicação Natan General Service");
   } else {
     console.log("❌ RESULTADO: Problema com a câmera ❌");
     console.log("🔧 SOLUÇÕES SUGERIDAS:");

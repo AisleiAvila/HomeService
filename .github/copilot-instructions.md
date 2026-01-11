@@ -1,6 +1,6 @@
-# Instruções do GitHub Copilot para a Plataforma HomeService
+# Instruções do GitHub Copilot para a Plataforma Natan General Service
 
-Este documento fornece orientações essenciais para agentes de codificação IA trabalharem na plataforma HomeService - uma aplicação multilíngue de gestão de serviços portuguesa construída com Angular 18 e Supabase.
+Este documento fornece orientações essenciais para agentes de codificação IA trabalharem na plataforma Natan General Service - uma aplicação multilíngue de gestão de serviços portuguesa construída com Angular 18 e Supabase.
 
 ## 🏗️ Visão Geral da Arquitetura
 
@@ -358,4 +358,4 @@ async updateServiceRequest(id: string, updates: Partial<ServiceRequest>): Promis
 7. **Aplique convenções de nomenclatura consistentes** para componentes e serviços
 8. **Assegure acessibilidade** com etiquetas ARIA adequadas e HTML semântico
 
-Este guia assegura desenvolvimento de código consistente, sustentável e escalável alinhado com a arquitetura e requisitos de negócio da plataforma HomeService.
+Este guia assegura desenvolvimento de código consistente, sustentável e escalável alinhado com a arquitetura e requisitos de negócio da plataforma Natan General Service.

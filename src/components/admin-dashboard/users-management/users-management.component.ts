@@ -295,7 +295,7 @@ export class UsersManagementComponent implements OnInit {
             // 5. Dispara e-mail de confirmação
             console.log('Enviando e-mail de confirmação:', {
                 to: email,
-                subject: 'Confirmação de cadastro - HomeService',
+                subject: 'Confirmação de cadastro - Natan General Service',
                 html,
                 token,
                 tempPassword
@@ -306,7 +306,7 @@ export class UsersManagementComponent implements OnInit {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     to: email,
-                    subject: 'Confirmação de cadastro - HomeService',
+                    subject: 'Confirmação de cadastro - Natan General Service',
                     html,
                     token,
                     tempPassword: tempPassword || ''

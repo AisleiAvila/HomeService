@@ -98,7 +98,7 @@ export class ProfessionalService {
       // 5. Dispara e-mail de confirmação
       console.log('Enviando e-mail de confirmação:', {
         to: professional.email,
-        subject: 'Confirmação de cadastro - HomeService',
+        subject: 'Confirmação de cadastro - Natan General Service',
         html,
         token,
         tempPassword
@@ -108,7 +108,7 @@ export class ProfessionalService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: professional.email,
-          subject: 'Confirmação de cadastro - HomeService',
+          subject: 'Confirmação de cadastro - Natan General Service',
           html,
           token,
           tempPassword: tempPassword || ''

@@ -14,7 +14,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function testEmailConfiguration() {
   console.log("🔍 Testando configuração de e-mail do Supabase...\n");
 
-  const testEmail = `test-professional-${Date.now()}@homeservice.test`;
+  const testEmail = `test-professional-${Date.now()}@natangeneralservice.test`;
 
   try {
     console.log("📧 Enviando e-mail de teste para:", testEmail);
