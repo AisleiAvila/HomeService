@@ -544,7 +544,7 @@ export class AuthService {
     }
 
     // Enviar e-mail de confirmação customizado
-    const confirmUrl = `https://home-service-nu.vercel.app/confirm?email=${encodeURIComponent(email)}&token=${confirmationToken}`;
+    const confirmUrl = `https://natan-general-service.vercel.app/confirm?email=${encodeURIComponent(email)}&token=${confirmationToken}`;
     try {
       await fetch("http://localhost:4001/api/send-email", {
         method: "POST",

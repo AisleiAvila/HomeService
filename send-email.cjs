@@ -40,7 +40,7 @@ sgMail.setApiKey(SENDGRID_API_KEY);
 // CORS explícito para frontend Angular local e Vercel (função para múltiplos domínios)
 const allowedOrigins = new Set([
   'http://localhost:4200',
-  'https://home-service-nu.vercel.app',
+  'https://natan-general-service.vercel.app',
   'http://localhost:4001/api/send-email',
   'http://localhost:4002'
 ]);
@@ -78,7 +78,7 @@ app.post('/api/send-email', async (req, res) => {
     // Se houver token, é um email de confirmação de cadastro
     if (token) {
       // Sempre use o domínio Vercel para o link de confirmação
-      const baseUrl = 'https://home-service-nu.vercel.app';
+      const baseUrl = 'https://natan-general-service.vercel.app';
       // O campo 'to' é o e-mail do usuário
       const confirmLink = `${baseUrl}/confirmar-email?email=${encodeURIComponent(to)}&token=${encodeURIComponent(token)}`;
       // Corpo do e-mail com senha temporária e instrução clara

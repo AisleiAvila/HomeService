@@ -241,7 +241,7 @@ export class UsersManagementComponent implements OnInit {
             console.log('**************Senha temporária gerada:', tempPassword);
 
             // 3. Monta o link e o HTML usando o token recém-gerado
-            const confirmLink = `https://home-service-nu.vercel.app/confirmar-email?email=${encodeURIComponent(email)}&token=${token}`;
+            const confirmLink = `https://natan-general-service.vercel.app/confirmar-email?email=${encodeURIComponent(email)}&token=${token}`;
             const html = `<p>Olá ${name},</p>
                 <p>Seu cadastro como ${role === 'admin' ? 'administrador' : 'usuário'} foi realizado com sucesso.<br>
                 Use a senha temporária abaixo para acessar o sistema pela primeira vez:<br>

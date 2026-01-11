@@ -48,7 +48,7 @@ try {
 // CORS explícito para frontend Angular local e Vercel
 const allowedOrigins = new Set([
   'http://localhost:4200',
-  'https://home-service-nu.vercel.app',
+  'https://natan-general-service.vercel.app',
   'http://localhost:4001',
   'http://localhost:4002'
 ]);

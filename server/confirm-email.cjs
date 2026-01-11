@@ -10,7 +10,7 @@ app.use(cors({
     'http://localhost:4200',
     'http://localhost:4002',
     'http://127.0.0.1:4200',
-    'https://home-service-nu.vercel.app'
+    'https://natan-general-service.vercel.app'
   ],
   credentials: true
 }));app.use(bodyParser.json());

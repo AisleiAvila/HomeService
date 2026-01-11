@@ -83,7 +83,7 @@ export class SmsService {
 
   // Endpoint do servidor de SMS (ajustar conforme deploy)
   private readonly SMS_ENDPOINT = environment.production
-    ? 'https://home-service-nu.vercel.app/api/send-sms'
+    ? 'https://natan-general-service.vercel.app/api/send-sms'
     : 'http://localhost:4001/api/send-sms';
 
   /**

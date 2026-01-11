@@ -14,7 +14,7 @@ const corsOptions = {
     'http://127.0.0.1:4200',
     'http://localhost:4002',
     'http://127.0.0.1:4002',
-    'https://home-service-nu.vercel.app',
+    'https://natan-general-service.vercel.app',
     /^https:\/\/home-service-.*\.vercel\.app$/
   ],
   credentials: true,
