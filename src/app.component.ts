@@ -392,6 +392,14 @@ export class AppComponent implements OnInit {
 
   private ensureRoleRouteConsistency(role: string | undefined, currentUrl: string): void {
     if (role === 'admin') {
+      // Admin deve usar /admin/* por padrão.
+      // Se estiver na raiz (/), mandar para o painel admin para evitar cair no dashboard profissional (Overview vazio).
+      if (currentUrl === '/' || currentUrl.startsWith('/?')) {
+        console.log('[AppComponent] Admin na raiz, redirecionando para /admin');
+        this.router.navigate(['/admin']);
+        return;
+      }
+
       // Admin deve permanecer em /admin/* (exceto rotas explícitas fora de /admin)
       if (!currentUrl.startsWith('/admin') && !this.isAdminAllowedOutsideAdminRoute(currentUrl)) {
         console.log('[AppComponent] Admin detectado, redirecionando para /admin');
