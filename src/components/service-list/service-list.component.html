@@ -416,17 +416,9 @@
           (change)="handleSortColumn($any($event.target).value)"
           [attr.aria-label]="'sortBy' | i18n"
         >
-          <option value="date">{{ "sortByDate" | i18n }}</option>
-          <option value="status">{{ "sortByStatus" | i18n }}</option>
-          <option value="category">{{ "sortByCategory" | i18n }}</option>
-          <option value="origin">{{ "origin" | i18n }}</option>
-          <option value="locality">{{ "locality" | i18n }}</option>
-          <option value="client">{{ "sortByClient" | i18n }}</option>
-          <option value="execution">{{ "executionTimeline" | i18n }}</option>
-          @if (shouldShowValueColumn()) {
-          <option value="value">{{ "value" | i18n }}</option>
+          @for (opt of sortOptions(); track opt.value) {
+          <option [value]="opt.value">{{ opt.labelKey | i18n }}</option>
           }
-          <option value="id">{{ "sortById" | i18n }}</option>
         </select>
 
         <button

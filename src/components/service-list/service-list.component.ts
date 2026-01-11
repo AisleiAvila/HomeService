@@ -303,6 +303,44 @@ export class ServiceListComponent implements OnInit {
     return true;
   });
 
+  readonly sortOptions = computed(() => {
+    // Make the options react to language changes too.
+    const lang = this.i18n.language();
+    const locale = lang === "pt" ? "pt-PT" : "en";
+    const collator = new Intl.Collator(locale, { sensitivity: "base" });
+
+    const role = this.currentUser().role;
+    const options: Array<{ value: string; labelKey: string }> = [
+      { value: "status", labelKey: "sortByStatus" },
+      { value: "category", labelKey: "sortByCategory" },
+      { value: "origin", labelKey: "origin" },
+      { value: "locality", labelKey: "locality" },
+      { value: "client", labelKey: "sortByClient" },
+    ];
+
+    if (role === "professional") {
+      options.push(
+        { value: "scheduled", labelKey: "sortByScheduled" },
+        { value: "start", labelKey: "sortByStart" },
+        { value: "end", labelKey: "sortByEnd" }
+      );
+    } else {
+      options.push(
+        { value: "date", labelKey: "sortByDate" },
+        { value: "execution", labelKey: "executionTimeline" },
+        { value: "id", labelKey: "sortById" }
+      );
+    }
+
+    if (this.shouldShowValueColumn()) {
+      options.push({ value: "value", labelKey: "value" });
+    }
+
+    return options.sort((a, b) =>
+      collator.compare(this.i18n.translate(a.labelKey), this.i18n.translate(b.labelKey))
+    );
+  });
+
   formatAddress(src: ServiceRequest | Address): string {
     return formatPtAddress(src);
   }

@@ -298,6 +298,10 @@ export class DashboardComponent implements OnInit {
     // Inicializar filtros de data para profissionais
     const currentUser = this.user();
     if (currentUser?.role === 'professional') {
+      // Default de ordenação para profissionais: Agendado (timeline)
+      this.sortBy.set('scheduled');
+      this.sortOrder.set('asc');
+
       const today = new Date();
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       
@@ -525,6 +529,20 @@ export class DashboardComponent implements OnInit {
     const sortOrder = this.sortOrder();
     const multiplier = sortOrder === "asc" ? 1 : -1;
 
+    const parseIsoTime = (raw?: string | null): number | null => {
+      if (!raw) return null;
+      const time = new Date(raw).getTime();
+      return Number.isNaN(time) ? null : time;
+    };
+
+    // Keep null values at the end for both asc/desc.
+    const compareNullableTime = (aTime: number | null, bTime: number | null): number => {
+      if (aTime === null && bTime === null) return 0;
+      if (aTime === null) return 1;
+      if (bTime === null) return -1;
+      return aTime - bTime;
+    };
+
     const getOriginName = (r: ServiceRequest): string => {
       const joined = r.origin?.name?.trim();
       if (joined) return joined;
@@ -556,12 +574,41 @@ export class DashboardComponent implements OnInit {
 
     return [...requests].sort((a, b) => {
       let compareResult = 0;
+      let applyMultiplier = true;
 
       switch (sortBy) {
         case "date": {
           const dateA = a.requested_date ? new Date(a.requested_date).getTime() : 0;
           const dateB = b.requested_date ? new Date(b.requested_date).getTime() : 0;
           compareResult = dateA - dateB;
+          break;
+        }
+
+        // Ordenações específicas do fluxo do profissional
+        case "scheduled": {
+          const aTime = parseIsoTime(a.scheduled_start_datetime);
+          const bTime = parseIsoTime(b.scheduled_start_datetime);
+          // Keep null at the end regardless of asc/desc.
+          compareResult = compareNullableTime(aTime, bTime);
+          applyMultiplier = aTime !== null && bTime !== null;
+          break;
+        }
+
+        case "start": {
+          const aTime = parseIsoTime(a.actual_start_datetime);
+          const bTime = parseIsoTime(b.actual_start_datetime);
+          // Keep null at the end regardless of asc/desc.
+          compareResult = compareNullableTime(aTime, bTime);
+          applyMultiplier = aTime !== null && bTime !== null;
+          break;
+        }
+
+        case "end": {
+          const aTime = parseIsoTime(a.actual_end_datetime);
+          const bTime = parseIsoTime(b.actual_end_datetime);
+          // Keep null at the end regardless of asc/desc.
+          compareResult = compareNullableTime(aTime, bTime);
+          applyMultiplier = aTime !== null && bTime !== null;
           break;
         }
 
@@ -608,7 +655,7 @@ export class DashboardComponent implements OnInit {
         }
       }
 
-      return compareResult * multiplier;
+      return compareResult * (applyMultiplier ? multiplier : 1);
     });
   }
 
