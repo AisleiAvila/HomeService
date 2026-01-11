@@ -1325,12 +1325,27 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const financialReportsLabel = this.i18n.translate("financialReports") ?? "Relatórios Financeiros";
             const legendLabel = this.i18n.translate("legend") ?? "Legenda";
             const quantityLabel = this.i18n.translate("quantity") ?? "Qtde";
-            const baseHref = (document.querySelector("base")?.href ?? globalThis.window.location.origin).replace(/\/$/, "");
-            const logoUrl = `${baseHref}/assets/logo-new.png`;
-            const logoDataUrl = await this.tryLoadImageAsDataUrl(logoUrl);
+            // NOTE: This project publishes assets under `src/assets` (see build output: dist/src/assets).
+            // When we open a print window (about:blank) we must ensure URLs resolve from the app origin.
+            const originBase = `${globalThis.window.location.origin.replace(/\/$/, "")}/`;
+            const encodedBaseHref = encodeHtml(originBase);
+
+            const logoRelativeCandidates = [
+                "src/assets/logo-natan.png",
+                "src/assets/logo-new.png",
+                "src/assets/logo.jpg",
+                // Backward-compatible fallbacks if deployment publishes to `/assets`
+                "assets/logo-natan.png",
+                "assets/logo-new.png",
+                "assets/logo.jpg",
+            ];
+            const logoCandidates = logoRelativeCandidates.map((path) => new URL(path, originBase).toString());
+
+            const logoDataUrl = await this.tryLoadFirstAvailableImageAsDataUrl(logoCandidates);
+            const logoFallbackSrc = logoRelativeCandidates[0];
             const encodedAppName = encodeHtml(appName);
             const encodedFinancialReportsLabel = encodeHtml(financialReportsLabel);
-            const encodedLogoSrc = encodeHtml(logoDataUrl ?? logoUrl);
+            const encodedLogoSrc = encodeHtml(logoDataUrl ?? logoFallbackSrc);
             const encodedLegendLabel = encodeHtml(legendLabel);
             const encodedQuantityLabel = encodeHtml(quantityLabel);
 
@@ -1338,6 +1353,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 <html>
 <head>
   <meta charset="utf-8" />
+    <base href="${encodedBaseHref}" />
   <title>Relatório Financeiro - ${new Date().toLocaleDateString("pt-PT")}</title>
     <style>
     body { font-family: Arial, sans-serif; color: #111827; margin: 0; padding: 24px; background: #f7f7fb; }
@@ -1664,14 +1680,15 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 return;
             }
 
-            printWindow.document.documentElement.innerHTML = html;
             printWindow.document.open();
             printWindow.document.write(html);
             printWindow.document.close();
-            setTimeout(() => {
-                printWindow.focus();
-                printWindow.print();
-            }, 250);
+
+            // Aguarda o carregamento do logo/imagens antes de imprimir,
+            // evitando que o PDF saia sem o logo por timing.
+            await this.waitForPrintAssets(printWindow);
+            printWindow.focus();
+            printWindow.print();
             this.notificationService.addNotification(
                 this.i18n.translate("exportSuccessPDF") || "Relatório PDF aberto para impressão!"
             );
@@ -1705,6 +1722,50 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             console.warn("[FinancialReportsComponent] Unable to inline logo image", error);
             return null;
         }
+    }
+
+    private async tryLoadFirstAvailableImageAsDataUrl(urls: string[]): Promise<string | null> {
+        for (const url of urls) {
+            const dataUrl = await this.tryLoadImageAsDataUrl(url);
+            if (dataUrl) {
+                return dataUrl;
+            }
+        }
+        return null;
+    }
+
+    private waitForPrintAssets(printWindow: Window, timeoutMs = 2500): Promise<void> {
+        return new Promise((resolve) => {
+            const startedAt = Date.now();
+            const tick = () => {
+                if (Date.now() - startedAt >= timeoutMs) {
+                    resolve();
+                    return;
+                }
+
+                try {
+                    const doc = printWindow.document;
+                    const logo = doc.querySelector("img.brand-logo") as HTMLImageElement | null;
+                    const logoReady = !logo || (logo.complete && logo.naturalWidth > 0);
+
+                    const images = Array.from(doc.images ?? []);
+                    const imagesReady = images.every((img) => img.complete);
+
+                    if (logoReady && imagesReady) {
+                        resolve();
+                        return;
+                    }
+                } catch {
+                    // If we can't inspect the window for any reason, don't block printing.
+                    resolve();
+                    return;
+                }
+
+                setTimeout(tick, 50);
+            };
+
+            tick();
+        });
     }
 
     getPendingAmount(request: ServiceRequest): number {
