@@ -99,6 +99,19 @@ export class ServiceListComponent implements OnInit {
     return this.originsById().get(originId)?.name || request?.origin?.name || "—";
   }
 
+  toTelHref(phone: string | null | undefined): string {
+    if (!phone) return "";
+
+    const trimmed = phone.trim();
+    if (!trimmed) return "";
+
+    const hasPlusPrefix = trimmed.startsWith("+");
+    const digitsOnly = trimmed.replace(/\D/g, "");
+    if (!digitsOnly) return "";
+
+    return hasPlusPrefix ? `+${digitsOnly}` : digitsOnly;
+  }
+
   // Expose Math for template use
   Math = Math;
 
@@ -320,6 +333,8 @@ export class ServiceListComponent implements OnInit {
 
     if (role === "professional") {
       options.push(
+        { value: "phone", labelKey: "phone" },
+        { value: "os", labelKey: "os" },
         { value: "scheduled", labelKey: "sortByScheduled" },
         { value: "start", labelKey: "sortByStart" },
         { value: "end", labelKey: "sortByEnd" }

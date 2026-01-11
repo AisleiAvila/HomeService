@@ -109,7 +109,7 @@
       <!-- Filtros (retráteis) -->
       @if (filtersExpanded()) {
       <!-- Grid responsivo para filtros: 1 coluna em móvel, 2 em tablet, 7 em desktop -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-3 sm:gap-4 items-end">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-9 gap-3 sm:gap-4 items-end">
         <!-- Service Filter -->
         <div>
           <label for="filter-service" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
@@ -162,6 +162,23 @@
             <option [value]="origin.id">{{ origin.name }}</option>
             }
           </select>
+        </div>
+
+        <!-- OS Filter -->
+        <div>
+          <label for="filter-os" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
+            "os" | i18n
+          }}</label>
+          <input
+            id="filter-os"
+            type="text"
+            [ngModel]="filterOS()"
+            (ngModelChange)="filterOS.set($event)"
+            placeholder="{{ 'searchByOS' | i18n }}"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
+          />
         </div>
 
         <!-- Locality Filter -->

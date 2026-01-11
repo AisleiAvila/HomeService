@@ -133,6 +133,7 @@ export class DashboardComponent implements OnInit {
   filterEndDate = signal<string>("");
   filterCategory = signal<string>("");
   filterOrigin = signal<string>("");
+  filterOS = signal<string>("");
   filterLocality = signal<string>("");
   filterService = signal<string>("");
   filterClient = signal<string>("");
@@ -418,6 +419,7 @@ export class DashboardComponent implements OnInit {
     const endDate = this.filterEndDate();
     const category = this.filterCategory();
     const origin = this.filterOrigin();
+    const osFilter = this.filterOS().trim();
     const search = this.searchTerm().toLowerCase();
 
     // Filtro por status
@@ -441,6 +443,15 @@ export class DashboardComponent implements OnInit {
 
     if (origin) {
       reqs = reqs.filter((r) => String(r.origin_id ?? r.origin?.id ?? "") === origin);
+    }
+
+    // Filtro por OS (comparação por substring)
+    if (osFilter) {
+      reqs = reqs.filter((r) => {
+        const osValue = (r as any)?.os;
+        if (osValue === null || osValue === undefined) return false;
+        return String(osValue).includes(osFilter);
+      });
     }
     
     // Filtro por localidade (comparação exata)
@@ -559,6 +570,29 @@ export class DashboardComponent implements OnInit {
       return r.client_name?.trim() || "";
     };
 
+    const getPhoneComparable = (r: ServiceRequest): string | null => {
+      const raw = (r as any)?.client_phone ?? (r as any)?.clientPhone;
+      if (raw === null || raw === undefined) return null;
+      const trimmed = String(raw).trim();
+      if (!trimmed) return null;
+      const digitsOnly = trimmed.replace(/\D/g, "");
+
+      if (!digitsOnly) return trimmed;
+
+      // Normalize Portuguese country code when present so sorting behaves naturally.
+      // Examples:
+      //  - +351 912 345 678  -> 912345678
+      //  - 00351 912345678   -> 912345678
+      let normalized = digitsOnly;
+      if (normalized.startsWith("00351") && normalized.length === 14) {
+        normalized = normalized.slice(5);
+      } else if (normalized.startsWith("351") && normalized.length === 12) {
+        normalized = normalized.slice(3);
+      }
+
+      return normalized;
+    };
+
     const getExecutionTime = (r: ServiceRequest): number => {
       const raw = r.scheduled_start_datetime || r.requested_datetime || r.requested_date || "";
       if (!raw) return 0;
@@ -570,6 +604,15 @@ export class DashboardComponent implements OnInit {
     const getValueAmount = (r: ServiceRequest): number => {
       const amount = r.valor_prestador ?? r.valor ?? 0;
       return Number.isFinite(amount) ? amount : 0;
+    };
+
+    const getOsComparable = (r: ServiceRequest): number | string | null => {
+      const raw = (r as any)?.os;
+      if (raw === null || raw === undefined || String(raw).trim() === "") return null;
+      const rawStr = String(raw).trim();
+      const asNumber = Number(rawStr);
+      if (!Number.isNaN(asNumber)) return asNumber;
+      return rawStr;
     };
 
     return [...requests].sort((a, b) => {
@@ -622,6 +665,35 @@ export class DashboardComponent implements OnInit {
           break;
         }
 
+        case "os": {
+          const aOs = getOsComparable(a);
+          const bOs = getOsComparable(b);
+
+          if (aOs === null && bOs === null) {
+            compareResult = 0;
+            break;
+          }
+          if (aOs === null) {
+            compareResult = 1;
+            break;
+          }
+          if (bOs === null) {
+            compareResult = -1;
+            break;
+          }
+
+          if (typeof aOs === "number" && typeof bOs === "number") {
+            compareResult = aOs - bOs;
+            break;
+          }
+
+          compareResult = String(aOs).localeCompare(String(bOs), "pt-PT", {
+            sensitivity: "base",
+            numeric: true,
+          });
+          break;
+        }
+
         case "category": {
           const catA = this.dataService.categories().find(c => c.id === a.category_id)?.name || "";
           const catB = this.dataService.categories().find(c => c.id === b.category_id)?.name || "";
@@ -641,6 +713,30 @@ export class DashboardComponent implements OnInit {
 
         case "client": {
           compareResult = getClientValue(a).localeCompare(getClientValue(b), 'pt-PT', { sensitivity: 'base' });
+          break;
+        }
+
+        case "phone": {
+          const aPhone = getPhoneComparable(a);
+          const bPhone = getPhoneComparable(b);
+
+          if (aPhone === null && bPhone === null) {
+            compareResult = 0;
+            break;
+          }
+          if (aPhone === null) {
+            compareResult = 1;
+            break;
+          }
+          if (bPhone === null) {
+            compareResult = -1;
+            break;
+          }
+
+          compareResult = String(aPhone).localeCompare(String(bPhone), 'pt-PT', {
+            sensitivity: 'base',
+            numeric: true,
+          });
           break;
         }
 
@@ -698,6 +794,13 @@ export class DashboardComponent implements OnInit {
         type: "origin",
         label: "origin",
         value: originName,
+      });
+    }
+    if (this.filterOS()) {
+      filters.push({
+        type: "os",
+        label: "os",
+        value: this.filterOS(),
       });
     }
     if (this.filterLocality()) {
@@ -1238,6 +1341,7 @@ export class DashboardComponent implements OnInit {
     this.filterEndDate.set("");
     this.filterCategory.set("");
     this.filterOrigin.set("");
+    this.filterOS.set("");
     this.filterLocality.set("");
     this.filterService.set("");
     this.filterClient.set("");
@@ -1245,7 +1349,7 @@ export class DashboardComponent implements OnInit {
   }
 
   removeFilter(
-    filterType: "status" | "period" | "category" | "origin" | "locality" | "service" | "client" | "search"
+    filterType: "status" | "period" | "category" | "origin" | "os" | "locality" | "service" | "client" | "search"
   ) {
     switch (filterType) {
       case "status":
@@ -1260,6 +1364,9 @@ export class DashboardComponent implements OnInit {
         break;
       case "origin":
         this.filterOrigin.set("");
+        break;
+      case "os":
+        this.filterOS.set("");
         break;
       case "locality":
         this.filterLocality.set("");

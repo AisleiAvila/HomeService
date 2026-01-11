@@ -130,6 +130,28 @@
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            [attr.aria-sort]="isSortedBy('phone') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+            scope="col"
+          >
+            <button
+              type="button"
+              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              (click)="handleSortColumn('phone')"
+              [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('phone' | i18n)"
+              [attr.title]="('clickToSort' | i18n) + ': ' + ('phone' | i18n)"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span>{{ "phone" | i18n }}</span>
+                @if(isSortedBy('phone')) {
+                <i [class]="sortOrder() === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'" class="text-brand-primary-600"></i>
+                } @else {
+                <i class="fas fa-sort text-gray-400"></i>
+                }
+              </div>
+            </button>
+          </th>
+          <th
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
             [attr.aria-sort]="isSortedBy('execution') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
           >
@@ -206,7 +228,7 @@
         <tr>
           <td
             class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300"
-            [attr.colspan]="shouldShowValueColumn() ? 8 : 7"
+            [attr.colspan]="shouldShowValueColumn() ? 9 : 8"
           >
             {{ "noServiceRequestsFound" | i18n }}
           </td>
@@ -243,6 +265,24 @@
           </td>
           <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[28ch] leading-snug">
             {{ request.client_name || "—" }}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal break-words max-w-[20ch] leading-snug">
+            @if (request.client_phone) {
+              @if (toTelHref(request.client_phone)) {
+                <a
+                  class="text-brand-primary-600 hover:text-brand-primary-700 hover:underline"
+                  [href]="'tel:' + toTelHref(request.client_phone)"
+                  (click)="$event.stopPropagation()"
+                  [attr.aria-label]="('phone' | i18n) + ': ' + request.client_phone"
+                >
+                  {{ request.client_phone }}
+                </a>
+              } @else {
+                {{ request.client_phone }}
+              }
+            } @else {
+              —
+            }
           </td>
           <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal">
             <div class="flex flex-col gap-2">
@@ -605,6 +645,46 @@
                 >
                 <span class="text-gray-600 ml-1 break-words">
                   {{ request.client_name || "—" }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Client Phone -->
+          <div class="service-request-info-item">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.129a11.042 11.042 0 005.516 5.516l1.129-2.257a1 1 0 011.21-.502l4.493 1.498A1 1 0 0121 17.72V21a2 2 0 01-2 2h-1C9.716 23 3 16.284 3 8V5z"
+                />
+              </svg>
+              <div class="text-sm min-w-0 flex-1">
+                <span class="font-medium text-gray-700">{{ "phone" | i18n }}:</span>
+                <span class="text-gray-600 ml-1 break-words">
+                  @if (request.client_phone) {
+                    @if (toTelHref(request.client_phone)) {
+                      <a
+                        class="text-brand-primary-600 hover:text-brand-primary-700 hover:underline"
+                        [href]="'tel:' + toTelHref(request.client_phone)"
+                        (click)="$event.stopPropagation()"
+                        [attr.aria-label]="('phone' | i18n) + ': ' + request.client_phone"
+                      >
+                        {{ request.client_phone }}
+                      </a>
+                    } @else {
+                      {{ request.client_phone }}
+                    }
+                  } @else {
+                    —
+                  }
                 </span>
               </div>
             </div>

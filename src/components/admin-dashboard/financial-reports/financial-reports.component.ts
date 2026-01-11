@@ -1333,11 +1333,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const logoRelativeCandidates = [
                 "src/assets/logo-natan.png",
                 "src/assets/logo-new.png",
-                "src/assets/logo.jpg",
+                "src/assets/logo.png",
                 // Backward-compatible fallbacks if deployment publishes to `/assets`
                 "assets/logo-natan.png",
                 "assets/logo-new.png",
-                "assets/logo.jpg",
+                "assets/logo.png",
             ];
             const logoCandidates = logoRelativeCandidates.map((path) => new URL(path, originBase).toString());
 
