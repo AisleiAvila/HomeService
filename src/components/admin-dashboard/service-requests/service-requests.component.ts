@@ -154,7 +154,8 @@ export class ServiceRequestsComponent implements OnInit {
     showFilters = signal(true);
 
     // Signals for sorting
-    sortBy = signal<string>("date");
+    // Default: order by scheduled date/time (Agendado)
+    sortBy = signal<string>("scheduled");
     sortOrder = signal<"asc" | "desc">("desc");
     selectedProfessionalId = signal<string>("");
     selectedExecutionDate = signal<string>("");
@@ -337,14 +338,70 @@ viewDetails = output<ServiceRequest>();
         const sortOrder = this.sortOrder();
         const multiplier = sortOrder === "asc" ? 1 : -1;
 
+        const parseFlexibleDateTime = (raw?: string | null): number | null => {
+            if (!raw) return null;
+            const trimmed = String(raw).trim();
+            if (!trimmed) return null;
+
+            // Try native parsing first (works well for RFC3339/ISO strings)
+            const direct = Date.parse(trimmed);
+            if (Number.isFinite(direct)) return direct;
+
+            // Some browsers (notably iOS Safari) are strict and don't parse "YYYY-MM-DD HH:mm[:ss]".
+            // Normalize space separator to 'T' and try again.
+            const normalized = trimmed.replace(/\s+/, "T");
+            const normalizedParsed = Date.parse(normalized);
+            if (Number.isFinite(normalizedParsed)) return normalizedParsed;
+
+            // Last-resort manual parsing for "YYYY-MM-DDTHH:mm" (without timezone)
+            const m = normalized.match(
+                /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
+            );
+            if (!m) return null;
+
+            const year = Number(m[1]);
+            const month = Number(m[2]);
+            const day = Number(m[3]);
+            const hour = Number(m[4]);
+            const minute = Number(m[5]);
+            const second = m[6] ? Number(m[6]) : 0;
+            const milli = m[7] ? Number(m[7].padEnd(3, "0")) : 0;
+
+            const time = new Date(year, month - 1, day, hour, minute, second, milli).getTime();
+            return Number.isNaN(time) ? null : time;
+        };
+
         return [...requests].sort((a, b) => {
             let compareResult = 0;
+            let applyMultiplier = true;
 
             switch (sortBy) {
                 case "date": {
                     const dateA = a.requested_date ? new Date(a.requested_date).getTime() : 0;
                     const dateB = b.requested_date ? new Date(b.requested_date).getTime() : 0;
                     compareResult = dateA - dateB;
+                    break;
+                }
+
+                case "scheduled": {
+                    // Order by scheduled date/time (Agendado). Prefer the new field, then legacy fallbacks.
+                    const aTime =
+                        parseFlexibleDateTime(a.scheduled_start_datetime) ??
+                        parseFlexibleDateTime((a as any)?.scheduled_date) ??
+                        parseFlexibleDateTime(a.requested_datetime) ??
+                        parseFlexibleDateTime(a.requested_date);
+                    const bTime =
+                        parseFlexibleDateTime(b.scheduled_start_datetime) ??
+                        parseFlexibleDateTime((b as any)?.scheduled_date) ??
+                        parseFlexibleDateTime(b.requested_datetime) ??
+                        parseFlexibleDateTime(b.requested_date);
+
+                    // Keep null values at the end for both asc/desc.
+                    applyMultiplier = false;
+                    if (aTime === null && bTime === null) compareResult = 0;
+                    else if (aTime === null) compareResult = 1;
+                    else if (bTime === null) compareResult = -1;
+                    else compareResult = (aTime - bTime) * multiplier;
                     break;
                 }
                 case "status": {
@@ -369,7 +426,7 @@ viewDetails = output<ServiceRequest>();
                 }
             }
 
-            return compareResult * multiplier;
+            return compareResult * (applyMultiplier ? multiplier : 1);
         });
     }
 
@@ -378,6 +435,9 @@ viewDetails = output<ServiceRequest>();
             this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
         } else {
             this.sortBy.set(column);
+            // More natural default ordering:
+            // - scheduled: most recent first (desc)
+            // - others: keep previous behavior (desc)
             this.sortOrder.set("desc");
         }
     }

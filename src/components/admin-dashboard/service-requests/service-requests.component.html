@@ -491,8 +491,27 @@
                             </div>
                         </button>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                        {{ "executionTimeline" | i18n }}
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                        [attr.aria-sort]="sortBy() === 'scheduled' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                        scope="col">
+                        <button type="button"
+                            class="w-full text-left cursor-pointer hover:bg-gray-100 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+                            (click)="sortByColumn('scheduled')"
+                            [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('executionTimeline' | i18n)"
+                            [attr.title]="('clickToSort' | i18n) + ': ' + ('executionTimeline' | i18n)">
+                            <div class="flex items-center justify-between">
+                                <span>{{ "executionTimeline" | i18n }}</span>
+                                @if (sortBy() === 'scheduled') {
+                                @if (sortOrder() === 'asc') {
+                                <i class="fas fa-sort-up text-brand-primary-500 ml-1"></i>
+                                } @else {
+                                <i class="fas fa-sort-down text-brand-primary-500 ml-1"></i>
+                                }
+                                } @else {
+                                <i class="fas fa-sort text-gray-400 ml-1"></i>
+                                }
+                            </div>
+                        </button>
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "origin" | i18n }}
