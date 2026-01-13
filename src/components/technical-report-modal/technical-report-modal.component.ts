@@ -649,6 +649,13 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
         clientName: req.client_name || "",
       });
       this.generatedReport.set(report);
+
+      // Atualizar estado local/global para que a ação "Relatório Técnico" desapareça na lista sem precisar de refresh manual.
+      this.dataService.serviceRequests.update((requests) =>
+        (requests || []).map((r) =>
+          r.id === req.id ? { ...r, has_technical_report: true } : r
+        )
+      );
     } catch (e) {
       console.error("Erro ao gerar Relatório Técnico:", e);
       const message = e instanceof Error ? e.message : "Erro ao gerar o PDF. Tente novamente.";

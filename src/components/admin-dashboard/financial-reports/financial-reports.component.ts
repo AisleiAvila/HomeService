@@ -22,6 +22,8 @@ type FinancialBreakdownItem = {
 
 type SubcategoryBreakdownId = number | "uncategorized";
 
+type CsvValue = string | number | null | undefined;
+
 type SubcategoryServiceRow = {
     id: number | string;
     title: string;
@@ -856,11 +858,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         return fallback;
     }
 
-    private toCsvRow(values: Array<string | number | null | undefined>): string {
+    private toCsvRow(values: Array<CsvValue>): string {
         return values.map((value) => this.quoteCsvValue(value)).join(";");
     }
 
-    private quoteCsvValue(value: string | number | null | undefined): string {
+    private quoteCsvValue(value: CsvValue): string {
         const stringValue = value === null || value === undefined ? "" : String(value);
         return `"${stringValue.replaceAll("\"", "\"\"")}"`;
     }
@@ -931,8 +933,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             return;
         }
 
-        const subcategoryId: SubcategoryBreakdownId =
-            (request.subcategory_id as number | undefined) ?? "uncategorized";
+        const subcategoryId: SubcategoryBreakdownId = request.subcategory_id ?? "uncategorized";
         const key = String(subcategoryId);
         if (!accumulator.has(key)) {
             accumulator.set(key, {
@@ -1310,7 +1311,6 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             const statusTitle = this.i18n.translate("servicesByStatus") ?? "Serviços por status";
             const professionalLabel = this.i18n.translate("professional") ?? "Profissional";
             const categoryLabel = this.i18n.translate("category") ?? "Categoria";
-            const paymentLabel = this.i18n.translate("payment") ?? "Pagamento";
             const subcategoryLabel = this.i18n.translate("subcategory") ?? "Subcategoria";
             const serviceLabel = this.i18n.translate("service") ?? "Serviço";
             const originLabel = this.i18n.translate("origin") ?? "Origem";
@@ -1589,12 +1589,10 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                         summaries.forEach((summary) => {
                                 const professionalName = encodeHtml(summary.professionalName || unassignedLabel);
                                 const categoryName = encodeHtml(summary.categoryName || "-");
-                                const employmentLabel = encodeHtml(summary.employmentLabel ?? "-");
                                 const serviceValue = encodeHtml(formatCurrency(summary.serviceValue));
                                 const paidAmount = encodeHtml(formatCurrency(summary.paidAmount));
                                 const pendingAmount = encodeHtml(formatCurrency(summary.pendingAmount));
                                 const finalAmount = encodeHtml(formatCurrency(summary.finalAmount));
-                                const notApplicableValue = encodeHtml(notApplicableLabel);
                                 html += `
             <tr class="category-row">
                 <td>${professionalName}</td>
@@ -1745,7 +1743,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
                 try {
                     const doc = printWindow.document;
-                    const logo = doc.querySelector("img.brand-logo") as HTMLImageElement | null;
+                    const logo = doc.querySelector<HTMLImageElement>("img.brand-logo");
                     const logoReady = !logo || (logo.complete && logo.naturalWidth > 0);
 
                     const images = Array.from(doc.images ?? []);

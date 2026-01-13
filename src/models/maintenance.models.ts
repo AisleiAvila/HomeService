@@ -242,6 +242,11 @@ export interface ServiceRequest {
   finalized_at?: string | null; // Data/hora de finalização pelo admin
   admin_notes?: string | null; // Notas administrativas internas
 
+  // Relatório Técnico
+  // Sinaliza se já existe ao menos um relatório técnico salvo para esta solicitação.
+  // (Usado para ocultar a ação "Relatório Técnico" na visão geral.)
+  has_technical_report?: boolean;
+
   // =========================================================================
   // CAMPOS REMOVIDOS: sistema antigo de orçamentos
   // =========================================================================

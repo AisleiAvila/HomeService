@@ -24,6 +24,7 @@ import { I18nService } from "@/src/i18n.service";
 import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-utils";
 import { TechnicalReportModalComponent } from "../technical-report-modal/technical-report-modal.component";
 import { isTechnicalReportEligible } from "@/src/utils/technical-report-origin.util";
+import { NotificationService } from "../../services/notification.service";
 
 @Component({
   selector: "app-service-list",
@@ -83,6 +84,7 @@ export class ServiceListComponent implements OnInit {
 
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
+  private readonly notificationService = inject(NotificationService);
 
   private readonly originsById = computed(() => {
     const map = new Map<number, ServiceRequestOrigin>();
@@ -106,7 +108,7 @@ export class ServiceListComponent implements OnInit {
     if (!trimmed) return "";
 
     const hasPlusPrefix = trimmed.startsWith("+");
-    const digitsOnly = trimmed.replace(/\D/g, "");
+    const digitsOnly = trimmed.replaceAll(/\D/g, "");
     if (!digitsOnly) return "";
 
     return hasPlusPrefix ? `+${digitsOnly}` : digitsOnly;
@@ -167,10 +169,69 @@ export class ServiceListComponent implements OnInit {
     const user = this.currentUser();
     if (user.role !== "professional") return false;
 
+    // Não exibir se já existe relatório técnico salvo para esta solicitação.
+    if (request.has_technical_report) return false;
+
     // Keep consistent with other professional-only actions: require ownership when available.
     if (request.professional_id && request.professional_id !== user.id) return false;
 
     return isTechnicalReportEligible(request, this.originsById());
+  }
+
+  // Visualização de relatório técnico salvo
+  private readonly viewReportLoadingIds = signal<number[]>([]);
+
+  isViewingSavedTechnicalReport(requestId: number): boolean {
+    return (this.viewReportLoadingIds() || []).includes(requestId);
+  }
+
+  canViewTechnicalReport(request: ServiceRequest): boolean {
+    const user = this.currentUser();
+    const canByRole = user.role === "admin" || user.role === "professional";
+    if (!canByRole) return false;
+    if (!request.has_technical_report) return false;
+
+    // Para profissionais, manter consistência com outras ações: respeitar ownership quando disponível.
+    if (user.role === "professional") {
+      if (request.professional_id && request.professional_id !== user.id) return false;
+    }
+
+    return true;
+  }
+
+  async openExistingTechnicalReport(request: ServiceRequest): Promise<void> {
+    if (!request?.id) return;
+    if (!this.canViewTechnicalReport(request)) return;
+    if (this.isViewingSavedTechnicalReport(request.id)) return;
+
+    this.viewReportLoadingIds.update((ids) => Array.from(new Set([...(ids || []), request.id])));
+    try {
+      const report = await this.dataService.getLatestTechnicalReportByServiceRequestId(request.id);
+      const url = report?.file_url?.trim();
+      if (!url) {
+        this.notificationService.showError(this.i18n.translate("technicalReportNotFound"));
+        return;
+      }
+
+      // Abrir em nova aba (fallback para download quando bloqueado).
+      const opened = globalThis.window?.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        this.notificationService.showError(this.i18n.translate("popupBlocked"));
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.click();
+        return;
+      }
+
+      this.notificationService.showSuccess(this.i18n.translate("technicalReportOpened"));
+    } catch (e) {
+      console.error("Erro ao abrir Relatório Técnico:", e);
+      this.notificationService.showError(this.i18n.translate("technicalReportOpenError"));
+    } finally {
+      this.viewReportLoadingIds.update((ids) => (ids || []).filter((id) => id !== request.id));
+    }
   }
 
   openTechnicalReport(request: ServiceRequest): void {

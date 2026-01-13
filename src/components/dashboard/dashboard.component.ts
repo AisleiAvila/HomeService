@@ -448,7 +448,7 @@ export class DashboardComponent implements OnInit {
     // Filtro por OS (comparação por substring)
     if (osFilter) {
       reqs = reqs.filter((r) => {
-        const osValue = (r as any)?.os;
+        const osValue = r?.os;
         if (osValue === null || osValue === undefined) return false;
         return String(osValue).includes(osFilter);
       });
@@ -575,7 +575,7 @@ export class DashboardComponent implements OnInit {
       if (raw === null || raw === undefined) return null;
       const trimmed = String(raw).trim();
       if (!trimmed) return null;
-      const digitsOnly = trimmed.replace(/\D/g, "");
+      const digitsOnly = trimmed.replaceAll(/\D/g, "");
 
       if (!digitsOnly) return trimmed;
 
@@ -1271,11 +1271,13 @@ export class DashboardComponent implements OnInit {
     try {
       // Decode only a small prefix (rounded up to base64 4-char blocks).
       const neededChars = Math.ceil((maxBytes / 3) * 4);
-      const slice = base64.replace(/\s/g, "").slice(0, neededChars);
+      const slice = base64.replaceAll(/\s/g, "").slice(0, neededChars);
       const decoded = atob(slice);
       const out: number[] = [];
       for (let i = 0; i < decoded.length && out.length < maxBytes; i++) {
-        out.push(decoded.charCodeAt(i));
+        const codePoint = decoded.codePointAt(i);
+        if (codePoint === undefined) break;
+        out.push(codePoint);
       }
       return out;
     } catch {
@@ -1291,7 +1293,7 @@ export class DashboardComponent implements OnInit {
       const blob = await response.blob();
 
       // Prevent passing HTML/text to jsPDF as an image (common in SPA route fallbacks)
-      if (!blob.type || !blob.type.startsWith("image/")) return null;
+      if (!blob.type?.startsWith("image/")) return null;
 
       return await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();

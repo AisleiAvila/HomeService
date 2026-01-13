@@ -11,6 +11,7 @@ import {
   ServiceRequest,
   ServiceRequestPayload,
   ServiceSubcategoryExtended,
+  TechnicalReportRecord,
   User,
   UserStatus,
   ServiceRequestOrigin
@@ -227,6 +228,45 @@ export class DataService {
 
   private async fetchServiceRequests(currentUser: User) {
     this.isLoading.set(true);
+    try {
+      let query = this.createServiceRequestsQuery(currentUser);
+      const { data, error } = await query;
+
+      if (error) {
+        console.log(
+          "Error fetching service requests from Supabase, keeping sample data:",
+          error.message
+        );
+        this.notificationService.addNotification(
+          "Using sample data - Error fetching service requests: " + error.message
+        );
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        this.serviceRequests.set([]);
+        return;
+      }
+
+      const requests = this.mapServiceRequests(data);
+
+      // Marcar quais requests já possuem relatório técnico salvo.
+      // Observação: não fazemos JOIN aqui para evitar dependência de nomes de FK; em vez disso, consultamos a tabela.
+      const requestIds = requests.map((r) => r.id);
+      const idsWithReport = await this.getServiceRequestIdsWithTechnicalReports(requestIds);
+
+      this.serviceRequests.set(
+        requests.map((r) => ({
+          ...r,
+          has_technical_report: idsWithReport.has(r.id),
+        }))
+      );
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  private createServiceRequestsQuery(currentUser: User) {
     let query = this.supabase.client
       .from("service_requests")
       .select(`*,
@@ -252,37 +292,77 @@ export class DataService {
     }
     // Admin: sem filtro
 
-    const { data, error } = await query;
+    return query;
+  }
+
+  private mapServiceRequests(data: any[]): ServiceRequest[] {
+    console.log('🔍 [DataService] Dados brutos do Supabase:', data[0]);
+
+    return data.map((r) => {
+      const mapped: ServiceRequest = {
+        ...r,
+        client_name: r.client_name || "",
+        email_client: r.email_client || "",
+        client_phone: r.client_phone || "",
+        client_nif: r.client_nif || "",
+        professional_name: r.professional?.name || "Unassigned",
+      };
+      console.log(
+        `🔍 [DataService] Request ID ${r.id}: client_name="${r.client_name}" -> mapped="${mapped.client_name}"`
+      );
+      return mapped;
+    });
+  }
+
+  private async getServiceRequestIdsWithTechnicalReports(requestIds: number[]): Promise<Set<number>> {
+    const idsWithReport = new Set<number>();
+    if (!Array.isArray(requestIds) || requestIds.length === 0) return idsWithReport;
+
+    try {
+      // Supabase tem limite de valores no IN; usamos paginação simples por chunks.
+      const chunkSize = 200;
+      for (let i = 0; i < requestIds.length; i += chunkSize) {
+        const chunk = requestIds.slice(i, i + chunkSize);
+        const { data: reportRows, error: reportError } = await this.supabase.client
+          .from("technical_reports")
+          .select("service_request_id")
+          .in("service_request_id", chunk);
+
+        if (reportError) {
+          console.warn("[DataService] Erro ao buscar technical_reports:", reportError);
+          break;
+        }
+
+        for (const row of reportRows || []) {
+          const rawId = (row as any)?.service_request_id;
+          const parsed = Number(rawId);
+          if (Number.isFinite(parsed)) idsWithReport.add(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn("[DataService] Falha inesperada ao buscar relatórios técnicos:", e);
+    }
+
+    return idsWithReport;
+  }
+
+  async getLatestTechnicalReportByServiceRequestId(serviceRequestId: number): Promise<TechnicalReportRecord | null> {
+    if (!serviceRequestId || !Number.isFinite(serviceRequestId)) return null;
+
+    const { data, error } = await this.supabase.client
+      .from("technical_reports")
+      .select("*")
+      .eq("service_request_id", serviceRequestId)
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (error) {
-      console.log(
-        "Error fetching service requests from Supabase, keeping sample data:",
-        error.message
-      );
-      this.notificationService.addNotification(
-        "Using sample data - Error fetching service requests: " + error.message
-      );
-      this.isLoading.set(false);
-    } else if (data && data.length > 0) {
-      console.log('🔍 [DataService] Dados brutos do Supabase:', data[0]);
-      const requests = data.map((r) => {
-        const mapped = {
-          ...r,
-          client_name: r.client_name || "",
-          email_client: r.email_client || "",
-          client_phone: r.client_phone || "",
-          client_nif: r.client_nif || "",
-          professional_name: r.professional?.name || "Unassigned",
-        };
-        console.log(`🔍 [DataService] Request ID ${r.id}: client_name="${r.client_name}" -> mapped="${mapped.client_name}"`);
-        return mapped;
-      });
-      this.serviceRequests.set(requests);
-      this.isLoading.set(false);
-    } else {
-      this.serviceRequests.set([]);
-      this.isLoading.set(false);
+      console.warn("[DataService] Erro ao buscar relatório técnico:", error);
+      return null;
     }
+
+    return data ?? null;
   }
 
   async deleteServiceRequest(requestId: number): Promise<boolean> {

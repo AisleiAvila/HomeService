@@ -389,6 +389,18 @@
                 </button>
                 }
 
+                @if (canViewTechnicalReport(request)) {
+                <button
+                  (click)="openExistingTechnicalReport(request)"
+                  class="p-2 text-blue-700 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                  [title]="'viewTechnicalReport' | i18n"
+                  [attr.aria-label]="'viewTechnicalReport' | i18n"
+                  [disabled]="isViewingSavedTechnicalReport(request.id)"
+                >
+                  <i [class]="isViewingSavedTechnicalReport(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-file-pdf'"></i>
+                </button>
+                }
+
               <button
                 (click)="openChat.emit(request)"
                 class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
@@ -876,6 +888,18 @@
               [attr.aria-label]="'technicalReport' | i18n"
             >
               <i class="fas fa-file-pdf"></i>
+            </button>
+            }
+
+            @if (canViewTechnicalReport(request)) {
+            <button
+              (click)="openExistingTechnicalReport(request)"
+              class="w-10 h-10 flex items-center justify-center rounded-md bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+              [title]="'viewTechnicalReport' | i18n"
+              [attr.aria-label]="'viewTechnicalReport' | i18n"
+              [disabled]="isViewingSavedTechnicalReport(request.id)"
+            >
+              <i [class]="isViewingSavedTechnicalReport(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-file-pdf'"></i>
             </button>
             }
             <button

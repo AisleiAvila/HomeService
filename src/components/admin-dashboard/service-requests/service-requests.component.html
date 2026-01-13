@@ -770,6 +770,18 @@
                                 [title]="'viewDetails' | i18n" [attr.aria-label]="'viewDetails' | i18n">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            @if (canViewTechnicalReport(req)) {
+                            <button (click)="openExistingTechnicalReport(req)"
+                                class="w-10 h-10 flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                                [title]="'viewTechnicalReport' | i18n" [attr.aria-label]="'viewTechnicalReport' | i18n"
+                                [disabled]="isViewingTechnicalReport(req.id)">
+                                @if (isViewingTechnicalReport(req.id)) {
+                                <i class="fas fa-spinner fa-spin"></i>
+                                } @else {
+                                <i class="fas fa-file-pdf"></i>
+                                }
+                            </button>
+                            }
                             @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
                             <button (click)="openEditRequestModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-md transition-colors"
@@ -939,6 +951,18 @@
                         [attr.aria-label]="'viewDetails' | i18n">
                         <i class="fas fa-eye"></i>
                     </button>
+                    @if (canViewTechnicalReport(req)) {
+                    <button (click)="openExistingTechnicalReport(req)" title="{{ 'viewTechnicalReport' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'viewTechnicalReport' | i18n"
+                        [disabled]="isViewingTechnicalReport(req.id)">
+                        @if (isViewingTechnicalReport(req.id)) {
+                        <i class="fas fa-spinner fa-spin"></i>
+                        } @else {
+                        <i class="fas fa-file-pdf"></i>
+                        }
+                    </button>
+                    }
                         @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
                     <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200"

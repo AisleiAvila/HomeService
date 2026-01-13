@@ -328,64 +328,6 @@
       </button>
     </div>
 
-    @if (generatedReport() && !clientSignatureTouched()) {
-      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
-          Assinatura do cliente (remoto)
-        </h3>
-
-        @if (clientLinkError()) {
-          <div class="mb-3 text-sm text-red-600 dark:text-red-400 flex items-center">
-            <i class="fas fa-exclamation-circle mr-2"></i>
-            {{ clientLinkError() }}
-          </div>
-        }
-
-        <div class="flex gap-3">
-          <button
-            type="button"
-            (click)="handleGenerateClientLink()"
-            [disabled]="clientLinkGenerating()"
-            class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 disabled:opacity-50"
-          >
-            <i
-              [class]="clientLinkGenerating() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-link mr-2'"
-              aria-hidden="true"
-            ></i>
-            Gerar link
-          </button>
-
-          @if (clientSignUrl()) {
-            <button
-              type="button"
-              (click)="copyClientSignUrl()"
-              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Copiar
-            </button>
-
-            <button
-              type="button"
-              (click)="openClientSigningInApp()"
-              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Assinar na aplicação
-            </button>
-          }
-        </div>
-
-        @if (clientSignUrl()) {
-          <div class="mt-3">
-            <label for="clientSignUrlInput" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Link</label>
-            <input
-              id="clientSignUrlInput"
-              class="block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              [value]="clientSignUrl()"
-              readonly
-            />
-          </div>
-        }
-      </div>
-    }
+    <!-- Opção de link para assinatura remota do cliente removida (não necessária). -->
   </div>
 </dialog>

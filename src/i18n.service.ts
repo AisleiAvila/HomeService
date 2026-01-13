@@ -8,6 +8,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // General
     overviewTitle: "Overview",
     technicalReport: "Technical Report",
+    viewTechnicalReport: "View Technical Report",
+    technicalReportNotFound: "Technical report not found.",
+    technicalReportOpenError: "Error opening the technical report.",
+    technicalReportOpened: "Technical report opened.",
+    popupBlocked: "Popup blocked by the browser. Please allow popups to open the document.",
     signIn: "Sign In",
     createAccount: "Create Account",
     email: "Email",
@@ -1044,6 +1049,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     // General
     overviewTitle: "Visão Geral",
     technicalReport: "Relatório Técnico",
+    viewTechnicalReport: "Ver Relatório Técnico",
+    technicalReportNotFound: "Relatório Técnico não encontrado.",
+    technicalReportOpenError: "Erro ao abrir o Relatório Técnico.",
+    technicalReportOpened: "Relatório Técnico aberto.",
+    popupBlocked: "O navegador bloqueou o pop-up. Permita pop-ups para abrir o documento.",
 
     signIn: "Entrar",
     createAccount: "Criar Conta",

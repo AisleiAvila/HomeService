@@ -9,6 +9,7 @@ import { PaymentStatus, ServiceRequest, ServiceStatus, User } from "../../../mod
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
+import { NotificationService } from "../../../services/notification.service";
 import { PortugalAddressValidationService } from "../../../services/portugal-address-validation.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
@@ -98,6 +99,7 @@ export class ServiceRequestsComponent implements OnInit {
     private readonly i18n = inject(I18nService);
     private readonly router = inject(Router);
     private readonly authService = inject(AuthService);
+    private readonly notificationService = inject(NotificationService);
     private readonly portugalAddressValidation = inject(PortugalAddressValidationService);
     private readonly workflowService = inject(WorkflowServiceSimplified);
     readonly uiState = inject(UiStateService);
@@ -170,6 +172,77 @@ export class ServiceRequestsComponent implements OnInit {
     showDeleteRequestModal = signal(false);
     requestToDelete = signal<ServiceRequest | null>(null);
     isDeletingRequest = signal(false);
+
+    private readonly viewTechnicalReportLoadingIds = signal<Set<number>>(new Set());
+
+    canViewTechnicalReport(req: ServiceRequest): boolean {
+        return this.currentUser()?.role === 'admin' && !!req?.has_technical_report;
+    }
+
+    isViewingTechnicalReport(requestId: number): boolean {
+        return this.viewTechnicalReportLoadingIds().has(requestId);
+    }
+
+    async openExistingTechnicalReport(req: ServiceRequest): Promise<void> {
+        if (!req?.id) {
+            return;
+        }
+
+        const requestId = req.id;
+        if (this.isViewingTechnicalReport(requestId)) {
+            return;
+        }
+
+        this.viewTechnicalReportLoadingIds.update((current) => {
+            const next = new Set(current);
+            next.add(requestId);
+            return next;
+        });
+
+        try {
+            const report = await this.dataService.getLatestTechnicalReportByServiceRequestId(requestId);
+            if (!report?.file_url) {
+                this.notificationService.showError(
+                    this.i18n.translate('technicalReportNotFound') || 'Relatório técnico não encontrado.'
+                );
+                return;
+            }
+
+            const opened = globalThis.window?.open(report.file_url, '_blank', 'noopener,noreferrer');
+            if (!opened) {
+                this.notificationService.showError(
+                    this.i18n.translate('popupBlocked') || 'O navegador bloqueou o popup. Permita popups para abrir o relatório.'
+                );
+
+                // Fallback: tentar abrir via link (alguns browsers tratam diferente)
+                const a = globalThis.document?.createElement('a');
+                if (a) {
+                    a.href = report.file_url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    globalThis.document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                }
+                return;
+            }
+
+            this.notificationService.showSuccess(
+                this.i18n.translate('technicalReportOpened') || 'Relatório técnico aberto.'
+            );
+        } catch (error) {
+            console.error('[ServiceRequestsComponent] Error opening technical report:', error);
+            this.notificationService.showError(
+                this.i18n.translate('technicalReportOpenError') || 'Falha ao abrir o relatório técnico.'
+            );
+        } finally {
+            this.viewTechnicalReportLoadingIds.update((current) => {
+                const next = new Set(current);
+                next.delete(requestId);
+                return next;
+            });
+        }
+    }
 
     // Pagination signals
     currentPage = signal<number>(1);
