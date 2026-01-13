@@ -20,7 +20,6 @@ import { I18nService } from "@/src/i18n.service";
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { extractPtAddressParts } from "@/src/utils/address-utils";
 import { I18nPipe } from "../../pipes/i18n.pipe";
-import { TimeControlComponent } from "../time-control/time-control.component";
 import { WorkflowTimelineComponent } from "../workflow-timeline/workflow-timeline.component";
 import { ServiceClarificationsComponent } from "../service-clarifications/service-clarifications.component";
 import { ServiceImagesComponent } from "../service-images/service-images.component";
@@ -45,7 +44,6 @@ interface ServiceAction {
   imports: [
     CommonModule,
     I18nPipe,
-    TimeControlComponent,
     WorkflowTimelineComponent,
     ServiceClarificationsComponent,
     ServiceImagesComponent,
@@ -479,27 +477,6 @@ interface ServiceAction {
               <i class="fas fa-external-link-alt text-gray-400" aria-hidden="true"></i>
             </a>
             }
-          </div>
-        </section>
-        }
-
-        @if (
-          currentUser().role === "professional" &&
-          request().professional_id === currentUser().id &&
-          (request().status === "Em Progresso" || request().status === "Aceito")
-        ) {
-        <section
-          class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-          role="region"
-          [attr.aria-label]="'timeControl' | i18n"
-        >
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4" id="time-control-title">
-            {{ "timeControl" | i18n }}
-          </h3>
-          <div [attr.aria-labelledby]="'time-control-title'">
-            <app-time-control
-              [request]="request()"
-            ></app-time-control>
           </div>
         </section>
         }
