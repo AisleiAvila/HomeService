@@ -818,17 +818,6 @@
               [title]="'rejectAssignment' | i18n"
               [attr.aria-label]="'rejectAssignment' | i18n"
             >
-              @if (canShowTechnicalReport(request)) {
-              <button
-                (click)="openTechnicalReport(request)"
-                class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                [title]="'technicalReport' | i18n"
-                [attr.aria-label]="'technicalReport' | i18n"
-              >
-                <i class="fas fa-file-pdf"></i>
-              </button>
-              }
-
               <i [class]="isLoading(request.id) ? 'fas fa-circle-notch fa-spin' : 'fas fa-times'"></i>
             </button>
             }
@@ -879,6 +868,16 @@
             >
               <i class="fas fa-eye"></i>
             </button>
+            @if (canShowTechnicalReport(request)) {
+            <button
+              (click)="openTechnicalReport(request)"
+              class="w-10 h-10 flex items-center justify-center rounded-md bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
+              title="{{ 'technicalReport' | i18n }}"
+              [attr.aria-label]="'technicalReport' | i18n"
+            >
+              <i class="fas fa-file-pdf"></i>
+            </button>
+            }
             <button
               (click)="openChat.emit(request)"
               class="w-10 h-10 flex items-center justify-center rounded-md bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
