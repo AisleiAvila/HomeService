@@ -338,6 +338,41 @@ viewDetails = output<ServiceRequest>();
         const sortOrder = this.sortOrder();
         const multiplier = sortOrder === "asc" ? 1 : -1;
 
+        const toComparableText = (value: unknown): string => {
+            if (value === null || value === undefined) return "";
+            if (typeof value === "string") return value;
+            if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") return String(value);
+            // Avoid default object stringification like "[object Object]"
+            return "";
+        };
+
+        const compareText = (aRaw: unknown, bRaw: unknown): number =>
+            toComparableText(aRaw).localeCompare(toComparableText(bRaw), "pt-PT", { sensitivity: "base" });
+
+        const getOriginName = (req: ServiceRequest): string => {
+            const direct = (req as any)?.origin?.name;
+            if (direct) return String(direct);
+            const originId = (req as any)?.origin_id;
+            if (!originId) return "";
+            return this.dataService.origins().find((o) => o.id === originId)?.name ?? "";
+        };
+
+        const isPaid = (req: ServiceRequest): boolean => {
+            const raw = (req as any)?.ispaid;
+            if (typeof raw === "boolean") return raw;
+            const status = (req as any)?.payment_status as PaymentStatus | undefined;
+            return status ? this.completedPaymentStatuses.has(status) : false;
+        };
+
+        const compareNullableNumber = (aValue: number | null | undefined, bValue: number | null | undefined): number => {
+            const aNum = typeof aValue === "number" && Number.isFinite(aValue) ? aValue : null;
+            const bNum = typeof bValue === "number" && Number.isFinite(bValue) ? bValue : null;
+            if (aNum === null && bNum === null) return 0;
+            if (aNum === null) return 1; // keep nulls/invalids at end
+            if (bNum === null) return -1;
+            return aNum - bNum;
+        };
+
         const parseFlexibleDateTime = (raw?: string | null): number | null => {
             if (!raw) return null;
             const trimmed = String(raw).trim();
@@ -422,6 +457,30 @@ viewDetails = output<ServiceRequest>();
                     const profA = this.getProfessionalName(a.professional_id) || "";
                     const profB = this.getProfessionalName(b.professional_id) || "";
                     compareResult = profA.localeCompare(profB);
+                    break;
+                }
+
+                case "origin": {
+                    compareResult = compareText(getOriginName(a), getOriginName(b));
+                    break;
+                }
+
+                case "payment": {
+                    compareResult = Number(isPaid(a)) - Number(isPaid(b));
+                    break;
+                }
+
+                case "value": {
+                    applyMultiplier = false;
+                    const cmp = compareNullableNumber((a as any)?.valor, (b as any)?.valor);
+                    compareResult = cmp === 1 || cmp === -1 ? cmp : (cmp * multiplier);
+                    break;
+                }
+
+                case "valorPrestador": {
+                    applyMultiplier = false;
+                    const cmp = compareNullableNumber((a as any)?.valor_prestador, (b as any)?.valor_prestador);
+                    compareResult = cmp === 1 || cmp === -1 ? cmp : (cmp * multiplier);
                     break;
                 }
             }
