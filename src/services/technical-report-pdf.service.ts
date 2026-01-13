@@ -50,22 +50,37 @@ export type TechnicalReportData =
   | { origin: "worten_azul"; data: WortenAzulReportData }
   | { origin: "radio_popular"; data: RadioPopularReportData };
 
+export interface TechnicalReportPdfOptions {
+  professionalSignatureDataUrl?: string;
+  professionalName?: string;
+  professionalSignedAt?: Date;
+}
+
 @Injectable({ providedIn: "root" })
 export class TechnicalReportPdfService {
-  async generateAndDownload(request: ServiceRequest, payload: TechnicalReportData): Promise<void> {
-    const { doc, fileName } = await this.generateDocument(request, payload);
+  async generateAndDownload(
+    request: ServiceRequest,
+    payload: TechnicalReportData,
+    options?: TechnicalReportPdfOptions
+  ): Promise<void> {
+    const { doc, fileName } = await this.generateDocument(request, payload, options);
     doc.save(fileName);
   }
 
-  async generatePdfBlob(request: ServiceRequest, payload: TechnicalReportData): Promise<{ blob: Blob; fileName: string; issuedAt: Date }>{
-    const { doc, fileName, issuedAt } = await this.generateDocument(request, payload);
+  async generatePdfBlob(
+    request: ServiceRequest,
+    payload: TechnicalReportData,
+    options?: TechnicalReportPdfOptions
+  ): Promise<{ blob: Blob; fileName: string; issuedAt: Date }> {
+    const { doc, fileName, issuedAt } = await this.generateDocument(request, payload, options);
     const blob: Blob = doc.output("blob");
     return { blob, fileName, issuedAt };
   }
 
   private async generateDocument(
     request: ServiceRequest,
-    payload: TechnicalReportData
+    payload: TechnicalReportData,
+    options?: TechnicalReportPdfOptions
   ): Promise<{ doc: any; fileName: string; issuedAt: Date }> {
     const [{ jsPDF }, autoTableModule] = await Promise.all([
       import("jspdf"),
@@ -174,8 +189,61 @@ export class TechnicalReportPdfService {
       writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
     }
 
+    this.addProfessionalSignature(doc, {
+      professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
+      professionalName: options?.professionalName,
+      professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
+    });
+
     const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
     return { doc, fileName, issuedAt };
+  }
+
+  private addProfessionalSignature(doc: any, options: TechnicalReportPdfOptions): void {
+    const signatureDataUrl = options.professionalSignatureDataUrl?.trim();
+    if (!signatureDataUrl) return;
+
+    // Canvas is expected to be PNG.
+    if (!signatureDataUrl.startsWith("data:image/png;base64,")) {
+      throw new Error("Assinatura inválida (formato não suportado). Use PNG.");
+    }
+
+    const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
+    if (typeof doc.setPage === "function") doc.setPage(pageCount);
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const signedAt = options.professionalSignedAt ?? new Date();
+    const signedAtLabel = signedAt.toLocaleString("pt-PT", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const name = (options.professionalName || "").trim() || "—";
+
+    const x = 12;
+    const boxW = 80;
+    const boxH = 22;
+    const boxY = pageHeight - 40;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.setFont(undefined, "normal");
+    doc.text(`Data: ${signedAtLabel}`, x, boxY - 10);
+    doc.text(`Profissional: ${name}`, x, boxY - 5);
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, "bold");
+    doc.text("Assinatura:", x, boxY - 1);
+
+    doc.setDrawColor(180);
+    doc.rect(x, boxY, boxW, boxH);
+
+    // Add the signature image inside the box.
+    doc.addImage(signatureDataUrl, "PNG", x + 2, boxY + 2, boxW - 4, boxH - 4, undefined, "FAST");
   }
 
   private getOriginLabel(origin: TechnicalReportOriginKey): string {

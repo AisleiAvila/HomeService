@@ -3,8 +3,7 @@ import type { ServiceRequest, TechnicalReportRecord } from "../models/maintenanc
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
-import type { TechnicalReportData } from "./technical-report-pdf.service";
-import { TechnicalReportPdfService } from "./technical-report-pdf.service";
+import { TechnicalReportPdfService, type TechnicalReportData, type TechnicalReportPdfOptions } from "./technical-report-pdf.service";
 
 @Injectable({ providedIn: "root" })
 export class TechnicalReportStorageService {
@@ -18,7 +17,8 @@ export class TechnicalReportStorageService {
 
   async generatePersistAndDownload(
     request: ServiceRequest,
-    payload: TechnicalReportData
+    payload: TechnicalReportData,
+    options?: TechnicalReportPdfOptions
   ): Promise<TechnicalReportRecord> {
     const currentUser = this.authService.appUser();
     if (!currentUser) {
@@ -26,7 +26,7 @@ export class TechnicalReportStorageService {
     }
 
     // Generate PDF
-    const { blob, fileName, issuedAt } = await this.pdfService.generatePdfBlob(request, payload);
+    const { blob, fileName, issuedAt } = await this.pdfService.generatePdfBlob(request, payload, options);
     const pdfFile = new File([blob], fileName, { type: this.MIME_TYPE });
 
     // Upload to Storage (use a unique path to avoid collisions)
