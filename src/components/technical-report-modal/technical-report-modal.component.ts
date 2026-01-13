@@ -67,11 +67,19 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
   @ViewChild("professionalSigCanvas")
   private readonly professionalSigCanvas?: ElementRef<HTMLCanvasElement>;
 
+  @ViewChild("clientSigCanvas")
+  private readonly clientSigCanvas?: ElementRef<HTMLCanvasElement>;
+
   private professionalSigCanvasInitialized = false;
   private professionalSigDrawing = false;
 
+  private clientSigCanvasInitialized = false;
+  private clientSigDrawing = false;
+
   professionalSignatureTouched = signal(false);
   professionalSignatureError = signal<string>("");
+
+  clientSignatureTouched = signal(false);
 
   originKey = computed<TechnicalReportOriginKey | null>(() =>
     getTechnicalReportOriginKey(this.request(), this.originsById())
@@ -173,6 +181,7 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
 
     if (this.show()) {
       this.initProfessionalSignatureCanvasIfNeeded();
+      this.initClientSignatureCanvasIfNeeded();
     }
 
     if (this.dataService.origins().length === 0) {
@@ -190,6 +199,8 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     this.professionalSignatureError.set("");
     this.professionalSignatureTouched.set(false);
     this.professionalSigCanvasInitialized = false;
+    this.clientSignatureTouched.set(false);
+    this.clientSigCanvasInitialized = false;
     this.dismiss.emit();
   }
 
@@ -218,8 +229,43 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     this.professionalSigCanvasInitialized = true;
   }
 
+  private initClientSignatureCanvasIfNeeded(): void {
+    if (this.clientSigCanvasInitialized) return;
+    const canvas = this.clientSigCanvas?.nativeElement;
+    if (!canvas) return;
+
+    const ratio = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    canvas.width = Math.floor(rect.width * ratio);
+    canvas.height = Math.floor(rect.height * ratio);
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.strokeStyle = "#111827";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+
+    this.clientSigCanvasInitialized = true;
+  }
+
   private getProfessionalCanvasPoint(event: PointerEvent) {
     const canvas = this.professionalSigCanvas?.nativeElement;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  }
+
+  private getClientCanvasPoint(event: PointerEvent) {
+    const canvas = this.clientSigCanvas?.nativeElement;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -266,6 +312,43 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     }
   }
 
+  onClientSigPointerDown(event: PointerEvent) {
+    const canvas = this.clientSigCanvas?.nativeElement;
+    if (!canvas) return;
+    this.clientSigDrawing = true;
+    this.clientSignatureTouched.set(true);
+
+    const ctx = canvas.getContext("2d");
+    const p = this.getClientCanvasPoint(event);
+    if (!ctx || !p) return;
+
+    canvas.setPointerCapture(event.pointerId);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
+
+  onClientSigPointerMove(event: PointerEvent) {
+    const canvas = this.clientSigCanvas?.nativeElement;
+    if (!this.clientSigDrawing || !canvas) return;
+    const ctx = canvas.getContext("2d");
+    const p = this.getClientCanvasPoint(event);
+    if (!ctx || !p) return;
+
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
+
+  onClientSigPointerUp(event: PointerEvent) {
+    const canvas = this.clientSigCanvas?.nativeElement;
+    if (!canvas) return;
+    this.clientSigDrawing = false;
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      // ignore
+    }
+  }
+
   clearProfessionalSignature() {
     const canvas = this.professionalSigCanvas?.nativeElement;
     if (!canvas) return;
@@ -279,8 +362,27 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     this.professionalSignatureTouched.set(false);
   }
 
+  clearClientSignature() {
+    const canvas = this.clientSigCanvas?.nativeElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    this.clientSignatureTouched.set(false);
+  }
+
   private getProfessionalSignatureDataUrl(): string {
     const canvas = this.professionalSigCanvas?.nativeElement;
+    if (!canvas) return "";
+    return canvas.toDataURL("image/png");
+  }
+
+  private getClientSignatureDataUrl(): string {
+    const canvas = this.clientSigCanvas?.nativeElement;
     if (!canvas) return "";
     return canvas.toDataURL("image/png");
   }
@@ -434,6 +536,10 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
       return { ok: false, message: "Assinatura do profissional é obrigatória." };
     }
 
+    if (!this.clientSignatureTouched()) {
+      return { ok: false, message: "Assinatura do cliente é obrigatória." };
+    }
+
     const origin = this.activeOriginKey();
     if (!origin) {
       if (this.isWortenOrigin()) {
@@ -469,6 +575,12 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     const professionalSignatureDataUrl = this.getProfessionalSignatureDataUrl();
     if (!professionalSignatureDataUrl) {
       this.error.set("Assinatura inválida. Tente novamente.");
+      return;
+    }
+
+    const clientSignatureDataUrl = this.getClientSignatureDataUrl();
+    if (!clientSignatureDataUrl) {
+      this.error.set("Assinatura do cliente inválida. Tente novamente.");
       return;
     }
 
@@ -529,9 +641,12 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     this.generating.set(true);
     try {
       const currentUser = this.authService.appUser();
+      const req = this.request();
       const report = await this.storageService.generatePersistAndDownload(this.request(), payload, {
         professionalSignatureDataUrl,
         professionalName: currentUser?.name || "",
+        clientSignatureDataUrl,
+        clientName: req.client_name || "",
       });
       this.generatedReport.set(report);
     } catch (e) {

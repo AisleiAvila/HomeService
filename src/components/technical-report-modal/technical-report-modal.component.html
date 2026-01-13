@@ -248,31 +248,60 @@
     }
 
     <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <div class="flex items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do profissional *</h3>
-        <button
-          type="button"
-          (click)="clearProfessionalSignature()"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-        >
-          Limpar
-        </button>
-      </div>
-
-      <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-        Faça a assinatura manualmente no ecrã do telemóvel (sem certificado).
+      <p class="text-xs text-gray-600 dark:text-gray-300">
+        Faça a(s) assinatura(s) manualmente no ecrã do telemóvel (sem certificado).
       </p>
 
-      <div class="mt-3">
-        <canvas
-          #professionalSigCanvas
-          class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
-          style="touch-action: none;"
-          (pointerdown)="onProfessionalSigPointerDown($event)"
-          (pointermove)="onProfessionalSigPointerMove($event)"
-          (pointerup)="onProfessionalSigPointerUp($event)"
-          (pointercancel)="onProfessionalSigPointerUp($event)"
-        ></canvas>
+      <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do profissional *</h3>
+            <button
+              type="button"
+              (click)="clearProfessionalSignature()"
+              class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Limpar
+            </button>
+          </div>
+
+          <div class="mt-3">
+            <canvas
+              #professionalSigCanvas
+              class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
+              style="touch-action: none;"
+              (pointerdown)="onProfessionalSigPointerDown($event)"
+              (pointermove)="onProfessionalSigPointerMove($event)"
+              (pointerup)="onProfessionalSigPointerUp($event)"
+              (pointercancel)="onProfessionalSigPointerUp($event)"
+            ></canvas>
+          </div>
+        </div>
+
+        <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do cliente *</h3>
+            <button
+              type="button"
+              (click)="clearClientSignature()"
+              class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Limpar
+            </button>
+          </div>
+
+          <div class="mt-3">
+            <canvas
+              #clientSigCanvas
+              class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
+              style="touch-action: none;"
+              (pointerdown)="onClientSigPointerDown($event)"
+              (pointermove)="onClientSigPointerMove($event)"
+              (pointerup)="onClientSigPointerUp($event)"
+              (pointercancel)="onClientSigPointerUp($event)"
+            ></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -299,10 +328,10 @@
       </button>
     </div>
 
-    @if (generatedReport()) {
+    @if (generatedReport() && !clientSignatureTouched()) {
       <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
-          Assinatura do cliente
+          Assinatura do cliente (remoto)
         </h3>
 
         @if (clientLinkError()) {

@@ -54,6 +54,10 @@ export interface TechnicalReportPdfOptions {
   professionalSignatureDataUrl?: string;
   professionalName?: string;
   professionalSignedAt?: Date;
+
+  clientSignatureDataUrl?: string;
+  clientName?: string;
+  clientSignedAt?: Date;
 }
 
 @Injectable({ providedIn: "root" })
@@ -189,6 +193,12 @@ export class TechnicalReportPdfService {
       writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
     }
 
+    this.addClientSignature(doc, {
+      clientSignatureDataUrl: options?.clientSignatureDataUrl,
+      clientName: options?.clientName,
+      clientSignedAt: options?.clientSignedAt ?? issuedAt,
+    });
+
     this.addProfessionalSignature(doc, {
       professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
       professionalName: options?.professionalName,
@@ -211,6 +221,7 @@ export class TechnicalReportPdfService {
     const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
     if (typeof doc.setPage === "function") doc.setPage(pageCount);
 
+    const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
     const signedAt = options.professionalSignedAt ?? new Date();
@@ -224,10 +235,11 @@ export class TechnicalReportPdfService {
 
     const name = (options.professionalName || "").trim() || "—";
 
-    const x = 12;
     const boxW = 80;
     const boxH = 22;
     const boxY = pageHeight - 40;
+
+    const x = pageWidth - 12 - boxW;
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
@@ -243,6 +255,50 @@ export class TechnicalReportPdfService {
     doc.rect(x, boxY, boxW, boxH);
 
     // Add the signature image inside the box.
+    doc.addImage(signatureDataUrl, "PNG", x + 2, boxY + 2, boxW - 4, boxH - 4, undefined, "FAST");
+  }
+
+  private addClientSignature(doc: any, options: TechnicalReportPdfOptions): void {
+    const signatureDataUrl = options.clientSignatureDataUrl?.trim();
+    if (!signatureDataUrl) return;
+
+    if (!signatureDataUrl.startsWith("data:image/png;base64,")) {
+      throw new Error("Assinatura do cliente inválida (formato não suportado). Use PNG.");
+    }
+
+    const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
+    if (typeof doc.setPage === "function") doc.setPage(pageCount);
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const signedAt = options.clientSignedAt ?? new Date();
+    const signedAtLabel = signedAt.toLocaleString("pt-PT", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const name = (options.clientName || "").trim() || "—";
+
+    const x = 12;
+    const boxW = 80;
+    const boxH = 22;
+    const boxY = pageHeight - 40;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.setFont(undefined, "normal");
+    doc.text(`Data: ${signedAtLabel}`, x, boxY - 10);
+    doc.text(`Cliente: ${name}`, x, boxY - 5);
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, "bold");
+    doc.text("Assinatura:", x, boxY - 1);
+
+    doc.setDrawColor(180);
+    doc.rect(x, boxY, boxW, boxH);
     doc.addImage(signatureDataUrl, "PNG", x + 2, boxY + 2, boxW - 4, boxH - 4, undefined, "FAST");
   }
 
