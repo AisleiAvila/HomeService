@@ -237,7 +237,7 @@
         <tr
           class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           [ngClass]="{
-            'bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 dark:border-red-500/60': isRequestOverdue(request)
+            'bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 dark:border-red-500/60': shouldShowOverdueUi(request)
           }"
         >
           <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[32ch] leading-snug">
@@ -294,7 +294,7 @@
                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap">
                   {{ request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
                 </span>
-                @if (isRequestOverdue(request)) {
+                @if (shouldShowOverdueUi(request)) {
                 <span
                   class="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-200"
                 >
@@ -320,7 +320,7 @@
                   {{ request.actual_end_datetime ? (request.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
                 </span>
               </div>
-              @if (isRequestOverdue(request)) {
+              @if (shouldShowOverdueUi(request)) {
               <div class="flex items-start gap-2 text-xs text-red-700 dark:text-red-300">
                 <i class="fas fa-bolt mt-0.5"></i>
                 <span>{{ getOverdueDescription(request) }}</span>
@@ -333,7 +333,7 @@
               <span [class]="statusClass(request.status)">
                 {{ getStatusLabel(request.status) || request.status || "—" }}
               </span>
-              @if (isRequestOverdue(request)) {
+              @if (shouldShowOverdueUi(request)) {
               <span
                 class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 dark:border-red-500/40 dark:bg-red-900/20 dark:text-red-200"
               >
@@ -526,7 +526,7 @@
               >
               }
             </span>
-            @if (isRequestOverdue(request)) {
+            @if (shouldShowOverdueUi(request)) {
             <span
               class="mt-2 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-900/20 dark:text-red-200"
             >
@@ -728,7 +728,7 @@
                     request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm"
                   }}
                 </span>
-                @if (isRequestOverdue(request)) {
+                @if (shouldShowOverdueUi(request)) {
                 <span
                   class="ml-2 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-200"
                 >
@@ -795,7 +795,7 @@
             </div>
           </div>
 
-          @if (isRequestOverdue(request)) {
+          @if (shouldShowOverdueUi(request)) {
           <div class="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-100">
             <div class="flex items-start gap-2">
               <i class="fas fa-triangle-exclamation mt-0.5"></i>

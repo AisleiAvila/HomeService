@@ -483,6 +483,17 @@ export class ServiceListComponent implements OnInit {
     return schedulingStatus === "Delayed";
   }
 
+  /**
+   * Atrasos podem existir por vários motivos (início, pagamento, etc).
+   * Para serviços já concluídos/finalizados, não exibimos aviso de "avaliação atrasada" na UI.
+   */
+  shouldShowOverdueUi(request: ServiceRequest): boolean {
+    if (!this.isRequestOverdue(request)) return false;
+
+    // Evita exibir a mensagem/badge de avaliação atrasada.
+    return request.status !== "Concluído" && request.status !== "Finalizado";
+  }
+
   getOverdueBadgeLabel(request: ServiceRequest): string {
     const schedulingStatus = this.dataService.getSchedulingStatus(request);
 
