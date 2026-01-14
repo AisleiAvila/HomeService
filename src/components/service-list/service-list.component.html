@@ -345,17 +345,29 @@
           </td>
           @if (shouldShowValueColumn()) {
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-right">
-            @if (request.valor_prestador && request.valor_prestador > 0) {
-            <span class="text-green-600 font-medium">
-              € {{ request.valor_prestador | number : "1.2-2" }}
-            </span>
-            } @else if (request.valor && request.valor > 0) {
-            <span class="text-green-600 font-medium">
-              € {{ request.valor | number : "1.2-2" }}
-            </span>
-            } @else {
-            <span class="text-gray-400">—</span>
-            }
+            <div class="flex flex-col items-end">
+              @if (request.valor_prestador && request.valor_prestador > 0) {
+              <span class="text-green-600 font-medium">
+                € {{ request.valor_prestador | number : "1.2-2" }}
+              </span>
+              } @else if (request.valor && request.valor > 0) {
+              <span class="text-green-600 font-medium">
+                € {{ request.valor | number : "1.2-2" }}
+              </span>
+              } @else {
+              <span class="text-gray-400">—</span>
+              }
+
+              @if (currentUser().role === 'professional' && ((request.valor_prestador && request.valor_prestador > 0) || (request.valor && request.valor > 0))) {
+              <span class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 font-normal">
+                @if (request.payment_status === 'Paid') {
+                  {{ "paid" | i18n }}
+                } @else {
+                  {{ "toReceive" | i18n }}
+                }
+              </span>
+              }
+            </div>
           </td>
           }
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -564,6 +576,16 @@
                 </span>
                 } @else {
                 <span class="text-gray-500 ml-1">—</span>
+                }
+
+                @if (currentUser().role === 'professional' && ((request.valor_prestador && request.valor_prestador > 0) || (request.valor && request.valor > 0))) {
+                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  @if (request.payment_status === 'Paid') {
+                    {{ "paid" | i18n }}
+                  } @else {
+                    {{ "toReceive" | i18n }}
+                  }
+                </div>
                 }
               </div>
             </div>

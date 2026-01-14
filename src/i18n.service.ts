@@ -195,6 +195,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     choosePaymentMethod: "Choose Payment Method",
     confirmPayment: "Confirm Payment",
     paid: "Paid",
+    toReceive: "To Receive",
     requested: "Requested",
     scheduled: "Scheduled",
     emailVerificationRequired:
@@ -1239,6 +1240,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     choosePaymentMethod: "Escolher Método de Pagamento",
     confirmPayment: "Confirmar Pagamento",
     paid: "Pago",
+    toReceive: "A Receber",
     requested: "Solicitado",
     scheduled: "Agendado",
     emailVerificationRequired:
