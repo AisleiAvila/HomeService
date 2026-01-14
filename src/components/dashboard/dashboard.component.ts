@@ -869,9 +869,15 @@ export class DashboardComponent implements OnInit {
     }
 
     if (currentUser.role === "professional") {
-      const earnings = requests
+      const paidTotal = requests
         .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
         .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
+
+      const toReceiveTotal = requests
+        .filter((r) => r.payment_status !== "Paid" && r.valor_prestador)
+        .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
+
+      const totalEarnings = paidTotal + toReceiveTotal;
 
       const baseStats: Array<{ label: string; value: string | number; icon: string }> = [
         {
@@ -892,7 +898,10 @@ export class DashboardComponent implements OnInit {
       if (!currentUser.is_natan_employee) {
         baseStats.push({
           label: this.i18n.translate("totalEarnings"),
-          value: `€ ${earnings.toFixed(2)}`,
+          value:
+            `: € ${totalEarnings.toFixed(2)}\n` +
+            `  ${this.i18n.translate("totalPaid")}: € ${paidTotal.toFixed(2)}\n` +
+            `  ${this.i18n.translate("totalToReceive")}: € ${toReceiveTotal.toFixed(2)}`,
           icon: "fas fa-euro-sign text-emerald-500",
         });
       }
@@ -1150,13 +1159,30 @@ export class DashboardComponent implements OnInit {
     ];
 
     if (!currentUser.is_natan_employee) {
-      const earnings = requests
+      const paidTotal = requests
         .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
         .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
-      kpis.push({
-        label: this.i18n.translate("totalEarnings"),
-        value: `€ ${earnings.toFixed(2)}`,
-      });
+
+      const toReceiveTotal = requests
+        .filter((r) => r.payment_status !== "Paid" && r.valor_prestador)
+        .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
+
+      const totalEarnings = paidTotal + toReceiveTotal;
+
+      kpis.push(
+        {
+          label: this.i18n.translate("totalEarnings"),
+          value: `€ ${totalEarnings.toFixed(2)}`,
+        },
+        {
+          label: this.i18n.translate("totalPaid"),
+          value: `€ ${paidTotal.toFixed(2)}`,
+        },
+        {
+          label: this.i18n.translate("totalToReceive"),
+          value: `€ ${toReceiveTotal.toFixed(2)}`,
+        }
+      );
     }
 
     return kpis;
