@@ -881,6 +881,11 @@ export class DashboardComponent implements OnInit {
 
       const baseStats: Array<{ label: string; value: string | number; icon: string }> = [
         {
+          label: this.i18n.translate("requests"),
+          value: requests.length,
+          icon: "fas fa-list text-brand-primary-500",
+        },
+        {
           label: this.i18n.translate("activeJobs"),
           value: requests.filter((r) => isActive(r.status)).length,
           icon: "fas fa-briefcase text-brand-primary-500",
@@ -1154,6 +1159,7 @@ export class DashboardComponent implements OnInit {
     ).length;
 
     const kpis: Array<{ label: string; value: string }> = [
+      { label: this.i18n.translate("requests"), value: String(requests.length) },
       { label: this.i18n.translate("activeJobs"), value: String(activeJobs) },
       { label: this.i18n.translate("completedJobs"), value: String(completedJobs) },
     ];
