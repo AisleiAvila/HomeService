@@ -13,7 +13,9 @@ import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { StatusMigrationUtil } from "@/src/utils/status-migration.util";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { TzDatePipe } from "../../pipes/tz-date.pipe";
 import { SupabaseService } from "../../services/supabase.service";
+import { getServiceTimeZoneForRequest } from "../../utils/timezone-datetime";
 
 interface WorkflowPhase {
   id: number;
@@ -29,7 +31,7 @@ interface WorkflowPhase {
 @Component({
   selector: "app-workflow-timeline",
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [CommonModule, I18nPipe, TzDatePipe],
   templateUrl: "./workflow-timeline.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,6 +53,8 @@ export class WorkflowTimelineComponent {
   }>>([]);
 
   // Computed signals
+  readonly serviceTz = computed(() => getServiceTimeZoneForRequest(this.serviceRequest() as any));
+
   phases = computed(() => {
     const request = this.serviceRequest();
     // Migrar status deprecated automaticamente

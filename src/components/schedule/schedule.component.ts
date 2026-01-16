@@ -39,6 +39,8 @@ import ptBr from "@fullcalendar/core/locales/pt-br";
 import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import { I18nService } from "@/src/i18n.service";
+import { formatInTimeZone } from "date-fns-tz";
+import { getServiceTimeZoneForRequest } from "@/src/utils/timezone-datetime";
 
 @Component({
   selector: "app-schedule",
@@ -137,7 +139,13 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
       const professionalName = this.getProfessionalName(
         request.professional_id
       );
-      const startTime = this.formatTime(request.scheduled_start_datetime);
+      const serviceTz = getServiceTimeZoneForRequest(request as any);
+      const startTime = this.formatTime(request.scheduled_start_datetime, serviceTz);
+
+      const lisbonTime =
+        serviceTz === "Atlantic/Azores"
+          ? this.formatTime(request.scheduled_start_datetime, "Europe/Lisbon")
+          : "";
 
       const tooltipContent = `
         <div class="p-2 text-left font-sans text-sm">
@@ -147,6 +155,11 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
           <div class="mb-1"><i class="fas fa-clock w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
             "time"
           )}:</strong> <span class="font-sans">${startTime}</span></div>
+          ${
+            lisbonTime
+              ? `<div class="ml-5 text-xs text-gray-500">${lisbonTime} (Lisboa)</div>`
+              : ""
+          }
           <div class="mb-1"><i class="fas fa-info-circle w-4 mr-1 text-gray-400"></i><strong class="font-semibold">${this.i18n.translate(
             "status"
           )}:</strong> <span class="font-sans">${this.getStatusTranslation(
@@ -354,12 +367,17 @@ export class ScheduleComponent implements OnDestroy, AfterViewInit {
     );
   }
 
-  private formatTime(isoDate: string | null | undefined): string {
+  private formatTime(
+    isoDate: string | null | undefined,
+    timeZone: string
+  ): string {
     if (!isoDate) return "";
     const date = new Date(isoDate);
-    return date.toLocaleTimeString(
-      this.i18n.language() === "pt" ? "pt-PT" : "en-US",
-      { hour: "2-digit", minute: "2-digit" }
+    if (Number.isNaN(date.getTime())) return "";
+    return formatInTimeZone(
+      date,
+      timeZone,
+      "HH:mm"
     );
   }
 

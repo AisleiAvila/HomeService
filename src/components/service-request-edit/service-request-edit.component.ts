@@ -6,6 +6,12 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 import { DataService } from '../../services/data.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ServiceRequest } from '../../models/maintenance.models';
+import { PortugalAddressValidationService } from '../../services/portugal-address-validation.service';
+import {
+  localDateTimeToUtcIso,
+  normalizeServiceTimeZone,
+  utcIsoToLocalParts,
+} from '../../utils/timezone-datetime';
 
 @Component({
   selector: 'app-service-request-edit',
@@ -25,6 +31,9 @@ export class ServiceRequestEditComponent implements OnInit {
   private readonly dataService = inject(DataService);
   private readonly supabaseService = inject(SupabaseService);
   private readonly authService = inject(DataService).authService;
+  private readonly addressValidation = inject(PortugalAddressValidationService);
+
+  private readonly serviceTimeZone = signal<string>('Europe/Lisbon');
 
   request: ServiceRequest | null = null;
   loading = true;
@@ -36,23 +45,28 @@ export class ServiceRequestEditComponent implements OnInit {
   // Getter/Setter para formatar requested_datetime para datetime-local input
   get requestedDateTimeFormatted(): string {
     if (!this.request?.requested_datetime) return '';
-    // Converter ISO string para formato datetime-local (YYYY-MM-DDTHH:mm)
-    const date = new Date(this.request.requested_datetime);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    const tz = normalizeServiceTimeZone(this.serviceTimeZone());
+    return utcIsoToLocalParts(this.request.requested_datetime, tz).dateTimeLocal;
   }
 
   set requestedDateTimeFormatted(value: string) {
     if (!this.request) return;
-    // Converter de datetime-local para ISO string
-    const isoString = value ? new Date(value).toISOString() : undefined;
-    this.request.requested_datetime = isoString;
+
+    if (!value) {
+      this.request.requested_datetime = undefined;
+      if (!this.request.actual_start_datetime) {
+        this.request.scheduled_start_datetime = undefined;
+      }
+      return;
+    }
+
+    // O valor digitado deve ser interpretado no fuso do endereço (zip_code).
+    const tz = normalizeServiceTimeZone(this.serviceTimeZone());
+    const isoUtc = localDateTimeToUtcIso(value, tz);
+
+    this.request.requested_datetime = isoUtc;
     if (!this.request.actual_start_datetime) {
-      this.request.scheduled_start_datetime = isoString;
+      this.request.scheduled_start_datetime = isoUtc;
     }
   }
 
@@ -96,6 +110,10 @@ export class ServiceRequestEditComponent implements OnInit {
       if (this.request) {
         this.locality.set(this.request.city || '');
         this.districtName.set(this.request.state || '');
+
+        // Inicializar timezone do serviço (preferir valor persistido; fallback via lookup)
+        this.serviceTimeZone.set(normalizeServiceTimeZone((this.request as any).service_time_zone));
+        void this.refreshTimeZoneFromZip(this.request.zip_code);
       }
       
       this.loading = false;
@@ -116,6 +134,23 @@ export class ServiceRequestEditComponent implements OnInit {
         this.cdr.markForCheck();
       }
     }, 5000);
+  }
+
+  private async refreshTimeZoneFromZip(zipCode: string) {
+    try {
+      const tz = normalizeServiceTimeZone(
+        await this.addressValidation.getTimeZoneForZipCode(zipCode)
+      );
+      if (tz !== this.serviceTimeZone()) {
+        this.serviceTimeZone.set(tz);
+        if (this.request) {
+          this.request.service_time_zone = tz;
+        }
+        this.cdr.markForCheck();
+      }
+    } catch (e) {
+      console.warn('[ServiceRequestEdit] Falha ao derivar timezone via zip_code:', e);
+    }
   }
 
   onCategoryChange(event: Event): void {
@@ -153,6 +188,7 @@ export class ServiceRequestEditComponent implements OnInit {
 
     if (isValidZip) {
       await this.fetchPostalCodeInfo(formatted);
+      await this.refreshTimeZoneFromZip(formatted);
     } else {
       this.clearAddressFields();
     }
@@ -229,6 +265,8 @@ export class ServiceRequestEditComponent implements OnInit {
     if (!this.request) return;
     this.loading = true;
     try {
+      const tz = normalizeServiceTimeZone(this.serviceTimeZone());
+
       const updates = {
         street: this.request.street,
         street_number: this.request.street_number,
@@ -237,6 +275,7 @@ export class ServiceRequestEditComponent implements OnInit {
         city: this.request.city,
         state: this.request.state,
         zip_code: this.request.zip_code,
+        service_time_zone: tz,
         latitude: this.request.latitude,
         longitude: this.request.longitude,
         description: this.request.description,

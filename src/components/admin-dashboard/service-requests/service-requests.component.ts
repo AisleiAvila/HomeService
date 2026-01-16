@@ -13,11 +13,16 @@ import { NotificationService } from "../../../services/notification.service";
 import { PortugalAddressValidationService } from "../../../services/portugal-address-validation.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
+import {
+    getServiceTimeZoneForRequest,
+    ServiceTimeZone,
+} from "../../../utils/timezone-datetime";
+import { TzDatePipe } from "../../../pipes/tz-date.pipe";
 
 @Component({
     selector: "app-service-requests",
     standalone: true,
-    imports: [CommonModule, FormsModule, I18nPipe, PaymentModalComponent],
+    imports: [CommonModule, FormsModule, I18nPipe, PaymentModalComponent, TzDatePipe],
     templateUrl: "./service-requests.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -121,6 +126,30 @@ export class ServiceRequestsComponent implements OnInit {
             "payment pending",
         ].map((status) => status.toLowerCase())
     );
+
+    private getZipCodeForRequest(req: ServiceRequest): string {
+        const anyReq = req as any;
+        return (
+            req.zip_code ||
+            anyReq.postal_code ||
+            anyReq.postalCode ||
+            anyReq.address?.zip_code ||
+            anyReq.address?.postal_code ||
+            ""
+        );
+    }
+
+    private inferTimeZoneFromZip(zipCode: string | null | undefined): ServiceTimeZone {
+        const digits = (zipCode ?? "").replaceAll(/\D/g, "");
+        const prefix2 = digits.slice(0, 2);
+
+        // Azores are typically 95xx-99xx. Madeira is 90xx and uses Europe/Lisbon.
+        return prefix2 >= "95" && prefix2 <= "99" ? "Atlantic/Azores" : "Europe/Lisbon";
+    }
+
+    public getServiceTimeZone(req: ServiceRequest): ServiceTimeZone {
+        return getServiceTimeZoneForRequest(req as any);
+    }
     private readonly deletableStatuses = new Set(
         [
             "Solicitado",

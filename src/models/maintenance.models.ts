@@ -203,6 +203,12 @@ export interface ServiceRequest {
   city: string;
   state: string;
   zip_code: string;
+
+  /**
+   * IANA timezone of the service location, derived from zip_code.
+   * Examples: "Europe/Lisbon", "Atlantic/Azores".
+   */
+  service_time_zone?: string | null;
   
   // GEOLOCALIZAÇÃO
   latitude?: number | null;

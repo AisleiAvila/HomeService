@@ -659,26 +659,45 @@
                                     {{ "scheduled" | i18n }}:
                                 </span>
                                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
-                                    {{ req.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
+                                    {{ req.scheduled_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yyyy HH:mm" }}
                                 </span>
                             </div>
+
+                            @if (getServiceTimeZone(req) === 'Atlantic/Azores') {
+                                <div class="ml-4 text-[10px] text-gray-400 dark:text-gray-400">
+                                    {{ req.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                    <span class="ml-1">(Lisboa)</span>
+                                </div>
+                            }
                             }
                             <div class="flex items-center gap-1">
                                 <span class="font-semibold text-gray-600 dark:text-gray-200 text-[10px]">
                                     {{ "executionStartLabel" | i18n }}:
                                 </span>
                                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
-                                    {{ req.actual_start_datetime ? (req.actual_start_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                                    {{ req.actual_start_datetime ? (req.actual_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yyyy HH:mm") : "—" }}
                                 </span>
                             </div>
+                            @if (req.actual_start_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
+                                <div class="ml-4 text-[10px] text-gray-400 dark:text-gray-400">
+                                    {{ req.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                    <span class="ml-1">(Lisboa)</span>
+                                </div>
+                            }
                             <div class="flex items-center gap-1">
                                 <span class="font-semibold text-gray-600 dark:text-gray-200 text-[10px]">
                                     {{ "executionEndLabel" | i18n }}:
                                 </span>
                                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-[10px]">
-                                    {{ req.actual_end_datetime ? (req.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                                    {{ req.actual_end_datetime ? (req.actual_end_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yyyy HH:mm") : "—" }}
                                 </span>
                             </div>
+                            @if (req.actual_end_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
+                                <div class="ml-4 text-[10px] text-gray-400 dark:text-gray-400">
+                                    {{ req.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                    <span class="ml-1">(Lisboa)</span>
+                                </div>
+                            }
                         </div>
                     </td>
                     <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-normal">
@@ -875,21 +894,39 @@
                 <div class="flex justify-between text-[10px]">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "scheduled" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.scheduled_start_datetime ? (req.scheduled_start_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                        {{ req.scheduled_start_datetime ? (req.scheduled_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
                     </span>
                 </div>
+                @if (req.scheduled_start_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
+                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
+                        {{ req.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
+                        <span class="ml-1">(Lisboa)</span>
+                    </div>
+                }
                 <div class="flex justify-between text-[10px]">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionStartLabel" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.actual_start_datetime ? (req.actual_start_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                        {{ req.actual_start_datetime ? (req.actual_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
                     </span>
                 </div>
+                @if (req.actual_start_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
+                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
+                        {{ req.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
+                        <span class="ml-1">(Lisboa)</span>
+                    </div>
+                }
                 <div class="flex justify-between text-[10px]">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionEndLabel" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.actual_end_datetime ? (req.actual_end_datetime | date : "dd/MM/yy HH:mm") : "—" }}
+                        {{ req.actual_end_datetime ? (req.actual_end_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
                     </span>
                 </div>
+                @if (req.actual_end_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
+                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
+                        {{ req.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
+                        <span class="ml-1">(Lisboa)</span>
+                    </div>
+                }
             </div>
 
             <!-- Actions -->

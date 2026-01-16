@@ -21,7 +21,14 @@ import { NotificationService } from "./notification.service";
 import { ServiceImageService } from "./service-image.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
+import { PortugalAddressValidationService } from "./portugal-address-validation.service";
 import { WorkflowServiceSimplified } from "./workflow-simplified.service";
+
+import {
+  isOffsetDateTimeString,
+  localDateTimeToUtcIso,
+  normalizeServiceTimeZone,
+} from "../utils/timezone-datetime";
 
 import { environment } from "../environments/environment";
 
@@ -196,6 +203,7 @@ export class DataService {
   public readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
   private readonly addressDatabase = inject(PortugalAddressDatabaseService);
+  private readonly addressValidation = inject(PortugalAddressValidationService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly serviceImageService = inject(ServiceImageService);
 
@@ -591,6 +599,15 @@ export class DataService {
 
     // Usar requested_datetime (agora obrigat├│rio)
     const requestedDateTime = payload.requested_datetime;
+    const zipCode = payload.address.zip_code;
+
+    const serviceTimeZone = normalizeServiceTimeZone(
+      await this.addressValidation.getTimeZoneForZipCode(zipCode)
+    );
+
+    const requestedDateTimeUtc = isOffsetDateTimeString(requestedDateTime)
+      ? requestedDateTime
+      : localDateTimeToUtcIso(requestedDateTime, serviceTimeZone);
 
     const newRequestData: any = {
       client_id: currentUser.id,
@@ -616,7 +633,8 @@ export class DataService {
       zip_code: payload.address.zip_code,
       latitude: payload.latitude,
       longitude: payload.longitude,
-      requested_datetime: requestedDateTime, // Campo principal
+      service_time_zone: serviceTimeZone,
+      requested_datetime: requestedDateTimeUtc, // Campo principal (UTC)
       priority: payload.priority || null,
       valor: payload.valor,
       valor_prestador: payload.valor_prestador,
@@ -670,6 +688,10 @@ export class DataService {
       throw new Error("Only admins can create admin service requests");
     }
 
+    const serviceTimeZone = normalizeServiceTimeZone(
+      await this.addressValidation.getTimeZoneForZipCode(payload.postal_code)
+    );
+
     // Mapeamento completo do payload para o objeto do banco de dados
     const newRequestData = {
       title: payload.title,
@@ -689,6 +711,7 @@ export class DataService {
       // Campos de endereço
       street: payload.street,
       postal_code: payload.postal_code,
+      service_time_zone: serviceTimeZone,
       locality: payload.locality,
       district: payload.district,
       location_details: payload.location_details,
@@ -1246,18 +1269,39 @@ export class DataService {
   async scheduleServiceStart(
     requestId: number,
     professionalId: number,
-    scheduledStartDateTime: Date,
+    scheduledLocalDateTime: string,
+    zipCode: string,
     estimatedDurationMinutes: number
   ) {
+    const serviceTimeZone = normalizeServiceTimeZone(
+      await this.addressValidation.getTimeZoneForZipCode(zipCode)
+    );
+
+    const scheduledStartUtcIso = isOffsetDateTimeString(scheduledLocalDateTime)
+      ? scheduledLocalDateTime
+      : localDateTimeToUtcIso(scheduledLocalDateTime, serviceTimeZone);
+
     const updates: Partial<ServiceRequest> = {
       professional_id: professionalId,
-      scheduled_start_datetime: scheduledStartDateTime.toISOString(),
+      service_time_zone: serviceTimeZone,
+      scheduled_start_datetime: scheduledStartUtcIso,
       estimated_duration_minutes: estimatedDurationMinutes,
       status: "Data Definida" as const,
     };
     await this.updateServiceRequest(requestId, updates);
+
+    const scheduledDate = new Date(scheduledStartUtcIso);
+    const formattedService = scheduledDate.toLocaleString("pt-PT", {
+      timeZone: serviceTimeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     this.notificationService.addNotification(
-      `Servi├ºo #${requestId} foi agendado para ${scheduledStartDateTime.toLocaleDateString()} ├ás ${scheduledStartDateTime.toLocaleTimeString()}.`
+      `Serviço #${requestId} foi agendado para ${formattedService}.`
     );
   }
 

@@ -1047,6 +1047,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     overdueRequestsAdminDescription: "These requests require your immediate attention to ensure timely processing and client satisfaction.",
     priced: "Priced",
     quoted: "Quoted",
+    enterStreetManually: "Enter street manually",
+
 
   },
   pt: {
@@ -2100,6 +2102,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     overdueRequestsAdminDescription: "Estas solicitações requerem sua atenção imediata para garantir o processamento em tempo hábil e a satisfação do cliente.",
     priced: "Orçado",
     quoted: "Atribuído",
+    enterStreetManually: "Digite a rua manualmente",
 
   },
 };

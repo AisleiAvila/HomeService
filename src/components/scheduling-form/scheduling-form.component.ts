@@ -14,6 +14,12 @@ import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
 import { I18nService } from "../../i18n.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { PortugalAddressValidationService } from "../../services/portugal-address-validation.service";
+import {
+  normalizeServiceTimeZone,
+  utcIsoToLocalParts,
+} from "../../utils/timezone-datetime";
+import { formatInTimeZone } from "date-fns-tz";
 
 @Component({
   selector: "app-scheduling-form",
@@ -35,6 +41,9 @@ export class SchedulingFormComponent {
   private readonly dataService = inject(DataService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  private readonly addressValidation = inject(PortugalAddressValidationService);
+
+  serviceTimeZone = signal<string>("Europe/Lisbon");
 
   // Estado do formulário
   selectedProfessionalId = signal<number | null>(null);
@@ -72,19 +81,15 @@ export class SchedulingFormComponent {
     // Pré-popular campos se já existirem dados
     const req = this.request();
 
+    // Primeiro usar valor já salvo (se existir), e em seguida confirmar via lookup do zip_code.
+    this.serviceTimeZone.set(normalizeServiceTimeZone((req as any).service_time_zone));
+    void this.refreshTimeZoneFromZip(req.zip_code);
+
     if (req.professional_id) {
       this.selectedProfessionalId.set(req.professional_id);
     }
 
-    if (req.scheduled_start_datetime || req.scheduled_date) {
-      const scheduledDateTime = new Date(
-        req.scheduled_start_datetime || req.scheduled_date!
-      );
-      this.scheduledDate.set(scheduledDateTime.toISOString().split("T")[0]);
-      this.scheduledTime.set(
-        scheduledDateTime.toTimeString().split(":").slice(0, 2).join(":")
-      );
-    }
+    this.populateScheduledFieldsFromRequest(req);
 
     if (req.estimated_duration_minutes) {
       const hours = Math.floor(req.estimated_duration_minutes / 60);
@@ -94,10 +99,45 @@ export class SchedulingFormComponent {
     }
   }
 
+  private populateScheduledFieldsFromRequest(req: ServiceRequest) {
+    if (!req.scheduled_start_datetime && !req.scheduled_date) return;
+
+    const tz = normalizeServiceTimeZone(this.serviceTimeZone());
+    const source = req.scheduled_start_datetime || req.scheduled_date;
+    const parts = utcIsoToLocalParts(source, tz);
+
+    if (parts.date && parts.time) {
+      this.scheduledDate.set(parts.date);
+      this.scheduledTime.set(parts.time);
+      return;
+    }
+
+    // Fallback (se valor não for parseável): mantém o comportamento antigo.
+    const scheduledDateTime = new Date(source);
+    if (!Number.isNaN(scheduledDateTime.getTime())) {
+      this.scheduledDate.set(scheduledDateTime.toISOString().split("T")[0]);
+      this.scheduledTime.set(
+        scheduledDateTime.toTimeString().split(":").slice(0, 2).join(":")
+      );
+    }
+  }
+
+  private async refreshTimeZoneFromZip(zipCode: string) {
+    const tz = normalizeServiceTimeZone(
+      await this.addressValidation.getTimeZoneForZipCode(zipCode)
+    );
+
+    if (tz !== this.serviceTimeZone()) {
+      this.serviceTimeZone.set(tz);
+      this.populateScheduledFieldsFromRequest(this.request());
+    }
+  }
+
   getMinDateTime(): string {
     const now = new Date();
     now.setHours(now.getHours() + 1); // Mínimo 1 hora no futuro
-    return now.toISOString().slice(0, 16);
+    const tz = normalizeServiceTimeZone(this.serviceTimeZone());
+    return formatInTimeZone(now, tz, "yyyy-MM-dd'T'HH:mm");
   }
 
   async scheduleService() {
@@ -106,14 +146,13 @@ export class SchedulingFormComponent {
     }
 
     try {
-      const scheduledDateTime = new Date(
-        `${this.scheduledDate()}T${this.scheduledTime()}`
-      );
+      const scheduledLocalDateTime = `${this.scheduledDate()}T${this.scheduledTime()}`;
 
       await this.dataService.scheduleServiceStart(
         this.request().id,
         this.selectedProfessionalId()!,
-        scheduledDateTime,
+        scheduledLocalDateTime,
+        this.request().zip_code,
         this.totalEstimatedMinutes()
       );
 

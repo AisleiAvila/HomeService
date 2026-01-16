@@ -74,8 +74,15 @@
       <div>
         <span class="text-gray-500 dark:text-gray-400">{{ "requested_at" | i18n }}:</span>
         <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ serviceRequest().requested_datetime | date : "dd/MM/yyyy HH:mm" }}
+          {{ serviceRequest().requested_datetime | tzDate : serviceTz() : "dd/MM/yyyy HH:mm" }}
         </span>
+
+        @if (serviceTz() === 'Atlantic/Azores') {
+          <div class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ serviceRequest().requested_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+            <span class="ml-1">(Lisboa)</span>
+          </div>
+        }
       </div>
       } @if (serviceRequest().scheduled_start_datetime) {
       <div>
@@ -83,25 +90,47 @@
         <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
           {{
             serviceRequest().scheduled_start_datetime
-              | date : "dd/MM/yyyy HH:mm"
+              | tzDate : serviceTz() : "dd/MM/yyyy HH:mm"
           }}
         </span>
+
+        @if (serviceTz() === 'Atlantic/Azores') {
+          <div class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+            {{
+              serviceRequest().scheduled_start_datetime
+                | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm"
+            }}
+            <span class="ml-1">(Lisboa)</span>
+          </div>
+        }
       </div>
       } @if (serviceRequest().actual_start_datetime) {
       <div>
         <span class="text-gray-500 dark:text-gray-400">{{ "started_at" | i18n }}:</span>
         <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
-          {{
-            serviceRequest().actual_start_datetime | date : "dd/MM/yyyy HH:mm"
-          }}
+          {{ serviceRequest().actual_start_datetime | tzDate : serviceTz() : "dd/MM/yyyy HH:mm" }}
         </span>
+
+        @if (serviceTz() === 'Atlantic/Azores') {
+          <div class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ serviceRequest().actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+            <span class="ml-1">(Lisboa)</span>
+          </div>
+        }
       </div>
       } @if (serviceRequest().actual_end_datetime) {
       <div>
         <span class="text-gray-500 dark:text-gray-400">{{ "completed_at" | i18n }}:</span>
         <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ serviceRequest().actual_end_datetime | date : "dd/MM/yyyy HH:mm" }}
+          {{ serviceRequest().actual_end_datetime | tzDate : serviceTz() : "dd/MM/yyyy HH:mm" }}
         </span>
+
+        @if (serviceTz() === 'Atlantic/Azores') {
+          <div class="ml-2 text-xs text-gray-500 dark:text-gray-400">
+            {{ serviceRequest().actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+            <span class="ml-1">(Lisboa)</span>
+          </div>
+        }
       </div>
       }
     </div>

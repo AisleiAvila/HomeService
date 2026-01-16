@@ -12,6 +12,39 @@ import { PortugalAddressDatabaseService } from "./portugal-address-database.serv
 export class PortugalAddressValidationService {
   private readonly databaseService = inject(PortugalAddressDatabaseService);
 
+  /**
+   * Fuso horário (IANA) do serviço com base no código postal.
+   * Regra de negócio: o horário digitado deve ser interpretado no fuso do endereço (zip_code).
+   *
+   * Implementação via lookup: usa getPostalCodeInfo() (base de dados) e identifica Açores pelo distrito/região.
+   */
+  async getTimeZoneForZipCode(postalCode: string): Promise<"Europe/Lisbon" | "Atlantic/Azores"> {
+    const digits = (postalCode ?? "").replaceAll(/\D/g, "");
+    const prefix2 = digits.slice(0, 2);
+
+    // Fallback by postal code range: Azores are typically 95xx-99xx.
+    // (Madeira is 90xx and uses Europe/Lisbon timezone.)
+    if (prefix2 >= "95" && prefix2 <= "99") {
+      return "Atlantic/Azores";
+    }
+
+    const info = await this.getPostalCodeInfo(postalCode);
+    const district = (info?.district ?? "").trim();
+    const normalized = district.toLowerCase();
+
+    // Distrito/região pode vir como "Região Autónoma dos Açores".
+    // Também tolera variações sem acento.
+    if (
+      normalized.includes("açores") ||
+      normalized.includes("acores") ||
+      normalized.includes("azores")
+    ) {
+      return "Atlantic/Azores";
+    }
+
+    return "Europe/Lisbon";
+  }
+
   constructor() {}
 
   /**
