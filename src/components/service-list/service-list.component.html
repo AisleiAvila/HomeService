@@ -24,7 +24,7 @@
             <span>#{{ request.id }} · {{ request.title }}</span>
             @if (request.scheduled_start_datetime) {
             <span class="text-[11px] text-red-500/80 dark:text-red-100/90">
-              {{ request.scheduled_start_datetime | date : "dd/MM HH:mm" }}
+              {{ request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM HH:mm" }}
             </span>
             }
           </span>
@@ -292,7 +292,7 @@
                   {{ "scheduled" | i18n }}:
                 </span>
                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap">
-                  {{ request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm" }}
+                  {{ request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
                 </span>
                 @if (shouldShowOverdueUi(request)) {
                 <span
@@ -309,7 +309,7 @@
                   {{ "executionStartLabel" | i18n }}:
                 </span>
                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap">
-                  {{ request.actual_start_datetime ? (request.actual_start_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                  {{ request.actual_start_datetime ? (request.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm") : "—" }}
                 </span>
               </div>
               <div class="flex items-center gap-2">
@@ -317,7 +317,7 @@
                   {{ "executionEndLabel" | i18n }}:
                 </span>
                 <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap">
-                  {{ request.actual_end_datetime ? (request.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
+                  {{ request.actual_end_datetime ? (request.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm") : "—" }}
                 </span>
               </div>
               @if (shouldShowOverdueUi(request)) {
@@ -330,17 +330,13 @@
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">
             <div class="flex flex-col gap-2">
-              <span [class]="statusClass(request.status)">
+              <span
+                [class]="statusClass(request.status)"
+                [style.backgroundColor]="getStatusColor(request.status)"
+                [style.color]="getStatusTextColor(request.status)"
+              >
                 {{ getStatusLabel(request.status) || request.status || "—" }}
               </span>
-              @if (shouldShowOverdueUi(request)) {
-              <span
-                class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 dark:border-red-500/40 dark:bg-red-900/20 dark:text-red-200"
-              >
-                <i class="fas fa-stopwatch"></i>
-                {{ getOverdueBadgeLabel(request) }}
-              </span>
-              }
             </div>
           </td>
           @if (shouldShowValueColumn()) {
@@ -529,6 +525,8 @@
           <div class="flex-shrink-0 self-end sm:self-auto">
             <span
               [class]="statusClass(request.status)"
+              [style.backgroundColor]="getStatusColor(request.status)"
+              [style.color]="getStatusTextColor(request.status)"
               class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap"
             >
               {{ getStatusLabel(request.status) }}
@@ -538,14 +536,6 @@
               >
               }
             </span>
-            @if (shouldShowOverdueUi(request)) {
-            <span
-              class="mt-2 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-900/20 dark:text-red-200"
-            >
-              <i class="fas fa-stopwatch"></i>
-              {{ getOverdueBadgeLabel(request) }}
-            </span>
-            }
           </div>
         </div>
           @if (shouldShowValueColumn()) {
@@ -565,21 +555,25 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700">{{ "value" | i18n }}:</span>
-                @if (request.valor_prestador && request.valor_prestador > 0) {
-                <span class="text-emerald-600 font-semibold ml-1">
-                  € {{ request.valor_prestador | number : "1.2-2" }}
-                </span>
-                } @else if (request.valor && request.valor > 0) {
-                <span class="text-emerald-600 font-semibold ml-1">
-                  € {{ request.valor | number : "1.2-2" }}
-                </span>
-                } @else {
-                <span class="text-gray-500 ml-1">—</span>
-                }
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "value" | i18n }}:</span>
+                  <span class="ml-auto text-right">
+                    @if (request.valor_prestador && request.valor_prestador > 0) {
+                    <span class="text-emerald-600 font-semibold">
+                      € {{ request.valor_prestador | number : "1.2-2" }}
+                    </span>
+                    } @else if (request.valor && request.valor > 0) {
+                    <span class="text-emerald-600 font-semibold">
+                      € {{ request.valor | number : "1.2-2" }}
+                    </span>
+                    } @else {
+                    <span class="text-gray-500">—</span>
+                    }
+                  </span>
+                </div>
 
                 @if (currentUser().role === 'professional' && ((request.valor_prestador && request.valor_prestador > 0) || (request.valor && request.valor > 0))) {
-                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                <div class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 text-right">
                   @if (request.payment_status === 'Paid') {
                     {{ "paid" | i18n }}
                   } @else {
@@ -613,12 +607,12 @@
                 />
               </svg>
               <div class="text-sm text-gray-700 min-w-0 flex-1">
-                <div class="font-medium break-words">
+                <div class="flex items-start justify-between gap-2">
                   <span class="font-semibold">{{ 'origin' | i18n }}:</span>
-                  <span class="ml-1">{{ getOriginLabel(request) }}</span>
+                  <span class="ml-auto text-right break-words">{{ getOriginLabel(request) }}</span>
                 </div>
                 @if (request.os) {
-                <div class="text-[10px] text-gray-500 mt-1 break-words">
+                <div class="text-[10px] text-gray-500 mt-1 break-words text-right">
                   {{ 'os' | i18n }}: {{ request.os }}
                 </div>
                 }
@@ -649,9 +643,9 @@
                 />
               </svg>
               <div class="text-sm text-gray-700 min-w-0 flex-1">
-                <div class="font-medium break-words">
+                <div class="flex items-start justify-between gap-2">
                   <span class="font-semibold">{{ 'locality' | i18n }}:</span>
-                  <span class="ml-1">{{ getAddressParts(request).locality || '—' }}</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).locality || '—' }}</span>
                 </div>
               </div>
             </div>
@@ -674,12 +668,12 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700"
-                  >{{ "client" | i18n }}:</span
-                >
-                <span class="text-gray-600 ml-1 break-words">
-                  {{ request.client_name || "—" }}
-                </span>
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "client" | i18n }}:</span>
+                  <span class="ml-auto text-right text-gray-600 break-words">
+                    {{ request.client_name || "—" }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -701,25 +695,27 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700">{{ "phone" | i18n }}:</span>
-                <span class="text-gray-600 ml-1 break-words">
-                  @if (request.client_phone) {
-                    @if (toTelHref(request.client_phone)) {
-                      <a
-                        class="text-brand-primary-600 hover:text-brand-primary-700 hover:underline"
-                        [href]="'tel:' + toTelHref(request.client_phone)"
-                        (click)="$event.stopPropagation()"
-                        [attr.aria-label]="('phone' | i18n) + ': ' + request.client_phone"
-                      >
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "phone" | i18n }}:</span>
+                  <span class="ml-auto text-right text-gray-600 break-words">
+                    @if (request.client_phone) {
+                      @if (toTelHref(request.client_phone)) {
+                        <a
+                          class="text-brand-primary-600 hover:text-brand-primary-700 hover:underline"
+                          [href]="'tel:' + toTelHref(request.client_phone)"
+                          (click)="$event.stopPropagation()"
+                          [attr.aria-label]="('phone' | i18n) + ': ' + request.client_phone"
+                        >
+                          {{ request.client_phone }}
+                        </a>
+                      } @else {
                         {{ request.client_phone }}
-                      </a>
+                      }
                     } @else {
-                      {{ request.client_phone }}
+                      —
                     }
-                  } @else {
-                    —
-                  }
-                </span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -742,22 +738,24 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700"
-                  >{{ "scheduled" | i18n }}:</span
-                >
-                <span class="text-green-600 ml-1 font-medium break-words">
-                  {{
-                    request.scheduled_start_datetime | date : "dd/MM/yyyy HH:mm"
-                  }}
-                </span>
-                @if (shouldShowOverdueUi(request)) {
-                <span
-                  class="ml-2 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-200"
-                >
-                  <i class="fas fa-stopwatch"></i>
-                  {{ getOverdueBadgeLabel(request) }}
-                </span>
-                }
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "scheduled" | i18n }}:</span>
+                  <div class="ml-auto text-right">
+                    <div class="text-green-600 font-medium break-words">
+                      {{
+                        request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm"
+                      }}
+                    </div>
+                    @if (shouldShowOverdueUi(request)) {
+                    <span
+                      class="mt-1 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-200"
+                    >
+                      <i class="fas fa-stopwatch"></i>
+                      {{ getOverdueBadgeLabel(request) }}
+                    </span>
+                    }
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -780,12 +778,12 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700">
-                  {{ "executionStartLabel" | i18n }}:
-                </span>
-                <span class="text-gray-600 ml-1 break-words">
-                  {{ request.actual_start_datetime ? (request.actual_start_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
-                </span>
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "executionStartLabel" | i18n }}:</span>
+                  <span class="ml-auto text-right text-gray-600 break-words">
+                    {{ request.actual_start_datetime ? (request.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm") : "—" }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -807,12 +805,12 @@
                 />
               </svg>
               <div class="text-sm min-w-0 flex-1">
-                <span class="font-medium text-gray-700">
-                  {{ "executionEndLabel" | i18n }}:
-                </span>
-                <span class="text-gray-600 ml-1 break-words">
-                  {{ request.actual_end_datetime ? (request.actual_end_datetime | date : "dd/MM/yyyy HH:mm") : "—" }}
-                </span>
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-medium text-gray-700">{{ "executionEndLabel" | i18n }}:</span>
+                  <span class="ml-auto text-right text-gray-600 break-words">
+                    {{ request.actual_end_datetime ? (request.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm") : "—" }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

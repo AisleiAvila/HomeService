@@ -19,6 +19,7 @@ import {
 import { StatusUtilsService } from "@/src/utils/status-utils.service";
 import { DataService } from "../../services/data.service";
 import { I18nPipe } from "../../pipes/i18n.pipe";
+import { TzDatePipe } from "../../pipes/tz-date.pipe";
 import { PaymentModalComponent } from "../payment-modal/payment-modal.component";
 import { I18nService } from "@/src/i18n.service";
 import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-utils";
@@ -32,6 +33,7 @@ import { NotificationService } from "../../services/notification.service";
   imports: [
     CommonModule,
     I18nPipe,
+    TzDatePipe,
     PaymentModalComponent,
     TechnicalReportModalComponent,
   ],
@@ -440,9 +442,17 @@ export class ServiceListComponent implements OnInit {
   statusClass(status: ServiceStatus): string {
     const baseClass =
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
-    // Gera classes Tailwind a partir da cor hex (padrão: bg-[cor] text-white)
-    // Para manter compatibilidade, usa bg-[cor] inline style e text color fixo
-    return `${baseClass} text-white`;
+    // A cor de fundo é aplicada via [style.backgroundColor] no template.
+    // Aqui mantemos apenas classes estruturais e um ring para contraste em light/dark.
+    return `${baseClass} ring-1 ring-inset ring-black/10 dark:ring-white/10`;
+  }
+
+  getStatusColor(status: ServiceStatus): string {
+    return StatusUtilsService.getColor(status);
+  }
+
+  getStatusTextColor(status: ServiceStatus): string {
+    return StatusUtilsService.getReadableTextColor(this.getStatusColor(status));
   }
 
   getStatusLabel(status: ServiceStatus): string {

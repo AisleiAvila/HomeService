@@ -13,6 +13,8 @@ import { NotificationService } from "../../../services/notification.service";
 import { PortugalAddressValidationService } from "../../../services/portugal-address-validation.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
+import { StatusUtilsService } from "../../../utils/status-utils.service";
+import { StatusMigrationUtil } from "../../../utils/status-migration.util";
 import {
     getServiceTimeZoneForRequest,
     ServiceTimeZone,
@@ -708,10 +710,23 @@ viewDetails = output<ServiceRequest>();
     }
 
     statusClass(status: string): string {
-        // Implement status class logic or import from a shared utility if available
-        // For now, copying basic logic or assuming it will be handled by a pipe/directive if refactored further
-        // But since it was in the component, I'll replicate a basic version or check if I missed it in the read
-        return ''; // Placeholder, need to check original component for this logic
+        const baseClass =
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
+        return `${baseClass} ring-1 ring-inset ring-black/10 dark:ring-white/10`;
+    }
+
+    getStatusColor(status: string): string {
+        const normalized = StatusMigrationUtil.migrateStatus(status);
+        return StatusUtilsService.getColor(normalized);
+    }
+
+    getStatusTextColor(status: string): string {
+        return StatusUtilsService.getReadableTextColor(this.getStatusColor(status));
+    }
+
+    getStatusLabel(status: string): string {
+        const normalized = StatusMigrationUtil.migrateStatus(status);
+        return StatusUtilsService.getLabel(normalized, this.i18n);
     }
 
     openDirectAssignmentModal(req: ServiceRequest) { 
