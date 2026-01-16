@@ -40,6 +40,7 @@
               <input 
                 type="file" 
                 accept="image/*" 
+                multiple
                 (change)="uploadImage($event, 'before')"
                 [disabled]="uploadingBefore()"
                 class="hidden"
@@ -70,28 +71,29 @@
             @for (image of beforeImages(); track image.id) {
               <div class="relative group">
                 <button
-                  (click)="viewImage(image.image_url)"
+                  (click)="onImageViewClick($event, image.image_url)"
                   class="w-full focus:outline-none focus:ring-2 focus:ring-brand-primary-500 rounded-lg"
                   [attr.aria-label]="(image.description || 'Antes do serviço') + ' - ' + ('clickToView' | i18n)"
                 >
                   <img 
                     [src]="image.image_url" 
-                    [alt]="getImageAlt(image)"
+                    [alt]="getAltText(image)"
                     class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
                   />
                 </button>
                 
-                <!-- Overlay with actions -->
+                <!-- Delete action (always accessible on touch; hover-reveal on md+) -->
                 @if (canUploadBefore()) {
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <button
-                    (click)="deleteImage(image)"
-                    class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                    type="button"
+                    (click)="onDeleteClick($event, image)"
+                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors
+                           opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    [attr.aria-label]="'delete' | i18n"
                     title="{{ 'delete' | i18n }}"
                   >
                     <i class="fas fa-trash text-sm"></i>
                   </button>
-                </div>
                 }
 
                 <!-- Image info -->
@@ -151,6 +153,7 @@
               <input 
                 type="file" 
                 accept="image/*" 
+                multiple
                 (change)="uploadImage($event, 'after')"
                 [disabled]="uploadingAfter()"
                 class="hidden"
@@ -181,28 +184,29 @@
             @for (image of afterImages(); track image.id) {
               <div class="relative group">
                 <button
-                  (click)="viewImage(image.image_url)"
+                  (click)="onImageViewClick($event, image.image_url)"
                   class="w-full focus:outline-none focus:ring-2 focus:ring-green-500 rounded-lg"
                   [attr.aria-label]="(image.description || 'Depois do serviço') + ' - ' + ('clickToView' | i18n)"
                 >
                   <img 
                     [src]="image.image_url" 
-                    [alt]="getImageAlt(image)"
+                    [alt]="getAltText(image)"
                     class="w-full h-32 object-cover rounded-lg hover:opacity-90 transition-opacity"
                   />
                 </button>
                 
-                <!-- Overlay with actions -->
+                <!-- Delete action (always accessible on touch; hover-reveal on md+) -->
                 @if (canUploadAfter()) {
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <button
-                    (click)="deleteImage(image)"
-                    class="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors"
+                    type="button"
+                    (click)="onDeleteClick($event, image)"
+                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-colors
+                           opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                    [attr.aria-label]="'delete' | i18n"
                     title="{{ 'delete' | i18n }}"
                   >
                     <i class="fas fa-trash text-sm"></i>
                   </button>
-                </div>
                 }
 
                 <!-- Image info -->
@@ -300,117 +304,75 @@
     </div>
   }
 
-  <!-- Modal de Confirmação de Exclusão -->
-  @if (showDeleteConfirmModal()) {
-    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm overflow-y-auto"
-         (click)="closeDeleteConfirmModal()">
-      <div class="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md my-auto"
-           (click)="$event.stopPropagation()">
-        
-        <!-- Header com ícone de alerta -->
-        <div class="bg-red-50 dark:bg-red-900/20 p-4 sm:p-5 border-b border-red-100 dark:border-red-800">
-          <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                {{ 'confirmDeleteImage' | i18n }}
-              </h3>
-              <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {{ 'deleteImageWarning' | i18n }}
-              </p>
-            </div>
+  <!-- Modal de Confirmação de Exclusão (dialog/top-layer) -->
+  <dialog
+    #deleteConfirmDialog
+    class="delete-confirm-dialog"
+    (click)="onDeleteDialogBackdropClick($event)"
+    (cancel)="onDeleteDialogCancel($event)"
+    (keydown)="onDeleteDialogKeyDown($event)"
+    aria-modal="true"
+  >
+    <div
+      class="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-sm p-0 border border-gray-200 dark:border-gray-700/80 dark:ring-1 dark:ring-white/10"
+      [attr.aria-label]="'confirmDeleteImage' | i18n"
+    >
+      <div class="bg-red-50 dark:bg-red-900/20 p-4 sm:p-5 border-b border-red-100 dark:border-red-800">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              {{ 'confirmDeleteImage' | i18n }}
+            </h3>
+            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {{ 'deleteImageWarning' | i18n }}
+            </p>
           </div>
         </div>
+      </div>
 
-        @if (imageToDelete(); as image) {
-          <div class="p-4 sm:p-5 max-h-[70vh] overflow-y-auto">
-            <!-- Preview da Imagem -->
-            <div class="mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-              <img [src]="image.image_url" 
-                   [alt]="getImageAlt(image)"
-                   class="w-full h-32 sm:h-40 object-contain">
-            </div>
+      <div class="p-4 sm:p-5">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          {{ 'deleteImagePermanentWarning' | i18n }}
+        </p>
 
-            <!-- Informações da Imagem (compactas) -->
-            <div class="space-y-2 mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-              @if (image.description) {
-                <div class="flex items-start gap-2">
-                  <svg class="w-4 h-4 text-gray-500 dark:text-gray-400 mt-0.5 flex-shrink-0" 
-                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                  </svg>
-                  <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 break-words flex-1">
-                    {{ image.description }}
-                  </p>
-                </div>
-              }
+        <div class="mt-5 flex gap-2">
+          <button
+            type="button"
+            (click)="closeDeleteConfirmModal()"
+            [disabled]="deletingImage()"
+            class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-semibold text-sm
+                   hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ 'cancel' | i18n }}
+          </button>
 
-              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span>{{ formatDate(image.uploaded_at) }}</span>
-                @if (image.file_size) {
-                  <span>{{ formatFileSize(image.file_size) }}</span>
-                }
-              </div>
-            </div>
-
-            <!-- Alert de Ação Permanente -->
-            <div class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
-              <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" 
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <button
+            type="button"
+            (click)="confirmDeleteImage()"
+            [disabled]="deletingImage()"
+            class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg font-semibold text-sm
+                   transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            @if (deletingImage()) {
+              <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p class="text-xs sm:text-sm text-amber-800 dark:text-amber-200 flex-1">
-                {{ 'deleteImagePermanentWarning' | i18n }}
-              </p>
-            </div>
-
-            <!-- Botões de Ação -->
-            <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-              <button type="button"
-                      (click)="closeDeleteConfirmModal()"
-                      [disabled]="deletingImage()"
-                      class="flex-1 px-4 py-2.5 sm:py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 
-                             rounded-lg sm:rounded-xl font-semibold text-sm hover:bg-gray-200 dark:hover:bg-gray-600 
-                             transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 
-                             dark:focus:ring-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ 'cancel' | i18n }}
-              </button>
-              
-              <button type="button"
-                      (click)="confirmDeleteImage()"
-                      [disabled]="deletingImage()"
-                      class="flex-1 px-4 py-2.5 sm:py-3 bg-red-600 dark:bg-red-700 text-white rounded-lg sm:rounded-xl 
-                             font-semibold text-sm hover:bg-red-700 dark:hover:bg-red-600 
-                             transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-300 
-                             dark:focus:ring-red-800 disabled:opacity-50 disabled:cursor-not-allowed
-                             flex items-center justify-center gap-2">
-                @if (deletingImage()) {
-                  <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>{{ 'deleting' | i18n }}</span>
-                } @else {
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>{{ 'confirmDelete' | i18n }}</span>
-                }
-              </button>
-            </div>
-          </div>
-        }
+              <span>{{ 'deleting' | i18n }}</span>
+            } @else {
+              <span>{{ 'confirmDelete' | i18n }}</span>
+            }
+          </button>
+        </div>
       </div>
     </div>
-  }
+  </dialog>
 
   <!-- Modal de Descrição da Imagem -->
   @if (showDescriptionModal()) {
@@ -433,6 +395,13 @@
 
         <!-- Content -->
         <div class="p-6">
+          @if (pendingFilesCount() > 1) {
+            <div class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+              <span class="font-semibold">{{ pendingFilesCount() }}</span>
+              <span class="ml-1">{{ 'images' | i18n }}</span>
+              <span class="ml-1">{{ 'selected' | i18n }}</span>
+            </div>
+          }
           <label for="imageDescriptionInput" class="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
             {{ 'describeImage' | i18n }}
           </label>

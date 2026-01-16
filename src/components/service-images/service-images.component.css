@@ -47,6 +47,21 @@
 label[for*="file-input"]:hover {
   border-color: #3b82f6;
   background-color: #eff6ff;
+
+  /* Delete confirmation dialog (native top-layer modal) */
+  .delete-confirm-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    width: calc(100% - 1.5rem);
+    max-width: 24rem;
+    margin: auto;
+  }
+
+  .delete-confirm-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+  }
 }
 
 /* Responsividade para imagens */

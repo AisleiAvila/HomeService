@@ -51,7 +51,7 @@ begin
       update public.service_requests
       set service_time_zone = 'Atlantic/Azores'
       where service_time_zone <> 'Atlantic/Azores'
-        and left(regexp_replace(%s, '\\D', '', 'g'), 2) between '95' and '99';
+        and left(regexp_replace(%s, '[^0-9]', '', 'g'), 2) between '95' and '99';
     $f$, zip_expr);
 
     execute sql;

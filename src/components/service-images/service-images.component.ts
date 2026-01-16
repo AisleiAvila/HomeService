@@ -26,6 +26,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
 
   // ViewChild references
   videoElement = viewChild<ElementRef<HTMLVideoElement>>('videoElement');
+  deleteConfirmDialog = viewChild<ElementRef<HTMLDialogElement>>('deleteConfirmDialog');
 
   // State
   private readonly allImages = signal<ServiceRequestImage[]>([]);
@@ -39,7 +40,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   // Modal para descrição da imagem
   showDescriptionModal = signal(false);
   imageDescriptionInput = signal('');
-  pendingFile: File | null = null;
+  pendingFiles: File[] = [];
   pendingImageType: 'before' | 'after' = 'before';
   
   // Modal de confirmação de exclusão
@@ -48,6 +49,8 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   deletingImage = signal(false);
   
   private cameraStream: MediaStream | null = null;
+
+  pendingFilesCount = computed(() => this.pendingFiles.length);
 
   // Computed
   beforeImages = computed(() => 
@@ -90,24 +93,27 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
 
   async uploadImage(event: Event, imageType: 'before' | 'after') {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const files = input.files ? Array.from(input.files) : [];
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    // Validar tamanho (15MB)
-    if (file.size > 15 * 1024 * 1024) {
-      alert(this.i18n.translate('imageTooBig'));
-      return;
+    // Validar tamanho (15MB) e tipo
+    for (const file of files) {
+      if (file.size > 15 * 1024 * 1024) {
+        alert(this.i18n.translate('imageTooBig'));
+        input.value = '';
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        alert(this.i18n.translate('invalidImageType'));
+        input.value = '';
+        return;
+      }
     }
 
-    // Validar tipo
-    if (!file.type.startsWith('image/')) {
-      alert(this.i18n.translate('invalidImageType'));
-      return;
-    }
-
-    // Armazenar arquivo e tipo para uso no modal
-    this.pendingFile = file;
+    // Armazenar arquivos e tipo para uso no modal
+    this.pendingFiles = files;
     this.pendingImageType = imageType;
     
     // Limpar input de descrição anterior
@@ -121,26 +127,32 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   }
 
   async submitImageUpload() {
-    if (!this.pendingFile) return;
+    if (this.pendingFiles.length === 0) return;
 
     const loadingSignal = this.pendingImageType === 'before' ? this.uploadingBefore : this.uploadingAfter;
     loadingSignal.set(true);
 
     try {
       const description = this.imageDescriptionInput();
-      const result = await this.workflowService.uploadServiceImage(
-        this.pendingFile,
-        this.requestId(),
-        this.pendingImageType,
-        description
-      );
+      let uploadedCount = 0;
 
-      if (result) {
-        console.log('✅ Imagem enviada com sucesso:', result);
-        await this.loadImages();
-        this.notificationService.addNotification(
-          this.i18n.translate('imageUploadedSuccessfully')
+      for (const file of this.pendingFiles) {
+        const result = await this.workflowService.uploadServiceImage(
+          file,
+          this.requestId(),
+          this.pendingImageType,
+          description
         );
+
+        if (result) {
+          uploadedCount += 1;
+        }
+      }
+
+      if (uploadedCount > 0) {
+        console.log(`✅ ${uploadedCount} imagem(ns) enviada(s) com sucesso`);
+        await this.loadImages();
+        this.notificationService.addNotification(this.i18n.translate('imageUploadedSuccessfully'));
       }
     } catch (error) {
       console.error('❌ Erro ao fazer upload da imagem:', error);
@@ -156,13 +168,29 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   closeDescriptionModal() {
     this.showDescriptionModal.set(false);
     this.imageDescriptionInput.set('');
-    this.pendingFile = null;
+    this.pendingFiles = [];
+  }
+
+  onImageViewClick(event: MouseEvent, imageUrl: string) {
+    this.viewImage(imageUrl);
+  }
+
+  onDeleteClick(event: Event, image: ServiceRequestImage) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.deleteImage(image);
   }
 
   async deleteImage(image: ServiceRequestImage) {
     // Armazenar imagem e abrir modal
     this.imageToDelete.set(image);
     this.showDeleteConfirmModal.set(true);
+
+    queueMicrotask(() => {
+      const dialog = this.deleteConfirmDialog()?.nativeElement;
+      if (!dialog) return;
+      if (!dialog.open) dialog.showModal();
+    });
   }
 
   async confirmDeleteImage() {
@@ -180,6 +208,10 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
         );
         await this.loadImages();
         this.closeDeleteConfirmModal();
+      } else {
+        this.notificationService.addNotification(
+          this.i18n.translate('deleteImageError')
+        );
       }
     } catch (error) {
       console.error('❌ Erro ao deletar imagem:', error);
@@ -192,16 +224,39 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
   }
 
   closeDeleteConfirmModal() {
+    const dialog = this.deleteConfirmDialog()?.nativeElement;
+    if (dialog?.open) dialog.close();
+
     this.showDeleteConfirmModal.set(false);
     this.imageToDelete.set(null);
+    this.deletingImage.set(false);
+  }
+
+  onDeleteDialogBackdropClick(event: MouseEvent): void {
+    const dialog = this.deleteConfirmDialog()?.nativeElement;
+    if (!dialog) return;
+
+    if (event.target === dialog) {
+      this.closeDeleteConfirmModal();
+    }
+  }
+
+  onDeleteDialogCancel(event: Event): void {
+    event.preventDefault();
+    this.closeDeleteConfirmModal();
+  }
+
+  onDeleteDialogKeyDown(_event: KeyboardEvent): void {
+    // Intencionalmente vazio: os botões já são acessíveis via teclado,
+    // e o ESC é tratado pelo evento (cancel) do <dialog>.
   }
 
   viewImage(imageUrl: string) {
-    window.open(imageUrl, '_blank');
+    globalThis.open(imageUrl, '_blank');
   }
 
-  getImageAlt(image: ServiceRequestImage): string {
-    return image.description ? image.description : `Image #${image.id}`;
+  getAltText(image: ServiceRequestImage): string {
+    return image.description ? image.description : `#${image.id}`;
   }
 
   formatFileSize(bytes?: number | null): string {
@@ -342,7 +397,7 @@ export class ServiceImagesComponent implements OnInit, OnDestroy {
             });
 
             // Armazenar arquivo e tipo para uso no modal
-            this.pendingFile = file;
+            this.pendingFiles = [file];
             this.pendingImageType = this.currentImageType();
             
             // Limpar input de descrição anterior
