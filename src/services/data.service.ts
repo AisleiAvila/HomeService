@@ -874,6 +874,50 @@ export class DataService {
     }
   }
 
+  /**
+   * Atualiza os valores financeiros (valor e valor_prestador) de uma solicitação.
+   * Usado pelo painel de Solicitações do administrador para edição rápida.
+   */
+  async updateServiceRequestValues(
+    id: number,
+    values: { valor: number; valor_prestador: number }
+  ): Promise<boolean> {
+    const currentUser = this.authService.appUser();
+    if (currentUser?.role !== "admin") {
+      this.notificationService.addNotification(
+        "Apenas administradores podem atualizar os valores da solicitação."
+      );
+      return false;
+    }
+
+    const { data, error } = await this.supabase.client
+      .from("service_requests")
+      .update({
+        valor: values.valor,
+        valor_prestador: values.valor_prestador,
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Error updating request values: " + error.message
+      );
+      return false;
+    }
+
+    if (data) {
+      this.serviceRequests.update((requests) =>
+        requests.map((r) =>
+          r.id === id ? { ...r, ...(data ?? {}) } : r
+        )
+      );
+    }
+
+    return true;
+  }
+
   async scheduleServiceRequest(
     requestId: number,
     professionalId: number,

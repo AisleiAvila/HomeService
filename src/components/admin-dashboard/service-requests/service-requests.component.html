@@ -74,6 +74,75 @@
 </div>
 }
 
+<!-- Modal Editar Valores (Admin) -->
+@if (showEditValuesModal()) {
+<div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <i class="fas fa-euro-sign mr-2 text-emerald-600"></i>
+                {{ "editRequestValues" | i18n }}
+            </h3>
+            <button (click)="closeEditValuesModal()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        @if (requestToEditValues(); as req) {
+        <div class="text-xs text-gray-600 dark:text-gray-300 mb-4">
+            #{{ req.id }} — {{ req.title }}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label for="edit-values-valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ "TotalValue" | i18n }}
+                </label>
+                <input
+                    id="edit-values-valor"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    [value]="editValorInput()"
+                    (input)="editValorInput.set($any($event.target).value)"
+                />
+            </div>
+
+            <div>
+                <label for="edit-values-valor-prestador" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {{ "valorPrestador" | i18n }}
+                </label>
+                <input
+                    id="edit-values-valor-prestador"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    [value]="editValorPrestadorInput()"
+                    (input)="editValorPrestadorInput.set($any($event.target).value)"
+                />
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button type="button" (click)="closeEditValuesModal()" class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                {{ "cancel" | i18n }}
+            </button>
+            <button type="button" (click)="confirmEditValues()" [disabled]="isSavingValues()" class="flex-1 px-4 py-2 bg-emerald-600 dark:bg-emerald-700 text-white rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                @if (isSavingValues()) {
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                } @else {
+                <i class="fas fa-save mr-2"></i>
+                }
+                {{ "saveChanges" | i18n }}
+            </button>
+        </div>
+        }
+    </div>
+</div>
+}
+
 <!-- Modal Excluir Solicitação -->
 @if (showDeleteRequestModal()) {
 <div class="fixed inset-0 bg-gray-800/60 dark:bg-gray-900/80 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
@@ -805,6 +874,13 @@
                                 }
                             </button>
                             }
+                            @if (currentUser() && currentUser()!.role === 'admin') {
+                            <button (click)="openEditValuesModal(req)"
+                                class="w-10 h-10 flex items-center justify-center text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+                                [title]="'editRequestValues' | i18n" [attr.aria-label]="'editRequestValues' | i18n">
+                                <i class="fas fa-euro-sign"></i>
+                            </button>
+                            }
                             @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
                             <button (click)="openEditRequestModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-md transition-colors"
@@ -1008,6 +1084,13 @@
                         } @else {
                         <i class="fas fa-file-pdf"></i>
                         }
+                    </button>
+                    }
+                    @if (currentUser() && currentUser()!.role === 'admin') {
+                    <button (click)="openEditValuesModal(req)" title="{{ 'editRequestValues' | i18n }}"
+                        class="w-10 h-10 inline-flex items-center justify-center text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors duration-200"
+                        [attr.aria-label]="'editRequestValues' | i18n">
+                        <i class="fas fa-euro-sign"></i>
                     </button>
                     }
                         @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
