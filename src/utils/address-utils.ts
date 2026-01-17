@@ -27,20 +27,77 @@ export function extractPtAddressParts(src: AddressInput): {
   postalCode: string;
   locality: string;
   district: string;
+  street: string;
+  number: string;
+  complement: string;
+  concelho: string;
 } {
   const a: any = src || {};
-  const street = a.street ?? a.address?.street ?? "";
-  const number = a.number ?? a.address?.number ?? "";
-  const zip = a.zip_code ?? a.address?.postal_code ?? "";
-  const city = a.city ?? a.address?.locality ?? "";
-  const state = a.state ?? a.address?.district ?? "";
+  // Support both legacy columns (zip_code/city/state/street_number) and newer variants
+  // (postal_code/locality/district) as well as nested address payloads.
+  const street =
+    a.street ??
+    a.street_manual ??
+    a.address?.street ??
+    a.address?.street_manual ??
+    "";
+
+  const number =
+    a.street_number ??
+    a.number ??
+    a.address?.street_number ??
+    a.address?.number ??
+    a.address?.streetNumber ??
+    "";
+
+  const complement = a.complement ?? a.address?.complement ?? "";
+
+  const zip =
+    a.zip_code ??
+    a.postal_code ??
+    a.postalCode ??
+    a.address?.zip_code ??
+    a.address?.postal_code ??
+    a.address?.postalCode ??
+    "";
+
+  // Localidade
+  const explicitLocality = a.locality ?? a.address?.locality;
+  const localityRaw = explicitLocality ?? a.city ?? a.address?.city ?? "";
+
+  // Concelho
+  let concelhoRaw =
+    a.concelho ??
+    a.county ??
+    a.municipality ??
+    a.address?.concelho ??
+    a.address?.county ??
+    a.address?.municipality ??
+    "";
+  // If we have an explicit locality field, then `city` is commonly used as concelho.
+  if (!concelhoRaw && explicitLocality) {
+    concelhoRaw = a.city ?? a.address?.city ?? "";
+  }
+
+  // Distrito
+  const districtRaw = a.district ?? a.state ?? a.address?.district ?? a.address?.state ?? "";
 
   const streetNumber = [street, number].filter(Boolean).join(", ");
   const postalCode = normalizePostalCode(zip);
-  const locality = toTitleCase(city);
-  const district = toTitleCase(state);
+  const locality = toTitleCase(localityRaw);
+  const concelho = toTitleCase(concelhoRaw);
+  const district = toTitleCase(districtRaw);
 
-  return { streetNumber, postalCode, locality, district };
+  return {
+    streetNumber,
+    postalCode,
+    locality,
+    district,
+    street: String(street || ""),
+    number: String(number || ""),
+    complement: String(complement || ""),
+    concelho,
+  };
 }
 
 export function formatPtAddress(src: AddressInput, separator = " • "): string {
