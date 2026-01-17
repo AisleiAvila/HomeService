@@ -107,10 +107,16 @@ export default async function handler(req, res) {
     }
 
     if (session.revoked_at) {
+      const revokedReason = session.revoked_reason || null;
+      const friendlyMessage =
+        revokedReason === 'new login'
+          ? 'Sessão encerrada: login realizado em outro dispositivo.'
+          : 'Sessão revogada';
+
       return res.status(401).json({
         success: false,
-        error: 'Sessão revogada',
-        revokedReason: session.revoked_reason || null,
+        error: friendlyMessage,
+        revokedReason,
         serverNow: nowIso
       });
     }

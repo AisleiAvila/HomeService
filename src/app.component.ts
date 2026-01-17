@@ -45,7 +45,6 @@ import { ServiceRequestDetailsComponent } from "./components/service-request-det
 import { VerificationComponent } from "./components/verification/verification.component";
 import { LanguageSwitcherComponent } from "./components/language-switcher/language-switcher.component";
 import { NotificationToastComponent } from "./components/notification-toast/notification-toast.component";
-import { SessionDiagnosticsBannerComponent } from "./components/session-diagnostics-banner/session-diagnostics-banner.component";
 import { ThemeToggleComponent } from "./components/theme-toggle/theme-toggle.component";
 import { I18nPipe } from "./pipes/i18n.pipe";
 
@@ -82,7 +81,6 @@ type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-re
     NotificationsComponent,
     LanguageSwitcherComponent,
     NotificationToastComponent,
-    SessionDiagnosticsBannerComponent,
     ThemeToggleComponent,
   ],
   templateUrl: "./app.component.html",

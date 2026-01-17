@@ -17,7 +17,6 @@ export class AuthService {
     readonly pendingEmailConfirmation = signal<string | null>(null);
 
   private readonly lastSessionErrorStorageKey = "natangeneralservice_last_session_error";
-  private lastSessionErrorToastAtMs = 0;
 
   private readonly sessionStorageKey = "natangeneralservice_session";
   private sessionExpiryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -90,24 +89,7 @@ export class AuthService {
       // ignore storage failures
     }
 
-    // Permite que a UI (banner) atualize imediatamente sem polling.
-    try {
-      globalThis.dispatchEvent(new CustomEvent("ngs-session-failure", { detail: payload }));
-    } catch {
-      // ignore
-    }
-
     console.warn("[SESSION] Auth failure (will logout)", payload);
-
-    // Avoid spamming the user every 5 minutes.
-    const now = Date.now();
-    const minGapMs = 10 * 60 * 1000;
-    if (now - this.lastSessionErrorToastAtMs >= minGapMs) {
-      this.lastSessionErrorToastAtMs = now;
-      this.notificationService.addNotification(
-        `Sessão terminada: ${reason}. Faça login novamente.`
-      );
-    }
   }
 
   private readStoredSession(): { token: string; expiresAt: string; user?: User } | null {
