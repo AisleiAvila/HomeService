@@ -26,6 +26,10 @@ import { formatPtAddress, extractPtAddressParts } from "@/src/utils/address-util
 import { TechnicalReportModalComponent } from "../technical-report-modal/technical-report-modal.component";
 import { isTechnicalReportEligible } from "@/src/utils/technical-report-origin.util";
 import { NotificationService } from "../../services/notification.service";
+import {
+  getServiceTimeZoneForRequest,
+  ServiceTimeZone,
+} from "../../utils/timezone-datetime";
 
 @Component({
   selector: "app-service-list",
@@ -118,6 +122,11 @@ export class ServiceListComponent implements OnInit {
 
   // Expose Math for template use
   Math = Math;
+
+  getServiceTimeZone(request: ServiceRequest): ServiceTimeZone {
+    // Uses persisted service_time_zone when available, otherwise infers from postal code.
+    return getServiceTimeZoneForRequest(request as any);
+  }
 
   // Pagination state
   currentPage = signal(1);
