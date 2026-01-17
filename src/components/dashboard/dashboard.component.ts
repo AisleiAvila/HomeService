@@ -304,7 +304,6 @@ export class DashboardComponent implements OnInit {
       this.sortOrder.set('asc');
 
       const today = new Date();
-      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       
       // Formato YYYY-MM-DD para inputs de data
       const formatDate = (date: Date) => {
@@ -314,8 +313,13 @@ export class DashboardComponent implements OnInit {
         return `${year}-${month}-${day}`;
       };
       
-      this.filterStartDate.set(formatDate(firstDayOfMonth));
-      this.filterEndDate.set(formatDate(today));
+      // Só aplica defaults se o utilizador ainda não definiu filtros
+      if (!this.filterStartDate()) {
+        this.filterStartDate.set(formatDate(today));
+      }
+      if (!this.filterEndDate()) {
+        this.filterEndDate.set(formatDate(today));
+      }
     }
 
     // Recarrega as solicitações quando o componente é inicializado
