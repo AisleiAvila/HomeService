@@ -68,12 +68,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ success: false, error: 'Ação inválida' });
   }
 
+  const nowIso = new Date().toISOString();
+
   if (!token || typeof token !== 'string') {
-    return res.status(401).json({ success: false, error: 'Token ausente' });
+    return res
+      .status(401)
+      .json({ success: false, error: 'Token ausente', serverNow: nowIso });
   }
 
   const tokenHash = hashToken(token);
-  const nowIso = new Date().toISOString();
 
   try {
     if (action === 'revoke') {
@@ -89,14 +92,35 @@ export default async function handler(req, res) {
     // validate
     const { data: session, error: sessionError } = await supabase
       .from('user_sessions')
-      .select('id,user_id,expires_at,revoked_at')
+      .select('id,user_id,expires_at,revoked_at,revoked_reason')
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
     if (sessionError) throw sessionError;
 
-    if (!session || session.revoked_at || new Date(session.expires_at).getTime() <= Date.now()) {
-      return res.status(401).json({ success: false, error: 'Sessão inválida ou expirada' });
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        error: 'Sessão não encontrada',
+        serverNow: nowIso
+      });
+    }
+
+    if (session.revoked_at) {
+      return res.status(401).json({
+        success: false,
+        error: 'Sessão revogada',
+        revokedReason: session.revoked_reason || null,
+        serverNow: nowIso
+      });
+    }
+
+    if (new Date(session.expires_at).getTime() <= Date.now()) {
+      return res.status(401).json({
+        success: false,
+        error: 'Sessão expirada',
+        serverNow: nowIso
+      });
     }
 
     // touch session
@@ -110,7 +134,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       user,
-      session: { expiresAt: session.expires_at }
+      session: { expiresAt: session.expires_at },
+      serverNow: nowIso
     });
   } catch (e) {
     console.error('[SESSION] Error:', e);

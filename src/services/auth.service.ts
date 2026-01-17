@@ -16,10 +16,99 @@ export class AuthService {
     readonly appUser = signal<User | null>(null);
     readonly pendingEmailConfirmation = signal<string | null>(null);
 
+  private readonly lastSessionErrorStorageKey = "natangeneralservice_last_session_error";
+  private lastSessionErrorToastAtMs = 0;
+
   private readonly sessionStorageKey = "natangeneralservice_session";
   private sessionExpiryTimer: ReturnType<typeof setTimeout> | null = null;
   private sessionHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private readonly sessionHeartbeatMs = 5 * 60 * 1000;
+
+  // Último contexto conhecido da sessão (para diagnóstico quando o storage some no mobile).
+  private lastKnownSessionExpiresAt: string | null = null;
+  private lastKnownSessionUserEmail: string | null = null;
+  private hadCustomSessionInThisRun = false;
+
+  private safeParseJson(text: string): any {
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async extractSessionApiFailure(res: Response): Promise<{
+    reason: string;
+    serverNow: string | null;
+  }> {
+    // Never log/store sensitive headers or tokens; only store server-provided reason.
+    const text = await res.text().catch(() => "");
+    const json = this.safeParseJson(text);
+    const msg =
+      (json && (json.error || json.message)) ||
+      (typeof text === "string" ? text : "") ||
+      `HTTP ${res.status}`;
+
+    const serverNow =
+      json && typeof json.serverNow === "string" ? (json.serverNow as string) : null;
+
+    return {
+      reason: String(msg).slice(0, 500),
+      serverNow,
+    };
+  }
+
+  private recordSessionFailure(
+    source: "heartbeat" | "restore",
+    status: number,
+    reason: string,
+    context?: { storedExpiresAt?: string; storedUserEmail?: string; serverNow?: string | null }
+  ): void {
+    const nowMs = Date.now();
+    const storedExpiresAt = context?.storedExpiresAt;
+    const expiresAtMs = storedExpiresAt ? new Date(storedExpiresAt).getTime() : null;
+    const msUntilExpiry =
+      typeof expiresAtMs === "number" && Number.isFinite(expiresAtMs)
+        ? expiresAtMs - nowMs
+        : null;
+
+    const payload = {
+      ts: new Date().toISOString(),
+      source,
+      status,
+      reason,
+      serverNow: context?.serverNow ?? null,
+      storedExpiresAt: storedExpiresAt || null,
+      minutesUntilExpiry:
+        typeof msUntilExpiry === "number" ? Math.round(msUntilExpiry / 60000) : null,
+      storedUserEmail: context?.storedUserEmail || null,
+    };
+
+    try {
+      localStorage.setItem(this.lastSessionErrorStorageKey, JSON.stringify(payload));
+    } catch {
+      // ignore storage failures
+    }
+
+    // Permite que a UI (banner) atualize imediatamente sem polling.
+    try {
+      globalThis.dispatchEvent(new CustomEvent("ngs-session-failure", { detail: payload }));
+    } catch {
+      // ignore
+    }
+
+    console.warn("[SESSION] Auth failure (will logout)", payload);
+
+    // Avoid spamming the user every 5 minutes.
+    const now = Date.now();
+    const minGapMs = 10 * 60 * 1000;
+    if (now - this.lastSessionErrorToastAtMs >= minGapMs) {
+      this.lastSessionErrorToastAtMs = now;
+      this.notificationService.addNotification(
+        `Sessão terminada: ${reason}. Faça login novamente.`
+      );
+    }
+  }
 
   private readStoredSession(): { token: string; expiresAt: string; user?: User } | null {
     try {
@@ -47,6 +136,10 @@ export class AuthService {
     localStorage.setItem(this.sessionStorageKey, payload);
     // Keep sessionStorage in sync for backwards compatibility.
     sessionStorage.setItem(this.sessionStorageKey, payload);
+
+    this.hadCustomSessionInThisRun = true;
+    this.lastKnownSessionExpiresAt = session.expiresAt;
+    this.lastKnownSessionUserEmail = session.user?.email || null;
   }
 
   private clearStoredSession(): void {
@@ -89,7 +182,28 @@ export class AuthService {
 
     this.sessionHeartbeatTimer = globalThis.setInterval(async () => {
       const stored = this.readStoredSession();
-      if (!stored?.token) return;
+      if (!stored?.token) {
+        // Se já havia sessão nesta execução e o usuário ainda está marcado como logado,
+        // é forte indício de que o storage foi limpo/evictado pelo SO (comum em mobile).
+        if (this.hadCustomSessionInThisRun && this.appUser()) {
+          this.recordSessionFailure(
+            "heartbeat",
+            0,
+            "Token ausente no armazenamento (possível limpeza do sistema / storage eviction)",
+            {
+              storedExpiresAt: this.lastKnownSessionExpiresAt || undefined,
+              storedUserEmail: this.lastKnownSessionUserEmail || undefined,
+              serverNow: null,
+            }
+          );
+          await this.logout();
+        }
+        return;
+      }
+
+      this.hadCustomSessionInThisRun = true;
+      this.lastKnownSessionExpiresAt = stored.expiresAt || this.lastKnownSessionExpiresAt;
+      this.lastKnownSessionUserEmail = stored.user?.email || this.lastKnownSessionUserEmail;
 
       try {
         const res = await fetch(environment.sessionApiUrl, {
@@ -103,6 +217,12 @@ export class AuthService {
 
         // Only force logout on definitive auth failures.
         if (res.status === 401 || res.status === 403) {
+          const failure = await this.extractSessionApiFailure(res);
+          this.recordSessionFailure("heartbeat", res.status, failure.reason, {
+            storedExpiresAt: stored.expiresAt,
+            storedUserEmail: stored.user?.email,
+            serverNow: failure.serverNow,
+          });
           await this.logout();
           return;
         }
@@ -208,7 +328,12 @@ export class AuthService {
 
         // Definitive auth failures: clean up.
         if (validateRes.status === 401 || validateRes.status === 403) {
-          console.log("ℹ️ Sessão revogada/expirada no servidor; limpando");
+          const failure = await this.extractSessionApiFailure(validateRes);
+          this.recordSessionFailure("restore", validateRes.status, failure.reason, {
+            storedExpiresAt: stored.expiresAt,
+            storedUserEmail: stored.user?.email,
+            serverNow: failure.serverNow,
+          });
           this.clearStoredSession();
           this.appUser.set(null);
           return;
@@ -233,6 +358,10 @@ export class AuthService {
       this.writeStoredSession({ token: stored.token, expiresAt, user });
       this.scheduleAutoLogout(expiresAt);
       this.startSessionHeartbeat();
+
+      this.hadCustomSessionInThisRun = true;
+      this.lastKnownSessionExpiresAt = expiresAt;
+      this.lastKnownSessionUserEmail = user?.email || null;
 
       console.log("🔄 Sessão restaurada:", user.email);
 
