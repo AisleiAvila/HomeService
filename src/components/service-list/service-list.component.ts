@@ -540,9 +540,13 @@ export class ServiceListComponent implements OnInit {
   getOverdueDescription(request: ServiceRequest): string {
     const schedulingStatus = this.dataService.getSchedulingStatus(request);
     const serviceNameTag = request.title ? ` — ${request.title}` : "";
+    const role = this.currentUser().role;
 
     switch (request.status) {
       case "Data Definida":
+        // Na tela Visão Geral do prestador, não exibimos a descrição detalhada
+        // de "início atrasado" (a mensagem grande do i18n).
+        if (role === "professional") return "";
         return (
           this.i18n.translate("workStartOverdueDescription") ||
           "O trabalho deveria ter começado após o horário combinado."
@@ -565,6 +569,7 @@ export class ServiceListComponent implements OnInit {
         ) + serviceNameTag;
       default:
         if (schedulingStatus === "Scheduled" || schedulingStatus === "Scheduled Today") {
+          if (role === "professional") return "";
           return (
             this.i18n.translate("workStartOverdueDescription") ||
             "O trabalho deveria ter começado após o horário combinado."
