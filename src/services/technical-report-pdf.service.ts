@@ -204,19 +204,19 @@ export class TechnicalReportPdfService {
           ? addressParts.join(", ")
           : (request.client_address || "").trim();
 
-      writeSectionTitle("Dados do cliente");
-      writeLabelValue("Nome:", (request.client_name || "").trim());
-      writeLabelValue("Nota Serviço:", d.serviceNote);
-      writeLabelValue("Morada:", addressLine);
-      writeLabelValue("Código Postal:", (request.zip_code || "").trim());
-      writeLabelValue("Localidade:", (request.city || "").trim());
-      writeLabelValue("Tel:", (request.client_phone || "").trim());
-      writeLabelValue("Email:", (request.email_client || "").trim());
+      writeSectionTitle("DADOS DO CLIENTE");
+      writeLabelValue("NOME:", (request.client_name || "").trim());
+      writeLabelValue("NOTA SERVIÇO:", d.serviceNote);
+      writeLabelValue("MORADA:", addressLine);
+      writeLabelValue("CÓDIGO POSTAL:", (request.zip_code || "").trim());
+      writeLabelValue("LOCALIDADE:", (request.city || "").trim());
+      writeLabelValue("TEL:", (request.client_phone || "").trim());
+      writeLabelValue("EMAIL:", (request.email_client || "").trim());
 
-      writeSectionTitle("Dados do serviço");
-      writeLabelValue("Instalação:", d.installation);
-      writeLabelValue("Descrição dos trabalhos:", d.workDescription);
-      writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
+      writeSectionTitle("DADOS DO SERVIÇO");
+      writeLabelValue("INSTALAÇÃO:", d.installation);
+      writeLabelValue("DESCRIÇÃO DOS TRABALHOS:", d.workDescription);
+      writeLabelValue("SERVIÇOS EXTRAS INSTALADOS:", d.extraServicesInstalled);
     }
 
 
