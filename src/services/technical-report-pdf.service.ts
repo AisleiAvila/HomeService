@@ -60,6 +60,7 @@ export interface TechnicalReportPdfOptions {
   clientSignedAt?: Date;
 
   origin?: TechnicalReportOriginKey;
+  signatureBoxY?: number;
 }
 
 @Injectable({ providedIn: "root" })
@@ -242,12 +243,37 @@ export class TechnicalReportPdfService {
     }
 
 
+    let radioPopularFooter:
+      | { rpText: string[]; lineHeight: number; rpTextStartY: number; signatureBoxY: number }
+      | null = null;
+
+    if (payload.origin === "radio_popular") {
+      const rpText = this.getRadioPopularFooterText();
+      const lineHeight = 4;
+      const rpBlockHeight = rpText.length * lineHeight;
+      const signatureBlockHeight = 32; // 22mm box + 10mm labels
+      const gap = 6;
+      const marginBottom = 10;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const requiredHeight = rpBlockHeight + gap + signatureBlockHeight;
+
+      if (y + requiredHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        if (header) this.drawHeaderImage(doc, header);
+      }
+
+      const rpTextStartY = pageHeight - marginBottom - rpBlockHeight;
+      const signatureBoxY = rpTextStartY - gap - 22;
+      radioPopularFooter = { rpText, lineHeight, rpTextStartY, signatureBoxY };
+    }
+
     // Desenhar assinaturas primeiro
     this.addClientSignature(doc, {
       clientSignatureDataUrl: options?.clientSignatureDataUrl,
       clientName: options?.clientName,
       clientSignedAt: options?.clientSignedAt ?? issuedAt,
       origin: payload.origin,
+      signatureBoxY: radioPopularFooter?.signatureBoxY,
     });
 
     this.addProfessionalSignature(doc, {
@@ -255,48 +281,21 @@ export class TechnicalReportPdfService {
       professionalName: options?.professionalName,
       professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
       origin: payload.origin,
+      signatureBoxY: radioPopularFooter?.signatureBoxY,
     });
 
     // Adicionar bloco Rádio Popular abaixo das assinaturas, sem sobreposição
-    if (payload.origin === "radio_popular") {
-      const rpText = [
-        "Serviço de Apoio ao Cliente RP",
-        "Telefone: 22 040 30 40 (chamada para a rede fixa nacional)",
-        "e-mail: cliente@radiopopular.pt   www.radiopopular.pt",
-        "", // linha em branco
-        "SERVIÇOS CENTRAIS",
-        "Aguda Parque - Largo de Arcozelo, nº 76, Edifício E - 4410-455 Arcozelo, V. N. Gaia",
-        "T. 229 409 600 - F. 229 409 601",
-        "www.radiopopular.pt",
-        "", // linha em branco
-        "RADIO POPULAR ELETRODOMÉSTICOS, S.A. | CONTRIBUINTE 500 674 205 | CAPITAL SOCIAL 1.497.000 EUROS | INSC. NA C.R.C. MAIA SOB Nº 500 674 205"
-      ];
-      const pageHeight = doc.internal.pageSize.getHeight();
+    if (payload.origin === "radio_popular" && radioPopularFooter) {
       const leftMargin = 12;
-      const lineHeight = 4;
-      const totalLines = rpText.length;
-      const blockHeight = totalLines * lineHeight;
-      // Assinaturas sobem no layout Rádio Popular; alinhar bloco abaixo delas.
-      const signatureBoxTop = pageHeight - 40 - blockHeight - 42;
-      const signatureBoxBottom = signatureBoxTop + 22;
-      // Bloco Rádio Popular abaixo das assinaturas
-      let y = signatureBoxBottom + 6;
-      // Se não couber, "colar" ao rodapé, mas nunca desenhar acima das assinaturas
-      if (y + blockHeight > pageHeight - 10) {
-        y = Math.max(signatureBoxBottom + 2, pageHeight - 10 - blockHeight);
-      }
-      // Se ainda não couber, reduzir espaçamento ao mínimo possível após assinaturas
-      if (y < signatureBoxBottom + 2) {
-        y = signatureBoxBottom + 2;
-      }
+      let footerY = radioPopularFooter.rpTextStartY;
       doc.setFontSize(7);
       doc.setTextColor(80, 80, 80);
-      for (const line of rpText) {
+      for (const line of radioPopularFooter.rpText) {
         if (line === "") {
-          y += lineHeight;
+          footerY += radioPopularFooter.lineHeight;
         } else {
-          doc.text(line, leftMargin, y, { align: "left" });
-          y += lineHeight;
+          doc.text(line, leftMargin, footerY, { align: "left" });
+          footerY += radioPopularFooter.lineHeight;
         }
       }
       doc.setTextColor(0, 0, 0);
@@ -337,8 +336,8 @@ export class TechnicalReportPdfService {
     // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
     const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
     const isRadioPopular = options?.origin === "radio_popular";
-    // Se Rádio Popular, mover as caixas um pouco mais para cima
-    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40;
+    const boxY = options?.signatureBoxY ??
+      (isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40);
 
     const x = pageWidth - 12 - boxW;
 
@@ -389,8 +388,8 @@ export class TechnicalReportPdfService {
     // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
     const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
     const isRadioPopular = options?.origin === "radio_popular";
-    // Se Rádio Popular, mover as caixas um pouco mais para cima
-    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40;
+    const boxY = options?.signatureBoxY ??
+      (isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40);
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
@@ -485,6 +484,21 @@ export class TechnicalReportPdfService {
       case "radio_popular":
         return "radio-popular-formulario.pdf";
     }
+  }
+
+  private getRadioPopularFooterText(): string[] {
+    return [
+      "Serviço de Apoio ao Cliente RP",
+      "Telefone: 22 040 30 40 (chamada para a rede fixa nacional)",
+      "e-mail: cliente@radiopopular.pt   www.radiopopular.pt",
+      "", // linha em branco
+      "SERVIÇOS CENTRAIS",
+      "Aguda Parque - Largo de Arcozelo, nº 76, Edifício E - 4410-455 Arcozelo, V. N. Gaia",
+      "T. 229 409 600 - F. 229 409 601",
+      "www.radiopopular.pt",
+      "", // linha em branco
+      "RADIO POPULAR ELETRODOMÉSTICOS, S.A. | CONTRIBUINTE 500 674 205 | CAPITAL SOCIAL 1.497.000 EUROS | INSC. NA C.R.C. MAIA SOB Nº 500 674 205",
+    ];
   }
 
   private async resolveHeaderImage(
