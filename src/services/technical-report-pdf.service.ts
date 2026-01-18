@@ -417,7 +417,9 @@ export class TechnicalReportPdfService {
 
   private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
     const pdfTemplateFile = this.getTemplatePdfFile(origin);
-    const pdfUrl = `/assets/technical-report-templates/${pdfTemplateFile}`;
+    const pdfUrl = this.resolveAssetUrl(
+      `assets/technical-report-templates/${pdfTemplateFile}`
+    );
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -442,7 +444,9 @@ export class TechnicalReportPdfService {
         break;
     }
 
-    const pngUrl = `/assets/technical-report-templates/${pngFallback}`;
+    const pngUrl = this.resolveAssetUrl(
+      `assets/technical-report-templates/${pngFallback}`
+    );
     const pngDataUrl = await this.tryLoadImageAsDataUrl(pngUrl);
     if (!pngDataUrl) return;
     this.addImageDataUrl(doc, pngDataUrl, 0, 0, pageWidth, pageHeight);
@@ -466,13 +470,13 @@ export class TechnicalReportPdfService {
     let candidates: string[] | null = null;
     switch (origin) {
       case "worten_verde":
-        candidates = ["/assets/Header_Worten_Green.png"];
+        candidates = ["assets/Header_Worten_Green.png"];
         break;
       case "worten_azul":
-        candidates = ["/assets/Header_Worten_Blue.png"];
+        candidates = ["assets/Header_Worten_Blue.png"];
         break;
       case "radio_popular":
-        candidates = ["/assets/Header_Radio_Popular_Blue.png"];
+        candidates = ["assets/Header_Radio_Popular_Blue.png"];
         break;
       default:
         return null;
@@ -480,7 +484,7 @@ export class TechnicalReportPdfService {
 
     let dataUrl: string | null = null;
     for (const url of candidates) {
-      dataUrl = await this.tryLoadImageAsDataUrl(url);
+      dataUrl = await this.tryLoadImageAsDataUrl(this.resolveAssetUrl(url));
       if (dataUrl) break;
     }
     if (!dataUrl) return null;
@@ -621,6 +625,22 @@ export class TechnicalReportPdfService {
       });
     } catch {
       return null;
+    }
+  }
+
+  private resolveAssetUrl(path: string): string {
+    const trimmed = path.replace(/^\/+/, "");
+    const baseHref =
+      typeof document !== "undefined"
+        ? document.querySelector("base")?.href
+        : undefined;
+    const base =
+      baseHref ||
+      (typeof window !== "undefined" ? `${window.location.origin}/` : "");
+    try {
+      return new URL(trimmed, base).toString();
+    } catch {
+      return path;
     }
   }
 }
