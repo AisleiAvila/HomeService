@@ -625,8 +625,12 @@ export class TechnicalReportPdfService {
     try {
       const resp = await fetch(url);
       if (!resp.ok) return null;
+      const contentType = resp.headers.get("content-type") || "";
+      if (contentType && !contentType.toLowerCase().startsWith("image/")) {
+        return await this.tryLoadImageViaElement(url);
+      }
       const blob = await resp.blob();
-      return await new Promise<string>((resolve, reject) => {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
           if (typeof reader.result === "string") {
@@ -638,32 +642,40 @@ export class TechnicalReportPdfService {
         reader.onerror = () => reject(new Error("Failed to read template"));
         reader.readAsDataURL(blob);
       });
+      if (!dataUrl.startsWith("data:image/")) {
+        return await this.tryLoadImageViaElement(url);
+      }
+      return dataUrl;
     } catch {
-      // Fallback: try loading via Image element (some hosts block fetch for assets)
-      if (globalThis.window === undefined || globalThis.document === undefined) return null;
-      return await new Promise<string | null>((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = img.naturalWidth || img.width;
-            canvas.height = img.naturalHeight || img.height;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) {
-              resolve(null);
-              return;
-            }
-            ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL("image/png"));
-          } catch {
-            resolve(null);
-          }
-        };
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
+      return await this.tryLoadImageViaElement(url);
     }
+  }
+
+  private async tryLoadImageViaElement(url: string): Promise<string | null> {
+    // Fallback: try loading via Image element (some hosts block fetch for assets)
+    if (globalThis.window === undefined || globalThis.document === undefined) return null;
+    return await new Promise<string | null>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
   }
 
   private resolveAssetUrl(path: string): string {
