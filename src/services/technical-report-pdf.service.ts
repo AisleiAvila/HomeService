@@ -193,6 +193,8 @@ export class TechnicalReportPdfService {
       writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
     }
 
+
+    // Desenhar assinaturas primeiro
     this.addClientSignature(doc, {
       clientSignatureDataUrl: options?.clientSignatureDataUrl,
       clientName: options?.clientName,
@@ -204,6 +206,51 @@ export class TechnicalReportPdfService {
       professionalName: options?.professionalName,
       professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
     });
+
+    // Adicionar bloco Rádio Popular abaixo das assinaturas, sem sobreposição
+    if (payload.origin === "radio_popular") {
+      const rpText = [
+        "Serviço de Apoio ao Cliente RP",
+        "Telefone: 22 040 30 40 (chamada para a rede fixa nacional)",
+        "e-mail: cliente@radiopopular.pt   www.radiopopular.pt",
+        "", // linha em branco
+        "SERVIÇOS CENTRAIS",
+        "Aguda Parque - Largo de Arcozelo, nº 76, Edifício E - 4410-455 Arcozelo, V. N. Gaia",
+        "T. 229 409 600 - F. 229 409 601",
+        "www.radiopopular.pt",
+        "", // linha em branco
+        "RADIO POPULAR ELETRODOMÉSTICOS, S.A. | CONTRIBUINTE 500 674 205 | CAPITAL SOCIAL 1.497.000 EUROS | INSC. NA C.R.C. MAIA SOB Nº 500 674 205"
+      ];
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const leftMargin = 12;
+      const lineHeight = 4;
+      const totalLines = rpText.length;
+      const blockHeight = totalLines * lineHeight;
+      // Assinaturas sempre na posição padrão (próximo ao rodapé)
+      const signatureBoxTop = pageHeight - 40;
+      const signatureBoxBottom = signatureBoxTop + 22;
+      // Bloco Rádio Popular abaixo das assinaturas
+      let y = signatureBoxBottom + 6;
+      // Se não couber, "colar" ao rodapé, mas nunca desenhar acima das assinaturas
+      if (y + blockHeight > pageHeight - 10) {
+        y = Math.max(signatureBoxBottom + 2, pageHeight - 10 - blockHeight);
+      }
+      // Se ainda não couber, reduzir espaçamento ao mínimo possível após assinaturas
+      if (y < signatureBoxBottom + 2) {
+        y = signatureBoxBottom + 2;
+      }
+      doc.setFontSize(7);
+      doc.setTextColor(80, 80, 80);
+      for (const line of rpText) {
+        if (line === "") {
+          y += lineHeight;
+        } else {
+          doc.text(line, leftMargin, y, { align: "left" });
+          y += lineHeight;
+        }
+      }
+      doc.setTextColor(0, 0, 0);
+    }
 
     const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
     return { doc, fileName, issuedAt };
@@ -237,7 +284,11 @@ export class TechnicalReportPdfService {
 
     const boxW = 80;
     const boxH = 22;
-    const boxY = pageHeight - 40;
+    // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
+    const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
+    const isRadioPopular = (options as any)?.origin === 'radio_popular';
+    // Se Rádio Popular, mover as caixas mais para cima (ex: 32mm acima do padrão)
+    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 32 : pageHeight - 40;
 
     const x = pageWidth - 12 - boxW;
 
@@ -285,7 +336,11 @@ export class TechnicalReportPdfService {
     const x = 12;
     const boxW = 80;
     const boxH = 22;
-    const boxY = pageHeight - 40;
+    // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
+    const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
+    const isRadioPopular = (options as any)?.origin === 'radio_popular';
+    // Se Rádio Popular, mover as caixas mais para cima (ex: 32mm acima do padrão)
+    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 32 : pageHeight - 40;
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
@@ -313,18 +368,25 @@ export class TechnicalReportPdfService {
     }
   }
 
+  private sanitizeFileName(name: string): string {
+    return name
+      .normalize('NFD')
+      .replace(/[ -\s()]+/g, '_')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^A-Za-z0-9_]/g, '_') // Substitui qualquer coisa que não seja letra, número ou _ por _
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '') // Remove underscores do início/fim
+      .trim();
+  }
+
   private buildFileName(origin: TechnicalReportOriginKey, requestId: number, issuedAt: Date): string {
     const yyyy = issuedAt.getFullYear();
     const mm = String(issuedAt.getMonth() + 1).padStart(2, "0");
     const dd = String(issuedAt.getDate()).padStart(2, "0");
 
-    const originPart = this.getOriginLabel(origin)
-      .replaceAll(/[\s()]+/g, "_")
-      .replaceAll(/_+/g, "_")
-      .replaceAll(/[^A-Za-z0-9_À-ÿ]/g, "")
-      .trim();
-
-    return `Relatorio_${originPart}_${requestId}_${yyyy}${mm}${dd}.pdf`;
+    const originPart = this.getOriginLabel(origin);
+    const rawName = `Relatorio_${originPart}_${requestId}_${yyyy}${mm}${dd}.pdf`;
+    return this.sanitizeFileName(rawName);
   }
 
   private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
