@@ -636,7 +636,30 @@ export class TechnicalReportPdfService {
         reader.readAsDataURL(blob);
       });
     } catch {
-      return null;
+      // Fallback: try loading via Image element (some hosts block fetch for assets)
+      if (globalThis.window === undefined || globalThis.document === undefined) return null;
+      return await new Promise<string | null>((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              resolve(null);
+              return;
+            }
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
     }
   }
 
