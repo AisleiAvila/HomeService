@@ -58,6 +58,8 @@ export interface TechnicalReportPdfOptions {
   clientSignatureDataUrl?: string;
   clientName?: string;
   clientSignedAt?: Date;
+
+  origin?: TechnicalReportOriginKey;
 }
 
 @Injectable({ providedIn: "root" })
@@ -225,12 +227,14 @@ export class TechnicalReportPdfService {
       clientSignatureDataUrl: options?.clientSignatureDataUrl,
       clientName: options?.clientName,
       clientSignedAt: options?.clientSignedAt ?? issuedAt,
+      origin: payload.origin,
     });
 
     this.addProfessionalSignature(doc, {
       professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
       professionalName: options?.professionalName,
       professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
+      origin: payload.origin,
     });
 
     // Adicionar bloco Rádio Popular abaixo das assinaturas, sem sobreposição
@@ -312,9 +316,9 @@ export class TechnicalReportPdfService {
     const boxH = 22;
     // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
     const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
-    const isRadioPopular = (options as any)?.origin === 'radio_popular';
-    // Se Rádio Popular, mover as caixas mais para cima (ex: 32mm acima do padrão)
-    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 32 : pageHeight - 40;
+    const isRadioPopular = options?.origin === "radio_popular";
+    // Se Rádio Popular, mover as caixas um pouco mais para cima
+    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40;
 
     const x = pageWidth - 12 - boxW;
 
@@ -364,9 +368,9 @@ export class TechnicalReportPdfService {
     const boxH = 22;
     // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
     const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
-    const isRadioPopular = (options as any)?.origin === 'radio_popular';
-    // Se Rádio Popular, mover as caixas mais para cima (ex: 32mm acima do padrão)
-    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 32 : pageHeight - 40;
+    const isRadioPopular = options?.origin === "radio_popular";
+    // Se Rádio Popular, mover as caixas um pouco mais para cima
+    const boxY = isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40;
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(8);
