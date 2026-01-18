@@ -417,7 +417,7 @@ export class TechnicalReportPdfService {
 
   private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
     const pdfTemplateFile = this.getTemplatePdfFile(origin);
-    const pdfUrl = `assets/technical-report-templates/${pdfTemplateFile}`;
+    const pdfUrl = `/assets/technical-report-templates/${pdfTemplateFile}`;
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -442,7 +442,7 @@ export class TechnicalReportPdfService {
         break;
     }
 
-    const pngUrl = `assets/technical-report-templates/${pngFallback}`;
+    const pngUrl = `/assets/technical-report-templates/${pngFallback}`;
     const pngDataUrl = await this.tryLoadImageAsDataUrl(pngUrl);
     if (!pngDataUrl) return;
     this.addImageDataUrl(doc, pngDataUrl, 0, 0, pageWidth, pageHeight);
@@ -466,16 +466,13 @@ export class TechnicalReportPdfService {
     let candidates: string[] | null = null;
     switch (origin) {
       case "worten_verde":
-        candidates = ["assets/Header_Worten_Green.png", "src/assets/Header_Worten_Green.png"];
+        candidates = ["/assets/Header_Worten_Green.png"];
         break;
       case "worten_azul":
-        candidates = ["assets/Header_Worten_Blue.png", "src/assets/Header_Worten_Blue.png"];
+        candidates = ["/assets/Header_Worten_Blue.png"];
         break;
       case "radio_popular":
-        candidates = [
-          "assets/Header_Radio_Popular_Blue.png",
-          "src/assets/Header_Radio_Popular_Blue.png",
-        ];
+        candidates = ["/assets/Header_Radio_Popular_Blue.png"];
         break;
       default:
         return null;
