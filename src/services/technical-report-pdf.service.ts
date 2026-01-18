@@ -143,6 +143,26 @@ export class TechnicalReportPdfService {
       y += 6;
     };
 
+    const writeTextArea = (label: string, value: string, heightMm: number) => {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const left = 12;
+      const width = pageWidth - 24;
+
+      doc.setFont(undefined, "bold");
+      doc.text(label, left, y);
+      doc.setFont(undefined, "normal");
+
+      y += 4;
+      doc.setDrawColor(120);
+      doc.rect(left, y, width, heightMm);
+
+      const padding = 2;
+      const lines = doc.splitTextToSize(value || "—", width - padding * 2);
+      doc.text(lines, left + padding, y + 4);
+
+      y += heightMm + 6;
+    };
+
     if (payload.origin === "worten_verde") {
       const d = payload.data;
       writeLabelValue("Processo:", d.process);
@@ -216,9 +236,9 @@ export class TechnicalReportPdfService {
       writeLabelValue("EMAIL:", (request.email_client || "").trim());
 
       writeSectionTitle("DADOS DO SERVIÇO");
-      writeLabelValue("INSTALAÇÃO:", d.installation);
-      writeLabelValue("DESCRIÇÃO DOS TRABALHOS:", d.workDescription);
-      writeLabelValue("SERVIÇOS EXTRAS INSTALADOS:", d.extraServicesInstalled);
+      writeTextArea("Instalação", d.installation, 10);
+      writeTextArea("Descrição dos trabalhos", d.workDescription, 26);
+      writeTextArea("Serviços Extras Realizados", d.extraServicesInstalled, 18);
     }
 
 
