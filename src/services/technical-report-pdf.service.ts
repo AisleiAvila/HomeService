@@ -470,13 +470,25 @@ export class TechnicalReportPdfService {
     let candidates: string[] | null = null;
     switch (origin) {
       case "worten_verde":
-        candidates = ["assets/Header_Worten_Green.png"];
+        candidates = [
+          "/assets/Header_Worten_Green.png",
+          "assets/Header_Worten_Green.png",
+          "src/assets/Header_Worten_Green.png",
+        ];
         break;
       case "worten_azul":
-        candidates = ["assets/Header_Worten_Blue.png"];
+        candidates = [
+          "/assets/Header_Worten_Blue.png",
+          "assets/Header_Worten_Blue.png",
+          "src/assets/Header_Worten_Blue.png",
+        ];
         break;
       case "radio_popular":
-        candidates = ["assets/Header_Radio_Popular_Blue.png"];
+        candidates = [
+          "/assets/Header_Radio_Popular_Blue.png",
+          "assets/Header_Radio_Popular_Blue.png",
+          "src/assets/Header_Radio_Popular_Blue.png",
+        ];
         break;
       default:
         return null;
