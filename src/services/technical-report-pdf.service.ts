@@ -133,6 +133,14 @@ export class TechnicalReportPdfService {
       y += Math.max(6, lines.length * 5);
     };
 
+    const writeSectionTitle = (title: string) => {
+      y += 2;
+      doc.setFont(undefined, "bold");
+      doc.text(title, 12, y);
+      doc.setFont(undefined, "normal");
+      y += 6;
+    };
+
     if (payload.origin === "worten_verde") {
       const d = payload.data;
       writeLabelValue("Processo:", d.process);
@@ -187,7 +195,25 @@ export class TechnicalReportPdfService {
 
     if (payload.origin === "radio_popular") {
       const d = payload.data;
+      const street = (request.street_manual || request.street || "").trim();
+      const streetNumber = (request.street_number || "").trim();
+      const complement = (request.complement || "").trim();
+      const addressParts = [street, streetNumber, complement].filter(Boolean);
+      const addressLine =
+        addressParts.length > 0
+          ? addressParts.join(", ")
+          : (request.client_address || "").trim();
+
+      writeSectionTitle("Dados do cliente");
+      writeLabelValue("Nome:", (request.client_name || "").trim());
       writeLabelValue("Nota Serviço:", d.serviceNote);
+      writeLabelValue("Morada:", addressLine);
+      writeLabelValue("Código Postal:", (request.zip_code || "").trim());
+      writeLabelValue("Localidade:", (request.city || "").trim());
+      writeLabelValue("Tel:", (request.client_phone || "").trim());
+      writeLabelValue("Email:", (request.email_client || "").trim());
+
+      writeSectionTitle("Dados do serviço");
       writeLabelValue("Instalação:", d.installation);
       writeLabelValue("Descrição dos trabalhos:", d.workDescription);
       writeLabelValue("Serviços Extras Instalados:", d.extraServicesInstalled);
