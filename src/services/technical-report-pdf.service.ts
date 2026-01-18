@@ -256,8 +256,8 @@ export class TechnicalReportPdfService {
       const lineHeight = 4;
       const totalLines = rpText.length;
       const blockHeight = totalLines * lineHeight;
-      // Assinaturas sempre na posição padrão (próximo ao rodapé)
-      const signatureBoxTop = pageHeight - 40;
+      // Assinaturas sobem no layout Rádio Popular; alinhar bloco abaixo delas.
+      const signatureBoxTop = pageHeight - 40 - blockHeight - 42;
       const signatureBoxBottom = signatureBoxTop + 22;
       // Bloco Rádio Popular abaixo das assinaturas
       let y = signatureBoxBottom + 6;
