@@ -472,6 +472,7 @@ export class TechnicalReportPdfService {
       case "worten_verde":
         candidates = [
           "/assets/Header_Worten_Green.png",
+          "/src/assets/Header_Worten_Green.png",
           "assets/Header_Worten_Green.png",
           "src/assets/Header_Worten_Green.png",
         ];
@@ -479,6 +480,7 @@ export class TechnicalReportPdfService {
       case "worten_azul":
         candidates = [
           "/assets/Header_Worten_Blue.png",
+          "/src/assets/Header_Worten_Blue.png",
           "assets/Header_Worten_Blue.png",
           "src/assets/Header_Worten_Blue.png",
         ];
@@ -486,6 +488,7 @@ export class TechnicalReportPdfService {
       case "radio_popular":
         candidates = [
           "/assets/Header_Radio_Popular_Blue.png",
+          "/src/assets/Header_Radio_Popular_Blue.png",
           "assets/Header_Radio_Popular_Blue.png",
           "src/assets/Header_Radio_Popular_Blue.png",
         ];
