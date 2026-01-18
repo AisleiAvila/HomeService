@@ -286,8 +286,8 @@ export class TechnicalReportPdfService {
     const signatureDataUrl = options.professionalSignatureDataUrl?.trim();
     if (!signatureDataUrl) return;
 
-    // Canvas is expected to be PNG.
-    if (!signatureDataUrl.startsWith("data:image/png;base64,")) {
+    // Canvas is expected to be PNG, but accept other image types defensively.
+    if (!signatureDataUrl.startsWith("data:image/")) {
       throw new Error("Assinatura inválida (formato não suportado). Use PNG.");
     }
 
@@ -332,14 +332,14 @@ export class TechnicalReportPdfService {
     doc.rect(x, boxY, boxW, boxH);
 
     // Add the signature image inside the box.
-    doc.addImage(signatureDataUrl, "PNG", x + 2, boxY + 2, boxW - 4, boxH - 4, undefined, "FAST");
+    this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
   }
 
   private addClientSignature(doc: any, options: TechnicalReportPdfOptions): void {
     const signatureDataUrl = options.clientSignatureDataUrl?.trim();
     if (!signatureDataUrl) return;
 
-    if (!signatureDataUrl.startsWith("data:image/png;base64,")) {
+    if (!signatureDataUrl.startsWith("data:image/")) {
       throw new Error("Assinatura do cliente inválida (formato não suportado). Use PNG.");
     }
 
@@ -380,7 +380,7 @@ export class TechnicalReportPdfService {
 
     doc.setDrawColor(180);
     doc.rect(x, boxY, boxW, boxH);
-    doc.addImage(signatureDataUrl, "PNG", x + 2, boxY + 2, boxW - 4, boxH - 4, undefined, "FAST");
+    this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
   }
 
   private getOriginLabel(origin: TechnicalReportOriginKey): string {
@@ -424,7 +424,7 @@ export class TechnicalReportPdfService {
 
     const pdfAsPngDataUrl = await this.tryRenderPdfFirstPageAsPngDataUrl(pdfUrl);
     if (pdfAsPngDataUrl) {
-      doc.addImage(pdfAsPngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+      this.addImageDataUrl(doc, pdfAsPngDataUrl, 0, 0, pageWidth, pageHeight);
       return;
     }
 
@@ -445,7 +445,7 @@ export class TechnicalReportPdfService {
     const pngUrl = `assets/technical-report-templates/${pngFallback}`;
     const pngDataUrl = await this.tryLoadImageAsDataUrl(pngUrl);
     if (!pngDataUrl) return;
-    doc.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+    this.addImageDataUrl(doc, pngDataUrl, 0, 0, pageWidth, pageHeight);
   }
 
   private getTemplatePdfFile(origin: TechnicalReportOriginKey): string {
@@ -508,7 +508,26 @@ export class TechnicalReportPdfService {
 
   private drawHeaderImage(doc: any, header: { dataUrl: string; heightMm: number }): void {
     const pageWidth = doc.internal.pageSize.getWidth();
-    doc.addImage(header.dataUrl, "PNG", 0, 0, pageWidth, header.heightMm);
+    this.addImageDataUrl(doc, header.dataUrl, 0, 0, pageWidth, header.heightMm);
+  }
+
+  private addImageDataUrl(
+    doc: any,
+    dataUrl: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ): void {
+    const format = this.getImageFormatFromDataUrl(dataUrl);
+    doc.addImage(dataUrl, format, x, y, width, height, undefined, "FAST");
+  }
+
+  private getImageFormatFromDataUrl(dataUrl: string): "PNG" | "JPEG" {
+    const match = /^data:image\/(png|jpe?g)/i.exec(dataUrl);
+    if (!match) return "PNG";
+    const raw = match[1].toLowerCase();
+    return raw === "png" ? "PNG" : "JPEG";
   }
 
   private async tryRenderPdfFirstPageAsPngDataUrl(url: string): Promise<string | null> {
