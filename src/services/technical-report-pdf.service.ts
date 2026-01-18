@@ -519,15 +519,45 @@ export class TechnicalReportPdfService {
     width: number,
     height: number
   ): void {
-    const format = this.getImageFormatFromDataUrl(dataUrl);
-    doc.addImage(dataUrl, format, x, y, width, height, undefined, "FAST");
+    const base64 = this.getBase64FromDataUrl(dataUrl);
+    if (!base64) return;
+
+    const format = this.getImageFormatFromDataUrl(dataUrl, base64);
+    try {
+      doc.addImage(dataUrl, format, x, y, width, height, undefined, "FAST");
+    } catch (error) {
+      if (format === "PNG") {
+        try {
+          doc.addImage(dataUrl, "JPEG", x, y, width, height, undefined, "FAST");
+          return;
+        } catch {
+          // ignore and surface original error below
+        }
+      }
+      throw error;
+    }
   }
 
-  private getImageFormatFromDataUrl(dataUrl: string): "PNG" | "JPEG" {
+  private getImageFormatFromDataUrl(
+    dataUrl: string,
+    base64?: string
+  ): "PNG" | "JPEG" {
+    const trimmed = (base64 || this.getBase64FromDataUrl(dataUrl) || "").trim();
+    if (trimmed.startsWith("iVBORw0KGgo")) return "PNG";
+    if (trimmed.startsWith("/9j/")) return "JPEG";
+
     const match = /^data:image\/(png|jpe?g)/i.exec(dataUrl);
     if (!match) return "PNG";
     const raw = match[1].toLowerCase();
     return raw === "png" ? "PNG" : "JPEG";
+  }
+
+  private getBase64FromDataUrl(dataUrl: string): string | null {
+    if (!dataUrl.startsWith("data:image/")) return null;
+    const commaIndex = dataUrl.indexOf(",");
+    if (commaIndex < 0) return null;
+    const base64 = dataUrl.slice(commaIndex + 1).trim();
+    return base64.length > 0 ? base64 : null;
   }
 
   private async tryRenderPdfFirstPageAsPngDataUrl(url: string): Promise<string | null> {
