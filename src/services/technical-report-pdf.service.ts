@@ -1,4 +1,3 @@
-
 import { Injectable } from "@angular/core";
 import type { ServiceRequest } from "../models/maintenance.models";
 
@@ -304,10 +303,12 @@ export class TechnicalReportPdfService {
       const boxSize = 4;
       const gap = 6;
       tiposServico.forEach((tipo, idx) => {
+        doc.setFont(undefined, "bold");
         doc.text(tipo.label, xCheckbox, dadosClienteY);
         if (tipo.checkbox) {
           const boxX = xCheckbox + doc.getTextWidth(tipo.label) + 2;
           doc.setDrawColor(0, 128, 0); // Verde
+          doc.setFont(undefined, "bold");
           doc.rect(boxX, dadosClienteY - boxSize + 2, boxSize, boxSize);
           if (d.serviceType && d.serviceType.includes(tipo.key)) {
             doc.setLineWidth(0.7);
@@ -319,6 +320,7 @@ export class TechnicalReportPdfService {
           xCheckbox = xCheckbox + doc.getTextWidth(tipo.label) + gap + 2;
         }
       });
+      doc.setFont(undefined, "normal");
       dadosClienteY += dadosClienteLineHeight;
 
       // Moldura dos dados do cliente
@@ -326,14 +328,13 @@ export class TechnicalReportPdfService {
       doc.setDrawColor(0, 128, 0);
       doc.setLineWidth(0.7);
       doc.rect(dadosClienteLeft, dadosClienteTop, dadosClienteWidth, dadosClienteBoxHeight, 'S');
-      y = dadosClienteTop + dadosClienteBoxHeight + 4;
+      y = dadosClienteTop + dadosClienteBoxHeight + 8; // Espaço maior acima do título
 
       // --- INTERVENÇÃO ---
       doc.setFontSize(13);
       doc.setTextColor(0, 128, 0);
       doc.text("Intervenção", 12, y);
-      // Linha em branco extra
-      y += 6;
+      y += 2; // Espaço menor abaixo do título
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
       y += 6;
@@ -396,6 +397,7 @@ export class TechnicalReportPdfService {
         doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
         doc.line(intervencaoLeft + 94, intervencaoY - 4, intervencaoLeft + 90, intervencaoY);
       }
+      doc.setFont(undefined, "normal");
       intervencaoY += intervencaoLineHeight;
       // Linha 5: Artigo levantado oficina
       doc.setFont(undefined, "bold");
@@ -417,6 +419,7 @@ export class TechnicalReportPdfService {
         doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
         doc.line(intervencaoLeft + 94, intervencaoY - 4, intervencaoLeft + 90, intervencaoY);
       }
+      doc.setFont(undefined, "normal");
       intervencaoY += intervencaoLineHeight;
       // Linha 6: Observações Técnicas
       doc.setFont(undefined, "bold");
