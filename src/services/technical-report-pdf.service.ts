@@ -480,21 +480,29 @@ export class TechnicalReportPdfService {
       y = materialBoxTop + materialBoxHeight;
 
       // Exibir Comentários/Sugestões do Cliente após a lista de materiais, com quebra de linha
-      if (d.clientComments && d.clientComments.trim().length > 0) {
-          // DEBUG: Verificar comentários do cliente antes de renderizar
-          console.log('PDF - Comentários do cliente recebidos:', d.clientComments);
-
       // Bloco Comentários/Sugestões do Cliente SEMPRE aparece
-      y += 6;
+      y += 12;
+      // Título Comentários/Sugestões do Cliente (modelo Intervenção)
+      const comentariosBoxTop = y + 2;
+      const comentariosBoxLeft = 12;
+      const comentariosBoxWidth = doc.internal.pageSize.getWidth() - 24;
+      const comentariosLineHeight = 7;
       const commentText = d.clientComments && d.clientComments.trim().length > 0 ? d.clientComments : "—";
       const commentLines = doc.splitTextToSize(commentText, 180);
-      const comentariosBlockHeight = 10 + Math.max(6, commentLines.length * 5);
-      doc.setFont(undefined, "bold");
-      doc.text("Comentários/Sugestões do Cliente:", 12, y);
+      // Altura dinâmica do bloco
+      const comentariosBoxHeight = Math.max(18, commentLines.length * comentariosLineHeight + 16);
+      doc.setFontSize(13);
+      doc.setTextColor(0, 128, 0);
+      doc.text("Comentários/Sugestões do Cliente", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+      doc.setDrawColor(0, 128, 0);
+      doc.setLineWidth(0.7);
+      doc.rect(comentariosBoxLeft, comentariosBoxTop, comentariosBoxWidth, comentariosBoxHeight, 'S');
+      let comentariosY = comentariosBoxTop + 8;
       doc.setFont(undefined, "normal");
-      y += 2;
-      doc.text(commentLines, 15, y + 4);
-    y += Math.max(6, commentLines.length * 5);
+      doc.text(commentLines, comentariosBoxLeft + 3, comentariosY);
+    y = comentariosBoxTop + comentariosBoxHeight + 4;
     }
 
     // Desenhar assinaturas para worten_verde
@@ -515,7 +523,6 @@ export class TechnicalReportPdfService {
       // Fim do bloco if (payload.origin === "worten_verde")
     }
   }
-}
 
   private addProfessionalSignature(doc: any, options: TechnicalReportPdfOptions): void {
     const signatureDataUrl = options.professionalSignatureDataUrl?.trim();
