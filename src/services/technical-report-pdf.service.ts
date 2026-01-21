@@ -307,6 +307,7 @@ export class TechnicalReportPdfService {
         doc.text(tipo.label, xCheckbox, dadosClienteY);
         if (tipo.checkbox) {
           const boxX = xCheckbox + doc.getTextWidth(tipo.label) + 2;
+          doc.setDrawColor(0, 128, 0); // Verde
           doc.rect(boxX, dadosClienteY - boxSize + 2, boxSize, boxSize);
           if (d.serviceType && d.serviceType.includes(tipo.key)) {
             doc.setLineWidth(0.7);
@@ -331,6 +332,8 @@ export class TechnicalReportPdfService {
       doc.setFontSize(13);
       doc.setTextColor(0, 128, 0);
       doc.text("Intervenção", 12, y);
+      // Linha em branco extra
+      y += 6;
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
       y += 6;
@@ -378,22 +381,42 @@ export class TechnicalReportPdfService {
       doc.text("Artigo antigo recolhido:", intervencaoLeft + 3, intervencaoY);
       doc.setFont(undefined, "normal");
       doc.text("Sim", intervencaoLeft + 60, intervencaoY);
+      doc.setDrawColor(0, 128, 0); // Verde
       doc.rect(intervencaoLeft + 70, intervencaoY - 4, 4, 4);
-      if (d.oldItemCollected) doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+      if (d.oldItemCollected) {
+        doc.setLineWidth(0.7);
+        doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+        doc.line(intervencaoLeft + 74, intervencaoY - 4, intervencaoLeft + 70, intervencaoY);
+      }
       doc.text("Não", intervencaoLeft + 80, intervencaoY);
+      doc.setDrawColor(0, 128, 0); // Verde
       doc.rect(intervencaoLeft + 90, intervencaoY - 4, 4, 4);
-      if (!d.oldItemCollected) doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+      if (!d.oldItemCollected) {
+        doc.setLineWidth(0.7);
+        doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+        doc.line(intervencaoLeft + 94, intervencaoY - 4, intervencaoLeft + 90, intervencaoY);
+      }
       intervencaoY += intervencaoLineHeight;
       // Linha 5: Artigo levantado oficina
       doc.setFont(undefined, "bold");
       doc.text("Artigo levantado oficina:", intervencaoLeft + 3, intervencaoY);
       doc.setFont(undefined, "normal");
       doc.text("Sim", intervencaoLeft + 60, intervencaoY);
+      doc.setDrawColor(0, 128, 0); // Verde
       doc.rect(intervencaoLeft + 70, intervencaoY - 4, 4, 4);
-      if (d.itemPickedUpAtWorkshop) doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+      if (d.itemPickedUpAtWorkshop) {
+        doc.setLineWidth(0.7);
+        doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+        doc.line(intervencaoLeft + 74, intervencaoY - 4, intervencaoLeft + 70, intervencaoY);
+      }
       doc.text("Não", intervencaoLeft + 80, intervencaoY);
+      doc.setDrawColor(0, 128, 0); // Verde
       doc.rect(intervencaoLeft + 90, intervencaoY - 4, 4, 4);
-      if (!d.itemPickedUpAtWorkshop) doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+      if (!d.itemPickedUpAtWorkshop) {
+        doc.setLineWidth(0.7);
+        doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+        doc.line(intervencaoLeft + 94, intervencaoY - 4, intervencaoLeft + 90, intervencaoY);
+      }
       intervencaoY += intervencaoLineHeight;
       // Linha 6: Observações Técnicas
       doc.setFont(undefined, "bold");
