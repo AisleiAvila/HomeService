@@ -128,20 +128,22 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
 
   // Worten Verde
   verdeProcess = signal("");
-  verdeServiceType = signal<
-    | "Instalação"
-    | "Reparação"
-    | "Garantia"
-    | "Extensão de Garantia"
-    | "Orçamento"
-    | "SAT24"
-  >("Instalação");
+  verdeServiceType = signal<string[]>([]);
+    onVerdeServiceTypeChange(type: string, checked: boolean) {
+      const current = this.verdeServiceType();
+      if (checked && !current.includes(type)) {
+        this.verdeServiceType.set([...current, type]);
+      } else if (!checked && current.includes(type)) {
+        this.verdeServiceType.set(current.filter(t => t !== type));
+      }
+    }
   verdeTypology = signal("");
   verdeBrand = signal("");
   verdeModel = signal("");
   verdeSerialNumber = signal("");
   verdeProductCode = signal("");
   verdeReportedFailure = signal("");
+  verdeClientComments = signal("");
   verdeOldItemCollected = signal(false);
   verdeItemPickedUpAtWorkshop = signal(false);
   verdeTechnicalNotes = signal("");
@@ -608,6 +610,7 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
             serialNumber: this.verdeSerialNumber(),
             productCode: this.verdeProductCode(),
             reportedFailure: this.verdeReportedFailure(),
+            clientComments: this.verdeClientComments(),
             oldItemCollected: this.verdeOldItemCollected(),
             itemPickedUpAtWorkshop: this.verdeItemPickedUpAtWorkshop(),
             technicalNotes: this.verdeTechnicalNotes(),

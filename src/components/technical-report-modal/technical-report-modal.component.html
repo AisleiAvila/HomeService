@@ -69,17 +69,37 @@
           </div>
 
           <div>
-            <label for="verdeServiceType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Serviço *</label>
-            <select class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeServiceType"
-              [ngModel]="verdeServiceType()" (ngModelChange)="verdeServiceType.set($event)">
-              <option value="Instalação">Instalação</option>
-              <option value="Reparação">Reparação</option>
-              <option value="Garantia">Garantia</option>
-              <option value="Extensão de Garantia">Extensão de Garantia</option>
-              <option value="Orçamento">Orçamento</option>
-              <option value="SAT24">SAT24</option>
-            </select>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Serviço *</label>
+            <div class="space-y-1">
+              <label class="flex items-center gap-2">
+                <input type="checkbox" [checked]="verdeServiceType().includes('Instalação')"
+                  (change)="onVerdeServiceTypeChange('Instalação', $event.target.checked)" />
+                Instalação
+              </label>
+              <label class="font-semibold mt-2">Reparação:</label>
+              <div class="pl-4 space-y-1">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [checked]="verdeServiceType().includes('Garantia')"
+                    (change)="onVerdeServiceTypeChange('Garantia', $event.target.checked)" />
+                  Garantia
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [checked]="verdeServiceType().includes('Extensão de Garantia')"
+                    (change)="onVerdeServiceTypeChange('Extensão de Garantia', $event.target.checked)" />
+                  Extensão de Garantia
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [checked]="verdeServiceType().includes('Orçamento')"
+                    (change)="onVerdeServiceTypeChange('Orçamento', $event.target.checked)" />
+                  Orçamento
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [checked]="verdeServiceType().includes('SAT24')"
+                    (change)="onVerdeServiceTypeChange('SAT24', $event.target.checked)" />
+                  SAT24
+                </label>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -118,12 +138,18 @@
           </div>
         </div>
 
-        <div>
-          <label for="verdeReportedFailure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avaria Reportada *</label>
-          <textarea rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-            id="verdeReportedFailure"
-            [ngModel]="verdeReportedFailure()" (ngModelChange)="verdeReportedFailure.set($event)"></textarea>
-        </div>
+          <div>
+            <label for="verdeReportedFailure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avaria Reportada</label>
+            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeReportedFailure"
+              [ngModel]="verdeReportedFailure()" (ngModelChange)="verdeReportedFailure.set($event)" />
+          </div>
+          <div>
+            <label for="verdeClientComments" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comentários/Sugestões do Cliente</label>
+            <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeClientComments"
+              [ngModel]="verdeClientComments()" (ngModelChange)="verdeClientComments.set($event)"></textarea>
+          </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">

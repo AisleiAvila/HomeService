@@ -1,3 +1,4 @@
+
 import { Injectable } from "@angular/core";
 import type { ServiceRequest } from "../models/maintenance.models";
 
@@ -13,19 +14,14 @@ export interface WortenVerdeMaterialItem {
 
 export interface WortenVerdeReportData {
   process: string;
-  serviceType:
-    | "Instalação"
-    | "Reparação"
-    | "Garantia"
-    | "Extensão de Garantia"
-    | "Orçamento"
-    | "SAT24";
+  serviceType: string[];
   typology: string;
   brand: string;
   model: string;
   serialNumber: string;
   productCode: string;
   reportedFailure: string;
+  clientComments: string;
   oldItemCollected: boolean;
   itemPickedUpAtWorkshop: boolean;
   technicalNotes: string;
@@ -89,6 +85,7 @@ export class TechnicalReportPdfService {
     payload: TechnicalReportData,
     options?: TechnicalReportPdfOptions
   ): Promise<{ doc: any; fileName: string; issuedAt: Date }> {
+
     const [{ jsPDF }, autoTableModule] = await Promise.all([
       import("jspdf"),
       import("jspdf-autotable"),
@@ -116,18 +113,12 @@ export class TechnicalReportPdfService {
     const headerBaseY = header ? header.heightMm + 6 : 16;
 
     // Fallback/simple layout (also overlays on top of template backgrounds)
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(14);
-    doc.text("Relatório Técnico", 12, headerBaseY);
-
-    doc.setFontSize(9);
-    doc.text(`Origem: ${originLabel}`, 12, headerBaseY + 6);
-    doc.text(`Serviço ID: ${String(request.id)}`, 12, headerBaseY + 11);
-    doc.text(`Data: ${issuedAt.toLocaleDateString("pt-PT")}`, 12, headerBaseY + 16);
-
-    let y = Math.max(40, headerBaseY + 24);
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = Math.max(40, headerBaseY + 0);
 
     const writeLabelValue = (label: string, value: string) => {
+      // Adjust the vertical position for the next line
+      y += 6;
       doc.setFont(undefined, "bold");
       doc.text(label, 12, y);
       doc.setFont(undefined, "normal");
@@ -166,144 +157,232 @@ export class TechnicalReportPdfService {
 
     if (payload.origin === "worten_verde") {
       const d = payload.data;
-      writeLabelValue("Processo:", d.process);
-      writeLabelValue("Tipo de Serviço:", d.serviceType);
-      writeLabelValue("Tipologia:", d.typology);
-      writeLabelValue("Marca:", d.brand);
-      writeLabelValue("Modelo:", d.model);
-      writeLabelValue("Número de Série:", d.serialNumber);
-      writeLabelValue("Código do Produto:", d.productCode);
-      writeLabelValue("Avaria Reportada:", d.reportedFailure);
-      writeLabelValue("Artigo antigo recolhido?:", d.oldItemCollected ? "Sim" : "Não");
-      writeLabelValue("Artigo levantado oficina?:", d.itemPickedUpAtWorkshop ? "Sim" : "Não");
-      writeLabelValue("Observações técnicas:", d.technicalNotes);
+      // --- DADOS CLIENTE ---
+      y = headerBaseY + 2;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 128, 0);
+      doc.text("Dados Cliente", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+      y += 6;
+      const dadosClienteLeft = 12;
+      const dadosClienteTop = y;
+      const dadosClienteWidth = doc.internal.pageSize.getWidth() - 24;
+      const dadosClienteLineHeight = 7;
+      let dadosClienteY = dadosClienteTop + 8;
+      // Campos do cliente
+      doc.setFont(undefined, "bold");
+      doc.text("Processo:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.process || "—", dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.text("Tipo de Serviço:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text((d.serviceType && d.serviceType.length > 0 ? d.serviceType.join(", ") : "—"), dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.text("Nome do Cliente:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text(request.client_name || "—", dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.text("Morada:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text(request.client_address || "—", dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.text("Código Postal:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      // Extrair código postal do endereço, se possível
+      let postalCode = "—";
+      if (request.client_address) {
+        const match = request.client_address.match(/(\d{4}-\d{3})/);
+        if (match) postalCode = match[1];
+      }
+      doc.text(postalCode, dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      doc.setFont(undefined, "bold");
+      doc.text("Localidade:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      // Extrair localidade do endereço, se possível
+      let locality = "—";
+      if (request.client_address) {
+        const parts = request.client_address.split(",");
+        if (parts.length > 1) locality = parts[parts.length - 1].trim();
+      }
+      doc.text(locality, dadosClienteLeft + 30, dadosClienteY);
+      dadosClienteY += dadosClienteLineHeight;
+      // Moldura dos dados do cliente
+      const dadosClienteBoxHeight = dadosClienteY - dadosClienteTop + 4;
+      doc.setDrawColor(0, 128, 0);
+      doc.setLineWidth(0.7);
+      doc.rect(dadosClienteLeft, dadosClienteTop, dadosClienteWidth, dadosClienteBoxHeight, 'S');
+      y = dadosClienteTop + dadosClienteBoxHeight + 4;
+
+      // --- INTERVENÇÃO ---
+      doc.setFontSize(13);
+      doc.setTextColor(0, 128, 0);
+      doc.text("Intervenção", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+      y += 6;
+      const intervencaoTop = y;
+      const intervencaoLeft = 12;
+      const intervencaoWidth = doc.internal.pageSize.getWidth() - 24;
+      const intervencaoLineHeight = 7;
+      let intervencaoY = intervencaoTop + 8;
+      let obsWidth = 120;
+      let obsText = d.technicalNotes || "—";
+      let obsLines = doc.splitTextToSize(obsText, obsWidth);
+      let obsHeight = obsLines.length * intervencaoLineHeight;
+      // Linha 1: Tipologia | Marca
+      doc.setFont(undefined, "bold");
+      doc.text("Tipologia:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.typology || "—", intervencaoLeft + 30, intervencaoY);
+      doc.setFont(undefined, "bold");
+      doc.text("Marca:", intervencaoLeft + 90, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.brand || "—", intervencaoLeft + 115, intervencaoY);
+      intervencaoY += intervencaoLineHeight;
+      // Linha 2: Modelo | Nº de Série
+      doc.setFont(undefined, "bold");
+      doc.text("Modelo:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.model || "—", intervencaoLeft + 30, intervencaoY);
+      doc.setFont(undefined, "bold");
+      doc.text("Nº de Série:", intervencaoLeft + 90, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.serialNumber || "—", intervencaoLeft + 115, intervencaoY);
+      intervencaoY += intervencaoLineHeight;
+      // Linha 3: Código do Produto | Avaria Reportada
+      doc.setFont(undefined, "bold");
+      doc.text("Código do Produto:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.productCode || "—", intervencaoLeft + 45, intervencaoY);
+      doc.setFont(undefined, "bold");
+      doc.text("Avaria Reportada:", intervencaoLeft + 90, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(d.reportedFailure || "—", intervencaoLeft + 125, intervencaoY);
+      intervencaoY += intervencaoLineHeight;
+      // Linha 4: Artigo antigo recolhido
+      doc.setFont(undefined, "bold");
+      doc.text("Artigo antigo recolhido:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text("Sim", intervencaoLeft + 60, intervencaoY);
+      doc.rect(intervencaoLeft + 70, intervencaoY - 4, 4, 4);
+      if (d.oldItemCollected) doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+      doc.text("Não", intervencaoLeft + 80, intervencaoY);
+      doc.rect(intervencaoLeft + 90, intervencaoY - 4, 4, 4);
+      if (!d.oldItemCollected) doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+      intervencaoY += intervencaoLineHeight;
+      // Linha 5: Artigo levantado oficina
+      doc.setFont(undefined, "bold");
+      doc.text("Artigo levantado oficina:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text("Sim", intervencaoLeft + 60, intervencaoY);
+      doc.rect(intervencaoLeft + 70, intervencaoY - 4, 4, 4);
+      if (d.itemPickedUpAtWorkshop) doc.line(intervencaoLeft + 70, intervencaoY - 4, intervencaoLeft + 74, intervencaoY);
+      doc.text("Não", intervencaoLeft + 80, intervencaoY);
+      doc.rect(intervencaoLeft + 90, intervencaoY - 4, 4, 4);
+      if (!d.itemPickedUpAtWorkshop) doc.line(intervencaoLeft + 90, intervencaoY - 4, intervencaoLeft + 94, intervencaoY);
+      intervencaoY += intervencaoLineHeight;
+      // Linha 6: Observações Técnicas
+      doc.setFont(undefined, "bold");
+      doc.text("Observações Técnicas:", intervencaoLeft + 3, intervencaoY);
+      doc.setFont(undefined, "normal");
+      doc.text(obsLines, intervencaoLeft + 50, intervencaoY);
+      intervencaoY += obsHeight;
+      // Moldura da intervenção
+      const intervencaoBoxHeight = intervencaoY - intervencaoTop + 4;
+      doc.setDrawColor(0, 128, 0);
+      doc.setLineWidth(0.7);
+      doc.rect(intervencaoLeft, intervencaoTop, intervencaoWidth, intervencaoBoxHeight, 'S');
+      y = intervencaoTop + intervencaoBoxHeight + 4;
 
       if (d.materials.length > 0) {
-        y += 2;
-        doc.setFont(undefined, "bold");
-        doc.text("Material", 12, y);
-        doc.setFont(undefined, "normal");
-        y += 3;
-
-        const marginTop = header ? Math.max(header.heightMm + 8, 10) : 10;
-
-        autoTable(doc, {
-          startY: y,
-          head: [["Descrição", "Total c/ IVA"]],
-          body: d.materials.map((m) => [
-            m.description || "",
+          // DEBUG: Verificar materiais antes de renderizar
+          console.log('PDF - Materiais recebidos:', d.materials);
+      // Bloco Material SEMPRE aparece, mesmo sem materiais
+      y += 12;
+      // Calcular altura estimada do bloco Materiais
+      const materialBoxTop = y + 2;
+      const materialBoxLeft = 12;
+      const materialBoxWidth = doc.internal.pageSize.getWidth() - 24;
+      const materialLineHeight = 7;
+      const materialRows = Math.max(1, d.materials.length);
+      const materialBoxHeight = (materialRows + 1) * materialLineHeight + 12;
+      const materiaisBlockHeight = materialBoxHeight + 18;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 128, 0);
+      doc.text("Material", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+      doc.setDrawColor(0, 128, 0);
+      doc.setLineWidth(0.7);
+      doc.rect(materialBoxLeft, materialBoxTop, materialBoxWidth, materialBoxHeight, 'S');
+      let materialY = materialBoxTop + 8;
+      doc.setFont(undefined, "bold");
+      doc.text("Descrição", materialBoxLeft + 3, materialY);
+      doc.text("Total c/ IVA", materialBoxLeft + materialBoxWidth - 45, materialY);
+      doc.setFont(undefined, "normal");
+      materialY += materialLineHeight;
+      if (d.materials.length > 0) {
+        d.materials.forEach((m) => {
+          doc.text(m.description || "—", materialBoxLeft + 3, materialY);
+          doc.text(
             m.totalWithVat !== null && m.totalWithVat !== undefined
-              ? new Intl.NumberFormat("pt-PT", {
-                  style: "currency",
-                  currency: "EUR",
-                }).format(m.totalWithVat)
-              : "",
-          ]),
-          margin: { left: 12, right: 12, top: marginTop, bottom: 14 },
-          styles: { fontSize: 9, cellPadding: 2 },
-          headStyles: { fillColor: [245, 245, 245], textColor: 0 },
-          didDrawPage: () => {
-            if (header) this.drawHeaderImage(doc, header);
-          },
+              ? new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(m.totalWithVat)
+              : "—",
+            materialBoxLeft + materialBoxWidth - 45,
+            materialY
+          );
+          materialY += materialLineHeight;
         });
+      } else {
+        doc.text("—", materialBoxLeft + 3, materialY);
+        doc.text("—", materialBoxLeft + materialBoxWidth - 45, materialY);
       }
+      y = materialBoxTop + materialBoxHeight;
+
+      // Exibir Comentários/Sugestões do Cliente após a lista de materiais, com quebra de linha
+      if (d.clientComments && d.clientComments.trim().length > 0) {
+          // DEBUG: Verificar comentários do cliente antes de renderizar
+          console.log('PDF - Comentários do cliente recebidos:', d.clientComments);
+
+      // Bloco Comentários/Sugestões do Cliente SEMPRE aparece
+      y += 6;
+      const commentText = d.clientComments && d.clientComments.trim().length > 0 ? d.clientComments : "—";
+      const commentLines = doc.splitTextToSize(commentText, 180);
+      const comentariosBlockHeight = 10 + Math.max(6, commentLines.length * 5);
+      doc.setFont(undefined, "bold");
+      doc.text("Comentários/Sugestões do Cliente:", 12, y);
+      doc.setFont(undefined, "normal");
+      y += 2;
+      doc.text(commentLines, 15, y + 4);
+    y += Math.max(6, commentLines.length * 5);
     }
 
-    if (payload.origin === "worten_azul") {
-      const d = payload.data;
-      writeLabelValue("Número da Fatura:", d.invoiceNumber);
-      writeLabelValue("Número do Serviço:", d.serviceNumber);
-      writeLabelValue("Relatório Técnico / Observações:", d.reportNotes);
-    }
+    // Desenhar assinaturas para worten_verde
 
-    if (payload.origin === "radio_popular") {
-      const d = payload.data;
-      const street = (request.street_manual || request.street || "").trim();
-      const streetNumber = (request.street_number || "").trim();
-      const complement = (request.complement || "").trim();
-      const addressParts = [street, streetNumber, complement].filter(Boolean);
-      const addressLine =
-        addressParts.length > 0
-          ? addressParts.join(", ")
-          : (request.client_address || "").trim();
-
-      writeSectionTitle("DADOS DO CLIENTE");
-      writeLabelValue("NOME:", (request.client_name || "").trim());
-      writeLabelValue("NOTA SERVIÇO:", d.serviceNote);
-      writeLabelValue("MORADA:", addressLine);
-      writeLabelValue("CÓDIGO POSTAL:", (request.zip_code || "").trim());
-      writeLabelValue("LOCALIDADE:", (request.city || "").trim());
-      writeLabelValue("TEL:", (request.client_phone || "").trim());
-      writeLabelValue("EMAIL:", (request.email_client || "").trim());
-
-      writeSectionTitle("DADOS DO SERVIÇO");
-      writeTextArea("Instalação", d.installation, 10);
-      writeTextArea("Descrição dos trabalhos", d.workDescription, 26);
-      writeTextArea("Serviços Extras Realizados", d.extraServicesInstalled, 18);
-    }
-
-
-    let radioPopularFooter:
-      | { rpText: string[]; lineHeight: number; rpTextStartY: number; signatureBoxY: number }
-      | null = null;
-
-    if (payload.origin === "radio_popular") {
-      const rpText = this.getRadioPopularFooterText();
-      const lineHeight = 4;
-      const rpBlockHeight = rpText.length * lineHeight;
-      const signatureBlockHeight = 32; // 22mm box + 10mm labels
-      const gap = 6;
-      const marginBottom = 10;
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const requiredHeight = rpBlockHeight + gap + signatureBlockHeight;
-
-      if (y + requiredHeight > pageHeight - marginBottom) {
-        doc.addPage();
-        if (header) this.drawHeaderImage(doc, header);
-      }
-
-      const rpTextStartY = pageHeight - marginBottom - rpBlockHeight;
-      const signatureBoxY = rpTextStartY - gap - 22;
-      radioPopularFooter = { rpText, lineHeight, rpTextStartY, signatureBoxY };
-    }
-
-    // Desenhar assinaturas primeiro
     this.addClientSignature(doc, {
       clientSignatureDataUrl: options?.clientSignatureDataUrl,
       clientName: options?.clientName,
       clientSignedAt: options?.clientSignedAt ?? issuedAt,
-      origin: payload.origin,
-      signatureBoxY: radioPopularFooter?.signatureBoxY,
     });
 
     this.addProfessionalSignature(doc, {
       professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
       professionalName: options?.professionalName,
       professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
-      origin: payload.origin,
-      signatureBoxY: radioPopularFooter?.signatureBoxY,
     });
-
-    // Adicionar bloco Rádio Popular abaixo das assinaturas, sem sobreposição
-    if (payload.origin === "radio_popular" && radioPopularFooter) {
-      const leftMargin = 12;
-      let footerY = radioPopularFooter.rpTextStartY;
-      doc.setFontSize(7);
-      doc.setTextColor(80, 80, 80);
-      for (const line of radioPopularFooter.rpText) {
-        if (line === "") {
-          footerY += radioPopularFooter.lineHeight;
-        } else {
-          doc.text(line, leftMargin, footerY, { align: "left" });
-          footerY += radioPopularFooter.lineHeight;
-        }
-      }
-      doc.setTextColor(0, 0, 0);
-    }
-
     const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
     return { doc, fileName, issuedAt };
+      // Fim do bloco if (payload.origin === "worten_verde")
+    }
   }
+}
 
   private addProfessionalSignature(doc: any, options: TechnicalReportPdfOptions): void {
     const signatureDataUrl = options.professionalSignatureDataUrl?.trim();
