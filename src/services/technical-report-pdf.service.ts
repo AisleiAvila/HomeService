@@ -170,49 +170,107 @@ export class TechnicalReportPdfService {
       const dadosClienteWidth = doc.internal.pageSize.getWidth() - 24;
       const dadosClienteLineHeight = 7;
       let dadosClienteY = dadosClienteTop + 8;
-      // Campos do cliente
+
+      // Primeira linha: Processo, Nome, Data
       doc.setFont(undefined, "bold");
       doc.text("Processo:", dadosClienteLeft + 3, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text(d.process || "—", dadosClienteLeft + 30, dadosClienteY);
-      dadosClienteY += dadosClienteLineHeight;
+      doc.text(d.process || "—", dadosClienteLeft + 25, dadosClienteY);
       doc.setFont(undefined, "bold");
-      doc.text("Tipo de Serviço:", dadosClienteLeft + 3, dadosClienteY);
+      doc.text("Nome:", dadosClienteLeft + 60, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text((d.serviceType && d.serviceType.length > 0 ? d.serviceType.join(", ") : "—"), dadosClienteLeft + 30, dadosClienteY);
-      dadosClienteY += dadosClienteLineHeight;
+      doc.text(request.client_name || "—", dadosClienteLeft + 75, dadosClienteY);
       doc.setFont(undefined, "bold");
-      doc.text("Nome do Cliente:", dadosClienteLeft + 3, dadosClienteY);
+      doc.text("Data:", dadosClienteLeft + 120, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text(request.client_name || "—", dadosClienteLeft + 30, dadosClienteY);
+      const dataAtual = (options?.clientSignedAt || options?.professionalSignedAt || new Date());
+      doc.text(
+        dataAtual instanceof Date ?
+          dataAtual.toLocaleDateString("pt-PT") :
+          (typeof dataAtual === "string" ? dataAtual : "—"),
+        dadosClienteLeft + 135, dadosClienteY
+      );
       dadosClienteY += dadosClienteLineHeight;
+
+      // Segunda linha: Técnico, Empresa, Hora
+      doc.setFont(undefined, "bold");
+      doc.text("Técnico:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text(options?.professionalName || "—", dadosClienteLeft + 25, dadosClienteY);
+      doc.setFont(undefined, "bold");
+      doc.text("Empresa:", dadosClienteLeft + 60, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      doc.text(request.origin?.name || "—", dadosClienteLeft + 75, dadosClienteY);
+      doc.setFont(undefined, "bold");
+      doc.text("Hora:", dadosClienteLeft + 120, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      const horaAtual = (options?.clientSignedAt || options?.professionalSignedAt || new Date());
+      doc.text(
+        horaAtual instanceof Date ?
+          horaAtual.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) :
+          (typeof horaAtual === "string" ? horaAtual : "—"),
+        dadosClienteLeft + 135, dadosClienteY
+      );
+      dadosClienteY += dadosClienteLineHeight;
+
+      // Terceira linha: Morada (logradouro, número, complemento), Código Postal, Localidade
       doc.setFont(undefined, "bold");
       doc.text("Morada:", dadosClienteLeft + 3, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text(request.client_address || "—", dadosClienteLeft + 30, dadosClienteY);
-      dadosClienteY += dadosClienteLineHeight;
+      // Montar morada detalhada
+      let morada = "—";
+      if (request.client_address) {
+        morada = request.client_address;
+      }
+      doc.text(morada, dadosClienteLeft + 25, dadosClienteY);
       doc.setFont(undefined, "bold");
-      doc.text("Código Postal:", dadosClienteLeft + 3, dadosClienteY);
+      doc.text("Código Postal:", dadosClienteLeft + 90, dadosClienteY);
       doc.setFont(undefined, "normal");
-      // Extrair código postal do endereço, se possível
       let postalCode = "—";
       if (request.client_address) {
         const match = request.client_address.match(/(\d{4}-\d{3})/);
         if (match) postalCode = match[1];
       }
-      doc.text(postalCode, dadosClienteLeft + 30, dadosClienteY);
-      dadosClienteY += dadosClienteLineHeight;
+      doc.text(postalCode, dadosClienteLeft + 115, dadosClienteY);
       doc.setFont(undefined, "bold");
-      doc.text("Localidade:", dadosClienteLeft + 3, dadosClienteY);
+      doc.text("Localidade:", dadosClienteLeft + 140, dadosClienteY);
       doc.setFont(undefined, "normal");
-      // Extrair localidade do endereço, se possível
       let locality = "—";
       if (request.client_address) {
         const parts = request.client_address.split(",");
         if (parts.length > 1) locality = parts[parts.length - 1].trim();
       }
-      doc.text(locality, dadosClienteLeft + 30, dadosClienteY);
+      doc.text(locality, dadosClienteLeft + 160, dadosClienteY);
       dadosClienteY += dadosClienteLineHeight;
+
+      // Quarta linha: Tipo de Serviço (checkboxes)
+      doc.setFont(undefined, "bold");
+      doc.text("Tipo de Serviço:", dadosClienteLeft + 3, dadosClienteY);
+      doc.setFont(undefined, "normal");
+      const tiposServico = [
+        { key: "Instalação", label: "Instalação" },
+        { key: "Reparação", label: "Reparação" },
+        { key: "Garantia", label: "Garantia" },
+        { key: "Extensão de Garantia", label: "Extensão de Garantia" },
+        { key: "Orçamento", label: "Orçamento" },
+        { key: "SAT24", label: "SAT24" },
+      ];
+      let xCheckbox = dadosClienteLeft + 30;
+      const boxSize = 4;
+      const gap = 6;
+      tiposServico.forEach((tipo, idx) => {
+        doc.text(tipo.label, xCheckbox, dadosClienteY);
+        const boxX = xCheckbox + doc.getTextWidth(tipo.label) + 2;
+        doc.rect(boxX, dadosClienteY - boxSize + 2, boxSize, boxSize);
+        if (d.serviceType && d.serviceType.includes(tipo.key)) {
+          doc.setLineWidth(0.7);
+          doc.line(boxX, dadosClienteY - boxSize + 2, boxX + boxSize, dadosClienteY + 2);
+          doc.line(boxX + boxSize, dadosClienteY - boxSize + 2, boxX, dadosClienteY + 2);
+        }
+        xCheckbox = boxX + boxSize + gap;
+      });
+      dadosClienteY += dadosClienteLineHeight;
+
       // Moldura dos dados do cliente
       const dadosClienteBoxHeight = dadosClienteY - dadosClienteTop + 4;
       doc.setDrawColor(0, 128, 0);
