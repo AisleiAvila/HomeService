@@ -234,7 +234,13 @@ export class TechnicalReportPdfService {
             morada = request.client_address.trim();
           }
         } else {
-          morada = request.client_address.trim();
+          // Se não há código postal, tenta até a última vírgula
+          if (request.client_address.includes(",")) {
+            const parts = request.client_address.split(",");
+            morada = parts.slice(0, -1).join(",").trim();
+          } else {
+            morada = request.client_address.trim();
+          }
         }
         // Extrai localidade: após código postal, ou última parte após vírgula
         let afterPostal = "";
@@ -254,15 +260,15 @@ export class TechnicalReportPdfService {
           if (words.length > 0) locality = words[words.length - 1];
         }
       }
-      doc.text(morada, dadosClienteLeft + 25, dadosClienteY);
+      doc.text(morada || "—", dadosClienteLeft + 25, dadosClienteY);
       doc.setFont(undefined, "bold");
       doc.text("Código Postal:", dadosClienteLeft + 90, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text(postalCode, dadosClienteLeft + 115, dadosClienteY);
+      doc.text(postalCode || "—", dadosClienteLeft + 115, dadosClienteY);
       doc.setFont(undefined, "bold");
       doc.text("Localidade:", dadosClienteLeft + 140, dadosClienteY);
       doc.setFont(undefined, "normal");
-      doc.text(locality, dadosClienteLeft + 160, dadosClienteY);
+      doc.text(locality || "—", dadosClienteLeft + 160, dadosClienteY);
       dadosClienteY += dadosClienteLineHeight;
 
       // Quarta linha: Tipo de Serviço (checkboxes)
@@ -272,7 +278,7 @@ export class TechnicalReportPdfService {
       // Reparação não tem checkbox, os demais sim
       const tiposServico = [
         { key: "Instalação", label: "Instalação", checkbox: true },
-        { key: "Reparação", label: "Reparação", checkbox: false },
+        { key: "Reparação", label: "Reparação:", checkbox: false },
         { key: "Garantia", label: "Garantia", checkbox: true },
         { key: "Extensão de Garantia", label: "Extensão de Garantia", checkbox: true },
         { key: "Orçamento", label: "Orçamento", checkbox: true },
