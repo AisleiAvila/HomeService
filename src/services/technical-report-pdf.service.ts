@@ -217,29 +217,51 @@ export class TechnicalReportPdfService {
       doc.setFont(undefined, "bold");
       doc.text("Morada:", dadosClienteLeft + 3, dadosClienteY);
       doc.setFont(undefined, "normal");
-      // Montar morada detalhada
+      // Extrair partes do endereço
       let morada = "—";
+      let postalCode = "—";
+      let locality = "—";
       if (request.client_address) {
-        morada = request.client_address;
+        // Extrai código postal
+        const matchPostal = request.client_address.match(/(\d{4}-\d{3})/);
+        if (matchPostal) postalCode = matchPostal[1];
+        // Extrai morada (antes do código postal)
+        if (matchPostal) {
+          const idxPostal = request.client_address.indexOf(postalCode);
+          if (idxPostal > 0) {
+            morada = request.client_address.substring(0, idxPostal).replace(/[,\s]+$/, "").trim();
+          } else {
+            morada = request.client_address.trim();
+          }
+        } else {
+          morada = request.client_address.trim();
+        }
+        // Extrai localidade: após código postal, ou última parte após vírgula
+        let afterPostal = "";
+        if (matchPostal) {
+          afterPostal = request.client_address.substring(request.client_address.indexOf(postalCode) + postalCode.length).trim();
+        }
+        if (afterPostal) {
+          // Remove vírgula e espaços extras
+          locality = afterPostal.replace(/^,?\s*/, "");
+        } else if (request.client_address.includes(",")) {
+          const parts = request.client_address.split(",");
+          if (parts.length > 1) locality = parts[parts.length - 1].trim();
+        }
+        // Se ainda não encontrou, tenta pegar última palavra
+        if (!locality || locality === "—") {
+          const words = request.client_address.trim().split(" ");
+          if (words.length > 0) locality = words[words.length - 1];
+        }
       }
       doc.text(morada, dadosClienteLeft + 25, dadosClienteY);
       doc.setFont(undefined, "bold");
       doc.text("Código Postal:", dadosClienteLeft + 90, dadosClienteY);
       doc.setFont(undefined, "normal");
-      let postalCode = "—";
-      if (request.client_address) {
-        const match = request.client_address.match(/(\d{4}-\d{3})/);
-        if (match) postalCode = match[1];
-      }
       doc.text(postalCode, dadosClienteLeft + 115, dadosClienteY);
       doc.setFont(undefined, "bold");
       doc.text("Localidade:", dadosClienteLeft + 140, dadosClienteY);
       doc.setFont(undefined, "normal");
-      let locality = "—";
-      if (request.client_address) {
-        const parts = request.client_address.split(",");
-        if (parts.length > 1) locality = parts[parts.length - 1].trim();
-      }
       doc.text(locality, dadosClienteLeft + 160, dadosClienteY);
       dadosClienteY += dadosClienteLineHeight;
 
@@ -247,27 +269,32 @@ export class TechnicalReportPdfService {
       doc.setFont(undefined, "bold");
       doc.text("Tipo de Serviço:", dadosClienteLeft + 3, dadosClienteY);
       doc.setFont(undefined, "normal");
+      // Reparação não tem checkbox, os demais sim
       const tiposServico = [
-        { key: "Instalação", label: "Instalação" },
-        { key: "Reparação", label: "Reparação" },
-        { key: "Garantia", label: "Garantia" },
-        { key: "Extensão de Garantia", label: "Extensão de Garantia" },
-        { key: "Orçamento", label: "Orçamento" },
-        { key: "SAT24", label: "SAT24" },
+        { key: "Instalação", label: "Instalação", checkbox: true },
+        { key: "Reparação", label: "Reparação", checkbox: false },
+        { key: "Garantia", label: "Garantia", checkbox: true },
+        { key: "Extensão de Garantia", label: "Extensão de Garantia", checkbox: true },
+        { key: "Orçamento", label: "Orçamento", checkbox: true },
+        { key: "SAT24", label: "SAT24", checkbox: true },
       ];
       let xCheckbox = dadosClienteLeft + 30;
       const boxSize = 4;
       const gap = 6;
       tiposServico.forEach((tipo, idx) => {
         doc.text(tipo.label, xCheckbox, dadosClienteY);
-        const boxX = xCheckbox + doc.getTextWidth(tipo.label) + 2;
-        doc.rect(boxX, dadosClienteY - boxSize + 2, boxSize, boxSize);
-        if (d.serviceType && d.serviceType.includes(tipo.key)) {
-          doc.setLineWidth(0.7);
-          doc.line(boxX, dadosClienteY - boxSize + 2, boxX + boxSize, dadosClienteY + 2);
-          doc.line(boxX + boxSize, dadosClienteY - boxSize + 2, boxX, dadosClienteY + 2);
+        if (tipo.checkbox) {
+          const boxX = xCheckbox + doc.getTextWidth(tipo.label) + 2;
+          doc.rect(boxX, dadosClienteY - boxSize + 2, boxSize, boxSize);
+          if (d.serviceType && d.serviceType.includes(tipo.key)) {
+            doc.setLineWidth(0.7);
+            doc.line(boxX, dadosClienteY - boxSize + 2, boxX + boxSize, dadosClienteY + 2);
+            doc.line(boxX + boxSize, dadosClienteY - boxSize + 2, boxX, dadosClienteY + 2);
+          }
+          xCheckbox = boxX + boxSize + gap;
+        } else {
+          xCheckbox = xCheckbox + doc.getTextWidth(tipo.label) + gap + 2;
         }
-        xCheckbox = boxX + boxSize + gap;
       });
       dadosClienteY += dadosClienteLineHeight;
 
