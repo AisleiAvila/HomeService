@@ -156,6 +156,8 @@ export class TechnicalReportPdfService {
     };
 
     if (payload.origin === "worten_verde") {
+      // DEBUG: Logar objeto ServiceRequest para depuração de endereço
+      console.log('[PDF] ServiceRequest recebido:', JSON.stringify(request, null, 2));
       const d = payload.data;
       // --- DADOS CLIENTE ---
       y = headerBaseY + 2;
@@ -217,24 +219,33 @@ export class TechnicalReportPdfService {
       doc.setFont(undefined, "bold");
       doc.text("Morada:", dadosClienteLeft + 3, dadosClienteY);
       doc.setFont(undefined, "normal");
-      // Extrair partes do endereço
+      // Priorizar endereço estruturado se existir (verificação defensiva para compatibilidade)
       let morada = "—";
       let postalCode = "—";
       let locality = "—";
-      if (request.client_address) {
-        // Extrai código postal
+      // Montar endereço a partir dos campos separados, se não houver address nem client_address
+      // @ts-ignore: address pode não existir em todos os ServiceRequest
+      const hasStructuredAddress = typeof (request as any).address === 'object' && (request as any).address !== null;
+      if (hasStructuredAddress) {
+        const addr = (request as any).address;
+        morada = addr.street || "";
+        if (addr.street_number) morada += ", " + addr.street_number;
+        if (addr.complement) morada += " " + addr.complement;
+        morada = morada.trim() || "—";
+        postalCode = addr.zip_code || "—";
+        locality = addr.city || "—";
+      } else if (request.client_address) {
+        // ...lógica existente...
         const matchPostal = request.client_address.match(/(\d{4}-\d{3})/);
         if (matchPostal) postalCode = matchPostal[1];
-        // Extrai morada (antes do código postal)
         if (matchPostal) {
           const idxPostal = request.client_address.indexOf(postalCode);
           if (idxPostal > 0) {
-            morada = request.client_address.substring(0, idxPostal).replace(/[,\s]+$/, "").trim();
+            morada = request.client_address.substring(0, idxPostal).replace(/[, -\s]+$/, "").trim();
           } else {
             morada = request.client_address.trim();
           }
         } else {
-          // Se não há código postal, tenta até a última vírgula
           if (request.client_address.includes(",")) {
             const parts = request.client_address.split(",");
             morada = parts.slice(0, -1).join(",").trim();
@@ -242,23 +253,28 @@ export class TechnicalReportPdfService {
             morada = request.client_address.trim();
           }
         }
-        // Extrai localidade: após código postal, ou última parte após vírgula
         let afterPostal = "";
         if (matchPostal) {
           afterPostal = request.client_address.substring(request.client_address.indexOf(postalCode) + postalCode.length).trim();
         }
         if (afterPostal) {
-          // Remove vírgula e espaços extras
           locality = afterPostal.replace(/^,?\s*/, "");
         } else if (request.client_address.includes(",")) {
           const parts = request.client_address.split(",");
           if (parts.length > 1) locality = parts[parts.length - 1].trim();
         }
-        // Se ainda não encontrou, tenta pegar última palavra
         if (!locality || locality === "—") {
           const words = request.client_address.trim().split(" ");
           if (words.length > 0) locality = words[words.length - 1];
         }
+      } else if (request.street || request.zip_code || request.city) {
+        // Monta morada a partir dos campos separados
+        morada = request.street || "";
+        if (request.street_number) morada += ", " + request.street_number;
+        if (request.complement) morada += " " + request.complement;
+        morada = morada.trim() || "—";
+        postalCode = request.zip_code || "—";
+        locality = request.city || "—";
       }
       doc.text(morada || "—", dadosClienteLeft + 25, dadosClienteY);
       doc.setFont(undefined, "bold");
