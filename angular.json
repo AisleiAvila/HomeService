@@ -12,7 +12,10 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist",
+            "outputPath": {
+              "base": "./dist",
+              "browser": "."
+            },
             "browser": "index.tsx",
             "tsConfig": "tsconfig.json",
             "baseHref": "/",
@@ -21,10 +24,10 @@
               "favicon.svg",
               "service-worker.js",
               {
-                "glob": "**/*",
-                "input": "src/assets",
-                "output": "assets"
-              }
+              "glob": "**/*",
+              "input": "src/assets",
+              "output": "assets"
+            }
             ],
             "styles": ["src/styles.css"],
             "allowedCommonJsDependencies": [

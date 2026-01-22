@@ -67,7 +67,7 @@
     "dev": "ng serve",
     "dev:full": "npm run start",
     "build": "ng build",
-    "build:vercel": "ng build --configuration production",
+    "build:vercel": "ng build --configuration=production",
     "preview": "ng serve --configuration=production",
     "start": "concurrently \"ng serve --configuration=development --port 4200\" \"node send-email.cjs\" \"node ./scripts/custom_auth_backend.cjs\"",
     "auth:server": "node ./scripts/custom_auth_backend.cjs",
