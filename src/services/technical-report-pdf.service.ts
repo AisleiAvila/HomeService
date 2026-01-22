@@ -136,13 +136,13 @@ async generatePdfBlob(
     // - worten-azul-formulario.pdf (Worten Resolve - Azul)
     // - radio-popular-formulario.pdf
 
-    if (payload.origin !== "radio_popular" && payload.origin !== "worten_verde") {
-      try {
-        await this.tryAddTemplateBackground(doc, payload.origin);
-      } catch (e) {
-        console.warn("[PDF WARNING] Falha ao carregar template, continuando sem fundo:", e);
-      }
-    }
+    // if (payload.origin !== "radio_popular" && payload.origin !== "worten_verde" && payload.origin !== "worten_azul") {
+    //   try {
+    //     await this.tryAddTemplateBackground(doc, payload.origin);
+    //   } catch (e) {
+    //     console.warn("[PDF WARNING] Falha ao carregar template, continuando sem fundo:", e);
+    //   }
+    // }
 
     // Brand header (specific requirements per origin)
     const header = await this.resolveHeaderImage(doc, payload.origin);
@@ -201,7 +201,7 @@ async generatePdfBlob(
       // --- DADOS CLIENTE ---
       y = headerBaseY + 2;
       doc.setFontSize(13);
-      doc.setTextColor(0, 128, 0);
+      doc.setTextColor(0, 128, 0); // Verde
       doc.text("Dados Cliente", 12, y);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
@@ -574,6 +574,33 @@ async generatePdfBlob(
 
     }
 
+    if (payload.origin === "worten_azul") {
+      console.log('[PDF] ServiceRequest recebido:', JSON.stringify(request, null, 2));
+      const d = payload.data;
+      // --- DADOS DO FORNECEDOR ---
+      y = headerBaseY + 2;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 102, 204);
+      doc.text("DADOS DO FORNECEDOR", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+
+      // Adiciona moldura e texto solicitado
+      const frameLeft = 12;
+      const frameTop = y + 6;
+      const frameWidth = doc.internal.pageSize.getWidth() - 24;
+      const frameHeight = 12;
+      doc.setDrawColor(0, 102, 204); // Azul
+      doc.setLineWidth(0.7);
+      doc.rect(frameLeft, frameTop, frameWidth, frameHeight, 'S');
+      doc.setFontSize(9);
+      doc.setFont(undefined, "bold");
+      doc.text("Nome/ Refª da Loja: Worten - Equipamentos para o Lar, S.A.", frameLeft + 3, frameTop + 8);
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      y = frameTop + frameHeight;
+    }
+
     if (payload.origin === "radio_popular") {
       const d = payload.data;
       const street = (request.street_manual || request.street || "").trim();
@@ -834,35 +861,35 @@ async generatePdfBlob(
     return this.sanitizeFileName(rawName);
   }
 
-  private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
-    const pdfTemplateFile = this.getTemplatePdfFile(origin);
-    const pdfUrl = this.resolveAssetUrl(
-      `assets/technical-report-templates/${pdfTemplateFile}`
-    );
+  // private async tryAddTemplateBackground(doc: any, origin: TechnicalReportOriginKey): Promise<void> {
+  //   const pdfTemplateFile = this.getTemplatePdfFile(origin);
+  //   const pdfUrl = this.resolveAssetUrl(
+  //     `assets/technical-report-templates/${pdfTemplateFile}`
+  //   );
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+  //   const pageWidth = doc.internal.pageSize.getWidth();
+  //   const pageHeight = doc.internal.pageSize.getHeight();
 
-    const pdfAsPngDataUrl = await this.tryRenderPdfFirstPageAsPngDataUrl(pdfUrl);
-    if (!pdfAsPngDataUrl) {
-      throw new Error(
-        "Não foi possível carregar o template do relatório técnico. O arquivo PDF foi encontrado, mas não pôde ser convertido em imagem. Verifique o formato e permissões."
-      );
-    }
-    this.addImageDataUrl(doc, pdfAsPngDataUrl, 0, 0, pageWidth, pageHeight);
-    return;
-  }
+  //   const pdfAsPngDataUrl = await this.tryRenderPdfFirstPageAsPngDataUrl(pdfUrl);
+  //   if (!pdfAsPngDataUrl) {
+  //     throw new Error(
+  //       "Não foi possível carregar o template do relatório técnico. O arquivo PDF foi encontrado, mas não pôde ser convertido em imagem. Verifique o formato e permissões."
+  //     );
+  //   }
+  //   this.addImageDataUrl(doc, pdfAsPngDataUrl, 0, 0, pageWidth, pageHeight);
+  //   return;
+  // }
 
-  private getTemplatePdfFile(origin: TechnicalReportOriginKey): string {
-    switch (origin) {
-      case "worten_verde":
-        return "worten-formulario.pdf";
-      case "worten_azul":
-        return "worten-azul-formulario.pdf";
-      case "radio_popular":
-        return "radio-popular-formulario.pdf";
-    }
-  }
+  // private getTemplatePdfFile(origin: TechnicalReportOriginKey): string {
+  //   switch (origin) {
+  //     case "worten_verde":
+  //       return "worten-formulario.pdf";
+  //     case "worten_azul":
+  //       return "worten-azul-formulario.pdf";
+  //     case "radio_popular":
+  //       return "radio-popular-formulario.pdf";
+  //   }
+  // }
 
   private getRadioPopularFooterText(): string[] {
     return [
