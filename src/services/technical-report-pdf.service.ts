@@ -1041,36 +1041,25 @@ async generatePdfBlob(
       // Cleanup is best-effort.
       try {
         page.cleanup();
-      } catch (e) {
-        console.warn('[PDF DEBUG] Falha ao limpar página:', e);
+      switch (origin) {
+        case "worten_verde":
+          candidates = [
+            "/assets/Header_Worten_Green.png"
+          ];
+          break;
+        case "worten_azul":
+          candidates = [
+            "/assets/Header_Worten_Blue.png"
+          ];
+          break;
+        case "radio_popular":
+          candidates = [
+            "/assets/Header_Radio_Popular_Blue.png"
+          ];
+          break;
+        default:
+          return null;
       }
-
-      const dataUrl = canvas.toDataURL("image/png");
-      console.log('[PDF DEBUG] DataURL gerado, tamanho:', dataUrl.length);
-      return dataUrl;
-    } catch (e) {
-      // Log detalhado do erro
-      console.error('[PDF DEBUG] Erro ao renderizar PDF:', e, e?.stack);
-      return null;
-    }
-  }
-
-  private async tryLoadImageAsDataUrl(url: string): Promise<string | null> {
-    try {
-      const resp = await fetch(url);
-      if (!resp.ok) return null;
-      const contentType = resp.headers.get("content-type") || "";
-      if (contentType && !contentType.toLowerCase().startsWith("image/")) {
-        return await this.tryLoadImageViaElement(url);
-      }
-      const blob = await resp.blob();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            resolve(reader.result);
-            return;
-          }
           reject(new Error("Unexpected template read result"));
         };
         reader.onerror = () => reject(new Error("Failed to read template"));
