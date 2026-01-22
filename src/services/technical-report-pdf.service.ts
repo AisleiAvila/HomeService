@@ -267,10 +267,18 @@ async generatePdfBlob(
       const hasStructuredAddress = typeof (request as any).address === 'object' && (request as any).address !== null;
       if (hasStructuredAddress) {
         const addr = (request as any).address;
-        morada = addr.street || "";
-        if (addr.street_number) morada += ", " + addr.street_number;
-        if (addr.complement) morada += " " + addr.complement;
-        morada = morada.trim() || "—";
+        // Se não houver logradouro do código postal, mas houver street_manual, priorizar este
+        if ((!addr.street || !String(addr.street).trim()) && request.street_manual && String(request.street_manual).trim()) {
+          morada = String(request.street_manual).trim();
+          if (addr.street_number) morada += ", " + addr.street_number;
+          if (addr.complement) morada += " " + addr.complement;
+          morada = morada.trim() || "—";
+        } else {
+          morada = addr.street || "";
+          if (addr.street_number) morada += ", " + addr.street_number;
+          if (addr.complement) morada += " " + addr.complement;
+          morada = morada.trim() || "—";
+        }
         postalCode = addr.zip_code || "—";
         locality = addr.city || "—";
       } else if (request.client_address) {
