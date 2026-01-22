@@ -26,7 +26,13 @@ export class TechnicalReportStorageService {
     }
 
     // Generate PDF
-    const { blob, fileName, issuedAt } = await this.pdfService.generatePdfBlob(request, payload, options);
+
+    const pdfResult = await this.pdfService.generatePdfBlob(request, payload, options);
+    if (!pdfResult) {
+      this.notificationService.showError("Falha ao gerar o PDF do relatório técnico.");
+      throw new Error("Falha ao gerar o PDF do relatório técnico.");
+    }
+    const { blob, fileName, issuedAt } = pdfResult;
     const pdfFile = new File([blob], fileName, { type: this.MIME_TYPE });
 
     // Upload to Storage (use a unique path to avoid collisions)

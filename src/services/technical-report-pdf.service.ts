@@ -1,5 +1,7 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
+import { NotificationService } from "./notification.service";
 import type { ServiceRequest } from "../models/maintenance.models";
+// PDF.js será importado dinamicamente para evitar erro de tipos TS2307
 
 export type TechnicalReportOriginKey =
   | "worten_verde"
@@ -60,24 +62,53 @@ export interface TechnicalReportPdfOptions {
 
 @Injectable({ providedIn: "root" })
 export class TechnicalReportPdfService {
+  private notificationService = inject(NotificationService);
+
   async generateAndDownload(
     request: ServiceRequest,
     payload: TechnicalReportData,
     options?: TechnicalReportPdfOptions
   ): Promise<void> {
-    const { doc, fileName } = await this.generateDocument(request, payload, options);
-    doc.save(fileName);
+    try {
+      const { doc, fileName } = await this.generateDocument(request, payload, options);
+      doc.save(fileName);
+    } catch (err: any) {
+      // Log detalhado do erro
+      console.error('[PDF ERROR] Erro ao gerar relatório técnico:', err);
+      this.notificationService.showError(
+        err?.stack || err?.message || JSON.stringify(err) || "Erro ao gerar o relatório técnico."
+      );
+    }
   }
 
-  async generatePdfBlob(
-    request: ServiceRequest,
-    payload: TechnicalReportData,
-    options?: TechnicalReportPdfOptions
-  ): Promise<{ blob: Blob; fileName: string; issuedAt: Date }> {
-    const { doc, fileName, issuedAt } = await this.generateDocument(request, payload, options);
+
+async generatePdfBlob(
+  request: ServiceRequest,
+  payload: TechnicalReportData,
+  options?: TechnicalReportPdfOptions
+): Promise<{ blob: Blob; fileName: string; issuedAt: Date } | undefined> {
+  try {
+    const result = await this.generateDocument(request, payload, options);
+    
+    // Verifica se o resultado existe antes de desestruturar
+    if (!result || !result.doc) {
+      throw new Error('O documento não foi gerado corretamente.');
+    }
+
+    const { doc, fileName, issuedAt } = result;
+    
+    if (typeof doc.output !== 'function') {
+      throw new Error('Objeto jsPDF inválido.');
+    }
+
     const blob: Blob = doc.output("blob");
     return { blob, fileName, issuedAt };
+  } catch (err: any) {
+    console.error('[PDF ERROR]:', err);
+    this.notificationService.showError("Falha ao processar dados do PDF: " + err.message);
+    return undefined;
   }
+}
 
   private async generateDocument(
     request: ServiceRequest,
@@ -90,21 +121,28 @@ export class TechnicalReportPdfService {
       import("jspdf-autotable"),
     ]);
 
-    const autoTable: any =
-      (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
+    // const autoTable: any =
+    //   (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
 
     const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
 
     const originLabel = this.getOriginLabel(payload.origin);
     const issuedAt = new Date();
 
-    // Try to use a background PDF template if it exists.
+    // Try to use a background PDF template if it exists, exceto para radio_popular.
     // Place template PDFs in: src/assets/technical-report-templates/
     // Expected filenames:
     // - worten-formulario.pdf (Worten Resolve - Verde)
     // - worten-azul-formulario.pdf (Worten Resolve - Azul)
     // - radio-popular-formulario.pdf
-    await this.tryAddTemplateBackground(doc, payload.origin);
+
+    if (payload.origin !== "radio_popular") {
+      try {
+        await this.tryAddTemplateBackground(doc, payload.origin);
+      } catch (e) {
+        console.warn("[PDF WARNING] Falha ao carregar template, continuando sem fundo:", e);
+      }
+    }
 
     // Brand header (specific requirements per origin)
     const header = await this.resolveHeaderImage(doc, payload.origin);
@@ -112,18 +150,20 @@ export class TechnicalReportPdfService {
     const headerBaseY = header ? header.heightMm + 6 : 16;
 
     // Fallback/simple layout (also overlays on top of template backgrounds)
-    const pageHeight = doc.internal.pageSize.getHeight();
+    // const pageHeight = doc.internal.pageSize.getHeight();
     let y = Math.max(40, headerBaseY + 0);
 
-    const writeLabelValue = (label: string, value: string) => {
-      // Adjust the vertical position for the next line
+    // Permite customizar tamanho da fonte para campos específicos
+    const writeLabelValue = (label: string, value: string, fontSize?: number) => {
       y += 6;
+      if (fontSize) doc.setFontSize(fontSize);
       doc.setFont(undefined, "bold");
       doc.text(label, 12, y);
       doc.setFont(undefined, "normal");
       const lines = doc.splitTextToSize(value || "—", 180);
       doc.text(lines, 55, y);
       y += Math.max(6, lines.length * 5);
+      if (fontSize) doc.setFontSize(8); // volta ao padrão
     };
 
     const writeSectionTitle = (title: string) => {
@@ -235,7 +275,9 @@ export class TechnicalReportPdfService {
         locality = addr.city || "—";
       } else if (request.client_address) {
         // ...lógica existente...
-        const matchPostal = request.client_address.match(/(\d{4}-\d{3})/);
+        let clientAddr = request.client_address || "";
+        const matchPostal = clientAddr.match(/(\d{4}-\d{3})/); 
+
         if (matchPostal) postalCode = matchPostal[1];
         if (matchPostal) {
           const idxPostal = request.client_address.indexOf(postalCode);
@@ -521,7 +563,134 @@ export class TechnicalReportPdfService {
     const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
     return { doc, fileName, issuedAt };
       // Fim do bloco if (payload.origin === "worten_verde")
+
     }
+
+    if (payload.origin === "radio_popular") {
+      const d = payload.data;
+      const street = (request.street_manual || request.street || "").trim();
+      const streetNumber = (request.street_number || "").trim();
+      const complement = (request.complement || "").trim();
+      const addressParts = [street, streetNumber, complement].filter(Boolean);
+      const addressLine =
+        addressParts.length > 0
+          ? addressParts.join(", ")
+          : (request.client_address || "").trim();
+
+      // Título DADOS DO CLIENTE com fonte menor (igual ao DADOS DO SERVIÇO)
+      y += 2;
+      doc.setFontSize(10); // mesmo tamanho do título DADOS DO SERVIÇO
+      doc.setFont(undefined, "bold");
+      doc.text("DADOS DO CLIENTE", 12, y);
+      doc.setFont(undefined, "normal");
+      y += 2; // espaço reduzido antes da linha NOME/NOTA SERVIÇO
+      const smallFont = 7;
+      // Linha 1: NOME e NOTA SERVIÇO
+      y += 6;
+      doc.setFontSize(smallFont);
+      doc.setFont(undefined, "bold");
+      doc.text("NOME:", 12, y);
+      doc.setFont(undefined, "normal");
+      doc.text((request.client_name || "—").toString(), 28, y);
+      doc.setFont(undefined, "bold");
+      doc.text("NOTA SERVIÇO:", 90, y);
+      doc.setFont(undefined, "normal");
+      doc.text((d.serviceNote || "—").toString(), 120, y);
+      // Linha 2: MORADA
+      y += 6;
+      doc.setFont(undefined, "bold");
+      doc.text("MORADA:", 12, y);
+      doc.setFont(undefined, "normal");
+      doc.text(addressLine || "—", 32, y);
+      // Linha 3: CÓDIGO POSTAL, LOCALIDADE, TEL
+      y += 6;
+      doc.setFont(undefined, "bold");
+      doc.text("CÓDIGO POSTAL:", 12, y);
+      doc.setFont(undefined, "normal");
+      doc.text((request.zip_code || "—").toString(), 40, y);
+      doc.setFont(undefined, "bold");
+      doc.text("LOCALIDADE:", 65, y);
+      doc.setFont(undefined, "normal");
+      doc.text((request.city || "—").toString(), 90, y);
+      doc.setFont(undefined, "bold");
+      doc.text("TEL:", 130, y);
+      doc.setFont(undefined, "normal");
+      doc.text((request.client_phone || "—").toString(), 140, y);
+      // Linha 4: E-MAIL
+      y += 6;
+      doc.setFont(undefined, "bold");
+      doc.text("EMAIL:", 12, y);
+      doc.setFont(undefined, "normal");
+      doc.text((request.email_client || "—").toString(), 32, y);
+      doc.setFontSize(8); // volta ao padrão
+      // Espaço extra para evitar sobreposição com o título seguinte
+      y += 4;
+
+      writeSectionTitle("DADOS DO SERVIÇO");
+      writeTextArea("Instalação", d.installation, 10);
+      writeTextArea("Descrição dos trabalhos", d.workDescription, 26);
+      writeTextArea("Serviços Extras Realizados", d.extraServicesInstalled, 18);
+    }
+
+    let radioPopularFooter:
+      | { rpText: string[]; lineHeight: number; rpTextStartY: number; signatureBoxY: number }
+      | null = null;
+
+    if (payload.origin === "radio_popular") {
+      const rpText = this.getRadioPopularFooterText();
+      const lineHeight = 4;
+      const rpBlockHeight = rpText.length * lineHeight;
+      const signatureBlockHeight = 32; // 22mm box + 10mm labels
+      const gap = 6;
+      const marginBottom = 10;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const requiredHeight = rpBlockHeight + gap + signatureBlockHeight;
+
+      if (y + requiredHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        if (header) this.drawHeaderImage(doc, header);
+      }
+
+      const rpTextStartY = pageHeight - marginBottom - rpBlockHeight;
+      const signatureBoxY = rpTextStartY - gap - 22;
+      radioPopularFooter = { rpText, lineHeight, rpTextStartY, signatureBoxY };
+    }
+
+    this.addClientSignature(doc, {
+      clientSignatureDataUrl: options?.clientSignatureDataUrl,
+      clientName: options?.clientName,
+      clientSignedAt: options?.clientSignedAt ?? issuedAt,
+      origin: payload.origin,
+      signatureBoxY: radioPopularFooter?.signatureBoxY,
+    });
+
+    this.addProfessionalSignature(doc, {
+      professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
+      professionalName: options?.professionalName,
+      professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
+      origin: payload.origin,
+      signatureBoxY: radioPopularFooter?.signatureBoxY,
+    });
+
+    if (payload.origin === "radio_popular" && radioPopularFooter) {
+      const leftMargin = 12;
+      let footerY = radioPopularFooter.rpTextStartY;
+      doc.setFontSize(7);
+      doc.setTextColor(80, 80, 80);
+      for (const line of radioPopularFooter.rpText) {
+        if (line === "") {
+          footerY += radioPopularFooter.lineHeight;
+        } else {
+          doc.text(line, leftMargin, footerY, { align: "left" });
+          footerY += radioPopularFooter.lineHeight;
+        }
+      }
+      doc.setTextColor(0, 0, 0);
+    }
+
+    const fileName = this.buildFileName(payload.origin, request.id, issuedAt);
+    return { doc, fileName, issuedAt };
+
   }
 
   private addProfessionalSignature(doc: any, options: TechnicalReportPdfOptions): void {
@@ -667,31 +836,13 @@ export class TechnicalReportPdfService {
     const pageHeight = doc.internal.pageSize.getHeight();
 
     const pdfAsPngDataUrl = await this.tryRenderPdfFirstPageAsPngDataUrl(pdfUrl);
-    if (pdfAsPngDataUrl) {
-      this.addImageDataUrl(doc, pdfAsPngDataUrl, 0, 0, pageWidth, pageHeight);
-      return;
+    if (!pdfAsPngDataUrl) {
+      throw new Error(
+        "Não foi possível carregar o template do relatório técnico. O arquivo PDF foi encontrado, mas não pôde ser convertido em imagem. Verifique o formato e permissões."
+      );
     }
-
-    // Backward compatible fallback: allow PNG templates too.
-    let pngFallback: string;
-    switch (origin) {
-      case "worten_verde":
-        pngFallback = "worten-verde.png";
-        break;
-      case "worten_azul":
-        pngFallback = "worten-azul.png";
-        break;
-      case "radio_popular":
-        pngFallback = "radio-popular.png";
-        break;
-    }
-
-    const pngUrl = this.resolveAssetUrl(
-      `assets/technical-report-templates/${pngFallback}`
-    );
-    const pngDataUrl = await this.tryLoadImageAsDataUrl(pngUrl);
-    if (!pngDataUrl) return;
-    this.addImageDataUrl(doc, pngDataUrl, 0, 0, pageWidth, pageHeight);
+    this.addImageDataUrl(doc, pdfAsPngDataUrl, 0, 0, pageWidth, pageHeight);
+    return;
   }
 
   private getTemplatePdfFile(origin: TechnicalReportOriginKey): string {
@@ -759,7 +910,10 @@ export class TechnicalReportPdfService {
       dataUrl = await this.tryLoadImageAsDataUrl(this.resolveAssetUrl(url));
       if (dataUrl) break;
     }
-    if (!dataUrl) return null;
+  if (!dataUrl) {
+      console.warn(`[PDF] Header não encontrado para ${origin}.`);
+      return null;
+  }
 
     const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -775,8 +929,7 @@ export class TechnicalReportPdfService {
     }
 
     // Avoid taking too much vertical space.
-    const heightMm = Math.min(Math.max(targetHeight, 16), 32);
-    return { dataUrl, heightMm };
+    return { dataUrl, heightMm: Math.min(Math.max(targetHeight, 16), 32) };
   }
 
   private drawHeaderImage(doc: any, header: { dataUrl: string; heightMm: number }): void {
@@ -838,42 +991,58 @@ export class TechnicalReportPdfService {
     if (globalThis.window === undefined || globalThis.document === undefined) return null;
 
     try {
+      console.log('[PDF DEBUG] Iniciando fetch do template PDF:', url);
       const resp = await fetch(url);
-      if (!resp.ok) return null;
+      console.log('[PDF DEBUG] Status do fetch:', resp.status, resp.statusText);
+      if (!resp.ok) {
+        console.error('[PDF DEBUG] Falha ao buscar o PDF:', url, resp.status, resp.statusText);
+        return null;
+      }
 
       const arrayBuffer = await resp.arrayBuffer();
+      console.log('[PDF DEBUG] ArrayBuffer carregado, tamanho:', arrayBuffer.byteLength);
 
-      // Use legacy build to reduce bundler/worker friction.
-      const pdfjsSpecifier = "pdfjs-dist/legacy/build/pdf.mjs";
-      const pdfjsLib: any = await import(
-        /* @vite-ignore */ pdfjsSpecifier
-      );
-
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, disableWorker: true });
+      // Importa PDF.js dinamicamente para evitar erro de tipos
+      const pdfjsLib = await import('pdfjs-dist/build/pdf');
+      if ((pdfjsLib as any).GlobalWorkerOptions) {
+        // Defina workerSrc para um caminho JS válido, mesmo que o worker não seja usado
+        (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.js';
+      }
+      const loadingTask = (pdfjsLib as any).getDocument({ data: arrayBuffer, disableWorker: true });
       const pdf = await loadingTask.promise;
+      console.log('[PDF DEBUG] PDF carregado, número de páginas:', pdf.numPages);
 
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 2 });
+      console.log('[PDF DEBUG] Página 1 obtida, viewport:', viewport.width, viewport.height);
 
       const canvas = document.createElement("canvas");
       canvas.width = Math.ceil(viewport.width);
       canvas.height = Math.ceil(viewport.height);
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return null;
+      if (!ctx) {
+        console.error('[PDF DEBUG] Falha ao obter contexto 2D do canvas.');
+        return null;
+      }
 
       const renderTask = page.render({ canvasContext: ctx, viewport });
       await renderTask.promise;
+      console.log('[PDF DEBUG] Renderização da página concluída.');
 
       // Cleanup is best-effort.
       try {
         page.cleanup();
-      } catch {
-        // ignore
+      } catch (e) {
+        console.warn('[PDF DEBUG] Falha ao limpar página:', e);
       }
 
-      return canvas.toDataURL("image/png");
-    } catch {
+      const dataUrl = canvas.toDataURL("image/png");
+      console.log('[PDF DEBUG] DataURL gerado, tamanho:', dataUrl.length);
+      return dataUrl;
+    } catch (e) {
+      // Log detalhado do erro
+      console.error('[PDF DEBUG] Erro ao renderizar PDF:', e, e?.stack);
       return null;
     }
   }
