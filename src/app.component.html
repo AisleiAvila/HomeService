@@ -67,7 +67,7 @@
         class="hidden md:flex bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700 flex-col transition-all duration-200 overflow-hidden"
         [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'" aria-label="Menu lateral de navegação">
         <div class="h-16 flex items-center px-4 border-b border-gray-200 dark:border-neutral-700">
-          <img src="src/assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
+          <img src="assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
         </div>
         <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
           <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
@@ -81,7 +81,7 @@
         </nav>
         <!-- Bloco de perfil do usuário -->
         <div class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100">
-          <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
+          <img [src]="currentUser()?.avatar_url || 'assets/logo-new.png'" alt="Avatar do usuário"
             class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
           <span *ngIf="!isSidebarCollapsed()"
             class="font-semibold text-sm text-gray-800 dark:text-neutral-50 text-center truncate max-w-[120px]">{{ currentUser()?.name
@@ -203,7 +203,7 @@
           </nav>
           <!-- Bloco de perfil do usuário (mobile) -->
           <div class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100">
-            <img [src]="currentUser()?.avatar_url || 'src/assets/logo-new.png'" alt="Avatar do usuário"
+            <img [src]="currentUser()?.avatar_url || 'assets/logo-new.png'" alt="Avatar do usuário"
               class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
             <span class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
               }}</span>
