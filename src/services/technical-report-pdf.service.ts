@@ -136,7 +136,7 @@ async generatePdfBlob(
     // - worten-azul-formulario.pdf (Worten Resolve - Azul)
     // - radio-popular-formulario.pdf
 
-    if (payload.origin !== "radio_popular") {
+    if (payload.origin !== "radio_popular" && payload.origin !== "worten_verde") {
       try {
         await this.tryAddTemplateBackground(doc, payload.origin);
       } catch (e) {
