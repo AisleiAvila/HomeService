@@ -915,7 +915,7 @@ async generatePdfBlob(
 
     let dataUrl: string | null = null;
     for (const url of candidates) {
-      dataUrl = await this.tryLoadImageAsDataUrl(this.resolveAssetUrl(url));
+      dataUrl = await this.tryLoadImageViaElement(this.resolveAssetUrl(url));
       if (dataUrl) break;
     }
   if (!dataUrl) {
@@ -1041,34 +1041,8 @@ async generatePdfBlob(
       // Cleanup is best-effort.
       try {
         page.cleanup();
-      switch (origin) {
-        case "worten_verde":
-          candidates = [
-            "/assets/Header_Worten_Green.png"
-          ];
-          break;
-        case "worten_azul":
-          candidates = [
-            "/assets/Header_Worten_Blue.png"
-          ];
-          break;
-        case "radio_popular":
-          candidates = [
-            "/assets/Header_Radio_Popular_Blue.png"
-          ];
-          break;
-        default:
-          return null;
-      }
-          reject(new Error("Unexpected template read result"));
-        };
-        reader.onerror = () => reject(new Error("Failed to read template"));
-        reader.readAsDataURL(blob);
-      });
-      if (!dataUrl.startsWith("data:image/")) {
-        return await this.tryLoadImageViaElement(url);
-      }
-      return dataUrl;
+      } catch {}
+      return canvas.toDataURL("image/png");
     } catch {
       return await this.tryLoadImageViaElement(url);
     }
