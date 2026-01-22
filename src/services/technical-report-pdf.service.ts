@@ -599,6 +599,13 @@ async generatePdfBlob(
       doc.setFontSize(8);
       doc.setFont(undefined, "normal");
       y = frameTop + frameHeight;
+      // Título DADOS DO CLIENTE abaixo da moldura
+      y += 12;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 102, 204);
+      doc.text("DADOS DO CLIENTE", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
     }
 
     if (payload.origin === "radio_popular") {
