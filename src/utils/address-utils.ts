@@ -36,11 +36,11 @@ export function extractPtAddressParts(src: AddressInput): {
   // Support both legacy columns (zip_code/city/state/street_number) and newer variants
   // (postal_code/locality/district) as well as nested address payloads.
   const street =
-    a.street ??
-    a.street_manual ??
-    a.address?.street ??
-    a.address?.street_manual ??
-    "";
+    (a.street && String(a.street).trim().length > 0 ? String(a.street).trim() :
+      (a.street_manual && String(a.street_manual).trim().length > 0 ? String(a.street_manual).trim() :
+        (a.address?.street && String(a.address?.street).trim().length > 0 ? String(a.address?.street).trim() :
+          (a.address?.street_manual && String(a.address?.street_manual).trim().length > 0 ? String(a.address?.street_manual).trim() :
+            ""))));
 
   const number =
     a.street_number ??
