@@ -624,7 +624,7 @@ async generatePdfBlob(
       doc.text((request.email_client || "—").toString(), 32, y);
       doc.setFontSize(8); // volta ao padrão
       // Espaço extra para evitar sobreposição com o título seguinte
-      y += 4;
+      y += 10;
 
       writeSectionTitle("DADOS DO SERVIÇO");
       writeTextArea("Instalação", d.installation, 10);
