@@ -237,6 +237,17 @@
             id="azulReportNotes"
             [ngModel]="azulReportNotes()" (ngModelChange)="azulReportNotes.set($event)"></textarea>
         </div>
+
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" class="rounded" [ngModel]="azulConfirmServiceOk()" (ngModelChange)="azulConfirmServiceOk.set($event)" />
+            O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" class="rounded" [ngModel]="azulConfirmOldGasCollected()" (ngModelChange)="azulConfirmOldGasCollected.set($event)" />
+            O cliente e o instalador confirmam que foi/foram recolhido(s) o(s) equipamento(s) antigo(s) a gás.
+          </label>
+        </div>
       </div>
     }
 

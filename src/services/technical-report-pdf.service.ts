@@ -33,6 +33,8 @@ export interface WortenAzulReportData {
   invoiceNumber: string;
   serviceNumber: string;
   reportNotes: string;
+  confirmServiceOk: boolean;
+  confirmOldGasCollected: boolean;
 }
 
 export interface RadioPopularReportData {
@@ -575,7 +577,6 @@ async generatePdfBlob(
     }
 
     if (payload.origin === "worten_azul") {
-      console.log('[PDF] ServiceRequest recebido:', JSON.stringify(request, null, 2));
       const d = payload.data;
       // --- DADOS DO FORNECEDOR ---
       y = headerBaseY + 2;
@@ -764,6 +765,34 @@ async generatePdfBlob(
       doc.setFontSize(8);
       doc.setFont(undefined, "normal");
       y = obsFrameTop + obsFrameHeight;
+
+      // Exibir checkboxes de confirmação abaixo da moldura de observações
+      y += 8;
+      doc.setFontSize(9);
+      const cbLeft2 = 12;
+      const cbBoxSize2 = 5;
+      // Checkbox 1
+      doc.setFont(undefined, "bold");
+      doc.rect(cbLeft2, y, cbBoxSize2, cbBoxSize2);
+      if (d.confirmServiceOk) {
+        doc.setLineWidth(0.7);
+        doc.line(cbLeft2, y, cbLeft2 + cbBoxSize2, y + cbBoxSize2);
+        doc.line(cbLeft2 + cbBoxSize2, y, cbLeft2, y + cbBoxSize2);
+      }
+      doc.setFont(undefined, "normal");
+      doc.text("O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.", cbLeft2 + cbBoxSize2 + 3, y + cbBoxSize2 - 1);
+      y += cbBoxSize2 + 5;
+      // Checkbox 2
+      doc.setFont(undefined, "bold");
+      doc.rect(cbLeft2, y, cbBoxSize2, cbBoxSize2);
+      if (d.confirmOldGasCollected) {
+        doc.setLineWidth(0.7);
+        doc.line(cbLeft2, y, cbLeft2 + cbBoxSize2, y + cbBoxSize2);
+        doc.line(cbLeft2 + cbBoxSize2, y, cbLeft2, y + cbBoxSize2);
+      }
+      doc.setFont(undefined, "normal");
+      doc.text("O cliente e o instalador confirmam que foi/foram recolhido(s) o(s) equipamento(s) antigo(s) a gás.", cbLeft2 + cbBoxSize2 + 3, y + cbBoxSize2 - 1);
+      y += cbBoxSize2 + 8;
     }
 
     if (payload.origin === "radio_popular") {

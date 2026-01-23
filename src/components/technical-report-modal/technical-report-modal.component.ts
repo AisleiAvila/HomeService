@@ -150,9 +150,11 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
   verdeMaterials = signal<WortenVerdeMaterialItem[]>([]);
 
   // Worten Azul
-  azulInvoiceNumber = signal("");
-  azulServiceNumber = signal("");
-  azulReportNotes = signal("");
+    azulInvoiceNumber = signal("");
+    azulServiceNumber = signal("");
+    azulReportNotes = signal("");
+    azulConfirmServiceOk = signal(false);
+    azulConfirmOldGasCollected = signal(false);
 
   // Rádio Popular
   radioServiceNote = signal("");
@@ -625,6 +627,8 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
             invoiceNumber: this.azulInvoiceNumber(),
             serviceNumber: this.azulServiceNumber(),
             reportNotes: this.azulReportNotes(),
+            confirmServiceOk: this.azulConfirmServiceOk(),
+            confirmOldGasCollected: this.azulConfirmOldGasCollected(),
           },
         };
         break;
