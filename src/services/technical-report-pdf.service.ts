@@ -624,6 +624,24 @@ async generatePdfBlob(
         doc.text("NIF:", clientFrameLeft + clientFrameWidth - 45, clientFrameTop + 5);
         doc.setFont(undefined, "normal");
         doc.text((request.client_nif || "—").toString(), clientFrameLeft + clientFrameWidth - 25, clientFrameTop + 5);
+          // Endereço do Serviço e Código Postal
+          const addressY = clientFrameTop + 10;
+          doc.setFont(undefined, "bold");
+          doc.text("Endereço do Serviço:", clientFrameLeft + 3, addressY);
+          doc.setFont(undefined, "normal");
+          // Monta logradouro + número + complemento
+          let enderecoServico = "—";
+          if (request.street || request.street_number || request.complement) {
+            enderecoServico = (request.street || "");
+            if (request.street_number) enderecoServico += ", " + request.street_number;
+            if (request.complement) enderecoServico += " " + request.complement;
+            enderecoServico = enderecoServico.trim() || "—";
+          }
+          doc.text(enderecoServico, clientFrameLeft + 45, addressY);
+          doc.setFont(undefined, "bold");
+          doc.text("Código Postal:", clientFrameLeft + clientFrameWidth - 45, addressY);
+          doc.setFont(undefined, "normal");
+          doc.text((request.zip_code || "—").toString(), clientFrameLeft + clientFrameWidth - 25, addressY);
         doc.setFontSize(8);
         doc.setFont(undefined, "normal");
         y = clientFrameTop + clientFrameHeight;
