@@ -732,6 +732,38 @@ async generatePdfBlob(
       doc.setFontSize(8);
       doc.setFont(undefined, "normal");
       y = installerFrameTop + installerFrameHeight;
+
+      // Título RELATÓRIO TÉCNICO/OBSERVAÇÕES abaixo da última moldura
+      y += 12;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 102, 204);
+      doc.text("RELATÓRIO TÉCNICO/OBSERVAÇÕES", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+
+      // Moldura para observações (modelo igual à de DADOS DO INSTALADOR, altura dinâmica)
+      const obsFrameLeft = 12;
+      const obsFrameTop = y + 6;
+      const obsFrameWidth = doc.internal.pageSize.getWidth() - 24;
+      // Calcular altura dinâmica do bloco de observações
+      doc.setFontSize(9);
+      doc.setFont(undefined, "normal");
+      const obsText = (d.reportNotes || "—").toString();
+      const obsLines = doc.splitTextToSize(obsText, obsFrameWidth - 8);
+      const obsLineHeight = 5.5;
+      const obsFrameHeight = Math.max(14, obsLines.length * obsLineHeight + 6);
+      doc.setDrawColor(0, 102, 204); // Azul
+      doc.setLineWidth(0.7);
+      doc.rect(obsFrameLeft, obsFrameTop, obsFrameWidth, obsFrameHeight, 'S');
+      // Exibir texto justificado dentro da moldura
+      let obsY = obsFrameTop + 7;
+      obsLines.forEach(line => {
+        doc.text(line, obsFrameLeft + 4, obsY, { align: "justify", maxWidth: obsFrameWidth - 8 });
+        obsY += obsLineHeight;
+      });
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      y = obsFrameTop + obsFrameHeight;
     }
 
     if (payload.origin === "radio_popular") {
