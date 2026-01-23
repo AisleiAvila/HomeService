@@ -606,6 +606,27 @@ async generatePdfBlob(
       doc.text("DADOS DO CLIENTE", 12, y);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
+        // Moldura abaixo do título DADOS DO CLIENTE
+        const clientFrameLeft = 12;
+        const clientFrameTop = y + 6;
+        const clientFrameWidth = doc.internal.pageSize.getWidth() - 24;
+        const clientFrameHeight = 12;
+        doc.setDrawColor(0, 102, 204); // Azul
+        doc.setLineWidth(0.7);
+        doc.rect(clientFrameLeft, clientFrameTop, clientFrameWidth, clientFrameHeight, 'S');
+        // Conteúdo da moldura: Nome e Apelido, nome do cliente, NIF, valor do NIF
+        doc.setFontSize(9);
+        doc.setFont(undefined, "bold");
+        doc.text("Nome e Apelido:", clientFrameLeft + 3, clientFrameTop + 5);
+        doc.setFont(undefined, "normal");
+        doc.text((request.client_name || "—").toString(), clientFrameLeft + 35, clientFrameTop + 5);
+        doc.setFont(undefined, "bold");
+        doc.text("NIF:", clientFrameLeft + clientFrameWidth - 45, clientFrameTop + 5);
+        doc.setFont(undefined, "normal");
+        doc.text((request.client_nif || "—").toString(), clientFrameLeft + clientFrameWidth - 25, clientFrameTop + 5);
+        doc.setFontSize(8);
+        doc.setFont(undefined, "normal");
+        y = clientFrameTop + clientFrameHeight;
     }
 
     if (payload.origin === "radio_popular") {
