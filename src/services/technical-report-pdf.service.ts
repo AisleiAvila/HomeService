@@ -701,6 +701,37 @@ async generatePdfBlob(
       doc.setFontSize(8);
       doc.setFont(undefined, "normal");
       y = serviceFrameTop + serviceFrameHeight;
+
+      // Título DADOS DO INSTALADOR abaixo da moldura
+      y += 12;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 102, 204);
+      doc.text("DADOS DO INSTALADOR", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+
+      // Moldura DADOS DO INSTALADOR (modelo igual à de DADOS DO SERVIÇO, mas com 2 linhas)
+      const installerFrameLeft = 12;
+      const installerFrameTop = y + 6;
+      const installerFrameWidth = doc.internal.pageSize.getWidth() - 24;
+      const installerFrameHeight = 14; // 2 linhas
+      doc.setDrawColor(0, 102, 204); // Azul
+      doc.setLineWidth(0.7);
+      doc.rect(installerFrameLeft, installerFrameTop, installerFrameWidth, installerFrameHeight, 'S');
+      doc.setFontSize(9);
+      // Primeira linha: Nome/designação social da empresa
+      doc.setFont(undefined, "bold");
+      doc.text("Nome e/ou designação social da empresa:", installerFrameLeft + 3, installerFrameTop + 5);
+      doc.setFont(undefined, "normal");
+      doc.text("Worten - Equipamentos para o Lar S.A", installerFrameLeft + 80, installerFrameTop + 5);
+      // Segunda linha: NIF/NIPC
+      doc.setFont(undefined, "bold");
+      doc.text("NIF/NIPC:", installerFrameLeft + 3, installerFrameTop + 11);
+      doc.setFont(undefined, "normal");
+      doc.text("503630330", installerFrameLeft + 30, installerFrameTop + 11);
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      y = installerFrameTop + installerFrameHeight;
     }
 
     if (payload.origin === "radio_popular") {
