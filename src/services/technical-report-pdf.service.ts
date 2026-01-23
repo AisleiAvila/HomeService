@@ -752,7 +752,8 @@ async generatePdfBlob(
       const obsText = (d.reportNotes || "—").toString();
       const obsLines = doc.splitTextToSize(obsText, obsFrameWidth - 8);
       const obsLineHeight = 5.5;
-      const obsFrameHeight = Math.max(14, obsLines.length * obsLineHeight + 6);
+      // Aumenta a altura mínima e o padding extra
+      const obsFrameHeight = Math.max(24, obsLines.length * obsLineHeight + 16);
       doc.setDrawColor(0, 102, 204); // Azul
       doc.setLineWidth(0.7);
       doc.rect(obsFrameLeft, obsFrameTop, obsFrameWidth, obsFrameHeight, 'S');
@@ -781,7 +782,7 @@ async generatePdfBlob(
       }
       doc.setFont(undefined, "normal");
       doc.text("O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.", cbLeft2 + cbBoxSize2 + 3, y + cbBoxSize2 - 1);
-      y += cbBoxSize2 + 7;
+      y += cbBoxSize2 + 2; // Reduzido para subir o segundo checkbox
       // Checkbox 2
       doc.setFont(undefined, "bold");
       doc.rect(cbLeft2, y, cbBoxSize2, cbBoxSize2);
