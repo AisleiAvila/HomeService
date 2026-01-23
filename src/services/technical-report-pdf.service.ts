@@ -670,6 +670,37 @@ async generatePdfBlob(
       doc.setFontSize(8);
       doc.setFont(undefined, "normal");
       y = clientFrameTop + clientFrameHeight;
+
+      // Título DADOS DO SERVIÇO abaixo da moldura
+      y += 12;
+      doc.setFontSize(13);
+      doc.setTextColor(0, 102, 204);
+      doc.text("DADOS DO SERVIÇO", 12, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(8);
+
+      // Moldura DADOS DO SERVIÇO
+      const serviceFrameLeft = 12;
+      const serviceFrameTop = y + 6;
+      const serviceFrameWidth = doc.internal.pageSize.getWidth() - 24;
+      // Altura suficiente para uma linha
+      const serviceFrameHeight = 8;
+      doc.setDrawColor(0, 102, 204); // Azul
+      doc.setLineWidth(0.7);
+      doc.rect(serviceFrameLeft, serviceFrameTop, serviceFrameWidth, serviceFrameHeight, 'S');
+      doc.setFontSize(9);
+      // Primeira linha: Número da fatura | Número do Serviço
+      doc.setFont(undefined, "bold");
+      doc.text("Número da fatura:", serviceFrameLeft + 3, serviceFrameTop + 5);
+      doc.setFont(undefined, "normal");
+      doc.text((d.invoiceNumber || "—").toString(), serviceFrameLeft + 40, serviceFrameTop + 5);
+      doc.setFont(undefined, "bold");
+      doc.text("Número do Serviço:", serviceFrameLeft + serviceFrameWidth - 60, serviceFrameTop + 5);
+      doc.setFont(undefined, "normal");
+      doc.text((d.serviceNumber || "—").toString(), serviceFrameLeft + serviceFrameWidth - 25, serviceFrameTop + 5);
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      y = serviceFrameTop + serviceFrameHeight;
     }
 
     if (payload.origin === "radio_popular") {
