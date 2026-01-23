@@ -610,12 +610,14 @@ async generatePdfBlob(
         const clientFrameLeft = 12;
         const clientFrameTop = y + 6;
         const clientFrameWidth = doc.internal.pageSize.getWidth() - 24;
-        const clientFrameHeight = 12;
+        // Ajusta altura da moldura para comportar 3 linhas (Nome/NIF, Endereço/Código Postal, Cidade/Freguesia)
+        const clientFrameHeight = 18;
         doc.setDrawColor(0, 102, 204); // Azul
         doc.setLineWidth(0.7);
         doc.rect(clientFrameLeft, clientFrameTop, clientFrameWidth, clientFrameHeight, 'S');
         // Conteúdo da moldura: Nome e Apelido, nome do cliente, NIF, valor do NIF
         doc.setFontSize(9);
+        // Primeira linha: Nome e Apelido | NIF
         doc.setFont(undefined, "bold");
         doc.text("Nome e Apelido:", clientFrameLeft + 3, clientFrameTop + 5);
         doc.setFont(undefined, "normal");
@@ -624,24 +626,40 @@ async generatePdfBlob(
         doc.text("NIF:", clientFrameLeft + clientFrameWidth - 45, clientFrameTop + 5);
         doc.setFont(undefined, "normal");
         doc.text((request.client_nif || "—").toString(), clientFrameLeft + clientFrameWidth - 25, clientFrameTop + 5);
-          // Endereço do Serviço e Código Postal
-          const addressY = clientFrameTop + 10;
-          doc.setFont(undefined, "bold");
-          doc.text("Endereço do Serviço:", clientFrameLeft + 3, addressY);
-          doc.setFont(undefined, "normal");
-          // Monta logradouro + número + complemento
-          let enderecoServico = "—";
-          if (request.street || request.street_number || request.complement) {
-            enderecoServico = (request.street || "");
-            if (request.street_number) enderecoServico += ", " + request.street_number;
-            if (request.complement) enderecoServico += " " + request.complement;
-            enderecoServico = enderecoServico.trim() || "—";
-          }
-          doc.text(enderecoServico, clientFrameLeft + 45, addressY);
-          doc.setFont(undefined, "bold");
-          doc.text("Código Postal:", clientFrameLeft + clientFrameWidth - 45, addressY);
-          doc.setFont(undefined, "normal");
-          doc.text((request.zip_code || "—").toString(), clientFrameLeft + clientFrameWidth - 25, addressY);
+
+        // Segunda linha: Endereço do Serviço (esquerda) | Código Postal (direita, linha de baixo)
+        const addressY = clientFrameTop + 10;
+        doc.setFont(undefined, "bold");
+        doc.text("Endereço do Serviço:", clientFrameLeft + 3, addressY);
+        doc.setFont(undefined, "normal");
+        // Monta logradouro + número + complemento
+        let enderecoServico = "—";
+        if (request.street || request.street_number || request.complement) {
+          enderecoServico = (request.street || "");
+          if (request.street_number) enderecoServico += ", " + request.street_number;
+          if (request.complement) enderecoServico += " " + request.complement;
+          enderecoServico = enderecoServico.trim() || "—";
+        }
+        doc.text(enderecoServico, clientFrameLeft + 45, addressY);
+
+        // Código Postal: linha de baixo, alinhado à direita
+        const codPostalY = clientFrameTop + clientFrameHeight - 2;
+        doc.setFont(undefined, "bold");
+        doc.text("Código Postal:", clientFrameLeft + clientFrameWidth - 45, codPostalY);
+        doc.setFont(undefined, "normal");
+        doc.text((request.zip_code || "—").toString(), clientFrameLeft + clientFrameWidth - 25, codPostalY);
+
+        // Terceira linha: Cidade (distrito) e Freguesia (localidade)
+        const cityY = codPostalY + 6;
+        doc.setFont(undefined, "bold");
+        doc.text("Cidade:", clientFrameLeft + 3, cityY);
+        doc.setFont(undefined, "normal");
+        doc.text((request.state || "—").toString(), clientFrameLeft + 25, cityY);
+        doc.setFont(undefined, "bold");
+        doc.text("Freguesia:", clientFrameLeft + clientFrameWidth - 45, cityY);
+        doc.setFont(undefined, "normal");
+        doc.text((request.city || "—").toString(), clientFrameLeft + clientFrameWidth - 25, cityY);
+
         doc.setFontSize(8);
         doc.setFont(undefined, "normal");
         y = clientFrameTop + clientFrameHeight;
