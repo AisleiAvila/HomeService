@@ -742,10 +742,10 @@ async generatePdfBlob(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
 
-      // Moldura para observações (modelo igual à de DADOS DO INSTALADOR, altura dinâmica)
-      const obsFrameLeft = 12;
+      // Moldura para observações (modelo igual à de DADOS DO INSTALADOR, altura dinâmica, largura aumentada)
+      const obsFrameLeft = 8; // Reduzido para aumentar a largura
       const obsFrameTop = y + 6;
-      const obsFrameWidth = doc.internal.pageSize.getWidth() - 24;
+      const obsFrameWidth = doc.internal.pageSize.getWidth() - 16; // Aumenta a largura da moldura
       // Calcular altura dinâmica do bloco de observações
       doc.setFontSize(9);
       doc.setFont(undefined, "normal");
@@ -767,7 +767,7 @@ async generatePdfBlob(
       y = obsFrameTop + obsFrameHeight;
 
       // Exibir checkboxes de confirmação abaixo da moldura de observações
-      y += 8;
+      y += 12; // Espaço maior para manter visual equilibrado
       doc.setFontSize(9);
       const cbLeft2 = 12;
       const cbBoxSize2 = 5;
@@ -781,7 +781,7 @@ async generatePdfBlob(
       }
       doc.setFont(undefined, "normal");
       doc.text("O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.", cbLeft2 + cbBoxSize2 + 3, y + cbBoxSize2 - 1);
-      y += cbBoxSize2 + 5;
+      y += cbBoxSize2 + 7;
       // Checkbox 2
       doc.setFont(undefined, "bold");
       doc.rect(cbLeft2, y, cbBoxSize2, cbBoxSize2);
@@ -792,7 +792,7 @@ async generatePdfBlob(
       }
       doc.setFont(undefined, "normal");
       doc.text("O cliente e o instalador confirmam que foi/foram recolhido(s) o(s) equipamento(s) antigo(s) a gás.", cbLeft2 + cbBoxSize2 + 3, y + cbBoxSize2 - 1);
-      y += cbBoxSize2 + 8;
+      y += cbBoxSize2 + 10;
     }
 
     if (payload.origin === "radio_popular") {
