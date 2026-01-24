@@ -886,21 +886,42 @@ async generatePdfBlob(
       radioPopularFooter = { rpText, lineHeight, rpTextStartY, signatureBoxY };
     }
 
-    this.addClientSignature(doc, {
-      clientSignatureDataUrl: options?.clientSignatureDataUrl,
-      clientName: options?.clientName,
-      clientSignedAt: options?.clientSignedAt ?? issuedAt,
-      origin: payload.origin,
-      signatureBoxY: radioPopularFooter?.signatureBoxY,
-    });
+        if (payload.origin === "worten_azul") {
+            this.addClientSignatureWortenBlue(doc, {
+              clientSignatureDataUrl: options?.clientSignatureDataUrl,
+              clientName: options?.clientName,
+              clientSignedAt: options?.clientSignedAt ?? issuedAt,
+              origin: payload.origin,
+              signatureBoxY: radioPopularFooter?.signatureBoxY,
+            });
+      
+            this.addProfessionalSignatureWortenBlue(doc, {
+              professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
+              professionalName: options?.professionalName,
+              professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
+              origin: payload.origin,
+              signatureBoxY: radioPopularFooter?.signatureBoxY,
+            });
 
-    this.addProfessionalSignature(doc, {
-      professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
-      professionalName: options?.professionalName,
-      professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
-      origin: payload.origin,
-      signatureBoxY: radioPopularFooter?.signatureBoxY,
-    });
+        } else {
+          this.addClientSignature(doc, {
+            clientSignatureDataUrl: options?.clientSignatureDataUrl,
+            clientName: options?.clientName,
+            clientSignedAt: options?.clientSignedAt ?? issuedAt,
+            origin: payload.origin,
+            signatureBoxY: radioPopularFooter?.signatureBoxY,
+          });
+      
+          this.addProfessionalSignature(doc, {
+            professionalSignatureDataUrl: options?.professionalSignatureDataUrl,
+            professionalName: options?.professionalName,
+            professionalSignedAt: options?.professionalSignedAt ?? issuedAt,
+            origin: payload.origin,
+            signatureBoxY: radioPopularFooter?.signatureBoxY,
+          });
+        }
+
+
 
     if (payload.origin === "radio_popular" && radioPopularFooter) {
       const leftMargin = 12;
@@ -976,6 +997,63 @@ async generatePdfBlob(
     this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
   }
 
+  private addProfessionalSignatureWortenBlue(doc: any, options: TechnicalReportPdfOptions): void {
+    const signatureDataUrl = options.professionalSignatureDataUrl?.trim();
+    if (!signatureDataUrl) return;
+
+    // Canvas is expected to be PNG, but accept other image types defensively.
+    if (!signatureDataUrl.startsWith("data:image/")) {
+      throw new Error("Assinatura inválida (formato não suportado). Use PNG.");
+    }
+
+    const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
+    if (typeof doc.setPage === "function") doc.setPage(pageCount);
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const signedAt = options.professionalSignedAt ?? new Date();
+    const signedAtLabel = signedAt.toLocaleString("pt-PT", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const name = (options.professionalName || "").trim() || "—";
+
+    const boxW = 80;
+    const boxH = 22;
+    // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
+    const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
+    const isRadioPopular = options?.origin === "radio_popular";
+    const boxY = options?.signatureBoxY ??
+      (isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40);
+
+    const x = pageWidth - 12 - boxW;
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.setFont(undefined, "bold");
+    doc.text("Assinatura do Instalador/entidade ou pessoa autorizada por este:", x, boxY - 1);
+
+    doc.setDrawColor(180);
+    doc.rect(x, boxY, boxW, boxH);
+
+    // Add the signature image inside the box.
+    this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
+
+    // Exibir Nome e Apelido e Data abaixo da caixa de assinatura
+    doc.setFontSize(8);
+    doc.setFont(undefined, "normal");
+    const nomeY = boxY + boxH + 6;
+    doc.text(`Nome e Apelido: ${name}`, x, nomeY);
+    const dataY = nomeY + 5;
+    doc.text(`Data: ${signedAtLabel}`, x, dataY);
+  }
+
+
   private addClientSignature(doc: any, options: TechnicalReportPdfOptions): void {
     const signatureDataUrl = options.clientSignatureDataUrl?.trim();
     if (!signatureDataUrl) return;
@@ -1023,6 +1101,61 @@ async generatePdfBlob(
     doc.rect(x, boxY, boxW, boxH);
     this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
   }
+
+  private addClientSignatureWortenBlue(doc: any, options: TechnicalReportPdfOptions): void {
+    const signatureDataUrl = options.clientSignatureDataUrl?.trim();
+    if (!signatureDataUrl) return;
+
+    if (!signatureDataUrl.startsWith("data:image/")) {
+      throw new Error("Assinatura do cliente inválida (formato não suportado). Use PNG.");
+    }
+
+    const pageCount = typeof doc.getNumberOfPages === "function" ? doc.getNumberOfPages() : 1;
+    if (typeof doc.setPage === "function") doc.setPage(pageCount);
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    const signedAt = options.clientSignedAt ?? new Date();
+    const signedAtLabel = signedAt.toLocaleString("pt-PT", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const name = (options.clientName || "").trim() || "—";
+
+    const x = 12;
+    const boxW = 80;
+    const boxH = 22;
+    // Subir a caixa se for Rádio Popular para liberar espaço para o bloco
+    const blockHeight = 38; // Aproximadamente o bloco de textos Rádio Popular (9 linhas * 4 + margem)
+    const isRadioPopular = options?.origin === "radio_popular";
+    const boxY = options?.signatureBoxY ??
+      (isRadioPopular ? pageHeight - 40 - blockHeight - 42 : pageHeight - 40);
+
+    doc.setTextColor(0, 0, 0);
+
+    doc.setFontSize(9);
+    doc.setFont(undefined, "bold");
+    doc.text("Assinatura do Cliente:", x, boxY - 1);
+
+    doc.setDrawColor(180);
+    doc.rect(x, boxY, boxW, boxH);
+    this.addImageDataUrl(doc, signatureDataUrl, x + 2, boxY + 2, boxW - 4, boxH - 4);
+
+    // Exibir Nome e Apelido abaixo da caixa de assinatura, alinhado à esquerda
+    doc.setFontSize(8);
+    doc.setFont(undefined, "normal");
+    const nomeY = boxY + boxH + 6;
+    doc.text(`Nome e Apelido: ${name}`, x, nomeY);
+    // Exibir Data na linha abaixo do nome, alinhado à esquerda
+    const dataY = nomeY + 5;
+    doc.text(`Data: ${signedAtLabel}`, x, dataY);
+
+  }
+
 
   private getOriginLabel(origin: TechnicalReportOriginKey): string {
     switch (origin) {
