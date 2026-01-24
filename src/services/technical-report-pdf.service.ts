@@ -1036,7 +1036,9 @@ async generatePdfBlob(
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(9);
     doc.setFont(undefined, "bold");
-    doc.text("Assinatura do Instalador/entidade ou pessoa autorizada por este:", x, boxY - 1);
+    // Quebra o texto em duas linhas
+    doc.text("Assinatura do Instalador/entidade", x, boxY - 4);
+    doc.text("ou pessoa autorizada por este:", x, boxY - 1);
 
     doc.setDrawColor(180);
     doc.rect(x, boxY, boxW, boxH);
