@@ -67,7 +67,7 @@
         class="hidden md:flex bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700 flex-col transition-all duration-200 overflow-hidden"
         [ngClass]="isSidebarCollapsed() ? 'md:w-16' : 'md:w-48'" aria-label="Menu lateral de navegação">
         <div class="h-16 flex items-center px-4 border-b border-gray-200 dark:border-neutral-700">
-          <img src="/assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
+          <img src="assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
         </div>
         <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
           <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
@@ -186,7 +186,7 @@
         <aside class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
           aria-label="Menu lateral de navegação (mobile)">
           <div class="h-16 flex items-center px-4 border-b border-gray-200 justify-between">
-            <img src="/assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
+            <img src="assets/logo-new.png" alt="Natan General Service" class="h-8 w-auto" />
             <button class="p-2" (click)="toggleSidebar()">
               <i class="fa-solid fa-xmark"></i>
             </button>
