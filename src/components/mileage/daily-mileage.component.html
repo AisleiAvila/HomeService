@@ -261,31 +261,28 @@
     </div>
 
     <div class="space-y-4">
-      <!-- Sortable Headers -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-600 p-2 rounded">
-        <button (click)="sortByColumn('date')" class="text-left hover:text-blue-600">
-          {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
-        </button>
-        <span>{{ 'initial' | i18n }}</span>
-        <span>{{ 'final' | i18n }}</span>
-        <button (click)="sortByColumn('driven')" class="text-left hover:text-blue-600">
-          {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
-        </button>
-        <button (click)="sortByColumn('fueling')" class="text-left hover:text-blue-600 md:col-span-1">
-          {{ 'fuelings' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
-        </button>
-      </div>
-
       <!-- Mileage Table -->
       <div class="overflow-x-auto">
         <table class="min-w-full table-auto border-collapse">
           <thead class="hidden md:table-header-group">
             <tr class="bg-gray-100 dark:bg-neutral-600">
-              <th class="px-4 py-2 text-left">{{ 'date' | i18n }}</th>
+              <th class="px-4 py-2 text-left">
+                <button (click)="sortByColumn('date')" class="hover:text-blue-600 font-semibold">
+                  {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
               <th class="px-4 py-2 text-left">{{ 'initial' | i18n }}</th>
               <th class="px-4 py-2 text-left">{{ 'final' | i18n }}</th>
-              <th class="px-4 py-2 text-left">{{ 'kilometersDriven' | i18n }}</th>
-              <th class="px-4 py-2 text-left">{{ 'fuelings' | i18n }}</th>
+              <th class="px-4 py-2 text-left">
+                <button (click)="sortByColumn('driven')" class="hover:text-blue-600 font-semibold">
+                  {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-left">
+                <button (click)="sortByColumn('fueling')" class="hover:text-blue-600 font-semibold">
+                  {{ 'fuelings' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
               <th class="px-4 py-2 text-left">{{ 'actions' | i18n }}</th>
             </tr>
           </thead>
