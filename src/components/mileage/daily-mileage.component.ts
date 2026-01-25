@@ -79,6 +79,9 @@ export class DailyMileageComponent implements OnInit {
     const user = this.currentUser();
     if (user) {
       await this.dailyMileageService.loadDailyMileages(user.id);
+      // Carregar fuelings para todos os mileages para exibir totais corretos
+      const mileages = this.dailyMileageService.dailyMileages();
+      await Promise.all(mileages.map(m => this.dailyMileageService.loadFuelings(m.id)));
     }
   }
 

@@ -176,14 +176,14 @@
             <span class="hidden sm:inline">{{ 'viewFuelings' | i18n }}</span>
           </button>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'start' | i18n }}:</span>
             <span class="ml-1 font-medium">{{ mileage.start_kilometers }} km</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'end' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ mileage.end_kilometers || '-' }}</span>
+            <span class="ml-1 font-medium">{{ (mileage.end_kilometers || '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'driven' | i18n }}:</span>
