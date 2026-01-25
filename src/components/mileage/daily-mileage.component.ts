@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DailyMileageService } from '../../services/daily-mileage.service';
-import { AuthService } from '../../services/auth.service';
 import { I18nService } from '../../i18n.service';
+import { DailyMileage } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
-import { DailyMileage, Fueling } from '../../models/maintenance.models';
+import { AuthService } from '../../services/auth.service';
+import { DailyMileageService } from '../../services/daily-mileage.service';
 
 @Component({
   selector: 'app-daily-mileage',
