@@ -173,7 +173,7 @@
     </div>
 
     <!-- Active Filters -->
-    <div *ngIf="activeFilters().length > 0" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded">
+    <div *ngIf="activeFilters().length > 0" class="mb-4 p-3 bg-white dark:bg-neutral-800 rounded border dark:border-neutral-600">
       <h4 class="text-sm font-medium mb-2">{{ 'activeFilters' | i18n }}</h4>
       <div class="flex flex-wrap gap-2">
         <span *ngFor="let filter of activeFilters()" class="inline-flex items-center bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm">
@@ -182,9 +182,6 @@
             ×
           </button>
         </span>
-        <button (click)="clearFilters()" class="text-gray-600 dark:text-gray-400 underline text-sm hover:text-gray-800 dark:hover:text-gray-200">
-          {{ 'clearAll' | i18n }}
-        </button>
       </div>
     </div>
 

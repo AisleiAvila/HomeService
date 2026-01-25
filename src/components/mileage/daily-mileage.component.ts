@@ -177,6 +177,11 @@ export class DailyMileageComponent implements OnInit {
 
   ngOnInit() {
     this.loadData();
+    // Set default date filters: start of month to today
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.filterStartDate.set(firstDayOfMonth.toISOString().split('T')[0]);
+    this.filterEndDate.set(today.toISOString().split('T')[0]);
   }
 
   // Helper methods for number conversion
