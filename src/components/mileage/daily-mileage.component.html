@@ -163,9 +163,125 @@
 
   <!-- History -->
   <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold mb-4">{{ 'mileageHistory' | i18n }}</h2>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">{{ 'mileageHistory' | i18n }}</h2>
+      <button
+        (click)="toggleFilters()"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        {{ showFilters() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}
+      </button>
+    </div>
+
+    <!-- Active Filters -->
+    <div *ngIf="activeFilters().length > 0" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded">
+      <h4 class="text-sm font-medium mb-2">{{ 'activeFilters' | i18n }}</h4>
+      <div class="flex flex-wrap gap-2">
+        <span *ngFor="let filter of activeFilters()" class="inline-flex items-center bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm">
+          {{ filter.labelKey | i18n }}: {{ filter.value }}
+          <button (click)="clearFilter(filter.key)" class="ml-2 text-red-600 hover:text-red-800" aria-label="Remover filtro">
+            ×
+          </button>
+        </span>
+        <button (click)="clearFilters()" class="text-gray-600 dark:text-gray-400 underline text-sm hover:text-gray-800 dark:hover:text-gray-200">
+          {{ 'clearAll' | i18n }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div *ngIf="showFilters()" class="mb-6 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
+      <h3 class="text-md font-medium mb-3">{{ 'filters' | i18n }}</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'startDate' | i18n }}</label>
+          <input
+            type="date"
+            [ngModel]="filterStartDate()"
+            (ngModelChange)="filterStartDate.set($event)"
+            name="filterStartDate"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'endDate' | i18n }}</label>
+          <input
+            type="date"
+            [ngModel]="filterEndDate()"
+            (ngModelChange)="filterEndDate.set($event)"
+            name="filterEndDate"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'minDriven' | i18n }}</label>
+          <input
+            type="number"
+            [ngModel]="filterMinDriven()"
+            (ngModelChange)="onFilterMinDrivenChange($event)"
+            name="filterMinDriven"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+            placeholder="0"
+            min="0">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'maxDriven' | i18n }}</label>
+          <input
+            type="number"
+            [ngModel]="filterMaxDriven()"
+            (ngModelChange)="onFilterMaxDrivenChange($event)"
+            name="filterMaxDriven"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+            placeholder="0"
+            min="0">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'minFueling' | i18n }}</label>
+          <input
+            type="number"
+            step="0.01"
+            [ngModel]="filterMinFueling()"
+            (ngModelChange)="onFilterMinFuelingChange($event)"
+            name="filterMinFueling"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+            placeholder="0.00"
+            min="0">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ 'maxFueling' | i18n }}</label>
+          <input
+            type="number"
+            step="0.01"
+            [ngModel]="filterMaxFueling()"
+            (ngModelChange)="onFilterMaxFuelingChange($event)"
+            name="filterMaxFueling"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+            placeholder="0.00"
+            min="0">
+        </div>
+        <div class="flex items-end">
+          <button
+            (click)="clearFilters()"
+            class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            {{ 'clearFilters' | i18n }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="space-y-4">
-      <div *ngFor="let mileage of dailyMileages()" class="border rounded p-4 dark:border-neutral-600">
+      <!-- Sortable Headers -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm font-semibold bg-gray-100 dark:bg-neutral-600 p-2 rounded">
+        <button (click)="sortByColumn('date')" class="text-left hover:text-blue-600">
+          {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <span>{{ 'start' | i18n }}</span>
+        <button (click)="sortByColumn('driven')" class="text-left hover:text-blue-600">
+          {{ 'driven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+        <button (click)="sortByColumn('fueling')" class="text-left hover:text-blue-600">
+          {{ 'fuelingTotal' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+        </button>
+      </div>
+
+      <div *ngFor="let mileage of paginatedMileages()" class="border rounded p-4 dark:border-neutral-600">
         <div class="flex justify-between items-start mb-2">
           <h3 class="font-semibold">{{ mileage.date }}</h3>
           <button
@@ -195,6 +311,23 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center items-center mt-4 space-x-2">
+      <button
+        (click)="previousPage()"
+        [disabled]="!hasPreviousPage()"
+        class="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 hover:bg-blue-700">
+        {{ 'previous' | i18n }}
+      </button>
+      <span class="text-sm">{{ 'page' | i18n }} {{ currentPage() }} {{ 'of' | i18n }} {{ totalPages() }}</span>
+      <button
+        (click)="nextPage()"
+        [disabled]="!hasNextPage()"
+        class="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 hover:bg-blue-700">
+        {{ 'next' | i18n }}
+      </button>
     </div>
   </div>
 

@@ -27,6 +27,7 @@ export class DailyMileageComponent implements OnInit {
   showStartForm = signal(false);
   showEndForm = signal(false);
   selectedDailyMileage = signal<DailyMileage | null>(null);
+  showFilters = signal(false);
 
   // Start day form
   startDate = signal(new Date().toISOString().split('T')[0]);
@@ -41,6 +42,22 @@ export class DailyMileageComponent implements OnInit {
   fuelingReceiptFile = signal<File | null>(null);
   hasFueling = signal(false);
 
+  // Filter states
+  filterStartDate = signal<string>('');
+  filterEndDate = signal<string>('');
+  filterMinDriven = signal<number | null>(null);
+  filterMaxDriven = signal<number | null>(null);
+  filterMinFueling = signal<number | null>(null);
+  filterMaxFueling = signal<number | null>(null);
+
+  // Sorting states
+  sortBy = signal<'date' | 'driven' | 'fueling'>('date');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+
+  // Pagination states
+  itemsPerPage = signal(10);
+  currentPage = signal(1);
+
   // Computed
   dailyMileages = computed(() => this.dailyMileageService.dailyMileages());
   fuelings = computed(() => this.dailyMileageService.fuelings());
@@ -49,12 +66,112 @@ export class DailyMileageComponent implements OnInit {
     return this.dailyMileages().find(dm => dm.date === today);
   });
 
+  // Filtered and sorted mileages
+  filteredMileages = computed(() => {
+    let mileages = this.dailyMileages();
+    const startDate = this.filterStartDate();
+    const endDate = this.filterEndDate();
+    const minDriven = this.filterMinDriven();
+    const maxDriven = this.filterMaxDriven();
+    const minFueling = this.filterMinFueling();
+    const maxFueling = this.filterMaxFueling();
+
+    if (startDate) {
+      mileages = mileages.filter(m => m.date >= startDate);
+    }
+    if (endDate) {
+      mileages = mileages.filter(m => m.date <= endDate);
+    }
+    if (minDriven !== null) {
+      mileages = mileages.filter(m => this.getKilometersDriven(m) >= minDriven!);
+    }
+    if (maxDriven !== null) {
+      mileages = mileages.filter(m => this.getKilometersDriven(m) <= maxDriven!);
+    }
+    if (minFueling !== null) {
+      mileages = mileages.filter(m => this.getTotalFueling(m) >= minFueling!);
+    }
+    if (maxFueling !== null) {
+      mileages = mileages.filter(m => this.getTotalFueling(m) <= maxFueling!);
+    }
+
+    // Sorting
+    mileages = [...mileages].sort((a, b) => {
+      let aValue: any, bValue: any;
+      switch (this.sortBy()) {
+        case 'date':
+          aValue = a.date;
+          bValue = b.date;
+          break;
+        case 'driven':
+          aValue = this.getKilometersDriven(a);
+          bValue = this.getKilometersDriven(b);
+          break;
+        case 'fueling':
+          aValue = this.getTotalFueling(a);
+          bValue = this.getTotalFueling(b);
+          break;
+      }
+      if (aValue < bValue) return this.sortOrder() === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortOrder() === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return mileages;
+  });
+
+  // Paginated mileages
+  paginatedMileages = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.filteredMileages().slice(start, start + this.itemsPerPage());
+  });
+
+  // Pagination info
+  totalPages = computed(() => Math.ceil(this.filteredMileages().length / this.itemsPerPage()));
+  hasPreviousPage = computed(() => this.currentPage() > 1);
+  hasNextPage = computed(() => this.currentPage() < this.totalPages());
+
+  // Active filters
+  activeFilters = computed(() => {
+    const filters = [];
+    if (this.filterStartDate()) {
+      filters.push({ key: 'startDate', labelKey: 'startDate', value: this.filterStartDate() });
+    }
+    if (this.filterEndDate()) {
+      filters.push({ key: 'endDate', labelKey: 'endDate', value: this.filterEndDate() });
+    }
+    if (this.filterMinDriven() !== null) {
+      filters.push({ key: 'minDriven', labelKey: 'minDriven', value: this.filterMinDriven()?.toString() });
+    }
+    if (this.filterMaxDriven() !== null) {
+      filters.push({ key: 'maxDriven', labelKey: 'maxDriven', value: this.filterMaxDriven()?.toString() });
+    }
+    if (this.filterMinFueling() !== null) {
+      filters.push({ key: 'minFueling', labelKey: 'minFueling', value: this.filterMinFueling()?.toString() });
+    }
+    if (this.filterMaxFueling() !== null) {
+      filters.push({ key: 'maxFueling', labelKey: 'maxFueling', value: this.filterMaxFueling()?.toString() });
+    }
+    return filters;
+  });
+
   constructor() {
     effect(() => {
       const user = this.currentUser();
       if (user && user.role === 'professional') {
         this.loadData();
       }
+    });
+
+    // Reset page when filters change
+    effect(() => {
+      this.filterStartDate();
+      this.filterEndDate();
+      this.filterMinDriven();
+      this.filterMaxDriven();
+      this.filterMinFueling();
+      this.filterMaxFueling();
+      this.currentPage.set(1);
     });
   }
 
@@ -73,6 +190,22 @@ export class DailyMileageComponent implements OnInit {
 
   onFuelingValueChange(value: string) {
     this.fuelingValue.set(Number(value) || null);
+  }
+
+  onFilterMinDrivenChange(value: string) {
+    this.filterMinDriven.set(Number(value) || null);
+  }
+
+  onFilterMaxDrivenChange(value: string) {
+    this.filterMaxDriven.set(Number(value) || null);
+  }
+
+  onFilterMinFuelingChange(value: string) {
+    this.filterMinFueling.set(Number(value) || null);
+  }
+
+  onFilterMaxFuelingChange(value: string) {
+    this.filterMaxFueling.set(Number(value) || null);
   }
 
   async loadData() {
@@ -179,5 +312,60 @@ export class DailyMileageComponent implements OnInit {
   getKilometersDriven(dailyMileage: DailyMileage): number {
     if (!dailyMileage.end_kilometers) return 0;
     return dailyMileage.end_kilometers - dailyMileage.start_kilometers;
+  }
+
+  clearFilter(key: string) {
+    switch (key) {
+      case 'startDate':
+        this.filterStartDate.set('');
+        break;
+      case 'endDate':
+        this.filterEndDate.set('');
+        break;
+      case 'minDriven':
+        this.filterMinDriven.set(null);
+        break;
+      case 'maxDriven':
+        this.filterMaxDriven.set(null);
+        break;
+      case 'minFueling':
+        this.filterMinFueling.set(null);
+        break;
+      case 'maxFueling':
+        this.filterMaxFueling.set(null);
+        break;
+    }
+  }
+
+  toggleFilters() {
+    this.showFilters.set(!this.showFilters());
+  }
+
+  sortByColumn(column: 'date' | 'driven' | 'fueling') {
+    if (this.sortBy() === column) {
+      this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortBy.set(column);
+      this.sortOrder.set('desc'); // Default to desc for new sort
+    }
+    this.currentPage.set(1); // Reset to first page on sort
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  previousPage() {
+    if (this.hasPreviousPage()) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage() {
+    if (this.hasNextPage()) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
   }
 }
