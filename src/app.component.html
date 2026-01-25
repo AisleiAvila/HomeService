@@ -142,6 +142,10 @@
                 <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
               </ng-container>
 
+              <ng-container *ngSwitchCase="'daily-mileage'">
+                <app-daily-mileage />
+              </ng-container>
+
               <ng-container *ngSwitchCase="'profile'">
                 <app-profile [user]="currentUser()!" />
               </ng-container>

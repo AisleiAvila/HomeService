@@ -1,0 +1,214 @@
+<div class="container mx-auto p-6 max-w-4xl">
+  <h1 class="text-2xl font-bold mb-6">{{ 'dailyMileage' | i18n }}</h1>
+
+  <!-- Today's Status -->
+  <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">{{ 'todayStatus' | i18n }}</h2>
+
+    <ng-container *ngIf="todayMileage(); else noMileageToday">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="text-center">
+          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'startKilometers' | i18n }}</p>
+          <p class="text-xl font-bold">{{ todayMileage()!.start_kilometers }} km</p>
+        </div>
+        <div class="text-center">
+          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'endKilometers' | i18n }}</p>
+          <p class="text-xl font-bold">{{ todayMileage()!.end_kilometers || '-' }}</p>
+        </div>
+        <div class="text-center">
+          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}</p>
+          <p class="text-xl font-bold">{{ getKilometersDriven(todayMileage()!) }} km</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          *ngIf="!todayMileage()!.end_kilometers"
+          (click)="showEndForm.set(true)"
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          {{ 'endDay' | i18n }}
+        </button>
+        <button
+          (click)="showFuelingForm.set(true)"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          {{ 'addFueling' | i18n }}
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-template #noMileageToday>
+      <p class="text-gray-600 dark:text-neutral-400 mb-4">{{ 'noMileageToday' | i18n }}</p>
+      <button
+        (click)="showStartForm.set(true)"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        {{ 'startDay' | i18n }}
+      </button>
+    </ng-template>
+  </div>
+
+  <!-- Start Day Form -->
+  <div *ngIf="showStartForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">{{ 'startDay' | i18n }}</h3>
+    <form (ngSubmit)="startDay()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
+        <input
+          type="date"
+          [ngModel]="startDate()"
+          (ngModelChange)="startDate.set($event)"
+          name="startDate"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'startKilometers' | i18n }}</label>
+        <input
+          type="number"
+          [ngModel]="startKilometers()"
+          (ngModelChange)="onStartKilometersChange($event)"
+          name="startKilometers"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="0"
+          min="0"
+          required>
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          {{ 'save' | i18n }}
+        </button>
+        <button type="button" (click)="showStartForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          {{ 'cancel' | i18n }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- End Day Form -->
+  <div *ngIf="showEndForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">{{ 'endDay' | i18n }}</h3>
+    <form (ngSubmit)="endDay()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'endKilometers' | i18n }}</label>
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'endKilometers' | i18n }}</label>
+        <input
+          type="number"
+          [ngModel]="endKilometers()"
+          (ngModelChange)="onEndKilometersChange($event)"
+          name="endKilometers"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          [placeholder]="todayMileage()?.start_kilometers.toString()"
+          [min]="todayMileage()?.start_kilometers"
+          required>
+      </div>
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          {{ 'save' | i18n }}
+        </button>
+        <button type="button" (click)="showEndForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          {{ 'cancel' | i18n }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Fueling Form -->
+  <div *ngIf="showFuelingForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">{{ 'addFueling' | i18n }}</h3>
+    <form (ngSubmit)="addFueling()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+        <input
+          type="number"
+          step="0.01"
+          [ngModel]="fuelingValue()"
+          (ngModelChange)="onFuelingValueChange($event)"
+          name="fuelingValue"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="0.00"
+          min="0"
+          required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          {{ 'save' | i18n }}
+        </button>
+        <button type="button" (click)="showFuelingForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          {{ 'cancel' | i18n }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- History -->
+  <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
+    <h2 class="text-lg font-semibold mb-4">{{ 'mileageHistory' | i18n }}</h2>
+    <div class="space-y-4">
+      <div *ngFor="let mileage of dailyMileages()" class="border rounded p-4 dark:border-neutral-600">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-semibold">{{ mileage.date }}</h3>
+          <button
+            (click)="viewFuelings(mileage)"
+            class="text-blue-600 hover:text-blue-800 dark:text-blue-400">
+            {{ 'viewFuelings' | i18n }}
+          </button>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <span class="text-gray-600 dark:text-neutral-400">{{ 'start' | i18n }}:</span>
+            <span class="ml-1 font-medium">{{ mileage.start_kilometers }} km</span>
+          </div>
+          <div>
+            <span class="text-gray-600 dark:text-neutral-400">{{ 'end' | i18n }}:</span>
+            <span class="ml-1 font-medium">{{ mileage.end_kilometers || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-gray-600 dark:text-neutral-400">{{ 'driven' | i18n }}:</span>
+            <span class="ml-1 font-medium">{{ getKilometersDriven(mileage) }} km</span>
+          </div>
+          <div>
+            <span class="text-gray-600 dark:text-neutral-400">{{ 'fuelingTotal' | i18n }}:</span>
+            <span class="ml-1 font-medium">{{ getTotalFueling(mileage) | number:'1.2-2' }} €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fuelings Modal -->
+  <div *ngIf="selectedDailyMileage()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">{{ 'fuelingsFor' | i18n }} {{ selectedDailyMileage()!.date }}</h3>
+        <button (click)="selectedDailyMileage.set(null)" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="space-y-2">
+        <div *ngFor="let fueling of fuelings()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
+          <div>
+            <span class="font-medium">{{ fueling.value | number:'1.2-2' }} €</span>
+            <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
+          </div>
+          <div *ngIf="fueling.receipt_image_url">
+            <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-image"></i> {{ 'viewReceipt' | i18n }}
+            </a>
+          </div>
+        </div>
+        <div *ngIf="fuelings().length === 0" class="text-center text-gray-600 dark:text-neutral-400 py-4">
+          {{ 'noFuelings' | i18n }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

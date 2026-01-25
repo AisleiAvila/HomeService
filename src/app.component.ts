@@ -31,6 +31,7 @@ import {
 // Components
 import { ChatComponent } from "./components/chat/chat.component";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
+import { DailyMileageComponent } from "./components/mileage/daily-mileage.component";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { LandingComponent } from "./components/landing/landing.component";
 import { LoginComponent, LoginPayload } from "./components/login/login.component";
@@ -56,7 +57,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "clients" | "categories";
+type Nav = "dashboard" | "schedule" | "profile" | "daily-mileage" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "clients" | "categories";
 
 @Component({
   selector: "app-root",
@@ -72,6 +73,7 @@ type Nav = "dashboard" | "schedule" | "profile" | "details" | "create-service-re
     ForgotPasswordComponent,
     ResetPasswordComponent,
     DashboardComponent,
+    DailyMileageComponent,
     ScheduleComponent,
 
     ProfileComponent,
@@ -160,6 +162,11 @@ export class AppComponent implements OnInit {
           id: "schedule",
           labelKey: "schedule",
           icon: "fa-solid fa-calendar-days",
+        },
+        {
+          id: "daily-mileage",
+          labelKey: "dailyMileage",
+          icon: "fa-solid fa-tachometer-alt",
         }
       );
     }

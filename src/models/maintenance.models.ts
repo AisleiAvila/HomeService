@@ -801,3 +801,23 @@ export interface InAppNotification {
   read_at?: string | null;
   metadata?: Record<string, any> | null;
 }
+
+// Interface para kilometragem diária
+export interface DailyMileage {
+  id: number;
+  professional_id: number;
+  date: string; // YYYY-MM-DD
+  start_kilometers: number;
+  end_kilometers?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface para abastecimentos
+export interface Fueling {
+  id: number;
+  daily_mileage_id: number;
+  value: number;
+  receipt_image_url?: string;
+  created_at: string;
+}

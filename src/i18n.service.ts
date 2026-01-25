@@ -1054,6 +1054,25 @@ const allTranslations: Record<Language, Record<string, string>> = {
     quoted: "Quoted",
     enterStreetManually: "Enter street manually",
 
+    // Daily Mileage
+    dailyMileage: "Daily Mileage",
+    todayStatus: "Today's Status",
+    startKilometers: "Start Kilometers",
+    endKilometers: "End Kilometers",
+    kilometersDriven: "Kilometers Driven",
+    startDay: "Start Day",
+    endDay: "End Day",
+    addFueling: "Add Fueling",
+    fuelingValue: "Fueling Value",
+    receiptImage: "Receipt Image",
+    noMileageToday: "No mileage started for today.",
+    mileageHistory: "Mileage History",
+    viewFuelings: "View Fuelings",
+    fuelingsFor: "Fuelings for",
+    noFuelings: "No fuelings",
+    viewReceipt: "View Receipt",
+    fuelingTotal: "Fueling Total",
+    driven: "Driven",
 
   },
   pt: {
@@ -2113,6 +2132,26 @@ const allTranslations: Record<Language, Record<string, string>> = {
     priced: "Orçado",
     quoted: "Atribuído",
     enterStreetManually: "Digite a rua manualmente",
+
+    // Daily Mileage
+    dailyMileage: "Kilometragem Diária",
+    todayStatus: "Status de Hoje",
+    startKilometers: "Kilometragem Inicial",
+    endKilometers: "Kilometragem Final",
+    kilometersDriven: "Kilômetros Percorridos",
+    startDay: "Iniciar Dia",
+    endDay: "Finalizar Dia",
+    addFueling: "Adicionar Abastecimento",
+    fuelingValue: "Valor do Abastecimento",
+    receiptImage: "Imagem do Recibo",
+    noMileageToday: "Nenhuma kilometragem iniciada para hoje.",
+    mileageHistory: "Histórico de Kilometragem",
+    viewFuelings: "Ver Abastecimentos",
+    fuelingsFor: "Abastecimentos para",
+    noFuelings: "Nenhum abastecimento",
+    viewReceipt: "Ver Recibo",
+    fuelingTotal: "Total de Abastecimentos",
+    driven: "Percorridos",
 
   },
 };
