@@ -45,11 +45,11 @@ export class DailyMileageService {
 
       // Reload to update the list
       await this.loadDailyMileages(dailyMileage.professional_id);
-      this.notificationService.addNotification('Kilometragem diária criada com sucesso');
+      this.notificationService.addNotification('Quilometragem diária criada com sucesso');
       return data;
     } catch (error) {
       console.error('Error creating daily mileage:', error);
-      this.notificationService.addNotification('Erro ao criar kilometragem diária');
+      this.notificationService.addNotification('Erro ao criar quilometragem diária');
       return null;
     }
   }
@@ -69,10 +69,10 @@ export class DailyMileageService {
       if (updated) {
         await this.loadDailyMileages(updated.professional_id);
       }
-      this.notificationService.addNotification('Kilometragem diária atualizada com sucesso');
+      this.notificationService.addNotification('Quilometragem diária atualizada com sucesso');
     } catch (error) {
       console.error('Error updating daily mileage:', error);
-      this.notificationService.addNotification('Erro ao atualizar kilometragem diária');
+      this.notificationService.addNotification('Erro ao atualizar quilometragem diária');
     }
   }
 

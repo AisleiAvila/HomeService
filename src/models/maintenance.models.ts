@@ -802,7 +802,7 @@ export interface InAppNotification {
   metadata?: Record<string, any> | null;
 }
 
-// Interface para kilometragem diária
+// Interface para quilometragem diária
 export interface DailyMileage {
   id: number;
   professional_id: number;

@@ -88,7 +88,7 @@ export class DailyMileageComponent implements OnInit {
   async startDay() {
     const startKm = Number(this.startKilometers());
     if (isNaN(startKm) || startKm < 0 || this.startKilometers() === null || this.startKilometers() === undefined) {
-      alert('Por favor, insira uma kilometragem inicial válida.');
+      alert('Por favor, insira uma quilometragem inicial válida.');
       return;
     }
 
@@ -110,13 +110,13 @@ export class DailyMileageComponent implements OnInit {
   async endDay() {
     const todayMileage = this.todayMileage();
     if (!todayMileage) {
-      alert('Não há uma kilometragem iniciada para hoje.');
+      alert('Não há uma quilometragem iniciada para hoje.');
       return;
     }
 
     const endKm = Number(this.endKilometers());
     if (!endKm || endKm < todayMileage.start_kilometers) {
-      alert('A kilometragem final deve ser maior ou igual à inicial.');
+      alert('A quilometragem final deve ser maior ou igual à inicial.');
       return;
     }
 
@@ -131,7 +131,7 @@ export class DailyMileageComponent implements OnInit {
   async addFueling() {
     const todayMileage = this.todayMileage();
     if (!todayMileage) {
-      alert('Não há uma kilometragem iniciada para hoje.');
+      alert('Não há uma quilometragem iniciada para hoje.');
       return;
     }
 

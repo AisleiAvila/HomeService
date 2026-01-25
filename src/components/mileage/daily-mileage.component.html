@@ -21,15 +21,15 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="text-center">
           <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'startKilometers' | i18n }}</p>
-          <p class="text-xl font-bold">{{ todayMileage()!.start_kilometers }} km</p>
+          <p class="text-xl font-bold">{{ todayMileage()!.start_kilometers | number:'1.0-0':'pt-PT' }} km</p>
         </div>
         <div class="text-center">
           <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'endKilometers' | i18n }}</p>
-          <p class="text-xl font-bold">{{ todayMileage()!.end_kilometers || '-' }}</p>
+          <p class="text-xl font-bold">{{ todayMileage()!.end_kilometers ? (todayMileage()!.end_kilometers | number:'1.0-0':'pt-PT') + ' km' : '-' }}</p>
         </div>
         <div class="text-center">
           <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}</p>
-          <p class="text-xl font-bold">{{ getKilometersDriven(todayMileage()!) }} km</p>
+          <p class="text-xl font-bold">{{ getKilometersDriven(todayMileage()!) | number:'1.0-0':'pt-PT' }} km</p>
         </div>
       </div>
 
@@ -179,19 +179,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'start' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ mileage.start_kilometers }} km</span>
+            <span class="ml-1 font-medium">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'end' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ (mileage.end_kilometers || '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
+            <span class="ml-1 font-medium">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'driven' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ getKilometersDriven(mileage) }} km</span>
+            <span class="ml-1 font-medium">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
           </div>
           <div>
             <span class="text-gray-600 dark:text-neutral-400">{{ 'fuelingTotal' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ getTotalFueling(mileage) | number:'1.2-2' }} €</span>
+            <span class="ml-1 font-medium">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
           </div>
         </div>
       </div>
@@ -210,7 +210,7 @@
       <div class="space-y-2">
         <div *ngFor="let fueling of fuelings()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
           <div>
-            <span class="font-medium">{{ fueling.value | number:'1.2-2' }} €</span>
+            <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
             <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
           </div>
           <div *ngIf="fueling.receipt_image_url">
