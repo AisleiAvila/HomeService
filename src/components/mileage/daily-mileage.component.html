@@ -20,11 +20,11 @@
     <ng-container *ngIf="todayMileage(); else noMileageToday">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'startKilometers' | i18n }}</p>
+          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'initial' | i18n }}</p>
           <p class="text-xl font-bold">{{ todayMileage()!.start_kilometers | number:'1.0-0':'pt-PT' }} km</p>
         </div>
         <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'endKilometers' | i18n }}</p>
+          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'final' | i18n }}</p>
           <p class="text-xl font-bold">{{ todayMileage()!.end_kilometers ? (todayMileage()!.end_kilometers | number:'1.0-0':'pt-PT') + ' km' : '-' }}</p>
         </div>
         <div class="text-center">
@@ -73,7 +73,7 @@
           required>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'startKilometers' | i18n }}</label>
+        <label class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
         <input
           type="number"
           [ngModel]="startKilometers()"
@@ -100,9 +100,7 @@
     <h3 class="text-lg font-semibold mb-4">{{ 'endDay' | i18n }}</h3>
     <form (ngSubmit)="endDay()" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'endKilometers' | i18n }}</label>
-      <div>
-        <label class="block text-sm font-medium mb-1">{{ 'endKilometers' | i18n }}</label>
+        <label class="block text-sm font-medium mb-1">{{ 'final' | i18n }}</label>
         <input
           type="number"
           [ngModel]="endKilometers()"
@@ -112,7 +110,6 @@
           [placeholder]="todayMileage()?.start_kilometers.toString()"
           [min]="todayMileage()?.start_kilometers"
           required>
-      </div>
       </div>
       <div class="flex gap-2">
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -269,44 +266,58 @@
         <button (click)="sortByColumn('date')" class="text-left hover:text-blue-600">
           {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
         </button>
-        <span>{{ 'start' | i18n }}</span>
+        <span>{{ 'initial' | i18n }}</span>
+        <span>{{ 'final' | i18n }}</span>
         <button (click)="sortByColumn('driven')" class="text-left hover:text-blue-600">
-          {{ 'driven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+          {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
         </button>
-        <button (click)="sortByColumn('fueling')" class="text-left hover:text-blue-600">
-          {{ 'fuelingTotal' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+        <button (click)="sortByColumn('fueling')" class="text-left hover:text-blue-600 md:col-span-1">
+          {{ 'fuelings' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
         </button>
       </div>
 
-      <div *ngFor="let mileage of paginatedMileages()" class="border rounded p-4 dark:border-neutral-600">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="font-semibold">{{ mileage.date }}</h3>
-          <button
-            (click)="viewFuelings(mileage)"
-            class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-            [attr.aria-label]="'viewFuelings' | i18n">
-            <i class="fas fa-eye inline sm:hidden" aria-hidden="true"></i>
-            <span class="hidden sm:inline">{{ 'viewFuelings' | i18n }}</span>
-          </button>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <span class="text-gray-600 dark:text-neutral-400">{{ 'start' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
-          </div>
-          <div>
-            <span class="text-gray-600 dark:text-neutral-400">{{ 'end' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
-          </div>
-          <div>
-            <span class="text-gray-600 dark:text-neutral-400">{{ 'driven' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
-          </div>
-          <div>
-            <span class="text-gray-600 dark:text-neutral-400">{{ 'fuelingTotal' | i18n }}:</span>
-            <span class="ml-1 font-medium">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
-          </div>
-        </div>
+      <!-- Mileage Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full table-auto border-collapse">
+          <thead class="hidden md:table-header-group">
+            <tr class="bg-gray-100 dark:bg-neutral-600">
+              <th class="px-4 py-2 text-left">{{ 'date' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'initial' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'final' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'kilometersDriven' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'fuelings' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'actions' | i18n }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mileage of paginatedMileages()" class="border-b dark:border-neutral-600 md:table-row block md:table-row">
+              <td class="px-4 py-2 md:table-cell block">
+                <span class="font-semibold md:hidden">{{ 'date' | i18n }}: </span>{{ mileage.date | date:'dd/MM/yyyy' }}
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <span class="font-semibold md:hidden">{{ 'initial' | i18n }}: </span>{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <span class="font-semibold md:hidden">{{ 'final' | i18n }}: </span>{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <span class="font-semibold md:hidden">{{ 'kilometersDriven' | i18n }}: </span>{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <span class="font-semibold md:hidden">{{ 'fuelings' | i18n }}: </span>{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <button
+                  (click)="viewFuelings(mileage)"
+                  class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                  [attr.aria-label]="'viewFuelings' | i18n">
+                  <i class="fas fa-eye inline sm:hidden" aria-hidden="true"></i>
+                  <span class="hidden sm:inline">{{ 'viewFuelings' | i18n }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
