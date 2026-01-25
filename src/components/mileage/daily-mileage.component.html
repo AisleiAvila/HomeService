@@ -1,5 +1,17 @@
-<div class="container mx-auto p-6 max-w-4xl">
-  <h1 class="text-2xl font-bold mb-6">{{ 'dailyMileage' | i18n }}</h1>
+<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
+  <div>
+    <div class="bg-brand-primary-500 dark:bg-brand-primary-700 rounded-lg px-6 py-4 mb-2">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="text-xl sm:text-2xl font-bold text-white break-words">
+            <i class="fas fa-tachometer-alt mr-2"></i>
+            {{ 'dailyMileage' | i18n }}
+          </h2>
+          <p class="text-white dark:text-neutral-100 text-sm mt-1">{{ 'dailyMileageSubtitle' | i18n }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Today's Status -->
   <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">

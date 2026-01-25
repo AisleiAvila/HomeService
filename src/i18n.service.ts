@@ -1056,6 +1056,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Daily Mileage
     dailyMileage: "Daily Mileage",
+    dailyMileageSubtitle: "Track your daily mileage and fuel expenses",
     todayStatus: "Today's Status",
     startKilometers: "Start Kilometers",
     endKilometers: "End Kilometers",
@@ -2135,6 +2136,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Daily Mileage
     dailyMileage: "Kilometragem Diária",
+    dailyMileageSubtitle: "Acompanhe sua kilometragem diária e despesas com combustível",
     todayStatus: "Status de Hoje",
     startKilometers: "Kilometragem Inicial",
     endKilometers: "Kilometragem Final",
