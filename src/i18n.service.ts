@@ -1074,6 +1074,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     viewReceipt: "View Receipt",
     fuelingTotal: "Fueling Total",
     driven: "Driven",
+    minDriven: "min driven",
+    maxDriven: "max driven",
+    minFueling: "min fueling",
+    maxFueling: "max fueling",
 
   },
   pt: {
@@ -2154,6 +2158,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     viewReceipt: "Ver Recibo",
     fuelingTotal: "Total de Abastecimentos",
     driven: "Percorridos",
+    minDriven: "mínimo percorrido",
+    maxDriven: "máximo percorrido",
+    minFueling: "mínimo abastecido",
+    maxFueling: "máximo abastecido",
+
 
   },
 };

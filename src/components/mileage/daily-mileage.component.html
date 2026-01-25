@@ -218,7 +218,7 @@
             (ngModelChange)="onFilterMinDrivenChange($event)"
             name="filterMinDriven"
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            placeholder="0"
+            [placeholder]="'placeholderMinDriven' | i18n"
             min="0">
         </div>
         <div>
@@ -229,7 +229,7 @@
             (ngModelChange)="onFilterMaxDrivenChange($event)"
             name="filterMaxDriven"
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            placeholder="0"
+            [placeholder]="'placeholderMaxDriven' | i18n"
             min="0">
         </div>
         <div>
@@ -241,7 +241,7 @@
             (ngModelChange)="onFilterMinFuelingChange($event)"
             name="filterMinFueling"
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            placeholder="0.00"
+            [placeholder]="'placeholderMinFueling' | i18n"
             min="0">
         </div>
         <div>
@@ -253,7 +253,7 @@
             (ngModelChange)="onFilterMaxFuelingChange($event)"
             name="filterMaxFueling"
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            placeholder="0.00"
+            [placeholder]="'placeholderMaxFueling' | i18n"
             min="0">
         </div>
         <div class="flex items-end">
