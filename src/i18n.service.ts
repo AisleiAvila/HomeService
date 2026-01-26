@@ -1078,6 +1078,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     maxDriven: "max driven",
     minFueling: "min fueling",
     maxFueling: "max fueling",
+    placeholderMinDriven: "Enter minimum driven kilometers",
+    placeholderMaxDriven: "Enter maximum driven kilometers",
+    placeholderMinFueling: "Enter minimum fueling value",
+    placeholderMaxFueling: "Enter maximum fueling value",
 
   },
   pt: {
@@ -2165,6 +2169,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     maxDriven: "máximo percorrido",
     minFueling: "mínimo abastecido",
     maxFueling: "máximo abastecido",
+    placeholderMinDriven: "Entre com os quilômetros mínimos percorridos",
+    placeholderMaxDriven: "Entre com os quilômetros máximos percorridos",
+    placeholderMinFueling: "Entre com o valor mínimo do abastecimento",
+    placeholderMaxFueling: "Entre com o valor máximo do abastecimento",
 
 
   },
