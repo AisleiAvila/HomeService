@@ -195,6 +195,11 @@ export class AppComponent implements OnInit {
           icon: "fa-solid fa-chart-line",
         },
         {
+          id: "daily-mileage",
+          labelKey: "dailyMileage",
+          icon: "fa-solid fa-tachometer-alt",
+        },
+        {
           id: "clients",
           labelKey: "clients",
           icon: "fa-solid fa-user-friends",

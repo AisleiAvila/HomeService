@@ -1,7 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { NotificationService } from './notification.service';
-import { DailyMileage, Fueling } from '../models/maintenance.models';
+import { DailyMileage, Fueling, User } from '../models/maintenance.models';
+import { DataService } from './data.service';
 
 @Injectable({
   providedIn: 'root',
@@ -9,6 +10,7 @@ import { DailyMileage, Fueling } from '../models/maintenance.models';
 export class DailyMileageService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
+  private readonly dataService = inject(DataService);
 
   // Signals for reactive state
   private readonly _dailyMileages = signal<DailyMileage[]>([]);
@@ -16,6 +18,9 @@ export class DailyMileageService {
 
   private readonly _fuelings = signal<Fueling[]>([]);
   fuelings = this._fuelings.asReadonly();
+
+  private readonly _professionals = signal<User[]>([]);
+  professionals = this._professionals.asReadonly();
 
   async loadDailyMileages(professionalId: number): Promise<void> {
     try {
@@ -30,6 +35,33 @@ export class DailyMileageService {
     } catch (error) {
       console.error('Error loading daily mileages:', error);
       this.notificationService.addNotification('Erro ao carregar kilometragens diárias');
+    }
+  }
+
+  async loadAllDailyMileages(): Promise<void> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('daily_mileages')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      this._dailyMileages.set(data || []);
+    } catch (error) {
+      console.error('Error loading all daily mileages:', error);
+      this.notificationService.addNotification('Erro ao carregar todas as kilometragens diárias');
+    }
+  }
+
+  async loadProfessionals(): Promise<void> {
+    try {
+      // Use DataService.users() signal to get professionals
+      const allUsers = this.dataService.users();
+      const professionals = allUsers.filter(user => user.role === 'professional');
+      this._professionals.set(professionals);
+    } catch (error) {
+      console.error('Error loading professionals:', error);
+      this.notificationService.addNotification('Erro ao carregar profissionais');
     }
   }
 

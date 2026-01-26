@@ -261,6 +261,20 @@
             [placeholder]="'placeholderMaxFueling' | i18n"
             min="0">
         </div>
+        <div *ngIf="isAdmin()">
+          <label for="filterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
+          <select
+            id="filterProfessional"
+            [ngModel]="filterProfessionalId()"
+            (ngModelChange)="onFilterProfessionalChange($event)"
+            name="filterProfessional"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+            <option value="">{{ 'all' | i18n }}</option>
+            <option *ngFor="let professional of professionals()" [value]="professional.id">
+              {{ professional.name }}
+            </option>
+          </select>
+        </div>
         <div class="flex items-end">
           <button
             (click)="clearFilters()"
@@ -282,6 +296,7 @@
                   {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
               </th>
+              <th *ngIf="isAdmin()" class="px-4 py-2 text-left">{{ 'professional' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'initial' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'final' | i18n }}</th>
               <th class="px-4 py-2 text-right">
@@ -305,6 +320,13 @@
                   <span class="text-right">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
                 </div>
                 <span class="hidden md:block text-center">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
+              </td>
+              <td *ngIf="isAdmin()" class="px-4 py-2 md:table-cell block">
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'professional' | i18n }}:</span>
+                  <span class="text-right">{{ getProfessionalName(mileage.professional_id) }}</span>
+                </div>
+                <span class="hidden md:block text-left">{{ getProfessionalName(mileage.professional_id) }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">

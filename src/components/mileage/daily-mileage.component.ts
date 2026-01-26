@@ -49,6 +49,7 @@ export class DailyMileageComponent implements OnInit {
   filterMaxDriven = signal<number | null>(null);
   filterMinFueling = signal<number | null>(null);
   filterMaxFueling = signal<number | null>(null);
+  filterProfessionalId = signal<number | null>(null);
 
   // Sorting states
   sortBy = signal<'date' | 'driven' | 'fueling'>('date');
@@ -61,9 +62,15 @@ export class DailyMileageComponent implements OnInit {
   // Computed
   dailyMileages = computed(() => this.dailyMileageService.dailyMileages());
   fuelings = computed(() => this.dailyMileageService.fuelings());
+  isAdmin = computed(() => this.currentUser()?.role === 'admin');
+  professionals = computed(() => this.dailyMileageService.professionals());
   todayMileage = computed(() => {
     const today = new Date().toISOString().split('T')[0];
-    return this.dailyMileages().find(dm => dm.date === today);
+    const user = this.currentUser();
+    if (this.isAdmin()) {
+      return null; // Admins não têm "hoje" específico
+    }
+    return this.dailyMileages().find(dm => dm.date === today && dm.professional_id === user?.id);
   });
 
   // Filtered and sorted mileages
@@ -75,6 +82,19 @@ export class DailyMileageComponent implements OnInit {
     const maxDriven = this.filterMaxDriven();
     const minFueling = this.filterMinFueling();
     const maxFueling = this.filterMaxFueling();
+    const professionalId = this.filterProfessionalId();
+
+    // Para profissionais, filtrar apenas seus próprios registros
+    if (!this.isAdmin()) {
+      const user = this.currentUser();
+      if (user) {
+        mileages = mileages.filter(m => m.professional_id === user.id);
+      }
+    }
+
+    if (professionalId !== null) {
+      mileages = mileages.filter(m => m.professional_id === professionalId);
+    }
 
     if (startDate) {
       mileages = mileages.filter(m => m.date >= startDate);
@@ -152,13 +172,17 @@ export class DailyMileageComponent implements OnInit {
     if (this.filterMaxFueling() !== null) {
       filters.push({ key: 'maxFueling', labelKey: 'maxFueling', value: this.filterMaxFueling()?.toString() });
     }
+    if (this.filterProfessionalId() !== null) {
+      const professional = this.professionals().find(p => p.id === this.filterProfessionalId());
+      filters.push({ key: 'professional', labelKey: 'professional', value: professional?.name || '' });
+    }
     return filters;
   });
 
   constructor() {
     effect(() => {
       const user = this.currentUser();
-      if (user?.role === 'professional') {
+      if (user?.role === 'professional' || user?.role === 'admin') {
         this.loadData();
       }
     });
@@ -171,6 +195,7 @@ export class DailyMileageComponent implements OnInit {
       this.filterMaxDriven();
       this.filterMinFueling();
       this.filterMaxFueling();
+      this.filterProfessionalId();
       this.currentPage.set(1);
     });
   }
@@ -213,10 +238,26 @@ export class DailyMileageComponent implements OnInit {
     this.filterMaxFueling.set(Number(value) || null);
   }
 
+  onFilterProfessionalChange(value: string) {
+    this.filterProfessionalId.set(Number(value) || null);
+  }
+
+  getProfessionalName(professionalId: number): string {
+    const professional = this.professionals().find(p => p.id === professionalId);
+    return professional?.name || 'Desconhecido';
+  }
+
   async loadData() {
     const user = this.currentUser();
     if (user) {
-      await this.dailyMileageService.loadDailyMileages(user.id);
+      if (this.isAdmin()) {
+        // Admin carrega dados de todos os profissionais
+        await this.dailyMileageService.loadAllDailyMileages();
+        await this.dailyMileageService.loadProfessionals();
+      } else {
+        // Profissional carrega apenas seus dados
+        await this.dailyMileageService.loadDailyMileages(user.id);
+      }
       // Carregar fuelings para todos os mileages para exibir totais corretos
       const mileages = this.dailyMileageService.dailyMileages();
       await Promise.all(mileages.map(m => this.dailyMileageService.loadFuelings(m.id)));
@@ -224,14 +265,17 @@ export class DailyMileageComponent implements OnInit {
   }
 
   async startDay() {
+    const user = this.currentUser();
+    if (!user || user.role !== 'professional') {
+      alert('Apenas profissionais podem registrar quilometragem.');
+      return;
+    }
+
     const startKm = Number(this.startKilometers());
     if (Number.isNaN(startKm) || startKm < 0 || this.startKilometers() === null || this.startKilometers() === undefined) {
       alert('Por favor, insira uma quilometragem inicial válida.');
       return;
     }
-
-    const user = this.currentUser();
-    if (!user) return;
 
     const dailyMileage = await this.dailyMileageService.createDailyMileage({
       professional_id: user.id,
@@ -246,6 +290,12 @@ export class DailyMileageComponent implements OnInit {
   }
 
   async endDay() {
+    const user = this.currentUser();
+    if (!user || user.role !== 'professional') {
+      alert('Apenas profissionais podem registrar quilometragem.');
+      return;
+    }
+
     const todayMileage = this.todayMileage();
     if (!todayMileage) {
       alert('Não há uma quilometragem iniciada para hoje.');
@@ -267,6 +317,12 @@ export class DailyMileageComponent implements OnInit {
   }
 
   async addFueling() {
+    const user = this.currentUser();
+    if (!user || user.role !== 'professional') {
+      alert('Apenas profissionais podem registrar abastecimentos.');
+      return;
+    }
+
     const todayMileage = this.todayMileage();
     if (!todayMileage) {
       alert('Não há uma quilometragem iniciada para hoje.');
