@@ -634,10 +634,34 @@ async generatePdfBlob(
       doc.text("Endereço do Serviço:", clientFrameLeft + 3, addressY);
       doc.setFont(undefined, "normal");
       let enderecoServico = "—";
-      if (request.street || request.street_number || request.complement) {
-        enderecoServico = (request.street || "");
-        if (request.street_number) enderecoServico += ", " + request.street_number;
-        if (request.complement) enderecoServico += " " + request.complement;
+      // Priorizar endereço estruturado se existir (verificação defensiva para compatibilidade)
+      // @ts-ignore: address pode não existir em todos os ServiceRequest
+      const hasStructuredAddress = typeof (request as any).address === 'object' && (request as any).address !== null;
+      if (hasStructuredAddress) {
+        const addr = (request as any).address;
+        // Se não houver logradouro do código postal, mas houver street_manual, priorizar este
+        if ((!addr.street || !String(addr.street).trim()) && request.street_manual && String(request.street_manual).trim()) {
+          enderecoServico = String(request.street_manual).trim();
+          if (addr.street_number) enderecoServico += ", " + addr.street_number;
+          if (addr.complement) enderecoServico += " " + addr.complement;
+          enderecoServico = enderecoServico.trim() || "—";
+        } else {
+          enderecoServico = addr.street || "";
+          if (addr.street_number) enderecoServico += ", " + addr.street_number;
+          if (addr.complement) enderecoServico += " " + addr.complement;
+          enderecoServico = enderecoServico.trim() || "—";
+        }
+      } else if (request.street || request.zip_code || request.city) {
+        // Monta endereço a partir dos campos separados, priorizando street_manual
+        if (request.street_manual && String(request.street_manual).trim()) {
+          enderecoServico = String(request.street_manual).trim();
+          if (request.street_number) enderecoServico += ", " + request.street_number;
+          if (request.complement) enderecoServico += " " + request.complement;
+        } else {
+          enderecoServico = request.street || "";
+          if (request.street_number) enderecoServico += ", " + request.street_number;
+          if (request.complement) enderecoServico += " " + request.complement;
+        }
         enderecoServico = enderecoServico.trim() || "—";
       }
       doc.text(enderecoServico, clientFrameLeft + 45, addressY);
