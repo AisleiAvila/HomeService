@@ -51,9 +51,16 @@
     <ng-template #noMileageToday>
       <p class="text-gray-600 dark:text-neutral-400 mb-4">{{ 'noMileageToday' | i18n }}</p>
       <button
+        *ngIf="!isAdmin()"
         (click)="showStartForm.set(true)"
         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
         {{ 'startDay' | i18n }}
+      </button>
+      <button
+        *ngIf="isAdmin()"
+        (click)="showAdminRegisterForm.set(true)"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        {{ 'registerMileage' | i18n }}
       </button>
     </ng-template>
   </div>
@@ -79,7 +86,7 @@
           id="startKilometers"
           type="number"
           [ngModel]="startKilometers()"
-          (ngModelChange)="onStartKilometersChange($event)"
+          (input)="onStartKilometersChange($event)"
           name="startKilometers"
           class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
           placeholder="0"
@@ -119,6 +126,72 @@
           {{ 'save' | i18n }}
         </button>
         <button type="button" (click)="showEndForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          {{ 'cancel' | i18n }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Admin Register Mileage Form -->
+  <div *ngIf="showAdminRegisterForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-4">{{ 'registerMileage' | i18n }}</h3>
+    <form (ngSubmit)="registerMileageAsAdmin()" class="space-y-4">
+      <div>
+        <label for="adminRegisterDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
+        <input
+          id="adminRegisterDate"
+          type="date"
+          [ngModel]="adminRegisterDate()"
+          (ngModelChange)="adminRegisterDate.set($event)"
+          name="adminRegisterDate"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          required>
+      </div>
+      <div>
+        <label for="adminRegisterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
+        <select
+          id="adminRegisterProfessional"
+          [ngModel]="adminRegisterProfessionalId()"
+          (change)="onAdminProfessionalChange($event)"
+          name="adminRegisterProfessional"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          required>
+          <option value="">{{ 'selectProfessional' | i18n }}</option>
+          <option *ngFor="let professional of professionals()" [value]="professional.id.toString()">
+            {{ professional.name }}
+          </option>
+        </select>
+      </div>
+      <div>
+        <label for="adminRegisterStartKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
+        <input
+          id="adminRegisterStartKilometers"
+          type="number"
+          [ngModel]="adminRegisterStartKilometers()"
+          (input)="onAdminRegisterStartKilometersChange($event)"
+          name="adminRegisterStartKilometers"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="0"
+          min="0"
+          required>
+      </div>
+      <div>
+        <label for="adminRegisterEndKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }} <span class="text-sm text-gray-500">({{ 'optional' | i18n }})</span></label>
+        <input
+          id="adminRegisterEndKilometers"
+          type="number"
+          [ngModel]="adminRegisterEndKilometers()"
+          (input)="onAdminRegisterEndKilometersChange($event)"
+          name="adminRegisterEndKilometers"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="0"
+          min="0">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          {{ 'save' | i18n }}
+        </button>
+        <button type="button" (click)="showAdminRegisterForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
           {{ 'cancel' | i18n }}
         </button>
       </div>
@@ -394,9 +467,17 @@
     <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold">{{ 'fuelingsFor' | i18n }} {{ selectedDailyMileage()!.date }}</h3>
-        <button (click)="selectedDailyMileage.set(null)" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times"></i>
-        </button>
+        <div class="flex gap-2">
+          <button
+            *ngIf="isAdmin()"
+            (click)="showModalFuelingForm.set(true)"
+            class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+            <i class="fas fa-plus mr-1"></i>{{ 'addFueling' | i18n }}
+          </button>
+          <button (click)="selectedDailyMileage.set(null)" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
       </div>
       <div class="space-y-2">
         <div *ngFor="let fueling of fuelings()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
@@ -413,6 +494,44 @@
         <div *ngIf="fuelings().length === 0" class="text-center text-gray-600 dark:text-neutral-400 py-4">
           {{ 'noFuelings' | i18n }}
         </div>
+      </div>
+
+      <!-- Add Fueling Form (for modal) -->
+      <div *ngIf="showModalFuelingForm()" class="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
+        <h4 class="text-md font-medium mb-3">{{ 'addFueling' | i18n }}</h4>
+        <form (ngSubmit)="addFuelingToMileage(selectedDailyMileage()!.id)" class="space-y-3">
+          <div>
+            <label for="modalFuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+            <input
+              id="modalFuelingValue"
+              type="number"
+              step="0.01"
+              [ngModel]="fuelingValue()"
+              (ngModelChange)="onFuelingValueChange($event)"
+              name="modalFuelingValue"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              placeholder="0.00"
+              min="0"
+              required>
+          </div>
+          <div>
+            <label for="modalReceiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+            <input
+              id="modalReceiptImage"
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+              {{ 'save' | i18n }}
+            </button>
+            <button type="button" (click)="showModalFuelingForm.set(false); fuelingValue.set(null); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm">
+              {{ 'cancel' | i18n }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

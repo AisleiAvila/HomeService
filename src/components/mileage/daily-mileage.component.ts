@@ -26,6 +26,7 @@ export class DailyMileageComponent implements OnInit {
   // Form states
   showStartForm = signal(false);
   showEndForm = signal(false);
+  showAdminRegisterForm = signal(false);
   selectedDailyMileage = signal<DailyMileage | null>(null);
   showFilters = signal(false);
 
@@ -41,6 +42,15 @@ export class DailyMileageComponent implements OnInit {
   fuelingValue = signal<number | null>(null);
   fuelingReceiptFile = signal<File | null>(null);
   hasFueling = signal(false);
+
+  // Modal fueling form (for admins)
+  showModalFuelingForm = signal(false);
+
+  // Admin register mileage form
+  adminRegisterDate = signal(new Date().toISOString().split('T')[0]);
+  adminRegisterProfessionalId = signal<number | null>(null);
+  adminRegisterStartKilometers = signal<number | null>(null);
+  adminRegisterEndKilometers = signal<number | null>(null);
 
   // Filter states
   filterStartDate = signal<string>('');
@@ -210,7 +220,9 @@ export class DailyMileageComponent implements OnInit {
   }
 
   // Helper methods for number conversion
-  onStartKilometersChange(value: string) {
+  onStartKilometersChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
     this.startKilometers.set(Number(value) || null);
   }
 
@@ -242,6 +254,24 @@ export class DailyMileageComponent implements OnInit {
     this.filterProfessionalId.set(Number(value) || null);
   }
 
+  onAdminProfessionalChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value;
+    this.adminRegisterProfessionalId.set(value === '' ? null : Number(value));
+  }
+
+  onAdminRegisterStartKilometersChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    this.adminRegisterStartKilometers.set(Number(value) || null);
+  }
+
+  onAdminRegisterEndKilometersChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    this.adminRegisterEndKilometers.set(Number(value) || null);
+  }
+
   getProfessionalName(professionalId: number): string {
     const professional = this.professionals().find(p => p.id === professionalId);
     return professional?.name || 'Desconhecido';
@@ -258,21 +288,20 @@ export class DailyMileageComponent implements OnInit {
         // Profissional carrega apenas seus dados
         await this.dailyMileageService.loadDailyMileages(user.id);
       }
-      // Carregar fuelings para todos os mileages para exibir totais corretos
-      const mileages = this.dailyMileageService.dailyMileages();
-      await Promise.all(mileages.map(m => this.dailyMileageService.loadFuelings(m.id)));
+      // Carregar todos os fuelings para exibir totais corretos
+      await this.dailyMileageService.loadAllFuelings();
     }
   }
 
   async startDay() {
     const user = this.currentUser();
-    if (!user || user.role !== 'professional') {
+    if (user?.role !== 'professional') {
       alert('Apenas profissionais podem registrar quilometragem.');
       return;
     }
 
     const startKm = Number(this.startKilometers());
-    if (Number.isNaN(startKm) || startKm < 0 || this.startKilometers() === null || this.startKilometers() === undefined) {
+    if (Number.isNaN(startKm) || startKm < 0) {
       alert('Por favor, insira uma quilometragem inicial válida.');
       return;
     }
@@ -286,12 +315,13 @@ export class DailyMileageComponent implements OnInit {
     if (dailyMileage) {
       this.showStartForm.set(false);
       this.startKilometers.set(null);
+      await this.loadData();
     }
   }
 
   async endDay() {
     const user = this.currentUser();
-    if (!user || user.role !== 'professional') {
+    if (user?.role !== 'professional') {
       alert('Apenas profissionais podem registrar quilometragem.');
       return;
     }
@@ -314,11 +344,12 @@ export class DailyMileageComponent implements OnInit {
 
     this.showEndForm.set(false);
     this.endKilometers.set(null);
+    await this.loadData();
   }
 
   async addFueling() {
     const user = this.currentUser();
-    if (!user || user.role !== 'professional') {
+    if (user?.role !== 'professional') {
       alert('Apenas profissionais podem registrar abastecimentos.');
       return;
     }
@@ -352,6 +383,78 @@ export class DailyMileageComponent implements OnInit {
     this.hasFueling.set(false);
   }
 
+  async addFuelingToMileage(dailyMileageId: number) {
+    const user = this.currentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'professional')) {
+      alert('Apenas administradores e profissionais podem registrar abastecimentos.');
+      return;
+    }
+
+    const fuelValue = Number(this.fuelingValue());
+    if (!fuelValue || fuelValue <= 0) {
+      alert('Por favor, insira um valor válido para o abastecimento.');
+      return;
+    }
+
+    let receiptUrl: string | undefined;
+    if (this.fuelingReceiptFile()) {
+      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
+    }
+
+    await this.dailyMileageService.addFueling({
+      daily_mileage_id: dailyMileageId,
+      value: fuelValue,
+      receipt_image_url: receiptUrl,
+    });
+
+    this.showModalFuelingForm.set(false);
+    this.fuelingValue.set(null);
+    this.fuelingReceiptFile.set(null);
+    this.hasFueling.set(false);
+  }
+
+  async registerMileageAsAdmin() {
+    const user = this.currentUser();
+    if (user?.role !== 'admin') {
+      alert('Apenas administradores podem cadastrar quilometragem.');
+      return;
+    }
+
+    const professionalId = this.adminRegisterProfessionalId();
+    const startKm = Number(this.adminRegisterStartKilometers());
+    const endKm = this.adminRegisterEndKilometers() ? Number(this.adminRegisterEndKilometers()) : null;
+
+    if (professionalId == null) {
+      alert('Por favor, selecione um profissional.');
+      return;
+    }
+
+    if (Number.isNaN(startKm) || startKm < 0) {
+      alert('Por favor, insira uma quilometragem inicial válida.');
+      return;
+    }
+
+    if (endKm !== null && (Number.isNaN(endKm) || endKm < startKm)) {
+      alert('A quilometragem final deve ser maior ou igual à inicial.');
+      return;
+    }
+
+    const dailyMileage = await this.dailyMileageService.createDailyMileage({
+      professional_id: professionalId,
+      date: this.adminRegisterDate(),
+      start_kilometers: startKm,
+      end_kilometers: endKm,
+    });
+
+    if (dailyMileage) {
+      this.showAdminRegisterForm.set(false);
+      this.adminRegisterProfessionalId.set(null);
+      this.adminRegisterStartKilometers.set(null);
+      this.adminRegisterEndKilometers.set(null);
+      await this.loadData();
+    }
+  }
+
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files?.[0]) {
@@ -361,7 +464,7 @@ export class DailyMileageComponent implements OnInit {
 
   viewFuelings(dailyMileage: DailyMileage) {
     this.selectedDailyMileage.set(dailyMileage);
-    this.dailyMileageService.loadFuelings(dailyMileage.id);
+    // Fuelings já estão carregados em loadData, então apenas abre o modal
   }
 
   getTotalFueling(dailyMileage: DailyMileage): number {

@@ -75,8 +75,6 @@ export class DailyMileageService {
 
       if (error) throw error;
 
-      // Reload to update the list
-      await this.loadDailyMileages(dailyMileage.professional_id);
       this.notificationService.addNotification('Quilometragem diária criada com sucesso');
       return data;
     } catch (error) {
@@ -95,12 +93,6 @@ export class DailyMileageService {
 
       if (error) throw error;
 
-      // Reload to update the list
-      const current = this._dailyMileages();
-      const updated = current.find(dm => dm.id === id);
-      if (updated) {
-        await this.loadDailyMileages(updated.professional_id);
-      }
       this.notificationService.addNotification('Quilometragem diária atualizada com sucesso');
     } catch (error) {
       console.error('Error updating daily mileage:', error);
@@ -124,6 +116,21 @@ export class DailyMileageService {
     }
   }
 
+  async loadAllFuelings(): Promise<void> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('fuelings')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      this._fuelings.set(data || []);
+    } catch (error) {
+      console.error('Error loading all fuelings:', error);
+      this.notificationService.addNotification('Erro ao carregar abastecimentos');
+    }
+  }
+
   async addFueling(fueling: Omit<Fueling, 'id' | 'created_at'>): Promise<void> {
     try {
       const { error } = await this.supabase.client
@@ -132,8 +139,8 @@ export class DailyMileageService {
 
       if (error) throw error;
 
-      // Reload fuelings for this daily mileage
-      await this.loadFuelings(fueling.daily_mileage_id);
+      // Reload all fuelings
+      await this.loadAllFuelings();
       this.notificationService.addNotification('Abastecimento adicionado com sucesso');
     } catch (error) {
       console.error('Error adding fueling:', error);
@@ -150,12 +157,8 @@ export class DailyMileageService {
 
       if (error) throw error;
 
-      // Reload fuelings
-      const currentFuelings = this._fuelings();
-      const fueling = currentFuelings.find(f => f.id === id);
-      if (fueling) {
-        await this.loadFuelings(fueling.daily_mileage_id);
-      }
+      // Reload all fuelings
+      await this.loadAllFuelings();
       this.notificationService.addNotification('Abastecimento atualizado com sucesso');
     } catch (error) {
       console.error('Error updating fueling:', error);
@@ -172,12 +175,8 @@ export class DailyMileageService {
 
       if (error) throw error;
 
-      // Reload fuelings
-      const currentFuelings = this._fuelings();
-      const fueling = currentFuelings.find(f => f.id === id);
-      if (fueling) {
-        await this.loadFuelings(fueling.daily_mileage_id);
-      }
+      // Reload all fuelings
+      await this.loadAllFuelings();
       this.notificationService.addNotification('Abastecimento removido com sucesso');
     } catch (error) {
       console.error('Error deleting fueling:', error);
