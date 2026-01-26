@@ -304,35 +304,35 @@
                   <span class="font-semibold text-left">{{ 'date' | i18n }}:</span>
                   <span class="text-right">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
                 </div>
-                <span class="hidden md:block">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
+                <span class="hidden md:block text-center">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">
                   <span class="font-semibold text-left">{{ 'initial' | i18n }}:</span>
                   <span class="text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
                 </div>
-                <span class="hidden md:block">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
+                <span class="hidden md:block text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">
                   <span class="font-semibold text-left">{{ 'final' | i18n }}:</span>
                   <span class="text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
                 </div>
-                <span class="hidden md:block">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
+                <span class="hidden md:block text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">
                   <span class="font-semibold text-left">{{ 'kilometersDriven' | i18n }}:</span>
                   <span class="text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
                 </div>
-                <span class="hidden md:block">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
+                <span class="hidden md:block text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">
                   <span class="font-semibold text-left">{{ 'fuelings' | i18n }}:</span>
                   <span class="text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
                 </div>
-                <span class="hidden md:block">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
+                <span class="hidden md:block text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
               </td>
               <td class="px-4 py-2 md:table-cell block text-left">
                 <button
