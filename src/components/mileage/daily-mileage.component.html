@@ -63,8 +63,9 @@
     <h3 class="text-lg font-semibold mb-4">{{ 'startDay' | i18n }}</h3>
     <form (ngSubmit)="startDay()" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
+        <label for="startDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
         <input
+          id="startDate"
           type="date"
           [ngModel]="startDate()"
           (ngModelChange)="startDate.set($event)"
@@ -73,8 +74,9 @@
           required>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
+        <label for="startKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
         <input
+          id="startKilometers"
           type="number"
           [ngModel]="startKilometers()"
           (ngModelChange)="onStartKilometersChange($event)"
@@ -100,8 +102,9 @@
     <h3 class="text-lg font-semibold mb-4">{{ 'endDay' | i18n }}</h3>
     <form (ngSubmit)="endDay()" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'final' | i18n }}</label>
+        <label for="endKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }}</label>
         <input
+          id="endKilometers"
           type="number"
           [ngModel]="endKilometers()"
           (ngModelChange)="onEndKilometersChange($event)"
@@ -127,8 +130,9 @@
     <h3 class="text-lg font-semibold mb-4">{{ 'addFueling' | i18n }}</h3>
     <form (ngSubmit)="addFueling()" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+        <label for="fuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
         <input
+          id="fuelingValue"
           type="number"
           step="0.01"
           [ngModel]="fuelingValue()"
@@ -140,8 +144,9 @@
           required>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+        <label for="receiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
         <input
+          id="receiptImage"
           type="file"
           accept="image/*"
           (change)="onFileSelected($event)"
@@ -187,8 +192,9 @@
       <h3 class="text-md font-medium mb-3">{{ 'filters' | i18n }}</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'startDate' | i18n }}</label>
+          <label for="filterStartDate" class="block text-sm font-medium mb-1">{{ 'startDate' | i18n }}</label>
           <input
+            id="filterStartDate"
             type="date"
             [ngModel]="filterStartDate()"
             (ngModelChange)="filterStartDate.set($event)"
@@ -196,8 +202,9 @@
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'endDate' | i18n }}</label>
+          <label for="filterEndDate" class="block text-sm font-medium mb-1">{{ 'endDate' | i18n }}</label>
           <input
+            id="filterEndDate"
             type="date"
             [ngModel]="filterEndDate()"
             (ngModelChange)="filterEndDate.set($event)"
@@ -205,8 +212,9 @@
             class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'minDriven' | i18n }}</label>
+          <label for="filterMinDriven" class="block text-sm font-medium mb-1">{{ 'minDriven' | i18n }}</label>
           <input
+            id="filterMinDriven"
             type="number"
             [ngModel]="filterMinDriven()"
             (ngModelChange)="onFilterMinDrivenChange($event)"
@@ -216,8 +224,9 @@
             min="0">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'maxDriven' | i18n }}</label>
+          <label for="filterMaxDriven" class="block text-sm font-medium mb-1">{{ 'maxDriven' | i18n }}</label>
           <input
+            id="filterMaxDriven"
             type="number"
             [ngModel]="filterMaxDriven()"
             (ngModelChange)="onFilterMaxDrivenChange($event)"
@@ -227,8 +236,9 @@
             min="0">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'minFueling' | i18n }}</label>
+          <label for="filterMinFueling" class="block text-sm font-medium mb-1">{{ 'minFueling' | i18n }}</label>
           <input
+            id="filterMinFueling"
             type="number"
             step="0.01"
             [ngModel]="filterMinFueling()"
@@ -239,8 +249,9 @@
             min="0">
         </div>
         <div>
-          <label class="block text-sm font-medium mb-1">{{ 'maxFueling' | i18n }}</label>
+          <label for="filterMaxFueling" class="block text-sm font-medium mb-1">{{ 'maxFueling' | i18n }}</label>
           <input
+            id="filterMaxFueling"
             type="number"
             step="0.01"
             [ngModel]="filterMaxFueling()"
@@ -266,19 +277,19 @@
         <table class="min-w-full table-auto border-collapse">
           <thead class="hidden md:table-header-group">
             <tr class="bg-gray-100 dark:bg-neutral-600">
-              <th class="px-4 py-2 text-left">
+              <th class="px-4 py-2 text-center">
                 <button (click)="sortByColumn('date')" class="hover:text-blue-600 font-semibold">
                   {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
               </th>
-              <th class="px-4 py-2 text-left">{{ 'initial' | i18n }}</th>
-              <th class="px-4 py-2 text-left">{{ 'final' | i18n }}</th>
-              <th class="px-4 py-2 text-left">
+              <th class="px-4 py-2 text-right">{{ 'initial' | i18n }}</th>
+              <th class="px-4 py-2 text-right">{{ 'final' | i18n }}</th>
+              <th class="px-4 py-2 text-right">
                 <button (click)="sortByColumn('driven')" class="hover:text-blue-600 font-semibold">
                   {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
               </th>
-              <th class="px-4 py-2 text-left">
+              <th class="px-4 py-2 text-right">
                 <button (click)="sortByColumn('fueling')" class="hover:text-blue-600 font-semibold">
                   {{ 'fuelings' | i18n }} {{ sortBy() === 'fueling' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
@@ -289,21 +300,41 @@
           <tbody>
             <tr *ngFor="let mileage of paginatedMileages()" class="border-b dark:border-neutral-600 md:table-row block md:table-row">
               <td class="px-4 py-2 md:table-cell block">
-                <span class="font-semibold md:hidden">{{ 'date' | i18n }}: </span>{{ mileage.date | date:'dd/MM/yyyy' }}
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'date' | i18n }}:</span>
+                  <span class="text-right">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <span class="hidden md:block">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
-                <span class="font-semibold md:hidden">{{ 'initial' | i18n }}: </span>{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'initial' | i18n }}:</span>
+                  <span class="text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
+                </div>
+                <span class="hidden md:block">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
-                <span class="font-semibold md:hidden">{{ 'final' | i18n }}: </span>{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'final' | i18n }}:</span>
+                  <span class="text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
+                </div>
+                <span class="hidden md:block">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
-                <span class="font-semibold md:hidden">{{ 'kilometersDriven' | i18n }}: </span>{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'kilometersDriven' | i18n }}:</span>
+                  <span class="text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
+                </div>
+                <span class="hidden md:block">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
-                <span class="font-semibold md:hidden">{{ 'fuelings' | i18n }}: </span>{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'fuelings' | i18n }}:</span>
+                  <span class="text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
+                </div>
+                <span class="hidden md:block">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
               </td>
-              <td class="px-4 py-2 md:table-cell block">
+              <td class="px-4 py-2 md:table-cell block text-left">
                 <button
                   (click)="viewFuelings(mileage)"
                   class="text-blue-600 hover:text-blue-800 dark:text-blue-400"

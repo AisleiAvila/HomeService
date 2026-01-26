@@ -7,14 +7,14 @@ import { DailyMileage, Fueling } from '../models/maintenance.models';
   providedIn: 'root',
 })
 export class DailyMileageService {
-  private supabase = inject(SupabaseService);
-  private notificationService = inject(NotificationService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly notificationService = inject(NotificationService);
 
   // Signals for reactive state
-  private _dailyMileages = signal<DailyMileage[]>([]);
+  private readonly _dailyMileages = signal<DailyMileage[]>([]);
   dailyMileages = this._dailyMileages.asReadonly();
 
-  private _fuelings = signal<Fueling[]>([]);
+  private readonly _fuelings = signal<Fueling[]>([]);
   fuelings = this._fuelings.asReadonly();
 
   async loadDailyMileages(professionalId: number): Promise<void> {
@@ -156,7 +156,7 @@ export class DailyMileageService {
   async uploadReceiptImage(file: File): Promise<string | null> {
     try {
       const fileName = `fueling-receipts/${Date.now()}-${file.name}`;
-      const { data, error } = await this.supabase.client.storage
+      const { error } = await this.supabase.client.storage
         .from('receipts')
         .upload(fileName, file);
 

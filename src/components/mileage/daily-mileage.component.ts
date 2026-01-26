@@ -16,9 +16,9 @@ import { DailyMileageService } from '../../services/daily-mileage.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailyMileageComponent implements OnInit {
-  private dailyMileageService = inject(DailyMileageService);
-  private authService = inject(AuthService);
-  private i18n = inject(I18nService);
+  private readonly dailyMileageService = inject(DailyMileageService);
+  private readonly authService = inject(AuthService);
+  private readonly i18n = inject(I18nService);
 
   // Current user
   currentUser = this.authService.appUser;
@@ -83,16 +83,16 @@ export class DailyMileageComponent implements OnInit {
       mileages = mileages.filter(m => m.date <= endDate);
     }
     if (minDriven !== null) {
-      mileages = mileages.filter(m => this.getKilometersDriven(m) >= minDriven!);
+      mileages = mileages.filter(m => this.getKilometersDriven(m) >= minDriven);
     }
     if (maxDriven !== null) {
-      mileages = mileages.filter(m => this.getKilometersDriven(m) <= maxDriven!);
+      mileages = mileages.filter(m => this.getKilometersDriven(m) <= maxDriven);
     }
     if (minFueling !== null) {
-      mileages = mileages.filter(m => this.getTotalFueling(m) >= minFueling!);
+      mileages = mileages.filter(m => this.getTotalFueling(m) >= minFueling);
     }
     if (maxFueling !== null) {
-      mileages = mileages.filter(m => this.getTotalFueling(m) <= maxFueling!);
+      mileages = mileages.filter(m => this.getTotalFueling(m) <= maxFueling);
     }
 
     // Sorting
@@ -158,7 +158,7 @@ export class DailyMileageComponent implements OnInit {
   constructor() {
     effect(() => {
       const user = this.currentUser();
-      if (user && user.role === 'professional') {
+      if (user?.role === 'professional') {
         this.loadData();
       }
     });
@@ -225,7 +225,7 @@ export class DailyMileageComponent implements OnInit {
 
   async startDay() {
     const startKm = Number(this.startKilometers());
-    if (isNaN(startKm) || startKm < 0 || this.startKilometers() === null || this.startKilometers() === undefined) {
+    if (Number.isNaN(startKm) || startKm < 0 || this.startKilometers() === null || this.startKilometers() === undefined) {
       alert('Por favor, insira uma quilometragem inicial válida.');
       return;
     }
@@ -281,7 +281,7 @@ export class DailyMileageComponent implements OnInit {
 
     let receiptUrl: string | undefined;
     if (this.fuelingReceiptFile()) {
-      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile()!);
+      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
     }
 
     await this.dailyMileageService.addFueling({
@@ -298,7 +298,7 @@ export class DailyMileageComponent implements OnInit {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
       this.fuelingReceiptFile.set(input.files[0]);
     }
   }
