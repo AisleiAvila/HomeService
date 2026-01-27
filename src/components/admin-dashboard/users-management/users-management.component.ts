@@ -38,6 +38,7 @@ export class UsersManagementComponent implements OnInit {
     filterRole = signal<UserRole | "all">("all");
     filterStatus = signal<"all" | "Active" | "Inactive" | "Pending" | "Rejected">("all");
     filterSpecialty = signal<number | "all">("all");
+    filterModality = signal<"all" | "contracted" | "service_provider">("all");
 
     // Ordenação
     sortColumn = signal<'name' | 'email' | 'role' | 'status'>('name');
@@ -86,6 +87,16 @@ export class UsersManagementComponent implements OnInit {
         const specialty = this.filterSpecialty();
         if (specialty !== "all") {
             users = users.filter(u => (u.specialties ?? []).some(cat => cat.id === specialty));
+        }
+
+        // Aplicar filtro de modalidade
+        const modality = this.filterModality();
+        if (modality !== "all") {
+            if (modality === "contracted") {
+                users = users.filter(u => u.role === "professional" && u.is_natan_employee === true);
+            } else if (modality === "service_provider") {
+                users = users.filter(u => u.role === "professional" && u.is_natan_employee === false);
+            }
         }
 
         // Aplicar ordenação
@@ -576,6 +587,7 @@ export class UsersManagementComponent implements OnInit {
         this.filterRole.set("all");
         this.filterStatus.set("all");
         this.filterSpecialty.set("all");
+        this.filterModality.set("all");
         this.currentPage.set(1);
     }
 }

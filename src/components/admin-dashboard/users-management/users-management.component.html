@@ -82,9 +82,9 @@
 
     <!-- Filtros e Busca -->
     <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="!showAddClientForm()">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <!-- Busca -->
-            <div class="md:col-span-2">
+            <div>
                 <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
                 </label>
@@ -138,10 +138,24 @@
                     }
                 </select>
             </div>
+
+            <!-- Filtro Modalidade -->
+            <div>
+                <label for="filterModality" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <i class="fas fa-briefcase mr-1"></i>{{ 'isNatanEmployee' | i18n }}
+                </label>
+                <select id="filterModality" [ngModel]="filterModality()" 
+                    (ngModelChange)="filterModality.set($event); currentPage.set(1)"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+                    <option value="all">{{ 'all' | i18n }}</option>
+                    <option value="contracted">{{ 'natanEmployeeYes' | i18n }}</option>
+                    <option value="service_provider">{{ 'natanEmployeeNo' | i18n }}</option>
+                </select>
+            </div>
         </div>
 
         <!-- Botão Limpar Filtros -->
-        @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all' || filterSpecialty() !== 'all') {
+        @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all' || filterSpecialty() !== 'all' || filterModality() !== 'all') {
         <div class="mt-3">
             <button (click)="clearFilters()"
                 class="text-sm text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 font-medium">
@@ -342,6 +356,11 @@
                                 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
                             }">
                             {{ getRoleLabel(client.role) }}
+                            @if (client.role === 'professional') {
+                            <span class="ml-1 text-xs opacity-75">
+                                ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
+                            </span>
+                            }
                         </span>
                     </td>
                     <td class="px-6 py-4 text-sm">
