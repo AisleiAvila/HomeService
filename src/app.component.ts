@@ -107,6 +107,9 @@ export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
 
+  // URL do logo com parâmetro para evitar cache
+  logoUrl = `assets/logo-new.png?v=${Date.now()}`;
+
   // App State
   view = signal<View>("landing");
   currentNav = signal<Nav>("dashboard");

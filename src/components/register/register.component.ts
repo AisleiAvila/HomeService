@@ -41,6 +41,9 @@ export class RegisterComponent {
 
   private readonly notificationService = inject(NotificationService);
 
+  // URL do logo com parâmetro para evitar cache
+  logoUrl = `assets/logo-new.png?v=${Date.now()}`;
+
   register() {
     console.log("🚀 RegisterComponent.register() chamado");
     

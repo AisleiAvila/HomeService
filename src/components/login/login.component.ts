@@ -42,7 +42,7 @@ export interface LoginPayload {
 
         <div class="flex flex-col items-center pt-4 pb-2 gap-2">
           <img
-            src="assets/logo-new.png"
+            [src]="logoUrl"
             alt="Logo Natan General Service"
             class="h-16 w-16 md:h-20 md:w-20 rounded-full shadow-lg mb-2"
           />
@@ -196,6 +196,9 @@ export class LoginComponent {
 
   // Estado para mostrar/ocultar senha
   showPassword = false;
+
+  // URL do logo com parâmetro para evitar cache
+  logoUrl = `assets/logo-new.png?v=${Date.now()}`;
 
   // Estado de validação
   emailInvalid = signal(false);
