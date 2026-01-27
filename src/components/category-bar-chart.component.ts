@@ -132,7 +132,7 @@ export class CategoryBarChartComponent implements AfterViewInit {
   data = input<Record<string, number>>();
   labels = input<Record<string, string>>();
   showPaidPendingLegend = input<boolean>(false);
-  selectedPeriodInput = input<'all' | '7' | '30' | '90'>('all');
+  selectedPeriodInput = input<'all' | '7' | '30' | '90' | 'custom'>('all');
 
   // Função para calcular luminância de uma cor e determinar se precisa de texto claro ou escuro
   getTextColor(hexColor: string): string {

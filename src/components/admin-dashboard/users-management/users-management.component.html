@@ -658,7 +658,11 @@
                             'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': viewingClient()!.role === 'professional',
                             'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': viewingClient()!.role === 'admin'
                         }">
-                        {{ getRoleLabel(viewingClient()!.role) }}
+                        @if(viewingClient()!.role === 'professional') {
+                            {{ getRoleLabel(viewingClient()!.role) }} - {{ viewingClient()!.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
+                        } @else {
+                            {{ getRoleLabel(viewingClient()!.role) }}
+                        }
                     </span>
                 </div>
                 
@@ -699,7 +703,7 @@
         <div class="flex justify-end mt-6">
             <button (click)="closeDetails()" 
                 class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
-                {{ 'cancel' | i18n }}
+                {{ 'close' | i18n }}
             </button>
         </div>
     </div>

@@ -150,23 +150,33 @@
 
 <!-- Filtro de Período e Profissional Centralizados -->
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-4 mb-6 border border-gray-200 dark:border-gray-700">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-        <!-- Filtro de Período -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <!-- Filtro de Data Inicial -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <label for="period-filter" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            <label for="start-date-filter" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 <i class="fas fa-calendar mr-2 text-brand-primary-500"></i>
-                {{ "period" | i18n }}:
+                Data Inicial:
             </label>
-            <select
-                id="period-filter"
-                [value]="selectedPeriod()"
-                (change)="selectedPeriod.set($event.target.value)"
+            <input
+                type="date"
+                id="start-date-filter"
+                [value]="startDate()"
+                (change)="startDate.set($event.target.value)"
                 class="w-full sm:flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
-                <option value="all">{{ "allTime" | i18n }}</option>
-                <option value="7">{{ "last7Days" | i18n }}</option>
-                <option value="30">{{ "last30Days" | i18n }}</option>
-                <option value="90">{{ "last90Days" | i18n }}</option>
-            </select>
+        </div>
+
+        <!-- Filtro de Data Final -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <label for="end-date-filter" class="text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                <i class="fas fa-calendar mr-2 text-brand-primary-500"></i>
+                Data Final:
+            </label>
+            <input
+                type="date"
+                id="end-date-filter"
+                [value]="endDate()"
+                (change)="endDate.set($event.target.value)"
+                class="w-full sm:flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
         </div>
 
         <!-- Filtro de Profissional -->
@@ -210,7 +220,7 @@
                     [data]="ordersByCategory()" 
                     [title]="'requestsByCategory' | i18n"
                     [icon]="'fas fa-list'"
-                    [selectedPeriodInput]="selectedPeriod()"
+                    [selectedPeriodInput]="chartPeriod()"
                     class="w-full h-full" />
             </div>
         </div>
@@ -226,7 +236,7 @@
                     [title]="'revenueByCategory' | i18n"
                     [icon]="'fas fa-euro-sign'"
                     [showPaidPendingLegend]="true"
-                    [selectedPeriodInput]="selectedPeriod()"
+                    [selectedPeriodInput]="chartPeriod()"
                     class="w-full h-full" />
             </div>
         </div>
@@ -240,7 +250,7 @@
                     [data]="revenueByProfessional()" 
                     [title]="'revenueByProfessional' | i18n"
                     [icon]="'fas fa-user-tie'"
-                    [selectedPeriodInput]="selectedPeriod()"
+                    [selectedPeriodInput]="chartPeriod()"
                     class="w-full h-full" />
             </div>
         </div>

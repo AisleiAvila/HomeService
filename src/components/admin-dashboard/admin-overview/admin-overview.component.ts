@@ -29,8 +29,14 @@ export class AdminOverviewComponent implements OnInit {
     // Signal para estado de loading
     readonly isLoading = computed(() => this.dataService.isLoading());
     
-    // Signal para filtro de período centralizado
-    selectedPeriod = signal<'all' | '7' | '30' | '90'>('all');
+    // Computed para determinar o período para os gráficos
+    chartPeriod = computed(() => {
+        return this.startDate() || this.endDate() ? 'custom' : 'all';
+    });
+    
+    // Signals para filtro de data inicial e final
+    startDate = signal<string>('');
+    endDate = signal<string>('');
     
     // Signal para filtro de profissional
     selectedProfessional = signal<string>('all');
@@ -44,26 +50,29 @@ export class AdminOverviewComponent implements OnInit {
     // Computed signal para filtrar requests por período e profissional
     // ✅ DEVE SER ANTES de sparklineData e stats que o usam
     filteredRequests = computed(() => {
-        const period = this.selectedPeriod();
+        const start = this.startDate();
+        const end = this.endDate();
         const selectedProId = this.selectedProfessional();
         const requests = this.dataService.serviceRequests();
         
         let filtered = requests;
 
-        // Filtrar por período
-        if (period !== 'all') {
-            const now = new Date();
-            const days = Number.parseInt(period, 10);
-            const startDate = new Date(now);
-            startDate.setDate(startDate.getDate() - days);
-            
-            // Reseta para comparação apenas de dias (ignora timezone issues)
-            startDate.setHours(0, 0, 0, 0);
-            const endDate = new Date(now);
-            endDate.setHours(23, 59, 59, 999);
+        // Filtrar por período personalizado
+        if (start || end) {
+            let startDate: Date | null = null;
+            let endDate: Date | null = null;
 
-            console.log(`[filteredRequests] Period filter: ${days} days`);
-            console.log(`[filteredRequests] Range: ${startDate.toDateString()} to ${endDate.toDateString()}`);
+            if (start) {
+                startDate = new Date(start);
+                startDate.setHours(0, 0, 0, 0);
+            }
+
+            if (end) {
+                endDate = new Date(end);
+                endDate.setHours(23, 59, 59, 999);
+            }
+
+            console.log(`[filteredRequests] Custom period filter: ${startDate?.toDateString()} to ${endDate?.toDateString()}`);
 
             filtered = filtered.filter(r => {
                 // Tentar requested_datetime primeiro, depois requested_date, depois scheduled_date
@@ -81,7 +90,15 @@ export class AdminOverviewComponent implements OnInit {
                     return false;
                 }
                 
-                const inRange = requestDate >= startDate && requestDate <= endDate;
+                let inRange = true;
+                
+                if (startDate) {
+                    inRange = inRange && requestDate >= startDate;
+                }
+                
+                if (endDate) {
+                    inRange = inRange && requestDate <= endDate;
+                }
                 
                 // Log dos primeiros 5
                 if (requests.indexOf(r) < 5) {
@@ -116,8 +133,8 @@ export class AdminOverviewComponent implements OnInit {
         }
 
         // Debug: Log dos filtros aplicados
-        if (period !== 'all' || selectedProId !== 'all') {
-            console.log(`[filteredRequests] FINAL - Period: ${period}, Professional: ${selectedProId}, Results: ${filtered.length}/${requests.length}`);
+        if ((start || end) || selectedProId !== 'all') {
+            console.log(`[filteredRequests] FINAL - Start: ${start}, End: ${end}, Professional: ${selectedProId}, Results: ${filtered.length}/${requests.length}`);
         }
 
         return filtered;
@@ -136,7 +153,6 @@ export class AdminOverviewComponent implements OnInit {
             totalRevenue: [],
             pendingApprovals: [],
             activeServices: [],
-            totalProfessionals: [],
         };
         
         // Gerar dados dos últimos 7 dias - usando filteredRequests para respeitar os filtros selecionados
@@ -177,6 +193,18 @@ export class AdminOverviewComponent implements OnInit {
         console.log('[AdminOverviewComponent] Service requests:', this.dataService.serviceRequests().length);
         console.log('[AdminOverviewComponent] Users:', this.dataService.users().length);
         
+        // Inicializar filtros de data com o mês corrente para Data Inicial e data corrente para Data Final
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Formatar como YYYY-MM-DD para inputs de data
+        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+        
+        this.startDate.set(formatDate(firstDayOfMonth));
+        this.endDate.set(formatDate(now));
+        
+        console.log(`[AdminOverviewComponent] Filtros inicializados - Start: ${this.startDate()}, End: ${this.endDate()}`);
+        
         // Força recarregamento apenas se não houver dados
         if (this.dataService.serviceRequests().length === 0 || this.dataService.users().length === 0) {
             console.log('[AdminOverviewComponent] Dados vazios - forçando reload');
@@ -200,7 +228,6 @@ export class AdminOverviewComponent implements OnInit {
             (r) => (r.status === "Concluído" || r.status === "Finalizado") && r.valor != null
         );
         const totalRevenue = completed
-            .filter((r) => this.isPaymentMarkedAsPaid(r.payment_status))
             .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
 
         const unpaidInProgressStatuses = new Set([
@@ -248,22 +275,19 @@ export class AdminOverviewComponent implements OnInit {
             ? (((activeThisMonth - activeLastMonth) / activeLastMonth) * 100).toFixed(1) + "%"
             : "+0%";
 
-        // Profissionais ativos
-        const professionalsThisMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfMonth).length;
-        const professionalsLastMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfPrevMonth && new Date(u.created_at) <= endOfPrevMonth).length;
-        const professionalsTrend = professionalsLastMonth > 0
-            ? (((professionalsThisMonth - professionalsLastMonth) / professionalsLastMonth) * 100).toFixed(1) + "%"
-            : "+0%";
-
         const trends = {
             revenue: revenueTrend,
             approvals: approvalsTrend,
             active: activeTrend,
-            professionals: professionalsTrend,
             clients: "+0%", // clientes removidos do sistema
         };
 
-        return [
+        // Calcular serviços concluídos e finalizados
+        const completedServices = requests.filter(r => r.status === "Concluído").length;
+        const finalizedServices = requests.filter(r => r.status === "Finalizado").length;
+
+        // Criar lista dinâmica de stats
+        const stats = [
             {
                 id: "totalRevenue",
                 label: this.i18n.translate("totalRevenue"),
@@ -276,11 +300,15 @@ export class AdminOverviewComponent implements OnInit {
                 badge: null,
                 sparklineData: this.sparklineData().totalRevenue,
                 unpaidInProgressValue: this.formatCost(unpaidInProgressRevenue),
-            },
-            {
+            }
+        ];
+
+        // Adicionar card de aprovações pendentes apenas se houver pendências
+        if (pendingProfessionals.length > 0) {
+            stats.push({
                 id: "pendingApprovals",
                 label: this.i18n.translate("pendingApprovals"),
-                value: pendingProfessionals.length,
+                value: pendingProfessionals.length.toString(),
                 rawValue: pendingProfessionals.length,
                 icon: "fas fa-user-clock",
                 bgColor: "bg-gradient-to-br from-orange-400 to-orange-500 dark:from-orange-500 dark:to-orange-600 text-white dark:text-white",
@@ -289,11 +317,15 @@ export class AdminOverviewComponent implements OnInit {
                 badge: null,
                 sparklineData: [],
                 unpaidInProgressValue: undefined,
-            },
+            });
+        }
+
+        // Adicionar demais cards
+        stats.push(
             {
                 id: "activeServices",
                 label: this.i18n.translate("activeServices"),
-                value: activeServices,
+                value: activeServices.toString(),
                 rawValue: activeServices,
                 icon: "fas fa-tools",
                 bgColor: "bg-gradient-to-br from-blue-400 to-blue-500 dark:from-blue-500 dark:to-blue-600 text-white dark:text-white",
@@ -304,29 +336,34 @@ export class AdminOverviewComponent implements OnInit {
                 unpaidInProgressValue: undefined,
             },
             {
-                id: "totalProfessionals",
-                label: this.i18n.translate("totalProfessionals"),
-                value: activeProfessionals.length,
-                rawValue: activeProfessionals.length,
-                icon: "fas fa-user-tie",
-                bgColor: "bg-gradient-to-br from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-600 text-white dark:text-white",
-                trend: trends.professionals,
-                trendColor: trends.professionals.includes("+") ? "text-green-600" : "text-red-600",
+                id: "completedServices",
+                label: "Serviços Concluídos",
+                value: completedServices.toString(),
+                rawValue: completedServices,
+                icon: "fas fa-check-circle",
+                bgColor: "bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-emerald-500 dark:to-emerald-600 text-white dark:text-white",
+                trend: "+0%", // Por enquanto sem tendência
+                trendColor: "text-green-600",
                 badge: null,
                 sparklineData: [],
                 unpaidInProgressValue: undefined,
             },
-            // {
-            //     id: "activeClients",
-            //     label: this.i18n.translate("activeClients"),
-            //     value: clients.length,
-            //     icon: "fas fa-users",
-            //     bgColor: "bg-gradient-to-br from-brand-primary-100 to-indigo-200 text-brand-primary-700",
-            //     trend: trends.clients,
-            //     trendColor: trends.clients.includes("+") ? "text-green-600" : "text-red-600",
-            //     badge: null,
-            // },
-        ];
+            {
+                id: "finalizedServices",
+                label: "Serviços Finalizados",
+                value: finalizedServices.toString(),
+                rawValue: finalizedServices,
+                icon: "fas fa-check-double",
+                bgColor: "bg-gradient-to-br from-teal-400 to-teal-500 dark:from-teal-500 dark:to-teal-600 text-white dark:text-white",
+                trend: "+0%", // Por enquanto sem tendência
+                trendColor: "text-green-600",
+                badge: null,
+                sparklineData: [],
+                unpaidInProgressValue: undefined,
+            }
+        );
+
+        return stats;
     });
 
     statusPieChartData = computed(() => {
@@ -495,9 +532,6 @@ export class AdminOverviewComponent implements OnInit {
                 break;
             case "activeServices":
                 this.router.navigate(['/admin/requests']);
-                break;
-            case "totalProfessionals":
-                this.router.navigate(['/admin/clients']);
                 break;
             case "activeClients":
                 this.router.navigate(['/admin/clients']);
