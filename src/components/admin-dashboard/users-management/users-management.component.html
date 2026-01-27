@@ -691,9 +691,15 @@
         <div class="space-y-4">
             <!-- User Avatar and Basic Info -->
             <div class="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                @if (viewingClient()!.avatar_url) {
+                <img [src]="viewingClient()!.avatar_url" [alt]="viewingClient()!.name"
+                    class="h-16 w-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+                    loading="lazy" />
+                } @else {
                 <div class="h-16 w-16 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center">
                     <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-2xl"></i>
                 </div>
+                }
                 <div>
                     <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ viewingClient()!.name }}</h4>
                     <p class="text-sm text-gray-500 dark:text-gray-400">{{ viewingClient()!.email }}</p>
