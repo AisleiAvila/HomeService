@@ -137,6 +137,15 @@ export class UsersManagementComponent implements OnInit {
     totalInactive = computed(() => 
         this.filteredClients().filter(u => u.status === "Inactive").length
     );
+    totalProfessionals = computed(() => 
+        this.filteredClients().filter(u => u.role === "professional").length
+    );
+    totalContractedProfessionals = computed(() => 
+        this.filteredClients().filter(u => u.role === "professional" && u.is_natan_employee === true).length
+    );
+    totalServiceProviderProfessionals = computed(() => 
+        this.filteredClients().filter(u => u.role === "professional" && u.is_natan_employee === false).length
+    );
 
     // Effect para resetar página quando filtros mudarem
     constructor() {

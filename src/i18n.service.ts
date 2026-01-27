@@ -115,7 +115,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalRevenue: "Total Revenue",
     pendingApprovals: "Pending Approvals",
     activeServices: "Active Services",
-    totalProfessionals: "Total Professionals",
     allTime: "All Time",
     last7Days: "Last 7 Days",
     last30Days: "Last 30 Days",
@@ -789,6 +788,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailAlreadyExists: "This email is already registered",
     searchNameEmail: "Search by name or email",
     totalUsers: "Total Users",
+    active: "Total Active Users",
+    inactive: "Total Inactive Users",
+    totalProfessionals: "Total Professionals",
+    totalContractedProfessionals: "Total Contracted Professionals",
+    totalServiceProviderProfessionals: "Total Service Provider Professionals",
     temporaryPassword: "Temporary password",
 
     // Service Request Details - Additional translations
@@ -1196,7 +1200,6 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalRevenue: "Receita Total",
     pendingApprovals: "Aprovações Pendentes",
     activeServices: "Serviços Ativos",
-    totalProfessionals: "Total de Profissionais",
     allTime: "Todo o Período",
     last7Days: "Últimos 7 Dias",
     last30Days: "Últimos 30 Dias",
@@ -1872,6 +1875,11 @@ const allTranslations: Record<Language, Record<string, string>> = {
     emailAlreadyExists: "Este email já está cadastrado",
     searchNameEmail: "Pesquisar por nome ou email",
     totalUsers: "Total de Usuários",
+    active: "Total de Usuários Ativos",
+    inactive: "Total de Usuários Inativos",
+    totalProfessionals: "Total de Profissionais",
+    totalContractedProfessionals: "Total de Profissionais Contratados",
+    totalServiceProviderProfessionals: "Total de Profissionais Prestadores",
     temporaryPassword: "Senha temporária",
 
     // Service Request Details - Additional translations

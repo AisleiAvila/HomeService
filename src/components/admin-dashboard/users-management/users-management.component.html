@@ -50,6 +50,33 @@
                     <i class="fas fa-ban text-gray-500 text-2xl"></i>
                 </div>
             </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalProfessionals' | i18n }}</p>
+                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ totalProfessionals() }}</p>
+                    </div>
+                    <i class="fas fa-user-tie text-blue-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalContractedProfessionals' | i18n }}</p>
+                        <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ totalContractedProfessionals() }}</p>
+                    </div>
+                    <i class="fas fa-building text-purple-500 text-2xl"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalServiceProviderProfessionals' | i18n }}</p>
+                        <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ totalServiceProviderProfessionals() }}</p>
+                    </div>
+                    <i class="fas fa-tools text-orange-500 text-2xl"></i>
+                </div>
+            </div>
         </div>
     </div>
 
