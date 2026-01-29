@@ -22,7 +22,7 @@ export class TechnicalReportStorageService {
         let hasReimbursement = false;
         let reimbursementValue: number | null = null;
         if (isNatanEmployee) {
-          hasReimbursement = true;
+          hasReimbursement = false;
           reimbursementValue = item.value ? Number((item.value * 0.5).toFixed(2)) : 0;
         }
         return {
@@ -76,15 +76,13 @@ export class TechnicalReportStorageService {
         (payload.origin === "worten_azul" && payload.data?.extraServicesInstalled?.length)) {
       // Buscar se o profissional é funcionário da Natan
       let isNatanEmployee = false;
-      try {
-        // Tenta acessar a lista de usuários global (DataService)
-        const dataService = (globalThis as any).ng?.getInjector?.()?.get?.(require("../../services/data.service").DataService);
-        if (dataService && typeof dataService.allUsers === 'function') {
-          const prof = dataService.allUsers().find((u: any) => u.id === request.professional_id);
-          isNatanEmployee = !!prof?.is_natan_employee;
-        }
-      } catch {
-        // fallback: não encontrado
+      if (request.professional_id) {
+        const { data: profData } = await this.supabase.client
+          .from("users")
+          .select("is_natan_employee")
+          .eq("id", request.professional_id)
+          .single();
+        isNatanEmployee = !!profData?.is_natan_employee;
       }
       // Para Worten Azul, o campo extraServicesInstalled pode não existir, então garantir fallback
       let extraServices: Array<{ description: string; value: number | null }> = [];

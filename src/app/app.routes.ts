@@ -66,6 +66,10 @@ export const routes: Routes = [
       { path: 'daily-mileage', loadComponent: () => import('../components/mileage/daily-mileage.component').then(m => m.DailyMileageComponent) },
       { path: 'clients', loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
       { path: 'categories', loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
+      { path: 'extra-services',
+        loadChildren: () => import('./pages/extra-services/extra-services.page.routes').then(m => m.EXTRA_SERVICES_ROUTES),
+        data: { title: 'Serviços Extras', roles: ['admin'] }
+      },
     ]
   },
 ];

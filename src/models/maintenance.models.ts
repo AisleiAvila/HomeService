@@ -1,3 +1,15 @@
+// Interface para Serviços Extras (extra_service_items)
+export interface ExtraService {
+  id: number;
+  service_request_id: number;
+  professional_id: number;
+  description: string;
+  value: number;
+  created_at: string;
+  has_reimbursement: boolean;
+  reimbursement_value: number | null;
+  reimbursement_date: string | null;
+}
 // Origem da solicitação de serviço
 export interface ServiceRequestOrigin {
   id: number;

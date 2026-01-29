@@ -23,7 +23,7 @@ import { extractPtAddressParts } from "../../utils/address-utils";
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, FormsModule, ServiceListComponent, ServiceRequestDetailsComponent, I18nPipe],
+  imports: [CommonModule, FormsModule, ServiceListComponent, I18nPipe],
   templateUrl: './dashboard.component.html',
   // TEMPORARIAMENTE removido OnPush para debug
   // changeDetection: ChangeDetectionStrategy.OnPush,
@@ -902,18 +902,6 @@ export class DashboardComponent implements OnInit {
           icon: "fas fa-check-double text-green-500",
         },
       ];
-
-      // Adiciona o grid de Valor Total apenas se não for funcionário da Natan
-      if (!currentUser.is_natan_employee) {
-        baseStats.push({
-          label: this.i18n.translate("totalEarnings"),
-          value:
-            `: € ${totalEarnings.toFixed(2)}\n` +
-            `  ${this.i18n.translate("totalPaid")}: € ${paidTotal.toFixed(2)}\n` +
-            `  ${this.i18n.translate("totalToReceive")}: € ${toReceiveTotal.toFixed(2)}`,
-          icon: "fas fa-euro-sign text-emerald-500",
-        });
-      }
 
       return baseStats;
     }

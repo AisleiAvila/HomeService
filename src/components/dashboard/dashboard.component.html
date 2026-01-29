@@ -1,435 +1,355 @@
 <!-- Modal de erro de negócio -->
-
 @if (showBusinessError()) {
-<div
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50"
->
-  <div
-    class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-center border border-red-300 dark:border-red-700"
-  >
-    <div class="text-red-600 dark:text-red-400 text-lg font-semibold mb-2">
-      {{ businessErrorMessage() }}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50">
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-lg p-6 max-w-sm w-full text-center border border-red-300 dark:border-red-700">
+      <div class="text-red-600 dark:text-red-400 text-lg font-semibold mb-2">
+        {{ businessErrorMessage() }}
+      </div>
+      <button (click)="closeBusinessError()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">OK</button>
     </div>
-    <button
-      class="mt-4 px-4 py-2 bg-red-500 dark:bg-red-700 text-white rounded hover:bg-red-600 dark:hover:bg-red-600"
-      (click)="showBusinessError.set(false)"
-    >
-      OK
-    </button>
   </div>
-</div>
 }
 
-<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
-  <div>
-    <div class="bg-brand-primary-500 dark:bg-brand-primary-700 rounded-lg px-6 py-4 mb-2">
-      <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <h2 class="text-xl sm:text-2xl font-bold text-white break-words">
-            <i class="fas fa-tachometer-alt mr-2"></i>
-            {{ "overviewTitle" | i18n }}
-          </h2>
-          <p class="text-white dark:text-neutral-100 text-sm mt-1">{{ "dashboardOverviewSubtitle" | i18n }}</p>
-        </div>
-
-        @if (user()?.role === 'professional') {
-          <button
-            type="button"
-            (click)="exportOverviewPdfReport()"
-            [disabled]="isGeneratingPdfReport()"
-            class="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-white/10 hover:bg-white/20 text-white disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <i class="fas fa-file-pdf"></i>
-            <span>{{ "exportPDF" | i18n }}</span>
-          </button>
-        }
+<!-- Dashboard Controls (pagination, filters, etc.) go here, outside the error modal block -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-white flex items-center">
+          <i class="fas fa-table-columns mr-3"></i>
+          {{ "overviewTitle" | i18n }}
+        </h2>
+        <p class="text-brand-primary-200 text-sm mt-1">
+          {{ "dashboardOverviewSubtitle" | i18n }}
+        </p>
       </div>
+      @if (user()?.role === 'professional') {
+      <button
+        (click)="exportOverviewPdfReport()"
+        [disabled]="isGeneratingPdfReport()"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+      >
+        <i class="fas fa-file-pdf"></i>
+        <span>{{ "exportPDF" | i18n }}</span>
+      </button>
+      }
     </div>
   </div>
-
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-    @for (stat of stats(); track stat.label) {
-    <div
-      class="bg-white dark:bg-neutral-800 p-4 sm:p-6 rounded-lg shadow dark:shadow-lg dark:border-neutral-700 flex items-center space-x-3 sm:space-x-4 min-w-0 border border-gray-100 dark:border"
-    >
-      <div
-        class="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full"
-        [class.bg-yellow-100]="stat.icon.includes('yellow')"
-        [class.dark:bg-yellow-900/30]="stat.icon.includes('yellow')"
-        [class.bg-blue-100]="stat.icon.includes('blue')"
-        [class.dark:bg-blue-900/30]="stat.icon.includes('blue')"
-        [class.bg-green-100]="stat.icon.includes('green')"
-        [class.dark:bg-green-900/30]="stat.icon.includes('green')"
-        [class.bg-emerald-100]="stat.icon.includes('emerald')"
-        [class.dark:bg-emerald-900/30]="stat.icon.includes('emerald')"
-      >
-        <i class="text-lg sm:text-2xl" [class]="stat.icon"></i>
+  <div class="p-6">
+    @if (stats().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      @for(card of stats(); track card.label) {
+      <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+        <div class="flex items-center gap-4">
+          <i [class]="card.icon" class="text-3xl"></i>
+          <div class="flex items-center gap-3 flex-wrap">
+            <p class="text-base font-bold text-gray-700 dark:text-gray-300">{{ card.label }}</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 whitespace-pre-line">{{ card.value }}</p>
+          </div>
+        </div>
       </div>
-      <div class="flex-1 min-w-0">
-        <span class="font-semibold text-gray-700 dark:text-neutral-300">{{ stat.label }}</span>
-        <span class="ml-2 text-gray-900 dark:text-neutral-50 whitespace-pre-wrap leading-tight">{{ stat.value }}</span>
-      </div>
+      }
     </div>
     }
+<!-- Filtros, lista e paginação do dashboard -->
+<div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <i class="fas fa-sliders-h text-brand-primary-500"></i>
+      <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ "advancedFilters" | i18n }}</span>
+    </div>
+    <button
+      (click)="toggleFilters()"
+      type="button"
+      class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-full border border-brand-primary-200 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300 bg-brand-primary-50 dark:bg-gray-800 hover:bg-brand-primary-100 dark:hover:bg-gray-700 transition-colors"
+    >
+      <i class="fas" [ngClass]="filtersExpanded() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      <span>{{ filtersExpanded() ? ("hideFilters" | i18n) : ("showFilters" | i18n) }}</span>
+    </button>
   </div>
 
-  <!-- Service Lists OU Detalhes -->
-  @if (selectedRequest() && selectedRequest()!.id) {
-    <app-service-request-details
-      [requestInput]="selectedRequest()!"
-      [currentUserInput]="user()!"
-      (closeDetails)="logAndCloseDetails()"
-      (refreshRequest)="logAndCloseDetails()"
-    ></app-service-request-details>
-  }
-  
-  @if (!selectedRequest()) {
-  <!-- Lista de Solicitações com Filtros Integrados -->
-  <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-lg dark:border-neutral-700 overflow-hidden border border-gray-200 dark:border-neutral-700">
-    <!-- Filtros Avançados e Pesquisa -->
-    <div class="p-4 border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 space-y-4">
-      <!-- Cabeçalho dos Filtros com Botão Toggle -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="fas fa-sliders-h text-brand-primary-500"></i>
-          <span class="text-sm font-semibold text-gray-800 dark:text-neutral-200">{{ "advancedFilters" | i18n }}</span>
-        </div>
-        <button
-          (click)="toggleFilters()"
-          class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded transition"
-          [attr.aria-expanded]="filtersExpanded()"
-          aria-label="Toggle filters"
-        >
-          <span>{{ filtersExpanded() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}</span>
-          <i [class]="filtersExpanded() ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
-        </button>
-      </div>
-
-      <!-- Filtros (retráteis) -->
-      @if (filtersExpanded()) {
-      <!-- Grid responsivo para filtros: 1 coluna em móvel, 2 em tablet, 7 em desktop -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-9 gap-3 sm:gap-4 items-end">
-        <!-- Service Filter -->
-        <div>
-          <label for="filter-service" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "service" | i18n
-          }}</label>
-          <select
-            id="filter-service"
-            [ngModel]="filterService()"
-            (ngModelChange)="filterService.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(service of availableServices(); track service) {
-            <option [value]="service">{{ service }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Category Filter -->
-        <div>
-          <label for="filter-category" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "category" | i18n
-          }}</label>
-          <select
-            id="filter-category"
-            [ngModel]="filterCategory()"
-            (ngModelChange)="filterCategory.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(cat of dataService.categories(); track cat.id) {
-            <option [value]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Origin Filter -->
-        <div>
-          <label for="filter-origin" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "origin" | i18n
-          }}</label>
-          <select
-            id="filter-origin"
-            [ngModel]="filterOrigin()"
-            (ngModelChange)="filterOrigin.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(origin of availableOrigins(); track origin.id) {
-            <option [value]="origin.id">{{ origin.name }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- OS Filter -->
-        <div>
-          <label for="filter-os" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "os" | i18n
-          }}</label>
-          <input
-            id="filter-os"
-            type="text"
-            [ngModel]="filterOS()"
-            (ngModelChange)="filterOS.set($event)"
-            placeholder="{{ 'searchByOS' | i18n }}"
-            pattern="[0-9]*"
-            inputmode="numeric"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          />
-        </div>
-
-        <!-- Locality Filter -->
-        <div>
-          <label for="filter-locality" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "locality" | i18n
-          }}</label>
-          <select
-            id="filter-locality"
-            [ngModel]="filterLocality()"
-            (ngModelChange)="filterLocality.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(locality of availableLocalities(); track locality) {
-            <option [value]="locality">{{ locality }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Client Filter -->
-        <div>
-          <label for="filter-client" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "client" | i18n
-          }}</label>
-          <select
-            id="filter-client"
-            [ngModel]="filterClient()"
-            (ngModelChange)="filterClient.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(client of availableClients(); track client) {
-            <option [value]="client">{{ client }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Period Filter (Data de início) -->
-        <div>
-          <label for="filter-start-date" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "startDate" | i18n
-          }}</label>
-          <input
-            id="filter-start-date"
-            type="date"
-            [ngModel]="filterStartDate()"
-            (ngModelChange)="filterStartDate.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          />
-        </div>
-
-        <!-- Period Filter (Data de fim) -->
-        <div>
-          <label for="filter-end-date" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "endDate" | i18n
-          }}</label>
-          <input
-            id="filter-end-date"
-            type="date"
-            [ngModel]="filterEndDate()"
-            (ngModelChange)="filterEndDate.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          />
-        </div>
-
-        <!-- Status Filter -->
-        <div>
-          <label for="filter-status" class="block text-xs font-semibold text-gray-600 dark:text-neutral-400 mb-1">{{
-            "status" | i18n
-          }}</label>
-          <select
-            id="filter-status"
-            [ngModel]="filterStatus()"
-            (ngModelChange)="filterStatus.set($event)"
-            class="border border-gray-300 dark:border-neutral-600 rounded px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50 w-full h-9"
-          >
-            <option value="">{{ "all" | i18n }}</option>
-            @for(status of statusAtivos(); track status.value) {
-            <option [value]="status.value">{{ status.label }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <!-- Clear Filters Button -->
-      <div class="flex justify-end mt-3 sm:mt-4">
-        <button
-          (click)="clearFilters()"
-          class="px-3 py-2 text-xs font-medium bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition h-9 w-full sm:w-auto"
-        >
-          {{ "clearFilters" | i18n }}
-        </button>
-      </div>
-      }
-
-      <!-- Indicadores de Filtros Ativos (responsivo) -->
-      @if (activeFilters().length > 0) {
-      <div
-        class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-200 dark:border-neutral-700"
-      >
-        <span class="text-sm font-medium text-gray-600 dark:text-neutral-400 w-full sm:w-auto"
-          >{{ "activeFilters" | i18n }}:</span
-        >
-        @for(filter of activeFilters(); track filter.type) {
-        <span
-          class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-300"
-        >
-          <span class="truncate">{{ filter.label | i18n }}: {{ filter.value }}</span>
-          <button
-            (click)="removeFilter(filter.type)"
-            class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-teal-600 dark:text-teal-400 hover:bg-teal-200 dark:hover:bg-teal-800 hover:text-teal-500"
-          >
-            <i class="fas fa-times text-xs"></i>
-          </button>
-        </span>
-        }
-      </div>
-      }
-    </div>
-
-      <!-- Divisor visual entre filtros e lista -->
-      <hr class="my-6 border-t-2 border-gray-200 dark:border-neutral-700"> 
-      <!-- Lista de Solicitações -->
-    @if (user() && isArray(paginatedRequests()) && paginatedRequests().length > 0) {
-    <app-service-list
-      [serviceRequests]="paginatedRequests() || []"
-      [currentUser]="user()"
-      [enablePagination]="false"
-      [sortBy]="sortBy()"
-      [sortOrder]="sortOrder()"
-  [actionLoadingIds]="actionLoadingIds()"
-      (sortChange)="sortByColumn($event)"
-      (viewDetails)="handleViewDetails($event)"
-      (openChat)="openChat.emit($event)"
-      (payNow)="payNow.emit($event)"
-      (approveExecutionDate)="handleExecutionDateResponse($event, true)"
-      (rejectExecutionDate)="
-        handleExecutionDateResponse($event.request, false, $event.reason)
-      "
-      (scheduleRequest)="scheduleRequest.emit($event)"
-      (provideClarification)="handleProvideClarification($event)"
-      (startService)="handleStartService($event)"
-      (finishService)="handleFinishService($event)"
-      (confirmAssignment)="handleConfirmAssignment($event)"
-      (rejectAssignment)="handleRejectAssignment($event)"
-      (viewGeolocation)="handleViewGeolocation($event)"
-    >
-    </app-service-list>
-    
-    <!-- Pagination Controls -->
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-gray-200 dark:border-neutral-700 dark:bg-neutral-800">
-      <!-- Items per page selector -->
-      <div class="flex items-center space-x-2">
-        <label for="items-per-page" class="text-sm text-gray-700 dark:text-neutral-300"
-          >{{ "itemsPerPage" | i18n }}:</label
-        >
+  @if (filtersExpanded()) {
+  <div class="space-y-4 mt-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div>
+        <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "status" | i18n }}
+        </label>
         <select
-          id="items-per-page"
-          [value]="itemsPerPage()"
-          (change)="setItemsPerPage(+$any($event.target).value)"
-          class="border border-gray-300 dark:border-neutral-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50"
+          id="filterStatus"
+          [ngModel]="filterStatus()"
+          (ngModelChange)="filterStatus.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
         >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
+          <option value="">{{ "all" | i18n }}</option>
+          @for(status of statusAtivos(); track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
         </select>
       </div>
 
-      <!-- Pagination info (hidden on mobile) -->
-      <div class="hidden sm:block">
-        <p class="text-sm text-gray-700 dark:text-neutral-300">
-          {{ "showing" | i18n }}
-          <span class="font-medium">{{
-            (currentPage() - 1) * itemsPerPage() + 1
-          }}</span>
-          {{ "to" | i18n }}
-          <span class="font-medium">{{
-            Math.min(currentPage() * itemsPerPage(), filteredRequests().length)
-          }}</span>
-          {{ "of" | i18n }}
-          <span class="font-medium">{{ filteredRequests().length }}</span>
-          {{ "results" | i18n }}
-        </p>
-      </div>
-
-      <!-- Pagination buttons -->
-      <div class="flex justify-center sm:justify-end">
-        <nav
-          class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-          aria-label="Pagination"
+      <div>
+        <label for="filterCategory" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-layer-group text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "category" | i18n }}
+        </label>
+        <select
+          id="filterCategory"
+          [ngModel]="filterCategory()"
+          (ngModelChange)="filterCategory.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
         >
-          <!-- Previous button -->
-          <button
-            (click)="previousPage()"
-            [disabled]="currentPage() === 1"
-            class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <i class="fas fa-chevron-left"></i>
-            <span class="sr-only">Previous</span>
-          </button>
-
-          <!-- Page numbers (simplified for mobile) -->
-          <div class="hidden sm:flex">
-            @for(page of pageNumbers; track page) { @if(page === -1) {
-            <!-- Ellipsis -->
-            <span
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-700 dark:text-neutral-300"
-            >
-              ...
-            </span>
-            } @else {
-            <button
-              (click)="goToPage(page)"
-              [class]="
-                page === currentPage()
-                  ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-brand-primary-600 bg-brand-primary-50 dark:bg-brand-primary/20 text-sm font-medium text-brand-primary-600 dark:text-brand-primary-300'
-                  : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-600'
-              "
-            >
-              {{ page }}
-            </button>
-            } }
-          </div>
-
-          <!-- Mobile page indicator -->
-          <div
-            class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-700 dark:text-neutral-300"
-          >
-            {{ currentPage() }} / {{ totalPages() }}
-          </div>
-
-          <!-- Next button -->
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage() === totalPages()"
-            class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <i class="fas fa-chevron-right"></i>
-            <span class="sr-only">Next</span>
-          </button>
-        </nav>
+          <option value="">{{ "all" | i18n }}</option>
+          @for(cat of dataService.categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
       </div>
+
+      <div>
+        <label for="filterOrigin" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-building text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "origin" | i18n }}
+        </label>
+        <select
+          id="filterOrigin"
+          [ngModel]="filterOrigin()"
+          (ngModelChange)="filterOrigin.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        >
+          <option value="">{{ "all" | i18n }}</option>
+          @for(origin of availableOrigins(); track origin.id) {
+            <option [value]="origin.id">{{ origin.name | i18n }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filterOS" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-file-invoice text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "os" | i18n }}
+        </label>
+        <input
+          type="text"
+          id="filterOS"
+          [ngModel]="filterOS()"
+          (ngModelChange)="filterOS.set($event)"
+          placeholder="{{ 'searchByOS' | i18n }}"
+          pattern="[0-9]*"
+          inputmode="numeric"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        />
+      </div>
+
+      <div>
+        <label for="filterLocality" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-map-marker-alt text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "locality" | i18n }}
+        </label>
+        <select
+          id="filterLocality"
+          [ngModel]="filterLocality()"
+          (ngModelChange)="filterLocality.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        >
+          <option value="">{{ "all" | i18n }}</option>
+          @for(locality of availableLocalities(); track locality) {
+            <option [value]="locality">{{ locality }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filterService" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-tools text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "service" | i18n }}
+        </label>
+        <select
+          id="filterService"
+          [ngModel]="filterService()"
+          (ngModelChange)="filterService.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        >
+          <option value="">{{ "all" | i18n }}</option>
+          @for(service of availableServices(); track service) {
+            <option [value]="service">{{ service }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filterClient" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-user text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "client" | i18n }}
+        </label>
+        <select
+          id="filterClient"
+          [ngModel]="filterClient()"
+          (ngModelChange)="filterClient.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        >
+          <option value="">{{ "all" | i18n }}</option>
+          @for(client of availableClients(); track client) {
+            <option [value]="client">{{ client }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filterStartDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-calendar text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "startDate" | i18n }}
+        </label>
+        <input
+          type="date"
+          id="filterStartDate"
+          [ngModel]="filterStartDate()"
+          (ngModelChange)="filterStartDate.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        />
+      </div>
+
+      <div>
+        <label for="filterEndDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
+          {{ "endDate" | i18n }}
+        </label>
+        <input
+          type="date"
+          id="filterEndDate"
+          [ngModel]="filterEndDate()"
+          (ngModelChange)="filterEndDate.set($event)"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+        />
+      </div>
+
     </div>
-    } @else {
-    <div class="text-center text-gray-500 dark:text-neutral-400 p-6">
-      {{ "noRequestsFound" | i18n }}
+
+    <div class="flex justify-end">
+      <button
+        (click)="clearFilters()"
+        class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600"
+      >
+        <i class="fas fa-times-circle"></i>
+        {{ "clearFilters" | i18n }}
+      </button>
     </div>
-    }
   </div>
   }
+</div>
+
+@if (activeFilters().length > 0) {
+  <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-gray-200 dark:border-neutral-700">
+    <span class="text-sm font-medium text-gray-600 dark:text-neutral-400 w-full sm:w-auto">{{ "activeFilters" | i18n }}:</span>
+    @for(filter of activeFilters(); track filter.type) {
+      <span class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-300">
+        <span class="truncate">{{ filter.label | i18n }}: {{ filter.value }}</span>
+        <button
+          (click)="removeFilter(filter.type)"
+          class="flex-shrink-0 h-4 w-4 rounded-full inline-flex items-center justify-center text-teal-600 dark:text-teal-400 hover:bg-teal-200 dark:hover:bg-teal-800 hover:text-teal-500"
+        >
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </span>
+    }
+  </div>
+}
+
+<hr class="my-6 border-t-2 border-gray-200 dark:border-neutral-700"> 
+
+@if (user() && isArray(paginatedRequests()) && paginatedRequests().length > 0) {
+  <app-service-list
+    [serviceRequests]="paginatedRequests() || []"
+    [currentUser]="user()"
+    [enablePagination]="false"
+    [sortBy]="sortBy()"
+    [sortOrder]="sortOrder()"
+    [actionLoadingIds]="actionLoadingIds()"
+    (sortChange)="sortByColumn($event)"
+    (viewDetails)="handleViewDetails($event)"
+    (openChat)="openChat.emit($event)"
+    (payNow)="payNow.emit($event)"
+    (approveExecutionDate)="handleExecutionDateResponse($event, true)"
+    (rejectExecutionDate)="handleExecutionDateResponse($event.request, false, $event.reason)"
+    (scheduleRequest)="scheduleRequest.emit($event)"
+    (provideClarification)="handleProvideClarification($event)"
+    (startService)="handleStartService($event)"
+    (finishService)="handleFinishService($event)"
+    (confirmAssignment)="handleConfirmAssignment($event)"
+    (rejectAssignment)="handleRejectAssignment($event)"
+    (viewGeolocation)="handleViewGeolocation($event)"
+  >
+  </app-service-list>
+  <!-- Controles de Paginação -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-gray-200 dark:border-neutral-700 dark:bg-neutral-800">
+    <div class="flex items-center space-x-2">
+      <label for="items-per-page" class="text-sm text-gray-700 dark:text-neutral-300">{{ "itemsPerPage" | i18n }}:</label>
+      <select
+        id="items-per-page"
+        [value]="itemsPerPage()"
+        (change)="setItemsPerPage(+$any($event.target).value)"
+        class="border border-gray-300 dark:border-neutral-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-neutral-700 dark:text-neutral-50"
+      >
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+    </div>
+    <div class="hidden sm:block">
+      <p class="text-sm text-gray-700 dark:text-neutral-300">
+        {{ "showing" | i18n }}
+        <span class="font-medium">{{ (currentPage() - 1) * itemsPerPage() + 1 }}</span>
+        {{ "to" | i18n }}
+        <span class="font-medium">{{ Math.min(currentPage() * itemsPerPage(), filteredRequests().length) }}</span>
+        {{ "of" | i18n }}
+        <span class="font-medium">{{ filteredRequests().length }}</span>
+        {{ "results" | i18n }}
+      </p>
+    </div>
+    <div class="flex justify-center sm:justify-end">
+      <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Paginação">
+        <button
+          (click)="previousPage()"
+          [disabled]="currentPage() === 1"
+          class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-left"></i>
+          <span class="sr-only">Anterior</span>
+        </button>
+        <div class="hidden sm:flex">
+          @for(page of pageNumbers; track page) {
+            @if(page === -1) {
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-700 dark:text-neutral-300">...</span>
+            } @else {
+              <button
+                (click)="goToPage(page)"
+                [class]="page === currentPage() ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-brand-primary-600 bg-brand-primary-50 dark:bg-brand-primary/20 text-sm font-medium text-brand-primary-600 dark:text-brand-primary-300' : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-600'"
+              >
+                {{ page }}
+              </button>
+            }
+          }
+          {{ currentPage() }} / {{ totalPages() }}
+        </div>
+        <button
+          (click)="nextPage()"
+          [disabled]="currentPage() === totalPages()"
+          class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-sm font-medium text-gray-500 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i class="fas fa-chevron-right"></i>
+          <span class="sr-only">Próxima</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+}
+@else {
+  <div class="text-center text-gray-500 dark:text-neutral-400 p-6">
+    {{ "noRequestsFound" | i18n }}
+  </div>
+}
+  </div>
 </div>
 

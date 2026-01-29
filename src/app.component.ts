@@ -57,7 +57,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "profile" | "daily-mileage" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "clients" | "categories";
+type Nav = "dashboard" | "schedule" | "profile" | "daily-mileage" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "clients" | "categories" | "extra-services";
 
 @Component({
   selector: "app-root",
@@ -211,6 +211,11 @@ export class AppComponent implements OnInit {
           id: "categories",
           labelKey: "categories",
           icon: "fa-solid fa-tags",
+        },
+        {
+          id: "extra-services",
+          labelKey: "extraServices",
+          icon: "fa-solid fa-square-plus",
         }
       );
     }
