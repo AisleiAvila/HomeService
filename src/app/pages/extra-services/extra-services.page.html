@@ -72,9 +72,120 @@
         </div>
       </div>
       <div class="p-6">
-        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          {{ 'extraServicesPerformed' | i18n }}
-        </h3>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            {{ 'extraServicesPerformed' | i18n }}
+          </h3>
+          <button
+            type="button"
+            (click)="toggleFilters()"
+            class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-full border border-brand-primary-200 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300 bg-brand-primary-50 dark:bg-gray-800 hover:bg-brand-primary-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <i class="fas" [ngClass]="showFilters() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            <span>{{ showFilters() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}</span>
+          </button>
+        </div>
+
+        @if (showFilters()) {
+        <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div>
+              <label for="filterService" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-briefcase text-brand-primary-500 mr-1 text-xs"></i>
+                {{ 'service' | i18n }}
+              </label>
+              <select
+                id="filterService"
+                [ngModel]="filterService()"
+                (ngModelChange)="filterService.set($event)"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              >
+                <option value="">{{ 'all' | i18n }}</option>
+                @for(service of serviceOptions(); track service) {
+                <option [value]="service">{{ service }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label for="filterExtraService" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-square-plus text-brand-primary-500 mr-1 text-xs"></i>
+                {{ 'extraServiceName' | i18n }}
+              </label>
+              <select
+                id="filterExtraService"
+                [ngModel]="filterExtraService()"
+                (ngModelChange)="filterExtraService.set($event)"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              >
+                <option value="">{{ 'all' | i18n }}</option>
+                @for(extraService of extraServiceOptions(); track extraService) {
+                <option [value]="extraService">{{ extraService }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label for="filterProfessional" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-user text-brand-primary-500 mr-1 text-xs"></i>
+                {{ 'extraServiceProfessional' | i18n }}
+              </label>
+              <select
+                id="filterProfessional"
+                [ngModel]="filterProfessional()"
+                (ngModelChange)="filterProfessional.set($event)"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              >
+                <option value="">{{ 'all' | i18n }}</option>
+                @for(professional of professionalOptions(); track professional.id) {
+                <option [ngValue]="professional.id">{{ professional.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label for="filterStatus" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
+                {{ 'reimbursementStatus' | i18n }}
+              </label>
+              <select
+                id="filterStatus"
+                [ngModel]="filterStatus()"
+                (ngModelChange)="filterStatus.set($event)"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              >
+                <option value="">{{ 'all' | i18n }}</option>
+                <option value="pending">{{ 'reimbursementPending' | i18n }}</option>
+                <option value="done">{{ 'reimbursementDone' | i18n }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="filterPerformedDate" class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
+                {{ 'extraServicePerformedDate' | i18n }}
+              </label>
+              <input
+                type="date"
+                id="filterPerformedDate"
+                [ngModel]="filterPerformedDate()"
+                (ngModelChange)="filterPerformedDate.set($event)"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              />
+            </div>
+          </div>
+          <div class="flex justify-end mt-4">
+            <button
+              type="button"
+              (click)="clearFilters()"
+              class="px-4 py-2 text-xs font-semibold bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600"
+            >
+              <i class="fas fa-times-circle"></i>
+              {{ 'clearFilters' | i18n }}
+            </button>
+          </div>
+        </div>
+        }
       <!-- Desktop Table View -->
       <div class="hidden lg:block">
         <table class="min-w-full divide-y divide-gray-200">
@@ -107,7 +218,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-            <tr *ngFor="let service of extraServicesView()" class="hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr *ngFor="let service of filteredExtraServicesView()" class="hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 text-xs text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[30ch] leading-snug">
                 {{ service.requestTitle }}
               </td>
@@ -171,7 +282,19 @@
 
       <!-- Mobile Card View -->
       <div class="lg:hidden p-4 space-y-4">
-        <div *ngFor="let service of extraServicesView()" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+        @if (hasActiveFilters()) {
+        <div class="flex justify-end">
+          <button
+            type="button"
+            (click)="clearFilters()"
+            class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all border border-gray-300 dark:border-gray-600"
+          >
+            <i class="fas fa-times-circle"></i>
+            {{ 'clearFilters' | i18n }}
+          </button>
+        </div>
+        }
+        <div *ngFor="let service of filteredExtraServicesView()" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
           <div>
             <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">
               {{ service.requestTitle }}
@@ -249,7 +372,7 @@
         </div>
       </div>
 
-      <div *ngIf="extraServicesView().length === 0" class="text-gray-500 py-4">
+      <div *ngIf="filteredExtraServicesView().length === 0" class="text-gray-500 py-4">
         {{ 'noExtraServices' | i18n }}
       </div>
       </div>
