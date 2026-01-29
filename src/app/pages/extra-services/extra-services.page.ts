@@ -39,6 +39,12 @@ export class ExtraServicesPage implements OnInit {
   filterStatus = signal<string>('');
   filterPerformedDate = signal<string>('');
 
+  sortBy = signal<string>('performedDate');
+  sortOrder = signal<'asc' | 'desc'>('desc');
+
+  currentPage = signal<number>(1);
+  itemsPerPage = signal<number>(10);
+
   readonly extraServicesView = computed((): ExtraServiceView[] => {
     const users = this.dataService.users();
     const requests = this.dataService.serviceRequests();
@@ -135,6 +141,102 @@ export class ExtraServicesPage implements OnInit {
     return services;
   });
 
+  private compareText(aRaw: string | null | undefined, bRaw: string | null | undefined): number {
+    return (aRaw ?? '').localeCompare(bRaw ?? '', 'pt-PT', { sensitivity: 'base' });
+  }
+
+  private compareNullableNumber(aValue: number | null | undefined, bValue: number | null | undefined): number {
+    let aNum: number | null = null;
+    let bNum: number | null = null;
+    if (typeof aValue === 'number' && Number.isFinite(aValue)) {
+      aNum = aValue;
+    }
+    if (typeof bValue === 'number' && Number.isFinite(bValue)) {
+      bNum = bValue;
+    }
+    if (aNum === null && bNum === null) return 0;
+    if (aNum === null) return 1;
+    if (bNum === null) return -1;
+    return aNum - bNum;
+  }
+
+  private getServiceDateValue(service: ExtraServiceView): number | null {
+    if (!service.requestEndDate) return null;
+    const parsed = new Date(service.requestEndDate);
+    const time = parsed.getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+
+  private getReimbursementStatusRank(service: ExtraServiceView): number {
+    if (!service.professional?.is_natan_employee) return -1;
+    if (service.has_reimbursement) {
+      return 1;
+    }
+    return 0;
+  }
+
+  private compareService(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.compareText(a.requestTitle, b.requestTitle);
+  }
+
+  private compareExtraService(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.compareText(a.description, b.description);
+  }
+
+  private compareProfessional(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.compareText(a.professional?.name, b.professional?.name);
+  }
+
+  private compareStatus(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.getReimbursementStatusRank(a) - this.getReimbursementStatusRank(b);
+  }
+
+  private compareValue(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.compareNullableNumber(a.value, b.value);
+  }
+
+  private compareReimbursementValue(a: ExtraServiceView, b: ExtraServiceView): number {
+    return this.compareNullableNumber(a.reimbursement_value, b.reimbursement_value);
+  }
+
+  private comparePerformedDate(a: ExtraServiceView, b: ExtraServiceView): number {
+    const aTime = this.getServiceDateValue(a);
+    const bTime = this.getServiceDateValue(b);
+    if (aTime === null && bTime === null) return 0;
+    if (aTime === null) return 1;
+    if (bTime === null) return -1;
+    return aTime - bTime;
+  }
+
+  readonly sortedExtraServicesView = computed((): ExtraServiceView[] => {
+    const sortBy = this.sortBy();
+    const sortOrder = this.sortOrder();
+    const multiplier = sortOrder === 'asc' ? 1 : -1;
+
+    const comparators: Record<string, (a: ExtraServiceView, b: ExtraServiceView) => number> = {
+      service: (a, b) => this.compareService(a, b),
+      extraService: (a, b) => this.compareExtraService(a, b),
+      professional: (a, b) => this.compareProfessional(a, b),
+      status: (a, b) => this.compareStatus(a, b),
+      value: (a, b) => this.compareValue(a, b),
+      reimbursementValue: (a, b) => this.compareReimbursementValue(a, b),
+      performedDate: (a, b) => this.comparePerformedDate(a, b),
+    };
+
+    const compare = comparators[sortBy] ?? (() => 0);
+    return [...this.filteredExtraServicesView()].sort((a, b) => compare(a, b) * multiplier);
+  });
+
+  readonly paginatedExtraServicesView = computed((): ExtraServiceView[] => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    const end = start + this.itemsPerPage();
+    return this.sortedExtraServicesView().slice(start, end);
+  });
+
+  totalPages = computed(() =>
+    Math.ceil(this.sortedExtraServicesView().length / this.itemsPerPage())
+  );
+
   readonly hasActiveFilters = computed(() => {
     return (
       !!this.filterService() ||
@@ -144,6 +246,21 @@ export class ExtraServicesPage implements OnInit {
       !!this.filterPerformedDate()
     );
   });
+
+  Math = Math;
+  get pageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    pages.push(1);
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) if (i !== 1 && i !== total) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    if (total > 1) pages.push(total);
+    return pages;
+  }
 
   ngOnInit(): void {
     this.extraServicesService.loadExtraServices();
@@ -171,12 +288,39 @@ export class ExtraServicesPage implements OnInit {
     this.showFilters.update((current) => !current);
   }
 
+  sortByColumn(column: string): void {
+    if (this.sortBy() === column) {
+      this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
+      return;
+    }
+    this.sortBy.set(column);
+    this.sortOrder.set('asc');
+  }
+
   clearFilters(): void {
     this.filterService.set('');
     this.filterExtraService.set('');
     this.filterProfessional.set('');
     this.filterStatus.set('');
     this.filterPerformedDate.set('');
+    this.currentPage.set(1);
+  }
+
+  previousPage() {
+    if (this.currentPage() > 1) this.currentPage.update((p) => p - 1);
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) this.currentPage.update((p) => p + 1);
+  }
+
+  goToPage(page: number) {
+    if (page !== -1) this.currentPage.set(page);
+  }
+
+  setItemsPerPage(items: number) {
+    this.itemsPerPage.set(items);
+    this.currentPage.set(1);
   }
 
   canConfirmReimbursement(service: ExtraServiceView): boolean {

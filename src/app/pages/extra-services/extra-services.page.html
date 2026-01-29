@@ -191,26 +191,159 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'service' | i18n }}
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'service' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1"
+                  (click)="sortByColumn('service')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
+                >
+                  {{ 'service' | i18n }}
+                  @if (sortBy() === 'service') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'extraServiceName' | i18n }}
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'extraService' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1"
+                  (click)="sortByColumn('extraService')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('extraServiceName' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('extraServiceName' | i18n)"
+                >
+                  {{ 'extraServiceName' | i18n }}
+                  @if (sortBy() === 'extraService') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'extraServiceProfessional' | i18n }}
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'professional' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1"
+                  (click)="sortByColumn('professional')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('extraServiceProfessional' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('extraServiceProfessional' | i18n)"
+                >
+                  {{ 'extraServiceProfessional' | i18n }}
+                  @if (sortBy() === 'professional') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'extraServiceValue' | i18n }}
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'value' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1 justify-end w-full"
+                  (click)="sortByColumn('value')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('extraServiceValue' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('extraServiceValue' | i18n)"
+                >
+                  {{ 'extraServiceValue' | i18n }}
+                  @if (sortBy() === 'value') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'reimbursementValue' | i18n }}
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'reimbursementValue' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1 justify-end w-full"
+                  (click)="sortByColumn('reimbursementValue')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('reimbursementValue' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('reimbursementValue' | i18n)"
+                >
+                  {{ 'reimbursementValue' | i18n }}
+                  @if (sortBy() === 'reimbursementValue') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'reimbursementStatus' | i18n }}
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'status' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1"
+                  (click)="sortByColumn('status')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('reimbursementStatus' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('reimbursementStatus' | i18n)"
+                >
+                  {{ 'reimbursementStatus' | i18n }}
+                  @if (sortBy() === 'status') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
-                {{ 'extraServicePerformedDate' | i18n }}
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider"
+                scope="col"
+                [attr.aria-sort]="sortBy() === 'performedDate' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-1"
+                  (click)="sortByColumn('performedDate')"
+                  [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('extraServicePerformedDate' | i18n)"
+                  [attr.title]="('clickToSort' | i18n) + ': ' + ('extraServicePerformedDate' | i18n)"
+                >
+                  {{ 'extraServicePerformedDate' | i18n }}
+                  @if (sortBy() === 'performedDate') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up"></i>
+                    } @else {
+                      <i class="fas fa-sort-down"></i>
+                    }
+                  }
+                </button>
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider" scope="col">
                 {{ 'actions' | i18n }}
@@ -218,7 +351,7 @@
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-            <tr *ngFor="let service of filteredExtraServicesView()" class="hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr *ngFor="let service of paginatedExtraServicesView()" class="hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 text-xs text-gray-900 dark:text-gray-100 whitespace-normal break-words max-w-[30ch] leading-snug">
                 {{ service.requestTitle }}
               </td>
@@ -281,7 +414,7 @@
       </div>
 
       <!-- Mobile Card View -->
-      <div class="lg:hidden p-4 space-y-4">
+      <div class="lg:hidden p-4 space-y-4 mobile-safe">
         @if (hasActiveFilters()) {
         <div class="flex justify-end">
           <button
@@ -294,39 +427,50 @@
           </button>
         </div>
         }
-        <div *ngFor="let service of filteredExtraServicesView()" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+        <div *ngFor="let service of paginatedExtraServicesView()" class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
           <div>
             <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">
               {{ service.requestTitle }}
             </h4>
+            <div class="mt-1 flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <span class="font-bold">{{ 'reimbursementStatus' | i18n }}:</span>
+              <span
+                class="ml-auto whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+                [class.bg-emerald-100]="service.professional?.is_natan_employee && service.has_reimbursement"
+                [class.text-emerald-800]="service.professional?.is_natan_employee && service.has_reimbursement"
+                [class.bg-amber-100]="service.professional?.is_natan_employee && !service.has_reimbursement"
+                [class.text-amber-800]="service.professional?.is_natan_employee && !service.has_reimbursement"
+                [class.bg-gray-100]="!service.professional?.is_natan_employee"
+                [class.text-gray-600]="!service.professional?.is_natan_employee"
+              >
+                {{ service.professional?.is_natan_employee
+                  ? (service.has_reimbursement ? ('reimbursementDone' | i18n) : ('reimbursementPending' | i18n))
+                  : '-' }}
+              </span>
+            </div>
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {{ service.description }}
             </div>
           </div>
 
           <div class="space-y-2 text-xs">
-            <div class="flex justify-between">
+            <div class="flex items-center justify-between gap-2">
               <span class="text-gray-600 dark:text-gray-400 font-bold">{{ 'extraServiceProfessional' | i18n }}:</span>
-              <span class="text-gray-900 dark:text-gray-100 text-right">
-                <span class="inline-flex items-center gap-2">
-                  <img
-                    *ngIf="service.professional?.avatar_url"
-                    [src]="service.professional?.avatar_url"
-                    [alt]="service.professional?.name"
-                    class="w-7 h-7 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
-                    loading="lazy"
-                  />
-                  <span>{{ service.professional?.name || '-' }}</span>
-                </span>
-              </span>
+              <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <img
+                  *ngIf="service.professional?.avatar_url"
+                  [src]="service.professional?.avatar_url"
+                  [alt]="service.professional?.name"
+                  class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+                  loading="lazy"
+                />
+                <span class="text-right">{{ service.professional?.name || '-' }}</span>
+              </div>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400 font-bold">&nbsp;</span>
-              <span class="text-[10px] text-gray-500 dark:text-gray-400">
-                {{ service.professional
-                  ? (service.professional.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n))
-                  : '-' }}
-              </span>
+            <div class="flex justify-end text-[10px] text-gray-500 dark:text-gray-400">
+              {{ service.professional
+                ? (service.professional.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n))
+                : '-' }}
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600 dark:text-gray-400 font-bold">{{ 'extraServiceValue' | i18n }}:</span>
@@ -341,40 +485,106 @@
                   ? (service.reimbursement_value !== null && service.reimbursement_value !== undefined
                       ? (service.reimbursement_value | currency:'EUR':'symbol':'1.2-2')
                       : '-')
-                  : '' }}
+                  : '-' }}
               </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 dark:text-gray-400 font-bold">{{ 'reimbursementStatus' | i18n }}:</span>
-              <span class="text-gray-900 dark:text-gray-100 font-semibold">
-                {{ service.professional?.is_natan_employee
-                  ? (service.has_reimbursement ? ('reimbursementDone' | i18n) : ('reimbursementPending' | i18n))
-                  : '' }}
-              </span>
-            </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between text-[10px]">
               <span class="text-gray-600 dark:text-gray-400 font-bold">{{ 'extraServicePerformedDate' | i18n }}:</span>
               <span class="text-gray-900 dark:text-gray-100">
                 {{ service.requestEndDate ? (service.requestEndDate | date:'dd/MM/yyyy') : '-' }}
               </span>
             </div>
-            <div *ngIf="canConfirmReimbursement(service)" class="pt-2">
+          </div>
+
+          <div class="pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div class="grid grid-cols-4 gap-2">
+              @if (canConfirmReimbursement(service)) {
               <button
                 type="button"
-                class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                class="w-10 h-10 inline-flex items-center justify-center text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors"
                 [title]="'confirmReimbursement' | i18n"
+                [attr.aria-label]="'confirmReimbursement' | i18n"
                 (click)="openReimbursementConfirmModal(service)"
               >
                 <i class="fas fa-check"></i>
               </button>
+              }
             </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="filteredExtraServicesView().length === 0" class="text-gray-500 py-4">
+      <div *ngIf="sortedExtraServicesView().length === 0" class="text-gray-500 py-4">
         {{ 'noExtraServices' | i18n }}
       </div>
+
+      @if (sortedExtraServicesView().length > 0) {
+      <div
+        class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm text-gray-700">{{ 'itemsPerPage' | i18n }}:</span>
+          <select [value]="itemsPerPage()" (change)="setItemsPerPage(+$event.target.value)"
+            class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+
+        <div class="hidden sm:block">
+          <p class="text-sm text-gray-700">
+            {{ 'showing' | i18n }}
+            <span class="font-medium">{{ (currentPage() - 1) * itemsPerPage() + 1 }}</span>
+            {{ 'to' | i18n }}
+            <span class="font-medium">{{ Math.min(currentPage() * itemsPerPage(), sortedExtraServicesView().length) }}</span>
+            {{ 'of' | i18n }}
+            <span class="font-medium">{{ sortedExtraServicesView().length }}</span>
+            {{ 'results' | i18n }}
+          </p>
+        </div>
+
+        <div class="flex justify-center sm:justify-end">
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button (click)="previousPage()" [disabled]="currentPage() === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="fas fa-chevron-left"></i>
+              <span class="sr-only">Previous</span>
+            </button>
+
+            <div class="hidden sm:flex">
+              @for(page of pageNumbers; track page) {
+              @if(page === -1) {
+              <span
+                class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                ...
+              </span>
+              } @else {
+              <button (click)="goToPage(page)" [class]="
+                page === currentPage()
+                  ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-400'
+                  : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+              ">
+                {{ page }}
+              </button>
+              }
+              }
+            </div>
+
+            <div
+              class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ currentPage() }} / {{ totalPages() }}
+            </div>
+
+            <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="fas fa-chevron-right"></i>
+              <span class="sr-only">Next</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+      }
       </div>
     </div>
   </div>
