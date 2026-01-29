@@ -180,6 +180,10 @@ export class ServiceListComponent implements OnInit {
     const user = this.currentUser();
     if (user.role !== "professional") return false;
 
+    // Só permitir para status específicos
+    const allowedStatuses = ["Em Progresso", "Concluído", "Finalizado"];
+    if (!allowedStatuses.includes(request.status)) return false;
+
     // Não exibir se já existe relatório técnico salvo para esta solicitação.
     if (request.has_technical_report) return false;
 

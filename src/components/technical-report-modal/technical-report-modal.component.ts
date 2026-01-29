@@ -1,3 +1,4 @@
+
 import {
   Component,
   ChangeDetectionStrategy,
@@ -25,7 +26,6 @@ import {
   TechnicalReportPdfService,
   type TechnicalReportOriginKey,
   type TechnicalReportData,
-  type WortenVerdeMaterialItem,
 } from "../../services/technical-report-pdf.service";
 import { TechnicalReportStorageService } from "../../services/technical-report-storage.service";
 import { AuthService } from "../../services/auth.service";
@@ -33,6 +33,8 @@ import {
   getTechnicalReportOriginKey,
   getTechnicalReportOriginLabel,
 } from "../../utils/technical-report-origin.util";
+
+
 
 @Component({
   selector: "app-technical-report-modal",
@@ -42,6 +44,113 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TechnicalReportModalComponent implements AfterViewChecked {
+  // --- Worten Verde signals ---
+  verdeProcess = signal<string>("");
+  verdeServiceType = signal<string[]>([]);
+  verdeTypology = signal<string>("");
+  verdeBrand = signal<string>("");
+  verdeModel = signal<string>("");
+  verdeSerialNumber = signal<string>("");
+  verdeProductCode = signal<string>("");
+  verdeReportedFailure = signal<string>("");
+  verdeClientComments = signal<string>("");
+  verdeOldItemCollected = signal<boolean>(false);
+  verdeItemPickedUpAtWorkshop = signal<boolean>(false);
+  verdeTechnicalNotes = signal<string>("");
+  verdeMaterials = signal<{ description: string; totalWithVat: number | null }[]>([]);
+  verdeExtraServicesInstalled = signal<{ id: string; description: string; value: number | null }[]>([]);
+
+  addVerdeExtraService() {
+    this.verdeExtraServicesInstalled.update((items) => [
+      ...(items || []),
+      { id: this.generateUniqueId(), description: "", value: null },
+    ]);
+  }
+
+  removeVerdeExtraService(index: number) {
+    this.verdeExtraServicesInstalled.update((items) => (items || []).filter((_, i) => i !== index));
+  }
+
+  updateVerdeExtraServiceDescription(index: number, value: string) {
+    this.verdeExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, description: value } : it))
+    );
+  }
+
+  updateVerdeExtraServiceValue(index: number, value: string) {
+    const parsed = value === "" ? null : Number(value);
+    const nextValue = parsed !== null && Number.isFinite(parsed) ? parsed : null;
+    this.verdeExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, value: nextValue } : it))
+    );
+  }
+
+  trackByVerdeExtraServiceId(index: number, item: { id: string }) {
+    return item.id;
+  }
+  // --- Radio Popular signals ---
+  radioServiceNote = signal<string>("");
+  radioInstallation = signal<string>("");
+  radioWorkDescription = signal<string>("");
+  radioExtraServicesInstalled = signal<{ id: string; description: string; value: number | null }[]>([]);
+
+  addRadioExtraService() {
+    this.radioExtraServicesInstalled.update((items) => [
+      ...(items || []),
+      { id: this.generateUniqueId(), description: "", value: null },
+    ]);
+  }
+
+  removeRadioExtraService(index: number) {
+    this.radioExtraServicesInstalled.update((items) => (items || []).filter((_, i) => i !== index));
+  }
+
+
+  trackByRadioExtraServiceId(index: number, item: { id: string }) {
+    return item.id;
+  }
+
+  // --- Worten Azul signals ---
+  azulInvoiceNumber = signal<string>("");
+  azulServiceNumber = signal<string>("");
+  azulReportNotes = signal<string>("");
+  azulConfirmServiceOk = signal<boolean>(false);
+  azulConfirmOldGasCollected = signal<boolean>(false);
+  azulExtraServicesInstalled = signal<{ id: string; description: string; value: number | null }[]>([]);
+
+  addAzulExtraService() {
+    this.azulExtraServicesInstalled.update((items) => [
+      ...(items || []),
+      { id: this.generateUniqueId(), description: "", value: null },
+    ]);
+  }
+
+  removeAzulExtraService(index: number) {
+    this.azulExtraServicesInstalled.update((items) => (items || []).filter((_, i) => i !== index));
+  }
+
+  updateAzulExtraServiceDescription(index: number, value: string) {
+    this.azulExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, description: value } : it))
+    );
+  }
+
+  updateAzulExtraServiceValue(index: number, value: string) {
+    const parsed = value === "" ? null : Number(value);
+    const nextValue = parsed !== null && Number.isFinite(parsed) ? parsed : null;
+    this.azulExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, value: nextValue } : it))
+    );
+  }
+
+  trackByAzulExtraServiceId(index: number, item: { id: string }) {
+    return item.id;
+  }
+
+  // --- Helper for unique IDs ---
+  private generateUniqueId(): string {
+    return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+  }
   request = input.required<ServiceRequest>();
   show = input<boolean>(false);
 
@@ -126,41 +235,17 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     return "";
   });
 
-  // Worten Verde
-  verdeProcess = signal("");
-  verdeServiceType = signal<string[]>([]);
-    onVerdeServiceTypeChange(type: string, checked: boolean) {
-      const current = this.verdeServiceType();
-      if (checked && !current.includes(type)) {
-        this.verdeServiceType.set([...current, type]);
-      } else if (!checked && current.includes(type)) {
-        this.verdeServiceType.set(current.filter(t => t !== type));
-      }
-    }
-  verdeTypology = signal("");
-  verdeBrand = signal("");
-  verdeModel = signal("");
-  verdeSerialNumber = signal("");
-  verdeProductCode = signal("");
-  verdeReportedFailure = signal("");
-  verdeClientComments = signal("");
-  verdeOldItemCollected = signal(false);
-  verdeItemPickedUpAtWorkshop = signal(false);
-  verdeTechnicalNotes = signal("");
-  verdeMaterials = signal<WortenVerdeMaterialItem[]>([]);
+  updateRadioExtraServiceDescription(index: number, value: string) {
+    this.radioExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, description: value } : it))
+    );
+  }
 
-  // Worten Azul
-    azulInvoiceNumber = signal("");
-    azulServiceNumber = signal("");
-    azulReportNotes = signal("");
-    azulConfirmServiceOk = signal(false);
-    azulConfirmOldGasCollected = signal(false);
 
-  // Rádio Popular
-  radioServiceNote = signal("");
-  radioInstallation = signal("");
-  radioWorkDescription = signal("");
-  radioExtraServicesInstalled = signal("");
+  // For stable focus in dynamic list
+  trackByExtraServiceId(index: number, item: { id: string }): string {
+    return item.id;
+  }
 
   generating = signal(false);
   error = signal<string>("");
@@ -532,6 +617,17 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     if (!this.radioServiceNote().trim()) return { ok: false, message: "Nota Serviço é obrigatória." };
     if (!this.radioInstallation().trim()) return { ok: false, message: "Instalação é obrigatória." };
     if (!this.radioWorkDescription().trim()) return { ok: false, message: "Descrição dos trabalhos é obrigatória." };
+    // Validação dos serviços extras (se houver)
+    const extras = this.radioExtraServicesInstalled();
+    for (let i = 0; i < extras.length; i++) {
+      const s = extras[i];
+      if (!s.description.trim()) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Descrição é obrigatória.` };
+      }
+      if (s.value === null || !Number.isFinite(s.value)) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Valor é obrigatório.` };
+      }
+    }
     return { ok: true };
   }
 
@@ -617,6 +713,7 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
             itemPickedUpAtWorkshop: this.verdeItemPickedUpAtWorkshop(),
             technicalNotes: this.verdeTechnicalNotes(),
             materials: this.verdeMaterials(),
+            extraServicesInstalled: this.verdeExtraServicesInstalled(),
           },
         };
         break;
@@ -629,6 +726,7 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
             reportNotes: this.azulReportNotes(),
             confirmServiceOk: this.azulConfirmServiceOk(),
             confirmOldGasCollected: this.azulConfirmOldGasCollected(),
+            extraServicesInstalled: (this.azulExtraServicesInstalled() || []).map(({ description, value }) => ({ description, value })),
           },
         };
         break;

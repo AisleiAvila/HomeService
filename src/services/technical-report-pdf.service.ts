@@ -27,6 +27,7 @@ export interface WortenVerdeReportData {
   itemPickedUpAtWorkshop: boolean;
   technicalNotes: string;
   materials: WortenVerdeMaterialItem[];
+  extraServicesInstalled?: ExtraServiceItem[];
 }
 
 export interface WortenAzulReportData {
@@ -35,13 +36,20 @@ export interface WortenAzulReportData {
   reportNotes: string;
   confirmServiceOk: boolean;
   confirmOldGasCollected: boolean;
+  extraServicesInstalled?: ExtraServiceItem[];
+}
+
+
+export interface ExtraServiceItem {
+  description: string;
+  value: number | null;
 }
 
 export interface RadioPopularReportData {
   serviceNote: string;
   installation: string;
   workDescription: string;
-  extraServicesInstalled: string;
+  extraServicesInstalled: ExtraServiceItem[];
 }
 
 export type TechnicalReportData =
@@ -207,7 +215,7 @@ async generatePdfBlob(
       doc.text("Dados Cliente", 12, y);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
-      y += 6;
+      y += 2; // Aproxima a moldura do título
       const dadosClienteLeft = 12;
       const dadosClienteTop = y;
       const dadosClienteWidth = doc.internal.pageSize.getWidth() - 24;
@@ -380,16 +388,16 @@ async generatePdfBlob(
       doc.setDrawColor(0, 128, 0);
       doc.setLineWidth(0.7);
       doc.rect(dadosClienteLeft, dadosClienteTop, dadosClienteWidth, dadosClienteBoxHeight, 'S');
-      y = dadosClienteTop + dadosClienteBoxHeight + 8; // Espaço maior acima do título
+      y = dadosClienteTop + dadosClienteBoxHeight + 4; // Espaço menor acima do título Intervenção
 
       // --- INTERVENÇÃO ---
       doc.setFontSize(13);
       doc.setTextColor(0, 128, 0);
       doc.text("Intervenção", 12, y);
-      y += 2; // Espaço menor abaixo do título
+      y += 2; // Aproxima a moldura do título
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
-      y += 6;
+      // Remover espaçamento extra
       const intervencaoTop = y;
       const intervencaoLeft = 12;
       const intervencaoWidth = doc.internal.pageSize.getWidth() - 24;
@@ -490,7 +498,7 @@ async generatePdfBlob(
           // DEBUG: Verificar materiais antes de renderizar
           console.log('PDF - Materiais recebidos:', d.materials);
       // Bloco Material SEMPRE aparece, mesmo sem materiais
-      y += 12;
+      y += 4; // Aproxima o título 'Material' da moldura acima
       // Calcular altura estimada do bloco Materiais
       const materialBoxTop = y + 2;
       const materialBoxLeft = 12;
@@ -529,20 +537,42 @@ async generatePdfBlob(
         doc.text("—", materialBoxLeft + 3, materialY);
         doc.text("—", materialBoxLeft + materialBoxWidth - 45, materialY);
       }
-      y = materialBoxTop + materialBoxHeight;
-
-      // Exibir Comentários/Sugestões do Cliente após a lista de materiais, com quebra de linha
-      // Bloco Comentários/Sugestões do Cliente SEMPRE aparece
-      y += 12;
+      y = materialBoxTop + materialBoxHeight + 4; // Aproxima o título 'Comentários/Sugestões do Cliente' da moldura acima
       // Título Comentários/Sugestões do Cliente (modelo Intervenção)
       const comentariosBoxTop = y + 2;
       const comentariosBoxLeft = 12;
       const comentariosBoxWidth = doc.internal.pageSize.getWidth() - 24;
       const comentariosLineHeight = 7;
-      const commentText = d.clientComments && d.clientComments.trim().length > 0 ? d.clientComments : "—";
-      const commentLines = doc.splitTextToSize(commentText, 180);
+      const hasComments = d.clientComments && d.clientComments.trim().length > 0;
+      const hasExtras = Array.isArray(d.extraServicesInstalled) && d.extraServicesInstalled.length > 0;
+      let commentLines: string[] = [];
+      if (hasComments) {
+        commentLines = doc.splitTextToSize(d.clientComments.trim(), 180);
+      }
+      let extraLines: string[] = [];
+      if (hasExtras) {
+        extraLines.push('Serviços Extras Realizados:');
+        d.extraServicesInstalled!.forEach((item, idx) => {
+          const desc = item.description || '—';
+          const val = (item.value !== null && item.value !== undefined)
+            ? new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(item.value)
+            : '—';
+          extraLines.push(`• ${desc} (${val})`);
+        });
+      }
+      // Se ambos existem, adiciona linha em branco entre comentários e extras
+      let allLines: string[] = [];
+      if (hasComments && hasExtras) {
+        allLines = [...commentLines, '', ...extraLines];
+      } else if (hasComments) {
+        allLines = commentLines;
+      } else if (hasExtras) {
+        allLines = extraLines;
+      } else {
+        allLines = ['—'];
+      }
       // Altura dinâmica do bloco
-      const comentariosBoxHeight = Math.max(18, commentLines.length * comentariosLineHeight + 16);
+      const comentariosBoxHeight = Math.max(18, allLines.length * comentariosLineHeight + 16);
       doc.setFontSize(13);
       doc.setTextColor(0, 128, 0);
       doc.text("Comentários/Sugestões do Cliente", 12, y);
@@ -553,8 +583,8 @@ async generatePdfBlob(
       doc.rect(comentariosBoxLeft, comentariosBoxTop, comentariosBoxWidth, comentariosBoxHeight, 'S');
       let comentariosY = comentariosBoxTop + 8;
       doc.setFont(undefined, "normal");
-      doc.text(commentLines, comentariosBoxLeft + 3, comentariosY);
-    y = comentariosBoxTop + comentariosBoxHeight + 4;
+      doc.text(allLines, comentariosBoxLeft + 3, comentariosY);
+      y = comentariosBoxTop + comentariosBoxHeight + 4;
     }
 
     // Desenhar assinaturas para worten_verde
@@ -770,20 +800,41 @@ async generatePdfBlob(
       const obsFrameLeft = 8; // Reduzido para aumentar a largura
       const obsFrameTop = y + 6;
       const obsFrameWidth = doc.internal.pageSize.getWidth() - 16; // Aumenta a largura da moldura
-      // Calcular altura dinâmica do bloco de observações
       doc.setFontSize(9);
       doc.setFont(undefined, "normal");
-      const obsText = (d.reportNotes || "—").toString();
-      const obsLines = doc.splitTextToSize(obsText, obsFrameWidth - 8);
+      const obsText = (d.reportNotes || "").toString().trim();
+      const obsLines = obsText ? doc.splitTextToSize(obsText, obsFrameWidth - 8) : [];
+      // Serviços extras
+      const extraServices = Array.isArray(d.extraServicesInstalled) ? d.extraServicesInstalled : [];
+      let extraServicesLines: string[] = [];
+      if (extraServices.length > 0) {
+        extraServicesLines = [
+          'Serviços Extras Realizados:',
+          ...extraServices.map(item =>
+            `${item.description || '—'}${(item.value !== null && item.value !== undefined) ? ' - ' + new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(item.value!) : ''}`
+          )
+        ];
+      }
+      // Se houver observação e serviços extras, pula uma linha
+      let allLines: string[] = [];
+      if (obsLines.length > 0 && extraServicesLines.length > 0) {
+        allLines = [...obsLines, '', ...extraServicesLines];
+      } else if (obsLines.length > 0) {
+        allLines = obsLines;
+      } else if (extraServicesLines.length > 0) {
+        allLines = extraServicesLines;
+      } else {
+        allLines = ['—'];
+      }
       const obsLineHeight = 5.5;
-      // Aumenta a altura mínima e o padding extra
-      const obsFrameHeight = Math.max(24, obsLines.length * obsLineHeight + 16);
+      // Altura dinâmica: padding + linhas + padding extra
+      const obsFrameHeight = Math.max(24, allLines.length * obsLineHeight + 16);
       doc.setDrawColor(0, 102, 204); // Azul
       doc.setLineWidth(0.7);
       doc.rect(obsFrameLeft, obsFrameTop, obsFrameWidth, obsFrameHeight, 'S');
       // Exibir texto justificado dentro da moldura
       let obsY = obsFrameTop + 7;
-      obsLines.forEach(line => {
+      allLines.forEach(line => {
         doc.text(line, obsFrameLeft + 4, obsY, { align: "justify", maxWidth: obsFrameWidth - 8 });
         obsY += obsLineHeight;
       });
@@ -883,7 +934,15 @@ async generatePdfBlob(
       writeSectionTitle("DADOS DO SERVIÇO");
       writeTextArea("Instalação", d.installation, 10);
       writeTextArea("Descrição dos trabalhos", d.workDescription, 26);
-      writeTextArea("Serviços Extras Realizados", d.extraServicesInstalled, 18);
+
+      // Serviços Extras Realizados (padrão igual ao campo Descrição dos Trabalhos)
+      y += 2;
+      const extraServicesText = (Array.isArray(d.extraServicesInstalled) && d.extraServicesInstalled.length > 0)
+        ? d.extraServicesInstalled.map(item =>
+            `${item.description || '—'}${(item.value !== null && item.value !== undefined) ? ' - ' + new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(item.value) : ''}`
+          ).join('\n')
+        : '—';
+      writeTextArea("Serviços Extras Realizados", extraServicesText, 18 + (d.extraServicesInstalled?.length || 0) * 6);
     }
 
     let radioPopularFooter:
