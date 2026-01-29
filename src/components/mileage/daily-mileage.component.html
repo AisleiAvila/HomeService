@@ -480,7 +480,7 @@
         </div>
       </div>
       <div class="space-y-2">
-        <div *ngFor="let fueling of fuelings()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
+        <div *ngFor="let fueling of filteredFuelingsForSelectedMileage()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
           <div>
             <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
             <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
@@ -491,7 +491,7 @@
             </a>
           </div>
         </div>
-        <div *ngIf="fuelings().length === 0" class="text-center text-gray-600 dark:text-neutral-400 py-4">
+        <div *ngIf="filteredFuelingsForSelectedMileage().length === 0" class="text-center text-gray-600 dark:text-neutral-400 py-4">
           {{ 'noFuelings' | i18n }}
         </div>
       </div>

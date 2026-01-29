@@ -16,6 +16,12 @@ import { DailyMileageService } from '../../services/daily-mileage.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailyMileageComponent implements OnInit {
+    // Abastecimentos filtrados para o modal
+    filteredFuelingsForSelectedMileage = computed(() =>
+      this.selectedDailyMileage()
+        ? this.fuelings().filter(f => f.daily_mileage_id === this.selectedDailyMileage()!.id)
+        : []
+    );
   private readonly dailyMileageService = inject(DailyMileageService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
