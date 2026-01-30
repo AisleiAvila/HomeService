@@ -46,6 +46,7 @@ export class DailyMileageComponent implements OnInit {
   // Fueling form
   showFuelingForm = signal(false);
   fuelingValue = signal<number | null>(null);
+  fuelingLicensePlate = signal('');
   fuelingReceiptFile = signal<File | null>(null);
   hasFueling = signal(false);
 
@@ -55,6 +56,7 @@ export class DailyMileageComponent implements OnInit {
   // Admin register mileage form
   adminRegisterDate = signal(new Date().toISOString().split('T')[0]);
   adminRegisterProfessionalId = signal<number | null>(null);
+  adminRegisterLicensePlate = signal('');
   adminRegisterStartKilometers = signal<number | null>(null);
   adminRegisterEndKilometers = signal<number | null>(null);
 
@@ -65,6 +67,7 @@ export class DailyMileageComponent implements OnInit {
   filterMaxDriven = signal<number | null>(null);
   filterMinFueling = signal<number | null>(null);
   filterMaxFueling = signal<number | null>(null);
+  filterLicensePlate = signal<string>('');
   filterProfessionalId = signal<number | null>(null);
 
   // Sorting states
@@ -98,6 +101,7 @@ export class DailyMileageComponent implements OnInit {
     const maxDriven = this.filterMaxDriven();
     const minFueling = this.filterMinFueling();
     const maxFueling = this.filterMaxFueling();
+    const licensePlateFilter = this.filterLicensePlate().trim().toLowerCase();
     const professionalId = this.filterProfessionalId();
 
     // Para profissionais, filtrar apenas seus próprios registros
@@ -129,6 +133,9 @@ export class DailyMileageComponent implements OnInit {
     }
     if (maxFueling !== null) {
       mileages = mileages.filter(m => this.getTotalFueling(m) <= maxFueling);
+    }
+    if (licensePlateFilter) {
+      mileages = mileages.filter(m => this.getLicensePlateForMileage(m).toLowerCase().includes(licensePlateFilter));
     }
 
     // Sorting
@@ -188,6 +195,9 @@ export class DailyMileageComponent implements OnInit {
     if (this.filterMaxFueling() !== null) {
       filters.push({ key: 'maxFueling', labelKey: 'maxFueling', value: this.filterMaxFueling()?.toString() });
     }
+    if (this.filterLicensePlate().trim()) {
+      filters.push({ key: 'licensePlate', labelKey: 'licensePlate', value: this.filterLicensePlate().trim() });
+    }
     if (this.filterProfessionalId() !== null) {
       const professional = this.professionals().find(p => p.id === this.filterProfessionalId());
       filters.push({ key: 'professional', labelKey: 'professional', value: professional?.name || '' });
@@ -211,6 +221,7 @@ export class DailyMileageComponent implements OnInit {
       this.filterMaxDriven();
       this.filterMinFueling();
       this.filterMaxFueling();
+      this.filterLicensePlate();
       this.filterProfessionalId();
       this.currentPage.set(1);
     });
@@ -254,6 +265,10 @@ export class DailyMileageComponent implements OnInit {
 
   onFilterMaxFuelingChange(value: string) {
     this.filterMaxFueling.set(Number(value) || null);
+  }
+
+  onFilterLicensePlateChange(value: string) {
+    this.filterLicensePlate.set(value);
   }
 
   onFilterProfessionalChange(value: string) {
@@ -303,6 +318,11 @@ export class DailyMileageComponent implements OnInit {
     const user = this.currentUser();
     if (user?.role !== 'professional') {
       alert('Apenas profissionais podem registrar quilometragem.');
+      return;
+    }
+
+    if (this.todayMileage()) {
+      alert('Já existe uma quilometragem registrada para hoje.');
       return;
     }
 
@@ -372,6 +392,12 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
+    const licensePlate = this.fuelingLicensePlate().trim();
+    if (!licensePlate) {
+      alert('Por favor, informe a matrícula.');
+      return;
+    }
+
     let receiptUrl: string | undefined;
     if (this.fuelingReceiptFile()) {
       receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
@@ -380,11 +406,13 @@ export class DailyMileageComponent implements OnInit {
     await this.dailyMileageService.addFueling({
       daily_mileage_id: todayMileage.id,
       value: fuelValue,
+      license_plate: licensePlate,
       receipt_image_url: receiptUrl,
     });
 
     this.showFuelingForm.set(false);
     this.fuelingValue.set(null);
+    this.fuelingLicensePlate.set('');
     this.fuelingReceiptFile.set(null);
     this.hasFueling.set(false);
   }
@@ -402,6 +430,12 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
+    const licensePlate = this.fuelingLicensePlate().trim();
+    if (!licensePlate) {
+      alert('Por favor, informe a matrícula.');
+      return;
+    }
+
     let receiptUrl: string | undefined;
     if (this.fuelingReceiptFile()) {
       receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
@@ -410,11 +444,13 @@ export class DailyMileageComponent implements OnInit {
     await this.dailyMileageService.addFueling({
       daily_mileage_id: dailyMileageId,
       value: fuelValue,
+      license_plate: licensePlate,
       receipt_image_url: receiptUrl,
     });
 
     this.showModalFuelingForm.set(false);
     this.fuelingValue.set(null);
+    this.fuelingLicensePlate.set('');
     this.fuelingReceiptFile.set(null);
     this.hasFueling.set(false);
   }
@@ -445,9 +481,23 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
+    const licensePlate = this.adminRegisterLicensePlate().trim();
+    if (!licensePlate) {
+      alert('Por favor, informe a matrícula.');
+      return;
+    }
+
+    const selectedDate = this.adminRegisterDate();
+    const hasExisting = this.dailyMileages().some(m => m.professional_id === professionalId && m.date === selectedDate);
+    if (hasExisting) {
+      alert('Já existe uma quilometragem registrada para este profissional nesta data.');
+      return;
+    }
+
     const dailyMileage = await this.dailyMileageService.createDailyMileage({
       professional_id: professionalId,
-      date: this.adminRegisterDate(),
+      date: selectedDate,
+      license_plate: licensePlate,
       start_kilometers: startKm,
       end_kilometers: endKm,
     });
@@ -455,6 +505,7 @@ export class DailyMileageComponent implements OnInit {
     if (dailyMileage) {
       this.showAdminRegisterForm.set(false);
       this.adminRegisterProfessionalId.set(null);
+      this.adminRegisterLicensePlate.set('');
       this.adminRegisterStartKilometers.set(null);
       this.adminRegisterEndKilometers.set(null);
       await this.loadData();
@@ -477,6 +528,19 @@ export class DailyMileageComponent implements OnInit {
     return this.fuelings()
       .filter(f => f.daily_mileage_id === dailyMileage.id)
       .reduce((sum, f) => sum + f.value, 0);
+  }
+
+  getLicensePlateForMileage(dailyMileage: DailyMileage): string {
+    const directPlate = dailyMileage.license_plate?.trim();
+    if (directPlate) {
+      return directPlate;
+    }
+
+    const fueling = this.fuelings()
+      .filter(f => f.daily_mileage_id === dailyMileage.id && (f.license_plate || '').trim())
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+
+    return fueling?.license_plate?.trim() || '-';
   }
 
   getKilometersDriven(dailyMileage: DailyMileage): number {
@@ -503,6 +567,9 @@ export class DailyMileageComponent implements OnInit {
         break;
       case 'maxFueling':
         this.filterMaxFueling.set(null);
+        break;
+      case 'licensePlate':
+        this.filterLicensePlate.set('');
         break;
     }
   }

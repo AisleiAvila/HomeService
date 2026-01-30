@@ -79,6 +79,11 @@ export class DailyMileageService {
       return data;
     } catch (error) {
       console.error('Error creating daily mileage:', error);
+      const errorCode = (error as { code?: string })?.code;
+      if (errorCode === '23505') {
+        this.notificationService.addNotification('Já existe uma quilometragem registrada para este profissional nesta data');
+        return null;
+      }
       this.notificationService.addNotification('Erro ao criar quilometragem diária');
       return null;
     }

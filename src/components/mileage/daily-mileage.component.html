@@ -163,6 +163,18 @@
         </select>
       </div>
       <div>
+        <label for="adminRegisterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+        <input
+          id="adminRegisterLicensePlate"
+          type="text"
+          [ngModel]="adminRegisterLicensePlate()"
+          (ngModelChange)="adminRegisterLicensePlate.set($event)"
+          name="adminRegisterLicensePlate"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="AA-00-BB"
+          required>
+      </div>
+      <div>
         <label for="adminRegisterStartKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
         <input
           id="adminRegisterStartKilometers"
@@ -191,7 +203,7 @@
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           {{ 'save' | i18n }}
         </button>
-        <button type="button" (click)="showAdminRegisterForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+        <button type="button" (click)="showAdminRegisterForm.set(false); adminRegisterProfessionalId.set(null); adminRegisterLicensePlate.set(''); adminRegisterStartKilometers.set(null); adminRegisterEndKilometers.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
           {{ 'cancel' | i18n }}
         </button>
       </div>
@@ -217,6 +229,18 @@
           required>
       </div>
       <div>
+        <label for="fuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+        <input
+          id="fuelingLicensePlate"
+          type="text"
+          [ngModel]="fuelingLicensePlate()"
+          (ngModelChange)="fuelingLicensePlate.set($event)"
+          name="fuelingLicensePlate"
+          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+          placeholder="AA-00-BB"
+          required>
+      </div>
+      <div>
         <label for="receiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
         <input
           id="receiptImage"
@@ -229,7 +253,7 @@
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           {{ 'save' | i18n }}
         </button>
-        <button type="button" (click)="showFuelingForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+        <button type="button" (click)="showFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
           {{ 'cancel' | i18n }}
         </button>
       </div>
@@ -334,6 +358,17 @@
             [placeholder]="'placeholderMaxFueling' | i18n"
             min="0">
         </div>
+        <div>
+          <label for="filterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+          <input
+            id="filterLicensePlate"
+            type="text"
+            [ngModel]="filterLicensePlate()"
+            (ngModelChange)="onFilterLicensePlateChange($event)"
+            name="filterLicensePlate"
+            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+            [placeholder]="'placeholderLicensePlate' | i18n">
+        </div>
         <div *ngIf="isAdmin()">
           <label for="filterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
           <select
@@ -370,6 +405,7 @@
                 </button>
               </th>
               <th *ngIf="isAdmin()" class="px-4 py-2 text-left">{{ 'professional' | i18n }}</th>
+              <th class="px-4 py-2 text-left">{{ 'licensePlate' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'initial' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'final' | i18n }}</th>
               <th class="px-4 py-2 text-right">
@@ -400,6 +436,13 @@
                   <span class="text-right">{{ getProfessionalName(mileage.professional_id) }}</span>
                 </div>
                 <span class="hidden md:block text-left">{{ getProfessionalName(mileage.professional_id) }}</span>
+              </td>
+              <td class="px-4 py-2 md:table-cell block">
+                <div class="md:hidden flex justify-between items-center">
+                  <span class="font-semibold text-left">{{ 'licensePlate' | i18n }}:</span>
+                  <span class="text-right">{{ getLicensePlateForMileage(mileage) }}</span>
+                </div>
+                <span class="hidden md:block text-left">{{ getLicensePlateForMileage(mileage) }}</span>
               </td>
               <td class="px-4 py-2 md:table-cell block">
                 <div class="md:hidden flex justify-between items-center">
@@ -515,6 +558,18 @@
               required>
           </div>
           <div>
+            <label for="modalFuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+            <input
+              id="modalFuelingLicensePlate"
+              type="text"
+              [ngModel]="fuelingLicensePlate()"
+              (ngModelChange)="fuelingLicensePlate.set($event)"
+              name="modalFuelingLicensePlate"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              placeholder="AA-00-BB"
+              required>
+          </div>
+          <div>
             <label for="modalReceiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
             <input
               id="modalReceiptImage"
@@ -527,7 +582,7 @@
             <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
               {{ 'save' | i18n }}
             </button>
-            <button type="button" (click)="showModalFuelingForm.set(false); fuelingValue.set(null); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm">
+            <button type="button" (click)="showModalFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm">
               {{ 'cancel' | i18n }}
             </button>
           </div>

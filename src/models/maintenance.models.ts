@@ -819,6 +819,7 @@ export interface DailyMileage {
   id: number;
   professional_id: number;
   date: string; // YYYY-MM-DD
+  license_plate?: string | null;
   start_kilometers: number;
   end_kilometers?: number;
   created_at: string;
@@ -830,6 +831,7 @@ export interface Fueling {
   id: number;
   daily_mileage_id: number;
   value: number;
+  license_plate?: string | null;
   receipt_image_url?: string;
   created_at: string;
 }
