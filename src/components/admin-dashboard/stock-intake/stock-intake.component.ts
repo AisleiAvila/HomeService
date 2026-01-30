@@ -175,7 +175,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
 
       const video = this.barcodeVideo.nativeElement;
       this.isScanning.set(true);
-      this.usingFallbackScanner.set(!this.nativeDetectorSupported());
+      this.usingFallbackScanner.set(false);
 
       if (this.nativeDetectorSupported()) {
         this.stream = await navigator.mediaDevices.getUserMedia({
@@ -186,28 +186,24 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
         video.srcObject = this.stream;
         await video.play();
 
-        const formats = BarcodeDetector.getSupportedFormats
-          ? BarcodeDetector.getSupportedFormats()
-          : ["ean_13", "ean_8", "code_128", "qr_code", "upc_a", "upc_e"];
-        this.detector = new BarcodeDetector({ formats });
+        try {
+          const formats = BarcodeDetector.getSupportedFormats
+            ? BarcodeDetector.getSupportedFormats()
+            : ["ean_13", "ean_8", "code_128", "qr_code", "upc_a", "upc_e"];
+          this.detector = new BarcodeDetector({ formats });
+        } catch (error) {
+          console.warn("BarcodeDetector indisponível. Usando fallback.", error);
+          this.stopStreamOnly();
+          await this.startFallbackScan(video);
+          return;
+        }
+
         this.setStatus("info", this.i18n.translate("scannerReady"));
         this.scanLoop();
         return;
       }
 
-      this.zxingReader = new BrowserMultiFormatReader();
-      this.setStatus("info", this.i18n.translate("scannerReady"));
-      this.zxingControls = await this.zxingReader.decodeFromConstraints(
-        { video: { facingMode: "environment" } },
-        video,
-        (result, error) => {
-          if (result) {
-            this.handleBarcode(result.getText());
-          } else if (error && error.name !== "NotFoundException") {
-            console.warn("Erro ao detectar código:", error);
-          }
-        }
-      );
+      await this.startFallbackScan(video);
     } catch (error) {
       console.error("Erro ao iniciar câmera:", error);
       this.setStatus("error", this.getCameraErrorMessage(error));
@@ -267,6 +263,34 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private setStatus(type: "success" | "error" | "info", message: string): void {
     this.statusType.set(type);
     this.statusMessage.set(message);
+  }
+
+  private stopStreamOnly(): void {
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
+      this.stream = null;
+    }
+
+    if (this.barcodeVideo?.nativeElement) {
+      this.barcodeVideo.nativeElement.srcObject = null;
+    }
+  }
+
+  private async startFallbackScan(video: HTMLVideoElement): Promise<void> {
+    this.usingFallbackScanner.set(true);
+    this.zxingReader = new BrowserMultiFormatReader();
+    this.setStatus("info", this.i18n.translate("scannerReady"));
+    this.zxingControls = await this.zxingReader.decodeFromConstraints(
+      { video: { facingMode: "environment" } },
+      video,
+      (result, error) => {
+        if (result) {
+          this.handleBarcode(result.getText());
+        } else if (error && error.name !== "NotFoundException") {
+          console.warn("Erro ao detectar código:", error);
+        }
+      }
+    );
   }
 
   private getCameraErrorMessage(error: unknown): string {
