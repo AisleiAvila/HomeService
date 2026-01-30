@@ -271,24 +271,25 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
 
   private getCameraErrorMessage(error: unknown): string {
     const err = error as { name?: string };
+    const codeSuffix = err?.name ? ` (${err.name})` : "";
 
     switch (err?.name) {
       case "NotAllowedError":
       case "PermissionDeniedError":
-        return this.i18n.translate("errorCameraPermissionDenied");
+        return `${this.i18n.translate("errorCameraPermissionDenied")}${codeSuffix}`;
       case "NotFoundError":
       case "DevicesNotFoundError":
-        return this.i18n.translate("errorNoCameraFound");
+        return `${this.i18n.translate("errorNoCameraFound")}${codeSuffix}`;
       case "NotReadableError":
       case "TrackStartError":
-        return this.i18n.translate("errorCameraInUse");
+        return `${this.i18n.translate("errorCameraInUse")}${codeSuffix}`;
       case "OverconstrainedError":
       case "ConstraintNotSatisfiedError":
-        return this.i18n.translate("errorCameraConstraints");
+        return `${this.i18n.translate("errorCameraConstraints")}${codeSuffix}`;
       case "SecurityError":
-        return this.i18n.translate("cameraRequiresHttps");
+        return `${this.i18n.translate("cameraRequiresHttps")}${codeSuffix}`;
       default:
-        return this.i18n.translate("errorAccessingCamera");
+        return `${this.i18n.translate("errorAccessingCamera")}${codeSuffix}`;
     }
   }
 
