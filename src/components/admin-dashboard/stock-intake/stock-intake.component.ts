@@ -67,6 +67,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private scanFrameId: number | null = null;
   private zxingReader: BrowserMultiFormatReader | null = null;
   private zxingControls: IScannerControls | null = null;
+  private audioContext: AudioContext | null = null;
 
   ngOnInit(): void {
     const email = this.authService.appUser()?.email?.toLowerCase();
@@ -322,6 +323,30 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     if (trimmed && trimmed !== this.barcode()) {
       this.barcode.set(trimmed);
       this.setStatus("success", this.i18n.translate("barcodeDetected"));
+      this.playBeep();
+    }
+  }
+
+  private playBeep(): void {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new AudioContext();
+      }
+
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = 880;
+      gainNode.gain.value = 0.12;
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(this.audioContext.currentTime + 0.12);
+    } catch (error) {
+      console.warn("Não foi possível reproduzir aviso sonoro:", error);
     }
   }
 
