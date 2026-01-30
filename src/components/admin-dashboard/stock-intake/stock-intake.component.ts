@@ -157,6 +157,13 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const isLocalhost =
+      location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    if (!isSecureContext && !isLocalhost) {
+      this.setStatus("error", this.i18n.translate("cameraRequiresHttps"));
+      return;
+    }
+
     if (this.isScanning()) {
       return;
     }
@@ -203,7 +210,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       );
     } catch (error) {
       console.error("Erro ao iniciar câmera:", error);
-      this.setStatus("error", this.i18n.translate("cameraPermissionRequired"));
+      this.setStatus("error", this.getCameraErrorMessage(error));
       this.stopScanning();
     }
   }
@@ -260,6 +267,29 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private setStatus(type: "success" | "error" | "info", message: string): void {
     this.statusType.set(type);
     this.statusMessage.set(message);
+  }
+
+  private getCameraErrorMessage(error: unknown): string {
+    const err = error as { name?: string };
+
+    switch (err?.name) {
+      case "NotAllowedError":
+      case "PermissionDeniedError":
+        return this.i18n.translate("errorCameraPermissionDenied");
+      case "NotFoundError":
+      case "DevicesNotFoundError":
+        return this.i18n.translate("errorNoCameraFound");
+      case "NotReadableError":
+      case "TrackStartError":
+        return this.i18n.translate("errorCameraInUse");
+      case "OverconstrainedError":
+      case "ConstraintNotSatisfiedError":
+        return this.i18n.translate("errorCameraConstraints");
+      case "SecurityError":
+        return this.i18n.translate("cameraRequiresHttps");
+      default:
+        return this.i18n.translate("errorAccessingCamera");
+    }
   }
 
   private handleBarcode(rawValue?: string | null): void {

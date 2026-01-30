@@ -129,6 +129,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "Camera barcode scanning is not supported on this device.",
     barcodeDetectorFallback:
       "Native scanning is unavailable, using a compatible camera reader.",
+    cameraRequiresHttps:
+      "Camera access requires HTTPS. Open this page using a secure connection.",
     cameraPermissionRequired:
       "Please allow camera access to scan the barcode.",
     barcodeLabel: "Barcode",
@@ -1269,6 +1271,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
       "A leitura por câmera não é suportada neste dispositivo.",
     barcodeDetectorFallback:
       "Leitor nativo indisponível. Usando leitura compatível pela câmera.",
+    cameraRequiresHttps:
+      "O acesso à câmera requer HTTPS. Abra esta página em uma conexão segura.",
     cameraPermissionRequired:
       "Permita o acesso à câmera para ler o código.",
     barcodeLabel: "Código de barras",
