@@ -127,6 +127,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scanHint: "Point the camera at the barcode.",
     barcodeDetectorNotSupported:
       "Camera barcode scanning is not supported on this device.",
+    barcodeDetectorFallback:
+      "Native scanning is unavailable, using a compatible camera reader.",
     cameraPermissionRequired:
       "Please allow camera access to scan the barcode.",
     barcodeLabel: "Barcode",
@@ -1265,6 +1267,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scanHint: "Aponte a câmera para o código de barras.",
     barcodeDetectorNotSupported:
       "A leitura por câmera não é suportada neste dispositivo.",
+    barcodeDetectorFallback:
+      "Leitor nativo indisponível. Usando leitura compatível pela câmera.",
     cameraPermissionRequired:
       "Permita o acesso à câmera para ler o código.",
     barcodeLabel: "Código de barras",

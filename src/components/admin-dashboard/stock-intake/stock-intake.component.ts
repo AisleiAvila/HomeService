@@ -16,6 +16,7 @@ import { InventoryService } from "../../../services/inventory.service";
 import { AuthService } from "../../../services/auth.service";
 import { NotificationService } from "../../../services/notification.service";
 import { StockItem } from "../../../models/maintenance.models";
+import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
 declare const BarcodeDetector: {
   new (options?: { formats?: string[] }): {
@@ -52,14 +53,20 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   readonly statusType = signal<"success" | "error" | "info" | null>(null);
   readonly recentItems = signal<StockItem[]>([]);
   readonly isAuthorized = signal(false);
-  readonly detectorSupported = signal(
+  readonly cameraSupported = signal(
+    !!navigator.mediaDevices?.getUserMedia
+  );
+  readonly nativeDetectorSupported = signal(
     (globalThis as unknown as { BarcodeDetector?: unknown }).BarcodeDetector !==
       undefined
   );
+  readonly usingFallbackScanner = signal(false);
 
   private stream: MediaStream | null = null;
   private detector: { detect: (video: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> } | null = null;
   private scanFrameId: number | null = null;
+  private zxingReader: BrowserMultiFormatReader | null = null;
+  private zxingControls: IScannerControls | null = null;
 
   ngOnInit(): void {
     const email = this.authService.appUser()?.email?.toLowerCase();
@@ -145,8 +152,8 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       this.setStatus("error", this.i18n.translate("stockAccessRestricted"));
       return;
     }
-    if (!this.detectorSupported()) {
-      this.setStatus("error", this.i18n.translate("barcodeDetectorNotSupported"));
+    if (!this.cameraSupported()) {
+      this.setStatus("error", this.i18n.translate("errorCameraNotSupported"));
       return;
     }
 
@@ -155,26 +162,45 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false,
-      });
-
       if (!this.barcodeVideo?.nativeElement) {
         throw new Error("Video element not available");
       }
 
       const video = this.barcodeVideo.nativeElement;
-      video.srcObject = this.stream;
-      await video.play();
-
-      const formats = BarcodeDetector.getSupportedFormats
-        ? BarcodeDetector.getSupportedFormats()
-        : ["ean_13", "ean_8", "code_128", "qr_code", "upc_a", "upc_e"];
-      this.detector = new BarcodeDetector({ formats });
       this.isScanning.set(true);
+      this.usingFallbackScanner.set(!this.nativeDetectorSupported());
+
+      if (this.nativeDetectorSupported()) {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false,
+        });
+
+        video.srcObject = this.stream;
+        await video.play();
+
+        const formats = BarcodeDetector.getSupportedFormats
+          ? BarcodeDetector.getSupportedFormats()
+          : ["ean_13", "ean_8", "code_128", "qr_code", "upc_a", "upc_e"];
+        this.detector = new BarcodeDetector({ formats });
+        this.setStatus("info", this.i18n.translate("scannerReady"));
+        this.scanLoop();
+        return;
+      }
+
+      this.zxingReader = new BrowserMultiFormatReader();
       this.setStatus("info", this.i18n.translate("scannerReady"));
-      this.scanLoop();
+      this.zxingControls = await this.zxingReader.decodeFromConstraints(
+        { video: { facingMode: "environment" } },
+        video,
+        (result, error) => {
+          if (result) {
+            this.handleBarcode(result.getText());
+          } else if (error && error.name !== "NotFoundException") {
+            console.warn("Erro ao detectar código:", error);
+          }
+        }
+      );
     } catch (error) {
       console.error("Erro ao iniciar câmera:", error);
       this.setStatus("error", this.i18n.translate("cameraPermissionRequired"));
@@ -193,11 +219,21 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       this.stream = null;
     }
 
+    if (this.zxingControls) {
+      this.zxingControls.stop();
+      this.zxingControls = null;
+    }
+
+    if (this.zxingReader) {
+      this.zxingReader = null;
+    }
+
     if (this.barcodeVideo?.nativeElement) {
       this.barcodeVideo.nativeElement.srcObject = null;
     }
 
     this.isScanning.set(false);
+    this.usingFallbackScanner.set(false);
   }
 
   private async scanLoop(): Promise<void> {
@@ -211,11 +247,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       try {
         const barcodes = await this.detector.detect(video);
         if (barcodes.length > 0) {
-          const rawValue = barcodes[0].rawValue?.trim();
-          if (rawValue && rawValue !== this.barcode()) {
-            this.barcode.set(rawValue);
-            this.setStatus("info", this.i18n.translate("barcodeDetected"));
-          }
+          this.handleBarcode(barcodes[0].rawValue);
         }
       } catch (error) {
         console.warn("Erro ao detectar código:", error);
@@ -228,6 +260,14 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private setStatus(type: "success" | "error" | "info", message: string): void {
     this.statusType.set(type);
     this.statusMessage.set(message);
+  }
+
+  private handleBarcode(rawValue?: string | null): void {
+    const trimmed = rawValue?.trim();
+    if (trimmed && trimmed !== this.barcode()) {
+      this.barcode.set(trimmed);
+      this.setStatus("info", this.i18n.translate("barcodeDetected"));
+    }
   }
 
   private formatDateTimeLocal(date: Date): string {
