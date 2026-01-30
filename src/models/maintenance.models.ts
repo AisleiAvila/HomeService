@@ -15,6 +15,19 @@ export interface ServiceRequestOrigin {
   id: number;
   name: string;
 }
+
+// Estoque (materiais recebidos)
+export interface StockItem {
+  id: number;
+  barcode: string;
+  product_name?: string | null;
+  quantity: number;
+  supplier: string;
+  received_at: string;
+  notes?: string | null;
+  created_by_admin_id?: number | null;
+  created_at?: string;
+}
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 
