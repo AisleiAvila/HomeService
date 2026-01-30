@@ -321,7 +321,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     const trimmed = rawValue?.trim();
     if (trimmed && trimmed !== this.barcode()) {
       this.barcode.set(trimmed);
-      this.setStatus("info", this.i18n.translate("barcodeDetected"));
+      this.setStatus("success", this.i18n.translate("barcodeDetected"));
     }
   }
 
