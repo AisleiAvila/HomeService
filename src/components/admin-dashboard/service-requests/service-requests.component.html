@@ -909,138 +909,370 @@
     </div>
 
     <!-- Mobile Card View -->
-    <div class="lg:hidden p-4 space-y-4">
+    <div class="lg:hidden">
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
         @for(req of filteredPaginatedRequests(); track req.id) {
-        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
-            <!-- Header with title -->
-            <div>
-                <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">
-                    {{ req.title }}
-                </h4>
-                <div class="mt-1 flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
-                    <span class="font-bold">{{ "status" | i18n }}:</span>
+        <div class="service-request-card p-4 sm:p-5 bg-white dark:bg-gray-800">
+            <!-- Header with Category and Status -->
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
+                <div class="min-w-0">
+                    <h3 class="service-request-title text-gray-900 dark:text-gray-100 text-base sm:text-lg font-semibold leading-tight">
+                        {{ req.category?.name || ("service" | i18n) }}
+                    </h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2 leading-relaxed">
+                        {{ req.title }}
+                    </p>
+                </div>
+                <div class="flex-shrink-0 self-end sm:self-auto">
                     <span
-                      class="ml-auto whitespace-nowrap"
                       [class]="statusClass(req.status)"
                       [style.backgroundColor]="getStatusColor(req.status)"
                       [style.color]="getStatusTextColor(req.status)"
-                    >{{ getStatusLabel(req.status) || req.status }}</span>
+                      class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap"
+                    >
+                      {{ getStatusLabel(req.status) || req.status }}
+                      @if(req.payment_status === 'Paid') {
+                      <span class="ml-1 font-bold text-green-700">({{ "paid" | i18n }})</span>
+                      }
+                    </span>
                 </div>
             </div>
 
-            <!-- Client and Professional info -->
-            <div class="space-y-2 text-xs">
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "client" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ req.client_name || "—" }}</span>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "professional" | i18n }}:</span>
-                    @if (getProfessionalProfile(req.professional_id); as professional) {
-                    <div class="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                        @if (professional.avatar_url) {
-                        <img [src]="professional.avatar_url" [alt]="professional.name"
-                            class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
-                            loading="lazy" />
+            <!-- Value -->
+            <div class="service-request-info-item">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <svg
+                        class="w-4 h-4 text-emerald-500 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                        />
+                    </svg>
+                    <div class="text-sm min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-medium text-gray-700">{{ "value" | i18n }}:</span>
+                            <span class="ml-auto text-right">
+                                @if (req.valor && req.valor > 0) {
+                                <span class="text-emerald-600 font-semibold">
+                                    € {{ req.valor | number : "1.2-2" }}
+                                </span>
+                                } @else {
+                                <span class="text-gray-500">—</span>
+                                }
+                            </span>
+                        </div>
+                        @if (shouldShowProviderValue(req)) {
+                        <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700 dark:text-gray-200">{{ "valorPrestador" | i18n }}:</span>
+                                <span class="ml-auto text-right">
+                                    @if (req.valor_prestador && req.valor_prestador > 0) {
+                                    <span class="text-emerald-600 font-semibold">€ {{ req.valor_prestador | number : "1.2-2" }}</span>
+                                    } @else {
+                                    <span class="text-gray-500">—</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
                         }
-                        <span class="text-right">{{ professional.name }}</span>
                     </div>
-                    } @else {
-                    <span class="text-gray-400">—</span>
-                    }
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "value" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100 font-semibold">
-                        {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
-                    </span>
-                </div>
-                @if (shouldShowProviderValue(req)) {
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "valorPrestador" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100 font-semibold">
-                        @if (req.valor_prestador && req.valor_prestador > 0) {
-                        € {{ req.valor_prestador | number : "1.2-2" }}
-                        } @else {
-                        —
-                        }
-                    </span>
-                </div>
-                }
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "origin" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ req.origin?.name || "—" }}</span>
-                </div>
-                @if (req.os) {
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "os" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ req.os }}</span>
-                </div>
-                }
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "postalCode" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).postalCode || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "locality" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).locality || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "logradouro" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).street || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "number" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).number || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "complement" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).complement || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "concelho" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).concelho || "—" }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "district" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).district || "—" }}</span>
-                </div>
-                <div class="flex justify-between text-[10px]">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "scheduled" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.scheduled_start_datetime ? (req.scheduled_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
-                    </span>
-                </div>
-                @if (req.scheduled_start_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
-                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
-                        {{ req.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
-                        <span class="ml-1">(Lisboa)</span>
+            </div>
+
+            <!-- Service Request Details -->
+            <div class="service-request-details space-y-2 sm:space-y-3 mb-3 sm:mb-4">
+                <!-- Origin -->
+                <div class="service-request-info-item">
+                    <div class="flex items-start gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 7h.01M3 11.5V7a4 4 0 014-4h4.5a2 2 0 011.414.586l8.5 8.5a2 2 0 010 2.828l-6.672 6.672a2 2 0 01-2.828 0l-8.5-8.5A2 2 0 013 11.5z"
+                            />
+                        </svg>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-semibold">{{ "origin" | i18n }}:</span>
+                                <span class="ml-auto text-right break-words">{{ req.origin?.name || "—" }}</span>
+                            </div>
+                        </div>
                     </div>
-                }
-                <div class="flex justify-between text-[10px]">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionStartLabel" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.actual_start_datetime ? (req.actual_start_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
-                    </span>
                 </div>
-                @if (req.actual_start_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
-                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
-                        {{ req.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
-                        <span class="ml-1">(Lisboa)</span>
+
+                <!-- OS -->
+                <div class="service-request-info-item">
+                    <div class="flex items-start gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 9h14M5 15h14M9 5v14M15 5v14"
+                            />
+                        </svg>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-semibold">{{ "os" | i18n }}:</span>
+                                <span class="ml-auto text-right break-words">{{ req.os || "—" }}</span>
+                            </div>
+                        </div>
                     </div>
-                }
-                <div class="flex justify-between text-[10px]">
-                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "executionEndLabel" | i18n }}:</span>
-                    <span class="text-gray-900 dark:text-gray-100">
-                        {{ req.actual_end_datetime ? (req.actual_end_datetime | tzDate : getServiceTimeZone(req) : "dd/MM/yy HH:mm") : "—" }}
-                    </span>
                 </div>
-                @if (req.actual_end_datetime && getServiceTimeZone(req) === 'Atlantic/Azores') {
-                    <div class="flex justify-end text-[10px] text-gray-400 dark:text-gray-400">
-                        {{ req.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yy HH:mm" }}
-                        <span class="ml-1">(Lisboa)</span>
+
+                <!-- Locality -->
+                <div class="service-request-info-item">
+                    <div class="flex items-start gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                        </svg>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-semibold">{{ "locality" | i18n }}:</span>
+                                <span class="ml-auto text-right break-words">{{ getAddressParts(req).locality || "—" }}</span>
+                            </div>
+                        </div>
                     </div>
-                }
+                </div>
+
+                <!-- Address details (indented under Locality) -->
+                <div class="mt-1 ml-6 space-y-2">
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "postalCode" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).postalCode || "—" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "logradouro" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).street || "—" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "number" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).number || "—" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "complement" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).complement || "—" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "concelho" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).concelho || "—" }}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-semibold">{{ "district" | i18n }}:</span>
+                            <span class="ml-auto text-right break-words">{{ getAddressParts(req).district || "—" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client -->
+                <div class="service-request-info-item">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                        </svg>
+                        <div class="text-sm min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700">{{ "client" | i18n }}:</span>
+                                <span class="ml-auto text-right text-gray-600 dark:text-gray-300 break-words">
+                                    {{ req.client_name || "—" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional -->
+                <div class="service-request-info-item">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                        </svg>
+                        <div class="text-sm min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700">{{ "professional" | i18n }}:</span>
+                                @if (getProfessionalProfile(req.professional_id); as professional) {
+                                <span class="ml-auto text-right text-gray-600 dark:text-gray-300 break-words">
+                                    {{ professional.name }}
+                                </span>
+                                } @else {
+                                <span class="ml-auto text-right text-gray-400">—</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduled Date -->
+                <div class="service-request-info-item">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-green-500 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <div class="text-sm min-w-0 flex-1">
+                            @let tz = getServiceTimeZone(req);
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700">{{ "scheduled" | i18n }}:</span>
+                                <div class="ml-auto text-right">
+                                    <div class="text-green-600 font-medium break-words">
+                                        {{ req.scheduled_start_datetime ? (req.scheduled_start_datetime | tzDate : tz : "dd/MM/yyyy HH:mm") : "—" }}
+                                    </div>
+                                    @if (req.scheduled_start_datetime && tz === 'Atlantic/Azores') {
+                                    <div class="mt-1 text-[11px] text-gray-500">
+                                        {{ req.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                        <span class="ml-1">(Lisboa)</span>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Execution Start -->
+                <div class="service-request-info-item">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                        </svg>
+                        <div class="text-sm min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700">{{ "executionStartLabel" | i18n }}:</span>
+                                <div class="ml-auto text-right">
+                                    @let tz = getServiceTimeZone(req);
+                                    <div class="text-gray-600 break-words">
+                                        {{ req.actual_start_datetime ? (req.actual_start_datetime | tzDate : tz : "dd/MM/yyyy HH:mm") : "—" }}
+                                    </div>
+                                    @if (req.actual_start_datetime && tz === 'Atlantic/Azores') {
+                                    <div class="mt-1 text-[11px] text-gray-500">
+                                        {{ req.actual_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                        <span class="ml-1">(Lisboa)</span>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Execution End -->
+                <div class="service-request-info-item">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <svg
+                            class="w-4 h-4 text-gray-500 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <div class="text-sm min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="font-medium text-gray-700">{{ "executionEndLabel" | i18n }}:</span>
+                                <div class="ml-auto text-right">
+                                    @let tz = getServiceTimeZone(req);
+                                    <div class="text-gray-600 break-words">
+                                        {{ req.actual_end_datetime ? (req.actual_end_datetime | tzDate : tz : "dd/MM/yyyy HH:mm") : "—" }}
+                                    </div>
+                                    @if (req.actual_end_datetime && tz === 'Atlantic/Azores') {
+                                    <div class="mt-1 text-[11px] text-gray-500">
+                                        {{ req.actual_end_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                        <span class="ml-1">(Lisboa)</span>
+                                    </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Actions -->
@@ -1144,6 +1376,7 @@
             </div>
         </div>
         }
+        </div>
     </div>
 
     <!-- Pagination Controls -->
