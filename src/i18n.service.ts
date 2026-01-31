@@ -72,6 +72,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     streetAddress: "Complete Address",
     streetAddressPlaceholder:
       "Street/Avenue, number, floor (e.g.: Rua Augusta, 123, 2º)",
+    logradouro: "Street",
     postalCode: "Postal Code",
     postalCodePlaceholder: "0000-000",
     locality: "Locality",
@@ -1216,6 +1217,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     streetAddress: "Morada Completa",
     streetAddressPlaceholder:
       "Rua/Avenida, número, andar (ex: Rua Augusta, 123, 2º)",
+    logradouro: "Logradouro",
     postalCode: "Código Postal",
     postalCodePlaceholder: "0000-000",
     locality: "Localidade",

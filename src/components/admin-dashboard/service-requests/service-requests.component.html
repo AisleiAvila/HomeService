@@ -977,6 +977,34 @@
                     <span class="text-gray-900 dark:text-gray-100">{{ req.os }}</span>
                 </div>
                 }
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "postalCode" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).postalCode || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "locality" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).locality || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "logradouro" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).street || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "number" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).number || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "complement" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).complement || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "concelho" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).concelho || "—" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "district" | i18n }}:</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ getAddressParts(req).district || "—" }}</span>
+                </div>
                 <div class="flex justify-between text-[10px]">
                     <span class="text-gray-600 dark:text-gray-400 font-bold">{{ "scheduled" | i18n }}:</span>
                     <span class="text-gray-900 dark:text-gray-100">

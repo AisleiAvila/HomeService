@@ -665,6 +665,224 @@
             </div>
           </div>
 
+          @if (currentUser().role === 'admin') {
+          <!-- Postal Code (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'postalCode' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).postalCode || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Locality (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'locality' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).locality || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logradouro (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'logradouro' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).street || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Número (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'number' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).number || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complemento (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'complement' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).complement || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Concelho (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'concelho' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).concelho || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distrito (mobile admin) -->
+          <div class="service-request-info-item">
+            <div class="flex items-start gap-2 sm:gap-3">
+              <svg
+                class="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div class="text-sm text-gray-700 min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-semibold">{{ 'district' | i18n }}:</span>
+                  <span class="ml-auto text-right break-words">{{ getAddressParts(request).district || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          } @else {
           <!-- Locality (mobile simplified) -->
           <div class="service-request-info-item">
             <div class="flex items-start gap-2 sm:gap-3">
@@ -720,6 +938,7 @@
               </div>
             </div>
           </div>
+          }
 
           <!-- Client Name -->
           <div class="service-request-info-item">

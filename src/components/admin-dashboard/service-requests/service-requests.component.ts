@@ -15,6 +15,7 @@ import { PaymentModalComponent } from "../../payment-modal/payment-modal.compone
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
 import { StatusUtilsService } from "../../../utils/status-utils.service";
 import { StatusMigrationUtil } from "../../../utils/status-migration.util";
+import { extractPtAddressParts } from "../../../utils/address-utils";
 import {
     getServiceTimeZoneForRequest,
     ServiceTimeZone,
@@ -151,6 +152,10 @@ export class ServiceRequestsComponent implements OnInit {
 
     public getServiceTimeZone(req: ServiceRequest): ServiceTimeZone {
         return getServiceTimeZoneForRequest(req as any);
+    }
+
+    getAddressParts(req: ServiceRequest) {
+        return extractPtAddressParts(req as any);
     }
     private readonly deletableStatuses = new Set(
         [
