@@ -142,6 +142,8 @@ export class AdminOverviewComponent implements OnInit {
     
     // Signals para animação de contagem
     private readonly animatedValues = signal<Record<string, number>>({});
+    // Stats que representam contagens inteiras (não moeda)
+    private readonly integerStats = new Set(["activeServices", "completedServices", "finalizedServices"]);
     
     // Signal para modo de visualização compacto
     compactMode = signal(false);
@@ -161,9 +163,22 @@ export class AdminOverviewComponent implements OnInit {
             date.setDate(date.getDate() - i);
             const dateStr = date.toISOString().split('T')[0];
             
-            // Receita por dia (usando filteredRequests para respeitar período/profissional selecionado)
-            const dayRevenue = this.filteredRequests()
-                .filter(r => r.payment_status === "Paid" && r.completed_at?.startsWith(dateStr))
+            // Receita por dia (usar completed_at e filtro por profissional)
+            const dayRevenue = this.dataService.serviceRequests()
+                .filter(r => r.payment_status === "Paid" && r.completed_at)
+                .filter(r => {
+                    // verificar profissional selecionado
+                    const pro = this.selectedProfessional();
+                    if (pro !== 'all' && r.professional_id) {
+                        if (Number.parseInt(pro, 10) !== r.professional_id) return false;
+                    }
+
+                    const completed = new Date(r.completed_at as string);
+                    if (Number.isNaN(completed.getTime())) return false;
+
+                    const completedDateStr = completed.toISOString().split('T')[0];
+                    return completedDateStr === dateStr;
+                })
                 .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
             last7Days.totalRevenue.push(dayRevenue);
             
@@ -178,6 +193,49 @@ export class AdminOverviewComponent implements OnInit {
         return last7Days;
     });
 
+    /**
+     * Retorna pedidos com `completed_at` filtrados pelo período (startDate/endDate)
+     * e pelo `selectedProfessional`.
+     */
+    private getCompletedRequestsFiltered(): any[] {
+        const start = this.startDate();
+        const end = this.endDate();
+        const selectedProId = this.selectedProfessional();
+
+        let requests = this.dataService.serviceRequests().filter(r => r.completed_at);
+
+        // Filtrar por período usando completed_at (se definido)
+        if (start || end) {
+            let startDate: Date | null = null;
+            let endDate: Date | null = null;
+
+            if (start) {
+                startDate = new Date(start);
+                startDate.setHours(0, 0, 0, 0);
+            }
+
+            if (end) {
+                endDate = new Date(end);
+                endDate.setHours(23, 59, 59, 999);
+            }
+
+            requests = requests.filter(r => {
+                const completed = new Date(r.completed_at as string);
+                if (Number.isNaN(completed.getTime())) return false;
+                if (startDate && completed < startDate) return false;
+                if (endDate && completed > endDate) return false;
+                return true;
+            });
+        }
+
+        // Filtrar por profissional
+        if (selectedProId !== 'all') {
+            const proIdToMatch = Number.parseInt(selectedProId, 10);
+            requests = requests.filter(r => r.professional_id === proIdToMatch);
+        }
+
+        return requests;
+    }
     constructor() {
         // Iniciar animação de contagem dos valores (effect deve estar no construtor)
         effect(() => {
@@ -224,55 +282,77 @@ export class AdminOverviewComponent implements OnInit {
         const clients: any[] = [];
 
         // Calculate financial stats with null safety
-        const completed = requests.filter(
+        // Para calcular receita, usar completed_at (não requested_date) — respeita filtro de período/profissional
+        const completed = this.getCompletedRequestsFiltered().filter(
             (r) => (r.status === "Concluído" || r.status === "Finalizado") && r.valor != null
         );
-        const totalRevenue = completed
-            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        const totalRevenue = completed.reduce((sum, r) => sum + this.validateCost(r.valor), 0);
 
-        const unpaidInProgressStatuses = new Set([
-            "Em Progresso",
-            "In Progress",
-            "Concluído",
-            "Finalizado",
-        ]);
-        const unpaidInProgressRevenue = requests
-            .filter((r) => r.valor != null && unpaidInProgressStatuses.has(r.status || ""))
-            .filter((r) => !this.isPaymentMarkedAsPaid(r.payment_status))
-            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        // NOTE: removed display of unpaid in-progress revenue from Total Revenue card
 
         // Calculate active services
         const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Finalizado' && r.status !== 'Cancelado').length;
 
-        // Cálculo real das tendências mês a mês
+        // Cálculo da tendência comparando com o período imediatamente anterior
+        // Definir período atual com base nos filtros de data (se fornecidos) ou mês corrente
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0); // último dia mês anterior
+        const periodStart = this.startDate() ? new Date(this.startDate()) : startOfMonth;
+        const periodEnd = this.endDate() ? (() => { const d = new Date(this.endDate()); d.setHours(23,59,59,999); return d; })() : now;
 
-        // Receita
-        const revenueThisMonth = requests
-            .filter(r => r.payment_status === "Paid" && r.completed_at && new Date(r.completed_at) >= startOfMonth)
-            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
-        const revenueLastMonth = requests
-            .filter(r => r.payment_status === "Paid" && r.completed_at && new Date(r.completed_at) >= startOfPrevMonth && new Date(r.completed_at) <= endOfPrevMonth)
-            .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
-        const revenueTrend = revenueLastMonth > 0
-            ? (((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100).toFixed(1) + "%"
+        // Função utilitária para somar receita paga em um intervalo (inclusive)
+        // Usa todos os pedidos da fonte de dados e aplica filtro de profissional se selecionado
+        const sumRevenueInRange = (start: Date, end: Date) => {
+            const allRequests = this.dataService.serviceRequests();
+            const selectedPro = this.selectedProfessional();
+
+            return allRequests
+                .filter(r => r.payment_status === "Paid" && r.completed_at)
+                .filter(r => {
+                    // aplicar filtro por profissional se necessário
+                    if (selectedPro && selectedPro !== 'all') {
+                        const proIdToMatch = Number.parseInt(selectedPro, 10);
+                        if (!r.professional_id || r.professional_id !== proIdToMatch) return false;
+                    }
+
+                    const completed = new Date(r.completed_at as string);
+                    if (Number.isNaN(completed.getTime())) return false;
+                    return completed >= start && completed <= end;
+                })
+                .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        };
+
+        const revenueThisPeriod = sumRevenueInRange(
+            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
+            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        // Calcular período anterior imediatamente antes de periodStart com mesma duração
+        const periodDurationMs = (periodEnd.getTime() - periodStart.getTime()) + 1;
+        const prevEnd = new Date(periodStart.getTime() - 1);
+        const prevStart = new Date(prevEnd.getTime() - (periodDurationMs - 1));
+
+        const revenuePrevPeriod = sumRevenueInRange(
+            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
+            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const revenueTrend = revenuePrevPeriod > 0
+            ? (((revenueThisPeriod - revenuePrevPeriod) / revenuePrevPeriod) * 100).toFixed(1) + "%"
             : "+0%";
 
-        // Aprovações
-        const approvalsThisMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfMonth).length;
-        const approvalsLastMonth = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= startOfPrevMonth && new Date(u.created_at) <= endOfPrevMonth).length;
-        const approvalsTrend = approvalsLastMonth > 0
-            ? (((approvalsThisMonth - approvalsLastMonth) / approvalsLastMonth) * 100).toFixed(1) + "%"
+        // Aprovações (comparar com período anterior de mesma duração)
+        const approvalsThisPeriod = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= periodStart && new Date(u.created_at) <= periodEnd).length;
+        const approvalsPrevPeriod = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= prevStart && new Date(u.created_at) <= prevEnd).length;
+        const approvalsTrend = approvalsPrevPeriod > 0
+            ? (((approvalsThisPeriod - approvalsPrevPeriod) / approvalsPrevPeriod) * 100).toFixed(1) + "%"
             : "+0%";
 
         // Serviços ativos
-        const activeThisMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfMonth).length;
-        const activeLastMonth = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= startOfPrevMonth && new Date(r.created_at) <= endOfPrevMonth).length;
-        const activeTrend = activeLastMonth > 0
-            ? (((activeThisMonth - activeLastMonth) / activeLastMonth) * 100).toFixed(1) + "%"
+        const activeThisPeriod = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= periodStart && new Date(r.created_at) <= periodEnd).length;
+        const activePrevPeriod = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= prevStart && new Date(r.created_at) <= prevEnd).length;
+        const activeTrend = activePrevPeriod > 0
+            ? (((activeThisPeriod - activePrevPeriod) / activePrevPeriod) * 100).toFixed(1) + "%"
             : "+0%";
 
         const trends = {
@@ -290,7 +370,7 @@ export class AdminOverviewComponent implements OnInit {
         const stats = [
             {
                 id: "totalRevenue",
-                label: this.i18n.translate("totalRevenue"),
+                label: "totalRevenue",
                 value: this.formatCost(totalRevenue),
                 rawValue: totalRevenue,
                 icon: "fas fa-euro-sign",
@@ -299,7 +379,6 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.revenue.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: this.sparklineData().totalRevenue,
-                unpaidInProgressValue: this.formatCost(unpaidInProgressRevenue),
             }
         ];
 
@@ -307,7 +386,7 @@ export class AdminOverviewComponent implements OnInit {
         if (pendingProfessionals.length > 0) {
             stats.push({
                 id: "pendingApprovals",
-                label: this.i18n.translate("pendingApprovals"),
+                label: "pendingApprovals",
                 value: pendingProfessionals.length.toString(),
                 rawValue: pendingProfessionals.length,
                 icon: "fas fa-user-clock",
@@ -316,7 +395,6 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.approvals.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
-                unpaidInProgressValue: undefined,
             });
         }
 
@@ -324,7 +402,7 @@ export class AdminOverviewComponent implements OnInit {
         stats.push(
             {
                 id: "activeServices",
-                label: this.i18n.translate("activeServices"),
+                label: "activeServices",
                 value: activeServices.toString(),
                 rawValue: activeServices,
                 icon: "fas fa-tools",
@@ -333,7 +411,6 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: trends.active.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: this.sparklineData().activeServices,
-                unpaidInProgressValue: undefined,
             },
             {
                 id: "completedServices",
@@ -346,7 +423,6 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: "text-green-600",
                 badge: null,
                 sparklineData: [],
-                unpaidInProgressValue: undefined,
             },
             {
                 id: "finalizedServices",
@@ -359,7 +435,6 @@ export class AdminOverviewComponent implements OnInit {
                 trendColor: "text-green-600",
                 badge: null,
                 sparklineData: [],
-                unpaidInProgressValue: undefined,
             }
         );
 
@@ -542,33 +617,55 @@ export class AdminOverviewComponent implements OnInit {
     // Animação de contagem dos valores
     private animateValue(statId: string, targetValue: number) {
         const duration = 1500; // ms
-        const startValue = this.animatedValues()[statId] || 0;
+
+        const isInteger = this.integerStats.has(statId);
+
+        const startStored = this.animatedValues()[statId] || 0;
+        const startVal = isInteger ? Math.round(startStored) : Math.round(startStored);
+        const targetVal = isInteger ? Math.round(targetValue) : Math.round(targetValue * 100);
         const startTime = Date.now();
-        
+
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
+
             // Easing function (ease-out cubic)
             const easedProgress = 1 - Math.pow(1 - progress, 3);
-            const currentValue = startValue + (targetValue - startValue) * easedProgress;
-            
+            const current = Math.round(startVal + (targetVal - startVal) * easedProgress);
+
             this.animatedValues.update(values => ({
                 ...values,
-                [statId]: Math.round(currentValue)
+                [statId]: current
             }));
-            
+
             if (progress < 1) {
                 requestAnimationFrame(animate);
             }
         };
-        
+
         requestAnimationFrame(animate);
     }
     
     // Obter valor animado para um stat
     getAnimatedValue(statId: string): number {
-        return this.animatedValues()[statId] || 0;
+        const stored = this.animatedValues()[statId];
+        if (stored == null) return 0;
+        if (this.integerStats.has(statId)) {
+            return stored; // já armazenado como inteiro
+        }
+        return stored / 100; // armazenado em centavos para moeda
+    }
+
+    // Retorna o valor exibido no card (formatado ou inteiro)
+    displayValue(stat: any): string {
+        if (!stat) return '';
+        if (stat.id === 'totalRevenue') {
+            return this.formatCost(this.getAnimatedValue(stat.id));
+        }
+        if (this.integerStats.has(stat.id)) {
+            return String(Math.round(this.getAnimatedValue(stat.id)));
+        }
+        return stat.value;
     }
     
     // Desenhar mini gráfico sparkline

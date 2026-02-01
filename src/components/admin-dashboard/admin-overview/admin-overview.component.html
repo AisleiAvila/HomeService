@@ -71,7 +71,7 @@
     @for (stat of stats(); track stat.label) {
         <button type="button"
             (click)="handleCardClick(stat.id)"
-            [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsLastMonth' | i18n)"
+            [attr.aria-label]="stat.label + ': ' + stat.value + ', ' + stat.trend + ' ' + ('vsPreviousPeriod' | i18n)"
             [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm flex flex-col transform transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 ' + (compactMode() ? 'p-3 min-h-[120px]' : 'p-5 min-h-[160px]')">
             
             <!-- Efeito de background -->
@@ -90,20 +90,11 @@
             <!-- Valor principal -->
             <div [class]="'relative z-10 ' + (compactMode() ? 'mb-1' : 'mb-3')">
                 <p [class]="'font-bold text-gray-900 dark:text-white truncate ' + (compactMode() ? 'text-lg' : 'text-2xl')">
-                    {{ stat.value }}
+                    {{ displayValue(stat) }}
                 </p>
             </div>
 
-            @if (stat.id === 'totalRevenue' && stat.unpaidInProgressValue) {
-                <div [class]="'relative z-10 flex items-center justify-between text-gray-600 dark:text-gray-300 ' + (compactMode() ? 'text-[11px] mb-1' : 'text-xs mb-2')">
-                    <span class="font-medium truncate">
-                        {{ 'totalUnpaidToProviders' | i18n }} · {{ 'in_progress' | i18n }}/{{ 'statusCompleted' | i18n }}
-                    </span>
-                    <span class="font-semibold text-gray-900 dark:text-white">
-                        {{ stat.unpaidInProgressValue }}
-                    </span>
-                </div>
-            }
+            
             
             <!-- Mini gráfico sparkline (apenas em modo expandido) -->
             @if (stat.sparklineData && stat.sparklineData.length > 0 && !compactMode()) {
@@ -118,6 +109,20 @@
                 </div>
             }
             
+            <!-- Separador para cards sem sparkline -->
+            @if (stat.id === 'completedServices' || stat.id === 'finalizedServices') {
+                <!-- Draw a flat sparkline canvas to match the visual separator used by other cards -->
+                <div class="mb-3 relative z-10 h-10">
+                    <canvas
+                        [id]="'sparkline-' + stat.id"
+                        width="200"
+                        height="40"
+                        class="w-full h-full"
+                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, [0,0,0,0,0,0,0], stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : stat.bgColor.includes('purple') ? '#a855f7' : '#ea5455')">
+                    </canvas>
+                </div>
+            }
+
             <!-- Tendência e comparação -->
             <div class="flex items-center justify-between mt-auto relative z-10">
                 <div class="flex items-center">
@@ -128,7 +133,7 @@
                 </div>
                 @if (!compactMode()) {
                     <span class="text-xs text-gray-500 dark:text-gray-300 whitespace-nowrap font-medium">
-                        {{ "vsLastMonth" | i18n }}
+                        {{ "vsPreviousPeriod" | i18n }}
                     </span>
                 }
             </div>
