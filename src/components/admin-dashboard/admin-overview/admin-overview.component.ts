@@ -300,14 +300,19 @@ export class AdminOverviewComponent implements OnInit {
         const periodStart = this.startDate() ? new Date(this.startDate()) : startOfMonth;
         const periodEnd = this.endDate() ? (() => { const d = new Date(this.endDate()); d.setHours(23,59,59,999); return d; })() : now;
 
-        // Função utilitária para somar receita paga em um intervalo (inclusive)
+        // Função utilitária para somar receita em um intervalo (inclusive)
         // Usa todos os pedidos da fonte de dados e aplica filtro de profissional se selecionado
         const sumRevenueInRange = (start: Date, end: Date) => {
             const allRequests = this.dataService.serviceRequests();
             const selectedPro = this.selectedProfessional();
 
             return allRequests
-                .filter(r => r.payment_status === "Paid" && r.completed_at)
+                .filter(
+                    (r) =>
+                        !!r.completed_at &&
+                        (r.status === "Concluído" || r.status === "Finalizado") &&
+                        r.valor != null
+                )
                 .filter(r => {
                     // aplicar filtro por profissional se necessário
                     if (selectedPro && selectedPro !== 'all') {
@@ -348,17 +353,91 @@ export class AdminOverviewComponent implements OnInit {
             ? (((approvalsThisPeriod - approvalsPrevPeriod) / approvalsPrevPeriod) * 100).toFixed(1) + "%"
             : "+0%";
 
+        // Tendências baseadas no mesmo critério de data do filtro principal.
+        // - Se o utilizador filtra por período, o dashboard usa requested_datetime/requested_date/scheduled_date.
+        // - Os trends devem seguir o mesmo critério, e não created_at.
+        const countRequestsInRange = (predicate: (r: any) => boolean, start: Date, end: Date) => {
+            const allRequests = this.dataService.serviceRequests();
+            const selectedPro = this.selectedProfessional();
+
+            return allRequests
+                .filter(r => {
+                    if (!predicate(r)) return false;
+
+                    // aplicar filtro por profissional se necessário
+                    if (selectedPro && selectedPro !== 'all') {
+                        const proIdToMatch = Number.parseInt(selectedPro, 10);
+                        if (!r.professional_id || r.professional_id !== proIdToMatch) return false;
+                    }
+
+                    // mesma ordem de prioridade do filteredRequests
+                    const dateToCheck = (r as any).requested_datetime || (r as any).requested_date || (r as any).scheduled_date;
+                    if (!dateToCheck) return false;
+
+                    const requestDate = new Date(dateToCheck);
+                    if (Number.isNaN(requestDate.getTime())) return false;
+
+                    return requestDate >= start && requestDate <= end;
+                }).length;
+        };
+
         // Serviços ativos
-        const activeThisPeriod = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= periodStart && new Date(r.created_at) <= periodEnd).length;
-        const activePrevPeriod = requests.filter(r => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado" && r.created_at && new Date(r.created_at) >= prevStart && new Date(r.created_at) <= prevEnd).length;
+        const activeThisPeriod = countRequestsInRange(
+            (r) => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado",
+            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
+            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const activePrevPeriod = countRequestsInRange(
+            (r) => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado",
+            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
+            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
+        );
+
         const activeTrend = activePrevPeriod > 0
             ? (((activeThisPeriod - activePrevPeriod) / activePrevPeriod) * 100).toFixed(1) + "%"
+            : "+0%";
+
+        // Serviços concluídos
+        const completedThisPeriod = countRequestsInRange(
+            (r) => r.status === "Concluído",
+            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
+            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const completedPrevPeriod = countRequestsInRange(
+            (r) => r.status === "Concluído",
+            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
+            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const completedTrend = completedPrevPeriod > 0
+            ? (((completedThisPeriod - completedPrevPeriod) / completedPrevPeriod) * 100).toFixed(1) + "%"
+            : "+0%";
+
+        // Serviços finalizados
+        const finalizedThisPeriod = countRequestsInRange(
+            (r) => r.status === "Finalizado",
+            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
+            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const finalizedPrevPeriod = countRequestsInRange(
+            (r) => r.status === "Finalizado",
+            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
+            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
+        );
+
+        const finalizedTrend = finalizedPrevPeriod > 0
+            ? (((finalizedThisPeriod - finalizedPrevPeriod) / finalizedPrevPeriod) * 100).toFixed(1) + "%"
             : "+0%";
 
         const trends = {
             revenue: revenueTrend,
             approvals: approvalsTrend,
             active: activeTrend,
+            completed: completedTrend,
+            finalized: finalizedTrend,
             clients: "+0%", // clientes removidos do sistema
         };
 
@@ -419,8 +498,8 @@ export class AdminOverviewComponent implements OnInit {
                 rawValue: completedServices,
                 icon: "fas fa-check-circle",
                 bgColor: "bg-gradient-to-br from-emerald-400 to-emerald-500 dark:from-emerald-500 dark:to-emerald-600 text-white dark:text-white",
-                trend: "+0%", // Por enquanto sem tendência
-                trendColor: "text-green-600",
+                trend: trends.completed,
+                trendColor: trends.completed.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
             },
@@ -431,8 +510,8 @@ export class AdminOverviewComponent implements OnInit {
                 rawValue: finalizedServices,
                 icon: "fas fa-check-double",
                 bgColor: "bg-gradient-to-br from-teal-400 to-teal-500 dark:from-teal-500 dark:to-teal-600 text-white dark:text-white",
-                trend: "+0%", // Por enquanto sem tendência
-                trendColor: "text-green-600",
+                trend: trends.finalized,
+                trendColor: trends.finalized.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
             }
