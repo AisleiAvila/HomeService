@@ -236,12 +236,25 @@ export class AdminOverviewComponent implements OnInit {
         return requests;
     }
     constructor() {
-        // Iniciar animação de contagem dos valores (effect deve estar no construtor)
+        // Inicializar valores animados com o valor real ao carregar
         effect(() => {
             const stats = this.stats();
+            const current = this.animatedValues();
+            const newValues: Record<string, number> = { ...current };
+            let changed = false;
             stats.forEach(stat => {
-                this.animateValue(stat.id, stat.rawValue || 0);
+                // Só animar valores inteiros, receita total sempre mostra formatCost
+                if (this.integerStats.has(stat.id)) {
+                    const val = stat.rawValue || 0;
+                    if (current[stat.id] !== val) {
+                        newValues[stat.id] = val;
+                        changed = true;
+                    }
+                }
             });
+            if (changed) {
+                this.animatedValues.set(newValues);
+            }
         });
     }
 
@@ -583,9 +596,9 @@ export class AdminOverviewComponent implements OnInit {
     // Retorna o valor exibido no card (formatado ou inteiro)
     displayValue(stat: any): string {
         if (!stat) return '';
-        // Valor formatado para receita
+        // Valor formatado para receita (sempre usar stat.rawValue para evitar bug de animação)
         if (stat.id === 'totalRevenue') {
-            return this.formatCost(this.getAnimatedValue(stat.id));
+            return this.formatCost(stat.rawValue || 0);
         }
         // Valor inteiro animado para contagens
         if (this.integerStats.has(stat.id)) {

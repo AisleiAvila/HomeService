@@ -1,20 +1,21 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
+import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-theme-toggle',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, I18nPipe],
   template: `
-    <button
-      (click)="toggleTheme()"
-      class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg
-             bg-neutral-100 dark:bg-neutral-800
-             border border-neutral-300 dark:border-neutral-700
-             hover:bg-neutral-200 dark:hover:bg-neutral-700
-             transition-smooth focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
-      [attr.aria-label]="'toggle_theme' | async"
+        <button
+          (click)="toggleTheme()"
+          class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg
+            bg-neutral-100 dark:bg-neutral-800
+            border border-neutral-300 dark:border-neutral-700
+            hover:bg-neutral-200 dark:hover:bg-neutral-700
+            transition-smooth focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
+          [attr.aria-label]="'toggle_theme' | i18n"
     >
       <!-- Ícone Sol -->
       @if (!themeService.isDarkMode()) {
