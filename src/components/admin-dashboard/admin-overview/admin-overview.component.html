@@ -104,7 +104,7 @@
                         width="200" 
                         height="40"
                         class="w-full h-full"
-                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, stat.sparklineData, stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : stat.bgColor.includes('purple') ? '#a855f7' : '#ea5455')">
+                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, stat.sparklineData, stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('yellow') ? '#facc15' : stat.bgColor.includes('purple') ? '#a855f7' : stat.bgColor.includes('blue') ? '#3b82f6' : stat.bgColor.includes('teal') ? '#14b8a6' : stat.bgColor.includes('emerald') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : '#ea5455')">
                     </canvas>
                 </div>
             }
@@ -118,7 +118,7 @@
                         width="200"
                         height="40"
                         class="w-full h-full"
-                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, [0,0,0,0,0,0,0], stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : stat.bgColor.includes('purple') ? '#a855f7' : '#ea5455')">
+                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, [0,0,0,0,0,0,0], stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('yellow') ? '#facc15' : stat.bgColor.includes('purple') ? '#a855f7' : stat.bgColor.includes('blue') ? '#3b82f6' : stat.bgColor.includes('teal') ? '#14b8a6' : stat.bgColor.includes('emerald') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : '#ea5455')">
                     </canvas>
                 </div>
             }
