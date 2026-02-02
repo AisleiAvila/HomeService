@@ -1146,6 +1146,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     confirmReimbursementValue: "Reimbursement",
     noExtraServices: "No extra services recorded.", 
     confirm: "Confirm",
+    scheduledServices: "Scheduled Services",
 
   },
   pt: {
@@ -2302,6 +2303,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     confirmReimbursementValue: "Valor do reembolso",
     noExtraServices: "Nenhum serviço extra adicionado.",
     confirm: "Confirmar",
+    scheduledServices: "Serviços Agendados",
 
 
   },

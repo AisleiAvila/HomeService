@@ -142,7 +142,7 @@ export class AdminOverviewComponent implements OnInit {
     // Signals para animação de contagem
     private readonly animatedValues = signal<Record<string, number>>({});
     // Stats que representam contagens inteiras (não moeda)
-    private readonly integerStats = new Set(["activeServices", "completedServices", "finalizedServices"]);
+    private readonly integerStats = new Set(["activeServices", "completedServices", "finalizedServices", "scheduledServices", "totalServices"]);
     
     // Signal para modo de visualização compacto
     compactMode = signal(false);
@@ -270,214 +270,60 @@ export class AdminOverviewComponent implements OnInit {
     }
 
     stats = computed(() => {
-        const requests = this.filteredRequests(); // ✅ Use filtered requests based on selected period and professional
-        const users = this.dataService.users();
-
-        // Pre-filter users to avoid repeated iterations
-        const professionals = users.filter(u => u.role === 'professional');
-        const activeProfessionals = professionals.filter(u => u.status === 'Active');
-        const pendingProfessionals = professionals.filter(u => u.status === 'Pending' || !u.email_verified);
-        // REMOVIDO: Cliente não é mais um papel válido no sistema
-        const clients: any[] = [];
-
-        // Calculate financial stats with null safety
-        // ✅ Receita Total deve considerar qualquer status da solicitação
-        // ✅ Para filtrar por período, usar requested_datetime (conforme solicitado)
-
-        // NOTE: removed display of unpaid in-progress revenue from Total Revenue card
-
-        // Calculate active services
-        const activeServices = requests.filter(r => r.status !== 'Concluído' && r.status !== 'Finalizado' && r.status !== 'Cancelado').length;
-
-        // Cálculo da tendência comparando com o período imediatamente anterior
-        // Definir período atual com base nos filtros de data (se fornecidos) ou mês corrente
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const periodStart = this.startDate() ? new Date(this.startDate()) : startOfMonth;
-        const periodEnd = this.endDate() ? (() => { const d = new Date(this.endDate()); d.setHours(23,59,59,999); return d; })() : now;
-
-        // Função utilitária para somar receita em um intervalo (inclusive)
-        // Usa todos os pedidos da fonte de dados e aplica filtro de profissional se selecionado
-        const sumRevenueInRange = (start: Date, end: Date) => {
-            const allRequests = this.dataService.serviceRequests();
-            const selectedPro = this.selectedProfessional();
-
-            return allRequests
-                .filter((r) => r.valor != null)
-                .filter((r) => {
-                    // aplicar filtro por profissional se necessário
-                    if (selectedPro && selectedPro !== 'all') {
-                        const proIdToMatch = Number.parseInt(selectedPro, 10);
-                        if (!r.professional_id || r.professional_id !== proIdToMatch) return false;
-                    }
-
-                    const requestedDateTime = (r as any).requested_datetime;
-                    if (!requestedDateTime) return false;
-
-                    const dt = new Date(requestedDateTime);
-                    if (Number.isNaN(dt.getTime())) return false;
-                    return dt >= start && dt <= end;
-                })
-                .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
-        };
-
-        const totalRevenue = sumRevenueInRange(
-            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
-            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const revenueThisPeriod = sumRevenueInRange(
-            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
-            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        // Calcular período anterior imediatamente antes de periodStart com mesma duração
-        const periodDurationMs = (periodEnd.getTime() - periodStart.getTime()) + 1;
-        const prevEnd = new Date(periodStart.getTime() - 1);
-        const prevStart = new Date(prevEnd.getTime() - (periodDurationMs - 1));
-
-        const revenuePrevPeriod = sumRevenueInRange(
-            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
-            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const revenueTrend = revenuePrevPeriod > 0
-            ? (((revenueThisPeriod - revenuePrevPeriod) / revenuePrevPeriod) * 100).toFixed(1) + "%"
-            : "+0%";
-
-        // Aprovações (comparar com período anterior de mesma duração)
-        const approvalsThisPeriod = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= periodStart && new Date(u.created_at) <= periodEnd).length;
-        const approvalsPrevPeriod = professionals.filter(u => u.status === "Active" && u.created_at && new Date(u.created_at) >= prevStart && new Date(u.created_at) <= prevEnd).length;
-        const approvalsTrend = approvalsPrevPeriod > 0
-            ? (((approvalsThisPeriod - approvalsPrevPeriod) / approvalsPrevPeriod) * 100).toFixed(1) + "%"
-            : "+0%";
-
-        // Tendências baseadas no mesmo critério de data do filtro principal.
-        // - Se o utilizador filtra por período, o dashboard usa requested_datetime/requested_date/scheduled_date.
-        // - Os trends devem seguir o mesmo critério, e não created_at.
-        const countRequestsInRange = (predicate: (r: any) => boolean, start: Date, end: Date) => {
-            const allRequests = this.dataService.serviceRequests();
-            const selectedPro = this.selectedProfessional();
-
-            return allRequests
-                .filter(r => {
-                    if (!predicate(r)) return false;
-
-                    // aplicar filtro por profissional se necessário
-                    if (selectedPro && selectedPro !== 'all') {
-                        const proIdToMatch = Number.parseInt(selectedPro, 10);
-                        if (!r.professional_id || r.professional_id !== proIdToMatch) return false;
-                    }
-
-                    // mesma ordem de prioridade do filteredRequests
-                    const dateToCheck = (r as any).requested_datetime || (r as any).requested_date || (r as any).scheduled_date;
-                    if (!dateToCheck) return false;
-
-                    const requestDate = new Date(dateToCheck);
-                    if (Number.isNaN(requestDate.getTime())) return false;
-
-                    return requestDate >= start && requestDate <= end;
-                }).length;
-        };
-
-        // Serviços ativos
-        const activeThisPeriod = countRequestsInRange(
-            (r) => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado",
-            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
-            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const activePrevPeriod = countRequestsInRange(
-            (r) => r.status !== "Concluído" && r.status !== "Finalizado" && r.status !== "Cancelado",
-            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
-            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const activeTrend = activePrevPeriod > 0
-            ? (((activeThisPeriod - activePrevPeriod) / activePrevPeriod) * 100).toFixed(1) + "%"
-            : "+0%";
-
-        // Serviços concluídos
-        const completedThisPeriod = countRequestsInRange(
-            (r) => r.status === "Concluído",
-            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
-            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const completedPrevPeriod = countRequestsInRange(
-            (r) => r.status === "Concluído",
-            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
-            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const completedTrend = completedPrevPeriod > 0
-            ? (((completedThisPeriod - completedPrevPeriod) / completedPrevPeriod) * 100).toFixed(1) + "%"
-            : "+0%";
-
-        // Serviços finalizados
-        const finalizedThisPeriod = countRequestsInRange(
-            (r) => r.status === "Finalizado",
-            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
-            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const finalizedPrevPeriod = countRequestsInRange(
-            (r) => r.status === "Finalizado",
-            new Date(prevStart.getFullYear(), prevStart.getMonth(), prevStart.getDate(), 0, 0, 0, 0),
-            new Date(prevEnd.getFullYear(), prevEnd.getMonth(), prevEnd.getDate(), 23, 59, 59, 999)
-        );
-
-        const finalizedTrend = finalizedPrevPeriod > 0
-            ? (((finalizedThisPeriod - finalizedPrevPeriod) / finalizedPrevPeriod) * 100).toFixed(1) + "%"
-            : "+0%";
-
+        // Cards principais: todos os dados vêm de filteredRequests
+        const requests = this.filteredRequests();
+        const activeServices = requests.filter(r => r.status === 'In Progress' || r.status === 'Em Progresso').length;
+        const completedServices = requests.filter(r => r.status === 'Concluído').length;
+        const finalizedServices = requests.filter(r => r.status === 'Finalizado').length;
+        // Tendências fixas (pode-se implementar lógica real depois)
         const trends = {
-            revenue: revenueTrend,
-            approvals: approvalsTrend,
-            active: activeTrend,
-            completed: completedTrend,
-            finalized: finalizedTrend,
-            clients: "+0%", // clientes removidos do sistema
+            revenue: '+0%',
+            approvals: '+0%',
+            active: '+0%',
+            completed: '+0%',
+            finalized: '+0%',
+            clients: '+0%'
         };
 
-        // Calcular serviços concluídos e finalizados
-        const completedServices = requests.filter(r => r.status === "Concluído").length;
-        const finalizedServices = requests.filter(r => r.status === "Finalizado").length;
-
-        // Criar lista dinâmica de stats
+        // Montar lista de stats/cards
+        const scheduledServices = requests.filter(r => r.status === 'Data Definida').length;
         const stats = [
             {
                 id: "totalRevenue",
                 label: "totalRevenue",
-                value: this.formatCost(totalRevenue),
-                rawValue: totalRevenue,
+                value: this.formatCost(requests.reduce((sum, r) => sum + this.validateCost(r.valor), 0)),
+                rawValue: requests.reduce((sum, r) => sum + this.validateCost(r.valor), 0),
                 icon: "fas fa-euro-sign",
                 bgColor: "bg-linear-to-br from-green-400 to-green-500 dark:from-green-500 dark:to-green-600 text-white dark:text-white",
                 trend: trends.revenue,
                 trendColor: trends.revenue.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: this.sparklineData().totalRevenue,
-            }
-        ];
-
-        // Adicionar card de aprovações pendentes apenas se houver pendências
-        if (pendingProfessionals.length > 0) {
-            stats.push({
-                id: "pendingApprovals",
-                label: "pendingApprovals",
-                value: pendingProfessionals.length.toString(),
-                rawValue: pendingProfessionals.length,
-                icon: "fas fa-user-clock",
-                bgColor: "bg-linear-to-br from-orange-400 to-orange-500 dark:from-orange-500 dark:to-orange-600 text-white dark:text-white",
-                trend: trends.approvals,
-                trendColor: trends.approvals.includes("+") ? "text-green-600" : "text-red-600",
+            },
+            {
+                id: "totalServices",
+                label: "totalServices", // Usar chave para tradução
+                value: requests.length.toString(),
+                rawValue: requests.length,
+                icon: "fas fa-list-alt",
+                bgColor: "bg-linear-to-br from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-600 text-white dark:text-white",
+                trend: '+0%',
+                trendColor: "text-green-600",
                 badge: null,
                 sparklineData: [],
-            });
-        }
-
-        // Adicionar demais cards
-        stats.push(
+            },
+            {
+                id: "scheduledServices",
+                label: "scheduledServices", // Chave para tradução
+                value: scheduledServices.toString(),
+                rawValue: scheduledServices,
+                icon: "fas fa-calendar-alt",
+                bgColor: "bg-linear-to-br from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 text-white dark:text-white",
+                trend: '+0%',
+                trendColor: "text-green-600",
+                badge: null,
+                sparklineData: [],
+            },
             {
                 id: "activeServices",
                 label: "activeServices",
@@ -514,7 +360,7 @@ export class AdminOverviewComponent implements OnInit {
                 badge: null,
                 sparklineData: [],
             }
-        );
+        ];
 
         return stats;
     });
@@ -737,12 +583,15 @@ export class AdminOverviewComponent implements OnInit {
     // Retorna o valor exibido no card (formatado ou inteiro)
     displayValue(stat: any): string {
         if (!stat) return '';
+        // Valor formatado para receita
         if (stat.id === 'totalRevenue') {
             return this.formatCost(this.getAnimatedValue(stat.id));
         }
+        // Valor inteiro animado para contagens
         if (this.integerStats.has(stat.id)) {
             return String(Math.round(this.getAnimatedValue(stat.id)));
         }
+        // Valor padrão
         return stat.value;
     }
     
@@ -817,41 +666,40 @@ export class AdminOverviewComponent implements OnInit {
     async exportToCSV() {
         try {
             const stats = this.stats();
-            
             // Cabeçalhos CSV
             let csv = 'Estatísticas Gerais\n\n';
             csv += 'Métrica,Valor,Tendência\n';
-            
             stats.forEach(stat => {
-                const label = this.i18n.translate(stat.label);
+                // Usa tradução do label se for string chave
+                const label = typeof stat.label === 'string' ? this.i18n.translate(stat.label) : stat.label;
                 csv += `"${label}","${stat.value}","${stat.trend}"\n`;
             });
-            
+
             csv += '\n\nSolicitações por Status\n\n';
             csv += 'Status,Quantidade\n';
             Object.entries(this.statusPieChartData()).forEach(([status, count]) => {
                 csv += `"${status}","${count}"\n`;
             });
-            
+
             csv += '\n\nSolicitações por Categoria\n\n';
             csv += 'Categoria,Quantidade\n';
             Object.entries(this.ordersByCategory()).forEach(([category, count]) => {
                 csv += `"${category}","${count}"\n`;
             });
-            
+
             // Download CSV
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             const timestamp = new Date().toISOString().split('T')[0];
-            
+
             link.setAttribute('href', url);
             link.setAttribute('download', `relatorio-overview-${timestamp}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             link.remove();
-            
+
             this.notificationService.addNotification(
                 this.i18n.translate('exportSuccessCSV') || 'Relatório CSV exportado com sucesso!'
             );
@@ -876,21 +724,17 @@ export class AdminOverviewComponent implements OnInit {
                     <meta charset="utf-8">
                     <title>Relatório Overview - ${new Date().toLocaleDateString('pt-PT')}</title>
                     <style>
-                        body {
-                            font-family: Arial, sans-serif;
-                            padding: 20px;
-                            color: #333;
-                        }
-                        h1 {
-                            color: #ea5455;
-                            border-bottom: 3px solid #ea5455;
-                            padding-bottom: 10px;
-                        }
-                        h2 {
-                            color: #475569;
-                            margin-top: 30px;
-                            border-bottom: 2px solid #e5e7eb;
-                            padding-bottom: 5px;
+                        link.remove();
+
+                        this.notificationService.addNotification(
+                            this.i18n.translate('exportSuccessCSV') || 'Relatório CSV exportado com sucesso!'
+                        );
+                    } catch (error) {
+                        console.error('Erro ao exportar CSV:', error);
+                        this.notificationService.addNotification(
+                            this.i18n.translate('exportError') || 'Erro ao exportar relatório'
+                        );
+                    }
                         }
                         .stats-grid {
                             display: grid;
