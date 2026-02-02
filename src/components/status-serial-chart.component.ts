@@ -23,7 +23,7 @@ import {
                 [style.background]="'#FF3838'"
                 [title]="item.label + ': ' + item.value"
               ></div>
-              <span class="text-xs mt-1 text-center break-words max-w-[64px]">{{
+              <span class="text-xs mt-1 text-center wrap-break-word max-w-[64px]">{{
                 item.label
               }}</span>
               <span class="text-xs text-gray-600">{{ item.value }}</span>

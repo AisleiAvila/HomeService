@@ -16,7 +16,7 @@ import { I18nService } from "../i18n.service";
   imports: [],
   template: `
     <div
-      class="w-full max-w-xs md:max-w-md bg-gradient-to-br from-white to-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
+      class="w-full max-w-xs md:max-w-md bg-linear-to-br from-white to-gray-50 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mobile-safe flex flex-col items-center"
     >
       <div class="w-full flex justify-center items-center">
         <canvas

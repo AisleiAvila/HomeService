@@ -61,7 +61,7 @@ interface RouteInfo {
 
       <!-- Route Info -->
       @if (routeInfo() && !loading()) {
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+        <div class="bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
           <!-- Real-time Tracking Toggle -->
           <div class="mb-4">
             <button
@@ -162,7 +162,7 @@ interface RouteInfo {
                 @for (instruction of routeInfo()!.instructions; track $index) {
                   <div class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-brand-primary-600 font-semibold text-sm">
+                      <div class="shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-brand-primary-600 font-semibold text-sm">
                         {{ $index + 1 }}
                       </div>
                       <div class="flex-1">

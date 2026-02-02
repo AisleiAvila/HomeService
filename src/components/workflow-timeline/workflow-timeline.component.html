@@ -29,7 +29,7 @@
         @for (status of executedStatuses(); track status.timestamp + (status.userName || ''); let isLast = $last; let idx = $index) {
           <!-- Status Badge -->
           <div 
-            class="flex-shrink-0 flex flex-col items-center"
+            class="shrink-0 flex flex-col items-center"
           >
             <div
               class="flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap"
@@ -55,7 +55,7 @@
           
           <!-- Seta conectora (exceto no último) -->
           @if (!isLast) {
-            <i class="fas fa-arrow-right text-gray-400 dark:text-gray-500 flex-shrink-0"></i>
+            <i class="fas fa-arrow-right text-gray-400 dark:text-gray-500 shrink-0"></i>
           }
         }
       </div>

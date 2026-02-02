@@ -7,7 +7,7 @@ import { NotificationService } from '../../services/notification.service';
   standalone: true,
   imports: [],
   template: `
-    <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 w-80 pointer-events-none">
+    <div class="fixed top-4 right-4 z-9999 flex flex-col gap-2 w-80 pointer-events-none">
       @for (n of notifications(); track n) {
         <div
           class="bg-white border border-gray-200 shadow-lg rounded-lg px-4 py-3 text-gray-800 animate-fade-in pointer-events-auto"

@@ -21,7 +21,7 @@ import { I18nService } from "@/src/i18n.service";
   template: `
     @if (hasData()) {
       <div
-        class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
+        class="w-full bg-linear-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
         >
         <!-- Filtro de Período -->
         <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-3">
@@ -63,11 +63,11 @@ import { I18nService } from "@/src/i18n.service";
           @for (item of sortedChartData(); track item) {
             @if (item.value > 0) {
               <span
-                class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200"
-                [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
+                class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal wrap-break-word line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200"
+                [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal wrap-break-word line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
                 [style.background]="item.color"
                 >
-                <span class="font-bold text-xs sm:text-xs md:text-sm flex-shrink-0">●</span>
+                <span class="font-bold text-xs sm:text-xs md:text-sm shrink-0">●</span>
                 <span class="text-xs sm:text-xs md:text-sm truncate">{{ item.label }}: {{ formatValue(item.value) }}</span>
               </span>
             }

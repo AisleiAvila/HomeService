@@ -9,7 +9,7 @@
 } @else {
 <!-- Cabeçalho com controles -->
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-linear-to-r from-brand-primary-500 to-brand-primary-600">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-white flex items-center">
@@ -75,14 +75,14 @@
             [class]="'bg-white dark:bg-gray-800 rounded-xl shadow-sm flex flex-col transform transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer border border-gray-100 dark:border-gray-700 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 ' + (compactMode() ? 'p-3 min-h-[120px]' : 'p-5 min-h-[160px]')">
             
             <!-- Efeito de background -->
-            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white to-transparent dark:from-gray-900 dark:to-transparent opacity-20 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-white to-transparent dark:from-gray-900 dark:to-transparent opacity-20 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500"></div>
             
             <!-- Header com label e ícone -->
             <div class="flex items-start justify-between mb-2 relative z-10">
                 <p [class]="'font-medium truncate flex-1 pr-2 ' + (compactMode() ? 'text-xs' : 'text-sm') + ' text-gray-700 dark:text-gray-200'">
                     {{ stat.label | i18n }}
                 </p>
-                <div [class]="'rounded-lg flex-shrink-0 shadow-sm ' + stat.bgColor + (compactMode() ? ' p-1.5' : ' p-2.5')">
+                <div [class]="'rounded-lg shrink-0 shadow-sm ' + stat.bgColor + (compactMode() ? ' p-1.5' : ' p-2.5')">
                     <i [class]="stat.icon + (compactMode() ? ' text-sm' : ' text-base')"></i>
                 </div>
             </div>
@@ -140,7 +140,7 @@
             
             <!-- Badge -->
             @if (stat.badge) {
-                <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg animate-pulse z-20">
+                <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-bold text-white bg-linear-to-r from-red-500 to-red-600 rounded-full shadow-lg animate-pulse z-20">
                     {{ stat.badge }}
                 </span>
             }

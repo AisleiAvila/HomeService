@@ -125,8 +125,8 @@ export class InputComponent implements OnInit {
     const rightPadding = this.loading || this.success ? 'pr-10' : 'pr-4';
     
     const borderClasses = this.error
-      ? 'border-semantic-error focus:border-semantic-error focus:ring-2 focus:ring-semantic-error focus:ring-opacity-20'
-      : 'border-neutral-300 focus:border-brand-primary-500 focus:ring-2 focus:ring-brand-primary-500 focus:ring-opacity-20';
+      ? 'border-semantic-error focus:border-semantic-error focus:ring-2 focus:ring-semantic-error/20'
+      : 'border-neutral-300 focus:border-brand-primary-500 focus:ring-2 focus:ring-brand-primary-500/20';
 
     return `${baseClasses} ${leftPadding} ${rightPadding} ${borderClasses}`;
   }

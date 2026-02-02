@@ -22,7 +22,7 @@ export interface LoginPayload {
   imports: [CommonModule, FormsModule, I18nPipe],
   template: `
     <div
-      class="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-primary-100 via-white to-brand-primary-300 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 mobile-safe"
+      class="flex items-center justify-center min-h-screen bg-linear-to-br from-brand-primary-100 via-white to-brand-primary-300 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 mobile-safe"
       aria-label="Tela de login"
     >
       <div
@@ -157,7 +157,7 @@ export interface LoginPayload {
             <button
               type="submit"
               [disabled]="!email() || !password() || isLoading() || emailInvalid() || passwordInvalid()"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-gradient-to-r from-brand-primary-500 via-brand-primary-600 to-brand-primary-700 dark:from-brand-primary-600 dark:via-brand-primary-700 dark:to-brand-primary-800 hover:shadow-lg hover:scale-[1.02] dark:hover:shadow-brand-primary-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-400 dark:focus:ring-offset-neutral-800 disabled:bg-brand-primary-300 dark:disabled:bg-brand-primary-800 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-md text-base font-bold text-white bg-linear-to-r from-brand-primary-500 via-brand-primary-600 to-brand-primary-700 dark:from-brand-primary-600 dark:via-brand-primary-700 dark:to-brand-primary-800 hover:shadow-lg hover:scale-[1.02] dark:hover:shadow-brand-primary-500/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-400 dark:focus:ring-offset-neutral-800 disabled:bg-brand-primary-300 dark:disabled:bg-brand-primary-800 disabled:cursor-not-allowed disabled:hover:scale-100 transition-transform duration-150"
               style="text-decoration: none !important; border-bottom: none !important; box-shadow: none !important;"
               aria-label="{{ 'login' | i18n }}"
               tabindex="5"

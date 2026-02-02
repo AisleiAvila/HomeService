@@ -1,4 +1,4 @@
-<div class="flex flex-col min-h-screen bg-gradient-to-br from-brand-secondary-700 via-brand-secondary-600 to-brand-primary-600 text-white relative overflow-x-hidden mobile-safe">
+<div class="flex flex-col min-h-screen bg-linear-to-br from-brand-secondary-700 via-brand-secondary-600 to-brand-primary-600 text-white relative overflow-x-hidden mobile-safe">
   <!-- Efeito de textura/padrão de fundo -->
   <div class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMSI+PHBhdGggZD0iTTM2IDEzNGgxMnYxMkgzNnoiLz48L2c+PC9nPjwvc3ZnPg==')]"></div>
 
@@ -27,7 +27,7 @@
       <ng-content select="[language-switcher]"></ng-content>
       <button
         (click)="signIn.emit()"
-        class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 h-12 flex items-center justify-center whitespace-nowrap flex-shrink-0"
+        class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 h-12 flex items-center justify-center whitespace-nowrap shrink-0"
         aria-label="{{ 'signIn' | i18n }}"
         >
         <!-- Ícone login: porta com seta -->
@@ -81,7 +81,7 @@
       <!-- Diferenciais -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
@@ -90,7 +90,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
@@ -99,7 +99,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
           </svg>
           <div>
@@ -108,7 +108,7 @@
           </div>
         </div>
         <div class="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-          <svg class="w-6 h-6 text-brand-primary-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="w-6 h-6 text-brand-primary-400 shrink-0 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
           <div>
@@ -123,7 +123,7 @@
     <!-- Formulário de Contato-->
     <section
       id="contact"
-      class="bg-gradient-to-br from-white/20 via-blue-100/10 to-indigo-200/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-blue-500/20 hover:border-white/40"
+      class="bg-linear-to-br from-white/20 via-blue-100/10 to-indigo-200/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-blue-500/20 hover:border-white/40"
       >
       <h2 class="text-3xl font-serif font-bold mb-6 tracking-tight text-center flex items-center justify-center gap-3">
         <svg class="w-8 h-8 text-brand-primary-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -201,7 +201,7 @@
     </a>
 
     <!-- Rodapé -->
-    <footer class="w-full fixed bottom-0 left-0 z-40 bg-gradient-to-r from-brand-secondary-900/95 via-brand-secondary-800/95 to-brand-primary-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
+    <footer class="w-full fixed bottom-0 left-0 z-40 bg-linear-to-r from-brand-secondary-900/95 via-brand-secondary-800/95 to-brand-primary-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
       <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
         <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-4">
           <span class="font-semibold">&copy; {{ currentYear }} Natan Construtora</span>

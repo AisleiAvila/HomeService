@@ -69,7 +69,7 @@ import { I18nService } from "../i18n.service";
                     [style.background]="item.color"
                     [title]="item.label + ': ' + item.value + ' (' + item.percentage + '%)'"
                     >
-                    <span class="font-bold text-xs flex-shrink-0">●</span>
+                    <span class="font-bold text-xs shrink-0">●</span>
                     <span class="text-xs truncate">{{ item.label }}: {{ item.value }}</span>
                   </span>
                 }
@@ -143,7 +143,7 @@ export class StatusPieChartComponent {
     if (variant === "embedded") {
       return "w-full h-full flex flex-col";
     }
-    return "w-full mobile-safe bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-5";
+    return "w-full mobile-safe bg-linear-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-5";
   });
 
   // Função para calcular luminância de uma cor e determinar se precisa de texto claro ou escuro
