@@ -110,7 +110,7 @@
             }
             
             <!-- Separador para cards sem sparkline -->
-            @if (stat.id === 'completedServices' || stat.id === 'finalizedServices') {
+            @if (stat.id === 'completedServices' || stat.id === 'finalizedServices' || stat.id === 'totalServices' || stat.id === 'scheduledServices') {
                 <!-- Draw a flat sparkline canvas to match the visual separator used by other cards -->
                 <div class="mb-3 relative z-10 h-10">
                     <canvas
