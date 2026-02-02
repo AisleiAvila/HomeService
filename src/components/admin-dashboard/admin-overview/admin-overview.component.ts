@@ -282,11 +282,8 @@ export class AdminOverviewComponent implements OnInit {
         const clients: any[] = [];
 
         // Calculate financial stats with null safety
-        // Para calcular receita, usar completed_at (não requested_date) — respeita filtro de período/profissional
-        const completed = this.getCompletedRequestsFiltered().filter(
-            (r) => (r.status === "Concluído" || r.status === "Finalizado") && r.valor != null
-        );
-        const totalRevenue = completed.reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        // ✅ Receita Total deve considerar qualquer status da solicitação
+        // ✅ Para filtrar por período, usar requested_datetime (conforme solicitado)
 
         // NOTE: removed display of unpaid in-progress revenue from Total Revenue card
 
@@ -307,25 +304,28 @@ export class AdminOverviewComponent implements OnInit {
             const selectedPro = this.selectedProfessional();
 
             return allRequests
-                .filter(
-                    (r) =>
-                        !!r.completed_at &&
-                        (r.status === "Concluído" || r.status === "Finalizado") &&
-                        r.valor != null
-                )
-                .filter(r => {
+                .filter((r) => r.valor != null)
+                .filter((r) => {
                     // aplicar filtro por profissional se necessário
                     if (selectedPro && selectedPro !== 'all') {
                         const proIdToMatch = Number.parseInt(selectedPro, 10);
                         if (!r.professional_id || r.professional_id !== proIdToMatch) return false;
                     }
 
-                    const completed = new Date(r.completed_at as string);
-                    if (Number.isNaN(completed.getTime())) return false;
-                    return completed >= start && completed <= end;
+                    const requestedDateTime = (r as any).requested_datetime;
+                    if (!requestedDateTime) return false;
+
+                    const dt = new Date(requestedDateTime);
+                    if (Number.isNaN(dt.getTime())) return false;
+                    return dt >= start && dt <= end;
                 })
                 .reduce((sum, r) => sum + this.validateCost(r.valor), 0);
         };
+
+        const totalRevenue = sumRevenueInRange(
+            new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
+            new Date(periodEnd.getFullYear(), periodEnd.getMonth(), periodEnd.getDate(), 23, 59, 59, 999)
+        );
 
         const revenueThisPeriod = sumRevenueInRange(
             new Date(periodStart.getFullYear(), periodStart.getMonth(), periodStart.getDate(), 0, 0, 0, 0),
