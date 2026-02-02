@@ -224,23 +224,63 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         globalThis.window.removeEventListener("resize", this.handleResize);
     }
 
-    activeRequests = computed(() =>
-        this.dataService.serviceRequests().filter(
-            (r) =>
-                r.valor &&
-                r.status !== "Cancelado" &&
-                r.status !== ("Cancelled" as any) &&
-                r.status !== ("Canceled" as any)
-        )
-    );
+    private normalizeStatus(status: unknown): string {
+        if (status === null || status === undefined) {
+            return "";
+        }
+        if (typeof status === "string") {
+            return status.trim().toLowerCase();
+        }
+        if (typeof status === "number" || typeof status === "boolean" || typeof status === "bigint") {
+            return String(status).trim().toLowerCase();
+        }
+        return "";
+    }
 
-    completedRequests = computed(() =>
-        this.dataService.serviceRequests().filter(
-            (r) =>
-                (r.status === "Concluído" || r.status === "Finalizado") &&
-                r.valor
-        )
-    );
+    private isCancelledStatus(status: unknown): boolean {
+        const normalized = this.normalizeStatus(status);
+        return normalized === "cancelado" || normalized === "cancelled" || normalized === "canceled";
+    }
+
+    private isNotCancelledStatus(status: unknown): boolean {
+        const normalized = this.normalizeStatus(status);
+        return normalized !== "cancelado" && normalized !== "cancelled" && normalized !== "canceled";
+    }
+
+    private isCompletedStatus(status: unknown): boolean {
+        const normalized = this.normalizeStatus(status);
+        return (
+            normalized === "concluído" ||
+            normalized === "concluido" ||
+            normalized === "finalizado" ||
+            normalized === "completed" ||
+            normalized === "finalized"
+        );
+    }
+
+    private toLocalDateString(value: string): string | null {
+        const trimmed = value.trim();
+
+        // Evita o comportamento do JS onde new Date('YYYY-MM-DD') é interpretado como UTC
+        // (o que pode deslocar o dia em timezones negativos).
+        const ymdMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+        const parsed = ymdMatch
+            ? new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]))
+            : new Date(trimmed);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return null;
+        }
+
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, "0");
+        const day = String(parsed.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    activeRequests = computed(() => this.dataService.serviceRequests().filter((r) => this.isNotCancelledStatus(r.status)));
+
+    completedRequests = computed(() => this.dataService.serviceRequests().filter((r) => this.isCompletedStatus(r.status)));
 
     filteredRequests = computed(() => {
         const categoryId = this.categoryFilter();
@@ -1779,7 +1819,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     getCompletionDate(request: ServiceRequest): string | null {
-        return request.requested_datetime || null;
+        // Para consistência com a Visão Geral do profissional, filtra apenas por scheduled_start_datetime
+        return request.scheduled_start_datetime || null;
     }
 
     onCategoryFilterChange(value: string): void {
@@ -1803,14 +1844,19 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     onEmploymentFilterChange(value: string): void {
-        const normalized = value as "all" | "employee" | "independent";
-        this.employmentFilter.set(normalized);
+        if (value === "employee" || value === "independent" || value === "all") {
+            this.employmentFilter.set(value);
+        } else {
+            this.employmentFilter.set("all");
+        }
         this.resetPagination();
     }
 
     onStartDateChange(value: string): void {
         this.startDateFilter.set(value || null);
-        if (this.endDateFilter() && value && new Date(this.endDateFilter()) < new Date(value)) {
+        // As strings de input date estão em YYYY-MM-DD (ordenável lexicograficamente)
+        const endDate = this.endDateFilter();
+        if (endDate && value && endDate < value) {
             this.endDateFilter.set(null);
         }
         this.resetPagination();
@@ -1939,11 +1985,17 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         if (!completionDate) {
             return !startDate && !endDate;
         }
-        const date = new Date(completionDate);
-        if (startDate && date < new Date(startDate)) {
+
+        const completionDateStr = this.toLocalDateString(completionDate);
+        if (!completionDateStr) {
+            return !startDate && !endDate;
+        }
+
+        // Comparação por dia (YYYY-MM-DD) é inclusiva e evita problemas de hora/timezone.
+        if (startDate && completionDateStr < startDate) {
             return false;
         }
-        if (endDate && date > new Date(endDate)) {
+        if (endDate && completionDateStr > endDate) {
             return false;
         }
         return true;
