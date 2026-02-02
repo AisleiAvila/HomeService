@@ -12,27 +12,33 @@ const sgMail = require('@sendgrid/mail');
 const app = express();
 const PORT = process.env.PORT || 4001;
 
-// Substitua pela sua chave da SendGrid
-require('dotenv').config({ path: './.env' });
+// Carrega variáveis de ambiente (sem logar valores sensíveis)
+require('dotenv').config({ path: './.env', quiet: true });
 
 
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL;
 
-// Log para depuração: mostra início e tamanho da chave usada
-console.log('SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
-console.log('FROM_EMAIL:', process.env.FROM_EMAIL);
+const DEBUG_EMAIL_SERVER = process.env.DEBUG_EMAIL_SERVER === 'true';
 
-// Diagnóstico: logar variáveis de ambiente (parcialmente mascarado)
-if (SENDGRID_API_KEY) {
-  console.log('SENDGRID_API_KEY começa com:', SENDGRID_API_KEY.substring(0, 10), '... (tamanho:', SENDGRID_API_KEY.length, ')');
-} else {
-  console.error('ERRO: SENDGRID_API_KEY não definida!');
+// Log de diagnóstico (NUNCA imprimir segredos)
+const maskSecret = (value) => {
+  if (!value) return '(não definido)';
+  const str = String(value);
+  if (str.length <= 8) return '********';
+  return `${str.slice(0, 4)}...${str.slice(-4)}`;
+};
+
+if (DEBUG_EMAIL_SERVER) {
+  console.log('[email] SENDGRID_API_KEY:', maskSecret(SENDGRID_API_KEY));
+  console.log('[email] FROM_EMAIL:', FROM_EMAIL ? '(definido)' : '(não definido)');
 }
-if (FROM_EMAIL) {
-  console.log('FROM_EMAIL:', FROM_EMAIL);
-} else {
-  console.error('ERRO: FROM_EMAIL não definida!');
+
+if (!SENDGRID_API_KEY) {
+  console.error('[email] ERRO: SENDGRID_API_KEY não definida!');
+}
+if (!FROM_EMAIL) {
+  console.error('[email] ERRO: FROM_EMAIL não definida!');
 }
 
 sgMail.setApiKey(SENDGRID_API_KEY);
@@ -59,15 +65,23 @@ app.use(cors({
 app.use(express.json());
 
 app.post('/api/send-email', async (req, res) => {
-  console.log('Query recebida: ', req.query)
-  console.log('Corpo recebido:', req.body);
-  console.log('Detalhe dos parâmetros recebidos:');
-  console.log('to:', req.body.to, typeof req.body.to);
-  console.log('subject:', req.body.subject, typeof req.body.subject);
-  console.log('html:', req.body.html, typeof req.body.html);
-  console.log('token:', req.body.token, typeof req.body.token);
   const { to, subject, html, token, tempPassword } = req.body;
-  console.log('tempPassword recebido:', tempPassword, typeof tempPassword);
+
+  console.log('[email] /api/send-email', {
+    to,
+    subject: subject ? '(definido)' : '(não definido)',
+    hasHtml: Boolean(html),
+    hasToken: Boolean(token),
+    hasTempPassword: Boolean(tempPassword),
+  });
+
+  if (DEBUG_EMAIL_SERVER) {
+    console.log('[email][debug] detalhes', {
+      queryKeys: req.query ? Object.keys(req.query) : [],
+      htmlLength: typeof html === 'string' ? html.length : null,
+      tokenMasked: maskSecret(token),
+    });
+  }
   
   // Validação mínima - permitir envio sem token para reset de senha
   if (!to || !subject || !html) {

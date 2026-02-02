@@ -37,7 +37,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import ptBr from "@fullcalendar/core/locales/pt-br";
 import tippy from "tippy.js";
-import "tippy.js/dist/tippy.css";
 import { I18nService } from "@/src/i18n.service";
 import { formatInTimeZone } from "date-fns-tz";
 import { getServiceTimeZoneForRequest } from "@/src/utils/timezone-datetime";
