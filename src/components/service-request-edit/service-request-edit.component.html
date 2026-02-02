@@ -1,12 +1,12 @@
 <div class="w-full mobile-safe relative">
-  <ng-container *ngIf="loading">
+  @if (loading) {
     <div class="text-center text-gray-500 dark:text-gray-400 py-8">{{ 'loading' | i18n }}</div>
-  </ng-container>
-  <ng-container *ngIf="!loading">
-    <ng-container *ngIf="error">
+  }
+  @if (!loading) {
+    @if (error) {
       <div class="text-center text-red-600 dark:text-red-400 py-8">{{ error }}</div>
-    </ng-container>
-    <ng-container *ngIf="!error && request">
+    }
+    @if (!error && request) {
       <!-- Formulário Editar Solicitação de Serviço (estrutura igual à tela Nova Solicitação) -->
       <form #editForm="ngForm" (ngSubmit)="save()" class="w-full mobile-safe relative">
         <!-- Card Container -->
@@ -21,7 +21,6 @@
               {{ 'fillFormToEditRequest' | i18n }}
             </p>
           </div>
-          
           <!-- Content -->
           <div class="p-6 bg-white dark:bg-gray-800">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -33,12 +32,11 @@
                 </label>
                 <select id="edit-origin-id" name="origin_id" [(ngModel)]="request.origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   <option [ngValue]="null" disabled>{{ 'selectOrigin' | i18n }}</option>
-                  <ng-container *ngFor="let origin of origins; trackBy: trackOrigin">
+                  @for (origin of origins; track trackOrigin($index, origin)) {
                     <option [ngValue]="origin.id">{{ origin.name | i18n }}</option>
-                  </ng-container>
+                  }
                 </select>
               </div>
-              
               <!-- Campo OS (Ordem de Serviço) -->
               <div class="mb-4">
                 <label for="edit-os" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -48,7 +46,6 @@
                 <input type="text" id="edit-os" name="os" [(ngModel)]="request.os" pattern="[0-9]*" inputmode="numeric" maxlength="30" placeholder="Ex: 2816446" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
               </div>
             </div>
-            
             <!-- Categoria/Subcategoria -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -58,9 +55,9 @@
                 </label>
                 <select id="edit-category-id" name="category_id" [(ngModel)]="request.category_id" (change)="onCategoryChange($event)" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   <option [ngValue]="null" disabled>{{ 'selectCategory' | i18n }}</option>
-                  <ng-container *ngFor="let cat of categories(); trackBy: trackCategory">
+                  @for (cat of categories(); track trackCategory($index, cat)) {
                     <option [ngValue]="cat.id">{{ cat.name | i18n }}</option>
-                  </ng-container>
+                  }
                 </select>
               </div>
               <div>
@@ -70,9 +67,9 @@
                 </label>
                 <select id="edit-subcategory-id" name="subcategory_id" [(ngModel)]="request.subcategory_id" [disabled]="!request.category_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   <option [ngValue]="null" disabled>{{ 'selectSybcategory' | i18n }}</option>
-                  <ng-container *ngFor="let sub of subcategories(); trackBy: trackSubcategory">
+                  @for (sub of subcategories(); track trackSubcategory($index, sub)) {
                     <option [ngValue]="sub.id">{{ sub.name | i18n }}</option>
-                  </ng-container>
+                  }
                 </select>
               </div>
             </div>
@@ -93,7 +90,7 @@
                 <input id="edit-valor-prestador" type="number" name="valor_prestador" [(ngModel)]="request.valor_prestador" min="0.01" step="0.01" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
               </div>
             </div>
-              <!-- Informações do Solicitante -->
+            <!-- Informações do Solicitante -->
             <div class="flex items-center gap-2 mb-4">
               <i class="fas fa-user-circle text-brand-primary-600"></i>
               <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'requesterInformation' | i18n }}</h3>
@@ -128,7 +125,7 @@
               </label>
               <input id="edit-email-client" type="email" name="email_client" [(ngModel)]="request.email_client" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
             </div>
-              <!-- Detalhes do Serviço -->
+            <!-- Detalhes do Serviço -->
             <div class="flex items-center gap-2 mb-4">
               <i class="fas fa-file-alt text-brand-primary-600"></i>
               <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'serviceDetails' | i18n }}</h3>
@@ -178,7 +175,7 @@
               </label>
               <textarea id="edit-admin-notes" name="admin_notes" [(ngModel)]="request.admin_notes" rows="3" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
             </div>
-              <!-- Endereço -->
+            <!-- Endereço -->
             <div class="flex items-center gap-2 mb-4">
               <i class="fas fa-map-marker-alt text-brand-primary-600"></i>
               <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ 'address' | i18n }}</h3>
@@ -245,18 +242,22 @@
               </div>
             </div>
             <!-- Mensagens de erro/sucesso -->
-            <div *ngIf="error" class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
-              <div class="flex items-center text-red-800 dark:text-red-200">
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                <span class="text-sm font-medium">{{ error }}</span>
+            @if (error) {
+              <div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-6">
+                <div class="flex items-center text-red-800 dark:text-red-200">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>
+                  <span class="text-sm font-medium">{{ error }}</span>
+                </div>
               </div>
-            </div>
-            <div *ngIf="formError()" class="bg-orange-50 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 rounded-lg p-4 mb-4">
-              <div class="flex items-center text-orange-800 dark:text-orange-200">
-                <i class="fas fa-info-circle mr-2"></i>
-                <span class="text-sm font-medium">{{ formError() }}</span>
+            }
+            @if (formError()) {
+              <div class="bg-orange-50 dark:bg-orange-900 border border-orange-200 dark:border-orange-700 rounded-lg p-4 mb-4">
+                <div class="flex items-center text-orange-800 dark:text-orange-200">
+                  <i class="fas fa-info-circle mr-2"></i>
+                  <span class="text-sm font-medium">{{ formError() }}</span>
+                </div>
               </div>
-            </div>
+            }
           </div>
           <!-- Botões -->
           <div class="px-6 py-5 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
@@ -273,7 +274,7 @@
           </div>
         </div>
       </form>
-    </ng-container>
-  </ng-container>
+    }
+  }
 </div>
 

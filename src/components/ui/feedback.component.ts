@@ -1,41 +1,46 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 type FeedbackType = 'success' | 'error' | 'warning' | 'info';
 
 @Component({
   selector: 'app-alert',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
-    <div *ngIf="visible" [class]="alertClasses" role="alert">
-      <div class="flex items-start gap-4">
-        <!-- Icon -->
-        <i [class]="iconClasses" [attr.aria-hidden]="'true'"></i>
-
-        <!-- Content -->
-        <div class="flex-1">
-          <h3 *ngIf="title" [class]="titleClasses">
-            {{ title }}
-          </h3>
-          <p *ngIf="message" [class]="messageClasses">
-            {{ message }}
-          </p>
-          <ng-content></ng-content>
+    @if (visible) {
+      <div [class]="alertClasses" role="alert">
+        <div class="flex items-start gap-4">
+          <!-- Icon -->
+          <i [class]="iconClasses" [attr.aria-hidden]="'true'"></i>
+          <!-- Content -->
+          <div class="flex-1">
+            @if (title) {
+              <h3 [class]="titleClasses">
+                {{ title }}
+              </h3>
+            }
+            @if (message) {
+              <p [class]="messageClasses">
+                {{ message }}
+              </p>
+            }
+            <ng-content></ng-content>
+          </div>
+          <!-- Close button -->
+          @if (closeable) {
+            <button
+              (click)="closed.emit()"
+              class="text-inherit hover:opacity-70 transition-opacity"
+              [attr.aria-label]="'Fechar ' + type"
+              >
+              <i class="fas fa-times"></i>
+            </button>
+          }
         </div>
-
-        <!-- Close button -->
-        <button
-          *ngIf="closeable"
-          (click)="closed.emit()"
-          class="text-inherit hover:opacity-70 transition-opacity"
-          [attr.aria-label]="'Fechar ' + type"
-        >
-          <i class="fas fa-times"></i>
-        </button>
       </div>
-    </div>
-  `,
+    }
+    `,
   styles: []
 })
 export class AlertComponent implements OnInit {
@@ -95,32 +100,40 @@ export class AlertComponent implements OnInit {
 @Component({
   selector: 'app-loading',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div [class]="loadingClasses">
       <!-- Spinner -->
-      <div *ngIf="type === 'spinner'" class="relative w-12 h-12">
-        <i class="fas fa-spinner fa-spin text-4xl text-brand-primary-500"></i>
-      </div>
-
+      @if (type === 'spinner') {
+        <div class="relative w-12 h-12">
+          <i class="fas fa-spinner fa-spin text-4xl text-brand-primary-500"></i>
+        </div>
+      }
+    
       <!-- Dots -->
-      <div *ngIf="type === 'dots'" class="flex gap-2">
-        <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0s"></div>
-        <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0.2s"></div>
-        <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0.4s"></div>
-      </div>
-
+      @if (type === 'dots') {
+        <div class="flex gap-2">
+          <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0s"></div>
+          <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0.2s"></div>
+          <div class="w-3 h-3 rounded-full bg-brand-primary-500 animate-bounce" style="animation-delay: 0.4s"></div>
+        </div>
+      }
+    
       <!-- Progress bar -->
-      <div *ngIf="type === 'progress'" class="w-full h-1 bg-neutral-200 rounded-full overflow-hidden">
-        <div class="h-full bg-brand-primary-500 animate-pulse" [style.width]="progress + '%'"></div>
-      </div>
-
+      @if (type === 'progress') {
+        <div class="w-full h-1 bg-neutral-200 rounded-full overflow-hidden">
+          <div class="h-full bg-brand-primary-500 animate-pulse" [style.width]="progress + '%'"></div>
+        </div>
+      }
+    
       <!-- Text -->
-      <p *ngIf="text" class="mt-4 text-sm text-neutral-600 text-center">
-        {{ text }}
-      </p>
+      @if (text) {
+        <p class="mt-4 text-sm text-neutral-600 text-center">
+          {{ text }}
+        </p>
+      }
     </div>
-  `,
+    `,
   styles: []
 })
 export class LoadingComponent {

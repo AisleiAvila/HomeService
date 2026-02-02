@@ -1,5 +1,5 @@
 import { Component, input, signal, inject, computed, OnInit, viewChild, ElementRef, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { WorkflowServiceSimplified } from '../../services/workflow-simplified.service';
 import { ServiceRequestImage } from '../../models/maintenance.models';
@@ -10,7 +10,7 @@ import { NotificationService } from '../../services/notification.service';
 @Component({
   selector: 'app-service-images',
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: './service-images.component.html',
   styleUrls: ['./service-images.component.css'],
 })

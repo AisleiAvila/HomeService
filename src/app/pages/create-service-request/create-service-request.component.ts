@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { Router } from "@angular/router";
 import { ServiceRequestFormComponent } from "../../../components/service-request-form/service-request-form.component";
 
 @Component({
   selector: 'app-create-service-request',
   standalone: true,
-  imports: [CommonModule, ServiceRequestFormComponent],
+  imports: [ServiceRequestFormComponent],
   template: `
     <div class="min-w-0 overflow-hidden">
       <app-service-request-form

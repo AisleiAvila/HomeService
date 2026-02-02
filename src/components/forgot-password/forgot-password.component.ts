@@ -7,7 +7,7 @@ import {
   input,
   effect,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { AuthService } from "../../services/auth.service";
@@ -16,7 +16,7 @@ import { NotificationService } from "../../services/notification.service";
 @Component({
   selector: "app-forgot-password",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./forgot-password.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

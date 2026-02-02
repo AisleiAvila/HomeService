@@ -9,77 +9,77 @@ import {
   ElementRef,
   ViewChild,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { I18nService } from "../i18n.service";
 
   @Component({
   selector: "app-status-pie-chart",
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     @if (hasData()) {
-    <div
-      [class]="containerClasses()"
-    >
-      <div class="flex-1 flex flex-col">
-        <!-- Título do gráfico -->
-        @if (showTitle()) {
-          <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-            <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400"></i>
-            <span>{{ title() }}</span>
-          </h3>
-        }
-
-        <!-- Conteúdo do gráfico e legendas alinhados -->
-        <div class="flex-1 flex flex-col gap-2" [class.mt-2]="!showTitle()">
-          <!-- Canvas do gráfico - centrado com proporção mantida -->
-          <div class="flex-1 flex justify-center items-center w-full pb-1">
-            <div class="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
-              <canvas
-                #pieCanvas
-                class="w-full h-auto cursor-pointer"
-                width="400"
-                height="400"
-                (mousemove)="onMouseMove($event)"
-                (mouseleave)="onMouseLeave()"
-              ></canvas>
-              
-              <!-- Tooltip -->
-              @if(hoveredSegment()) {
-                <div 
-                  class="absolute bg-gray-900 dark:bg-gray-700 text-white px-3 py-2 rounded-lg shadow-xl text-xs sm:text-sm font-medium pointer-events-none z-10 transition-all duration-200"
-                  [style.left.px]="tooltipPosition().x"
-                  [style.top.px]="tooltipPosition().y"
-                >
-                  <div class="font-bold">{{ hoveredSegment()!.label }}</div>
-                  <div class="text-xs mt-1">
-                    {{ hoveredSegment()!.value }} ({{ hoveredSegment()!.percentage }}%)
+      <div
+        [class]="containerClasses()"
+        >
+        <div class="flex-1 flex flex-col">
+          <!-- Título do gráfico -->
+          @if (showTitle()) {
+            <h3 class="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <i class="fas fa-chart-pie text-brand-primary-500 dark:text-brand-primary-400"></i>
+              <span>{{ title() }}</span>
+            </h3>
+          }
+    
+          <!-- Conteúdo do gráfico e legendas alinhados -->
+          <div class="flex-1 flex flex-col gap-2" [class.mt-2]="!showTitle()">
+            <!-- Canvas do gráfico - centrado com proporção mantida -->
+            <div class="flex-1 flex justify-center items-center w-full pb-1">
+              <div class="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
+                <canvas
+                  #pieCanvas
+                  class="w-full h-auto cursor-pointer"
+                  width="400"
+                  height="400"
+                  (mousemove)="onMouseMove($event)"
+                  (mouseleave)="onMouseLeave()"
+                ></canvas>
+    
+                <!-- Tooltip -->
+                @if(hoveredSegment()) {
+                  <div
+                    class="absolute bg-gray-900 dark:bg-gray-700 text-white px-3 py-2 rounded-lg shadow-xl text-xs sm:text-sm font-medium pointer-events-none z-10 transition-all duration-200"
+                    [style.left.px]="tooltipPosition().x"
+                    [style.top.px]="tooltipPosition().y"
+                    >
+                    <div class="font-bold">{{ hoveredSegment()!.label }}</div>
+                    <div class="text-xs mt-1">
+                      {{ hoveredSegment()!.value }} ({{ hoveredSegment()!.percentage }}%)
+                    </div>
                   </div>
-                </div>
+                }
+              </div>
+            </div>
+    
+            <!-- Legendas com percentuais - Grid compacto -->
+            <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-1">
+              @for (item of chartData(); track item) {
+                @if (item.value > 0) {
+                  <span
+                    [class]="'px-2.5 py-1.5 rounded text-xs font-semibold shadow transition-transform hover:scale-105 cursor-default inline-flex items-center gap-1.5 truncate border border-opacity-30 dark:border-white ' + getTextColor(item.color)"
+                    [style.background]="item.color"
+                    [title]="item.label + ': ' + item.value + ' (' + item.percentage + '%)'"
+                    >
+                    <span class="font-bold text-xs flex-shrink-0">●</span>
+                    <span class="text-xs truncate">{{ item.label }}: {{ item.value }}</span>
+                  </span>
+                }
               }
             </div>
           </div>
-          
-          <!-- Legendas com percentuais - Grid compacto -->
-          <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-1">
-            <ng-container *ngFor="let item of chartData()">
-              @if (item.value > 0) {
-                <span
-                  [class]="'px-2.5 py-1.5 rounded text-xs font-semibold shadow transition-transform hover:scale-105 cursor-default inline-flex items-center gap-1.5 truncate border border-opacity-30 dark:border-white ' + getTextColor(item.color)"
-                  [style.background]="item.color"
-                  [title]="item.label + ': ' + item.value + ' (' + item.percentage + '%)'"
-                >
-                  <span class="font-bold text-xs flex-shrink-0">●</span>
-                  <span class="text-xs truncate">{{ item.label }}: {{ item.value }}</span>
-                </span>
-              }
-            </ng-container>
-          </div>
         </div>
       </div>
-    </div>
     }
-  `,
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusPieChartComponent {

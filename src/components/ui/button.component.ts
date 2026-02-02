@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -7,7 +7,7 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <button
       [type]="type"
@@ -16,20 +16,30 @@ type ButtonSize = 'sm' | 'md' | 'lg';
       (click)="clicked.emit()"
       [attr.aria-busy]="loading"
       [attr.aria-label]="ariaLabel"
-    >
+      >
       <!-- Loading spinner -->
-      <div *ngIf="loading" class="inline-flex items-center gap-2">
-        <i class="fas fa-spinner fa-spin"></i>
-        <span *ngIf="!iconOnly">{{ loadingText }}</span>
-      </div>
-
+      @if (loading) {
+        <div class="inline-flex items-center gap-2">
+          <i class="fas fa-spinner fa-spin"></i>
+          @if (!iconOnly) {
+            <span>{{ loadingText }}</span>
+          }
+        </div>
+      }
+    
       <!-- Normal state -->
-      <div *ngIf="!loading" class="flex items-center justify-center gap-2">
-        <i *ngIf="icon" [class]="icon"></i>
-        <span *ngIf="!iconOnly"><ng-content></ng-content></span>
-      </div>
+      @if (!loading) {
+        <div class="flex items-center justify-center gap-2">
+          @if (icon) {
+            <i [class]="icon"></i>
+          }
+          @if (!iconOnly) {
+            <span><ng-content></ng-content></span>
+          }
+        </div>
+      }
     </button>
-  `,
+    `,
   styles: []
 })
 export class ButtonComponent {

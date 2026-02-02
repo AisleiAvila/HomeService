@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -33,7 +33,7 @@ type ReportResponse = {
 @Component({
   selector: "app-technical-report-sign",
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, I18nPipe],
+  imports: [RouterModule, FormsModule, I18nPipe],
   templateUrl: "./technical-report-sign.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

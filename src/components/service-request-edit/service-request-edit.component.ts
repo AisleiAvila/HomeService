@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { I18nPipe } from '../../pipes/i18n.pipe';
@@ -16,7 +16,7 @@ import {
 @Component({
   selector: 'app-service-request-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: './service-request-edit.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

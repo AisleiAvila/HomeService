@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 
 type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
@@ -7,20 +7,26 @@ type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'sea
 @Component({
   selector: 'app-input',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
     <div class="space-y-2">
       <!-- Label -->
-      <label *ngIf="label" [for]="id" class="block text-sm font-medium" [class]="labelClass">
-        {{ label }}
-        <span *ngIf="required" class="text-semantic-error">*</span>
-      </label>
-
+      @if (label) {
+        <label [for]="id" class="block text-sm font-medium" [class]="labelClass">
+          {{ label }}
+          @if (required) {
+            <span class="text-semantic-error">*</span>
+          }
+        </label>
+      }
+    
       <!-- Input wrapper com ícones -->
       <div class="relative">
         <!-- Ícone esquerdo -->
-        <i *ngIf="iconLeft" [class]="'absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 ' + iconClass"></i>
-
+        @if (iconLeft) {
+          <i [class]="'absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 ' + iconClass"></i>
+        }
+    
         <!-- Input -->
         <input
           [type]="type"
@@ -37,32 +43,42 @@ type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'sea
           [attr.aria-label]="ariaLabel"
           [attr.aria-invalid]="error ? 'true' : 'false'"
           [attr.aria-describedby]="error ? id + '-error' : undefined"
-        />
-
-        <!-- Ícone direito (loading/check) -->
-        <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-          <i *ngIf="loading" class="fas fa-spinner fa-spin text-brand-primary-500"></i>
-          <i *ngIf="!loading && success" class="fas fa-check-circle text-green-500"></i>
+          />
+    
+          <!-- Ícone direito (loading/check) -->
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            @if (loading) {
+              <i class="fas fa-spinner fa-spin text-brand-primary-500"></i>
+            }
+            @if (!loading && success) {
+              <i class="fas fa-check-circle text-green-500"></i>
+            }
+          </div>
         </div>
+    
+        <!-- Helper text -->
+        @if (helperText && !error) {
+          <p class="text-xs text-neutral-600">
+            {{ helperText }}
+          </p>
+        }
+    
+        <!-- Error message -->
+        @if (error) {
+          <p [id]="id + '-error'" class="text-sm text-semantic-error font-medium">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ error }}
+          </p>
+        }
+    
+        <!-- Character count -->
+        @if (maxLength) {
+          <p class="text-xs text-neutral-500 text-right">
+            {{ value.length }}/{{ maxLength }}
+          </p>
+        }
       </div>
-
-      <!-- Helper text -->
-      <p *ngIf="helperText && !error" class="text-xs text-neutral-600">
-        {{ helperText }}
-      </p>
-
-      <!-- Error message -->
-      <p *ngIf="error" [id]="id + '-error'" class="text-sm text-semantic-error font-medium">
-        <i class="fas fa-exclamation-circle mr-1"></i>
-        {{ error }}
-      </p>
-
-      <!-- Character count -->
-      <p *ngIf="maxLength" class="text-xs text-neutral-500 text-right">
-        {{ value.length }}/{{ maxLength }}
-      </p>
-    </div>
-  `,
+    `,
   styles: []
 })
 export class InputComponent implements OnInit {

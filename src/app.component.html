@@ -1,21 +1,22 @@
 <app-notification-toast />
 
 <!-- Spinner global para transições (ex: login) -->
-<div *ngIf="isAppLoading()" class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
-  <i class="fas fa-spinner fa-spin text-brand-primary-600 text-5xl" aria-label="Carregando"></i>
-</div>
-<ng-container [ngSwitch]="view()">
+@if (isAppLoading()) {
+  <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80">
+    <i class="fas fa-spinner fa-spin text-brand-primary-600 text-5xl" aria-label="Carregando"></i>
+  </div>
+}
+@switch (view()) {
   <!-- Landing -->
-  <ng-container *ngSwitchCase="'landing'">
+  @case ('landing') {
     <div class="relative w-full h-full mobile-safe">
       <app-landing (signIn)="showLogin()" (createAccount)="showRegister()">
         <app-language-switcher [theme]="authTheme()" language-switcher />
       </app-landing>
     </div>
-  </ng-container>
-
+  }
   <!-- Login -->
-  <ng-container *ngSwitchCase="'login'">
+  @case ('login') {
     <div class="relative w-full h-full">
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
@@ -23,10 +24,9 @@
       <app-login #loginComponent (loggedIn)="handleLogin($event)" (switchToRegister)="showRegister()"
         (switchToLanding)="showLanding()" (forgotPassword)="handleForgotPassword($event)" />
     </div>
-  </ng-container>
-
+  }
   <!-- Register -->
-  <ng-container *ngSwitchCase="'register'">
+  @case ('register') {
     <div class="relative w-full h-full">
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
@@ -34,16 +34,14 @@
       <app-register (registered)="handleRegister($event)" (switchToLogin)="showLogin()"
         (switchToLanding)="showLanding()" />
     </div>
-  </ng-container>
-
+  }
   <!-- Verification -->
-  <ng-container *ngSwitchCase="'verification'">
+  @case ('verification') {
     <app-verification [email]="emailForVerification()" (verified)="handleVerification($event)"
       (resendCode)="handleResendVerification()" (backToLanding)="handleBackToLanding()" />
-  </ng-container>
-
+  }
   <!-- Forgot password -->
-  <ng-container *ngSwitchCase="'forgot-password'">
+  @case ('forgot-password') {
     <div class="relative w-full h-full">
       <div class="absolute top-4 right-4 z-10">
         <app-language-switcher [theme]="authTheme()" />
@@ -51,16 +49,14 @@
       <app-forgot-password [initialEmail]="emailForPasswordReset()"
         (codeRequested)="handleForgotPasswordCodeRequested($event)" (backToLogin)="showLogin()" />
     </div>
-  </ng-container>
-
+  }
   <!-- Reset password -->
-  <ng-container *ngSwitchCase="'reset-password'">
+  @case ('reset-password') {
     <app-reset-password [initialEmail]="emailForPasswordReset()"
       (passwordResetComplete)="handlePasswordResetComplete()" />
-  </ng-container>
-
+  }
   <!-- App -->
-  <ng-container *ngSwitchCase="'app'">
+  @case ('app') {
     <div class="flex h-screen bg-gray-100 dark:bg-neutral-900 text-gray-800 dark:text-neutral-50 overflow-hidden mobile-safe">
       <!-- Sidebar (desktop) -->
       <aside
@@ -70,27 +66,32 @@
           <img [src]="logoUrl" alt="Natan General Service" class="h-8 w-auto" />
         </div>
         <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral">
-          <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
+          @for (item of navItems(); track item) {
+<button (click)="navigate(item.id)" [class]="
               currentNav() === item.id
                 ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 dark:bg-neutral-700 text-gray-900 dark:text-neutral-50'
                 : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 dark:text-neutral-400 hover:bg-gray-50 dark:hover:bg-neutral-700'
             " [ngClass]="{ 'justify-center': isSidebarCollapsed() }">
-            <i [class]="item.icon"></i>
-            <span class="transition-all" [class.hidden]="isSidebarCollapsed()">{{ item.labelKey | i18n }}</span>
-          </button>
+              <i [class]="item.icon"></i>
+              <span class="transition-all" [class.hidden]="isSidebarCollapsed()">{{ item.labelKey | i18n }}</span>
+            </button>
+          }
         </nav>
         <!-- Bloco de perfil do usuário -->
         <div class="flex flex-col items-start gap-2 pt-4 pb-2 border-t border-gray-100">
           <img [src]="currentUser()?.avatar_url || 'assets/logo-new.png'" alt="Avatar do usuário"
             class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
-          <span *ngIf="!isSidebarCollapsed()"
-            class="font-semibold text-sm text-gray-800 dark:text-neutral-50 text-center truncate max-w-[120px]">{{ currentUser()?.name
+          @if (!isSidebarCollapsed()) {
+            <span
+              class="font-semibold text-sm text-gray-800 dark:text-neutral-50 text-center truncate max-w-[120px]">{{ currentUser()?.name
             }}</span>
-          <span *ngIf="!isSidebarCollapsed()" class="text-xs text-gray-500 dark:text-neutral-400 text-center">{{ currentUser()?.role | i18n
+          }
+          @if (!isSidebarCollapsed()) {
+            <span class="text-xs text-gray-500 dark:text-neutral-400 text-center">{{ currentUser()?.role | i18n
             }}</span>
+          }
         </div>
       </aside>
-
       <!-- Main column -->
       <div class="flex-1 flex flex-col min-w-0" style="overflow:visible;">
         <header class="bg-white dark:bg-neutral-800 shadow-sm px-4 py-3 flex items-center justify-between z-20 relative flex-shrink-0 min-h-[60px]" style="overflow:visible;">
@@ -119,51 +120,46 @@
             </button>
           </div>
         </header>
-
-
-
         <main class="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-gray-100 dark:bg-neutral-900">
           <router-outlet (activate)="onActivate($event)" (deactivate)="onDeactivate($event)"></router-outlet>
-          <ng-container *ngIf="!isRouterOutletActivated">
-            <ng-container [ngSwitch]="currentNav()">
-              <ng-container *ngSwitchCase="'dashboard'">
+          @if (!isRouterOutletActivated) {
+            @switch (currentNav()) {
+              @case ('dashboard') {
                 <!-- Dashboard do Admin -->
-                <ng-container *ngIf="currentUser()?.role === 'admin'">
+                @if (currentUser()?.role === 'admin') {
                   <!-- Admin Dashboard is now routed -->
-                </ng-container>
+                }
                 <!-- Dashboard de Profissional -->
-                <ng-container *ngIf="currentUser()?.role === 'professional'">
+                @if (currentUser()?.role === 'professional') {
                   <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
                     (openChat)="openChat($event)" (payNow)="handlePayment($event)"
                     (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
-              </ng-container>
-              </ng-container>
-              <ng-container *ngSwitchCase="'schedule'">
+                }
+              }
+              @case ('schedule') {
                 <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
-              </ng-container>
-
-              <ng-container *ngSwitchCase="'daily-mileage'">
+              }
+              @case ('daily-mileage') {
                 <app-daily-mileage />
-              </ng-container>
-
-              <ng-container *ngSwitchCase="'profile'">
+              }
+              @case ('profile') {
                 <app-profile [user]="currentUser()!" />
-              </ng-container>
-              <ng-container *ngSwitchCase="'details'">
-                <ng-container *ngIf="selectedRequest()">
-                  <app-service-request-details 
-                    [requestInput]="selectedRequest()!" 
+              }
+              @case ('details') {
+                @if (selectedRequest()) {
+                  <app-service-request-details
+                    [requestInput]="selectedRequest()!"
                     [currentUserInput]="currentUser()!"
-                    (closeDetails)="goBackFromDetails()" 
+                    (closeDetails)="goBackFromDetails()"
                     (openChat)="openChat($event)"
-                    (scheduleRequest)="openScheduler($event)" 
+                    (scheduleRequest)="openScheduler($event)"
                     (payNow)="handlePayment($event)"
                     (refreshRequest)="handleRefreshRequest()" />
-                </ng-container>
-              </ng-container>
-            </ng-container>
+                }
+              }
+            }
             <!-- Modal de confirmação de deleção de categoria -->
-            <ng-container *ngIf="categoryManagement?.showDeleteModal()">
+            @if (categoryManagement?.showDeleteModal()) {
               <app-modal [isVisible]="true" [title]="'delete' | i18n" [message]="
                   i18n.translate('confirmDeleteCategory', {
                     category: categoryManagement?.categoryToDelete()?.name || ''
@@ -178,49 +174,51 @@
                   {{ "cancel" | i18n }}
                 </button>
               </app-modal>
-            </ng-container>
-          </ng-container>
+            }
+          }
         </main>
       </div>
-
       <!-- Sidebar (mobile off-canvas) -->
-      <div class="md:hidden" *ngIf="isSidebarOpen()">
-        <div class="fixed inset-0 bg-black/40 z-40" (click)="toggleSidebar()" (keydown.enter)="toggleSidebar()"
+      @if (isSidebarOpen()) {
+        <div class="md:hidden">
+          <div class="fixed inset-0 bg-black/40 z-40" (click)="toggleSidebar()" (keydown.enter)="toggleSidebar()"
           aria-label="Fechar menu lateral"></div>
-        <aside class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
-          aria-label="Menu lateral de navegação (mobile)">
-          <div class="h-16 flex items-center px-4 border-b border-gray-200 justify-between">
-            <img [src]="logoUrl" alt="Natan General Service" class="h-8 w-auto" />
-            <button class="p-2" (click)="toggleSidebar()">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral (mobile)">
-            <button *ngFor="let item of navItems()" (click)="navigate(item.id)" [class]="
+          <aside class="fixed inset-y-0 left-0 w-64 bg-white z-50 shadow-lg flex flex-col"
+            aria-label="Menu lateral de navegação (mobile)">
+            <div class="h-16 flex items-center px-4 border-b border-gray-200 justify-between">
+              <img [src]="logoUrl" alt="Natan General Service" class="h-8 w-auto" />
+              <button class="p-2" (click)="toggleSidebar()">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <nav class="flex-1 overflow-y-auto p-2 space-y-1" aria-label="Navegação principal do menu lateral (mobile)">
+              @for (item of navItems(); track item) {
+<button (click)="navigate(item.id)" [class]="
                 currentNav() === item.id
                   ? 'w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 text-gray-900'
                   : 'w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50'
               ">
-              <i [class]="item.icon"></i>
-              <span>{{ item.labelKey | i18n }}</span>
-            </button>
-          </nav>
-          <!-- Bloco de perfil do usuário (mobile) -->
-          <div class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100">
-            <img [src]="currentUser()?.avatar_url || 'assets/logo-new.png'" alt="Avatar do usuário"
-              class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
-            <span class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
+                  <i [class]="item.icon"></i>
+                  <span>{{ item.labelKey | i18n }}</span>
+                </button>
+              }
+            </nav>
+            <!-- Bloco de perfil do usuário (mobile) -->
+            <div class="flex flex-col items-center gap-2 pt-4 pb-2 border-t border-gray-100">
+              <img [src]="currentUser()?.avatar_url || 'assets/logo-new.png'" alt="Avatar do usuário"
+                class="w-12 h-12 rounded-full object-cover border border-gray-300 shadow-sm" />
+              <span class="font-semibold text-sm text-gray-800 text-center truncate max-w-[120px]">{{ currentUser()?.name
               }}</span>
-            <span class="text-xs text-gray-500 text-center">{{
-              currentUser()?.role | i18n
+              <span class="text-xs text-gray-500 text-center">{{
+                currentUser()?.role | i18n
               }}</span>
-          </div>
-        </aside>
-      </div>
+            </div>
+          </aside>
+        </div>
+      }
     </div>
-
     <!-- Modals Layer (somente no modo app) -->
-    <ng-container *ngIf="isChatOpen() && selectedRequest()">
+    @if (isChatOpen() && selectedRequest()) {
       <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
         aria-label="Fechar modal de chat">
         <div class="modal-content max-w-2xl h-3/4" (click)="$event.stopPropagation()"
@@ -228,8 +226,8 @@
           <app-chat [currentUser]="currentUser()!" [serviceRequest]="selectedRequest()!" (close)="closeModal()" />
         </div>
       </div>
-    </ng-container>
-    <ng-container *ngIf="isSchedulerOpen() && selectedRequest()">
+    }
+    @if (isSchedulerOpen() && selectedRequest()) {
       <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
         aria-label="Fechar modal de agendamento">
         <div class="modal-content" (click)="$event.stopPropagation()"
@@ -238,6 +236,6 @@
             (appointmentConfirmed)="handleScheduleConfirmed($event)" />
         </div>
       </div>
-    </ng-container>
-  </ng-container>
-</ng-container>
+    }
+  }
+}

@@ -1,821 +1,816 @@
 <!-- Área de Gerenciamento Principal -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md" *ngIf="!editingClient()">
+@if (!editingClient()) {
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
     <!-- Cabeçalho com gradiente, ícone e título -->
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600" *ngIf="!showAddClientForm()">
+    @if (!showAddClientForm()) {
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-users mr-3"></i>
-                    {{ "manageClients" | i18n }}
-                </h2>
-                <p class="text-brand-primary-200 text-sm mt-1">
-                    {{ "manageAllClientsDesc" | i18n }}
-                </p>
-            </div>
-            <button (click)="toggleAddClientForm()"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
-                <i class="fas fa-plus"></i>
-                <span>{{ "addClient" | i18n }}</span>
-            </button>
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center">
+              <i class="fas fa-users mr-3"></i>
+              {{ "manageClients" | i18n }}
+            </h2>
+            <p class="text-brand-primary-200 text-sm mt-1">
+              {{ "manageAllClientsDesc" | i18n }}
+            </p>
+          </div>
+          <button (click)="toggleAddClientForm()"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
+            <i class="fas fa-plus"></i>
+            <span>{{ "addClient" | i18n }}</span>
+          </button>
         </div>
-    </div>
-
+      </div>
+    }
     <!-- Estatísticas -->
-    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="!showAddClientForm()">
+    @if (!showAddClientForm()) {
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalUsers' | i18n }}</p>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ totalUsers() }}</p>
-                    </div>
-                    <i class="fas fa-users text-brand-primary-500 text-2xl"></i>
-                </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalUsers' | i18n }}</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ totalUsers() }}</p>
+              </div>
+              <i class="fas fa-users text-brand-primary-500 text-2xl"></i>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'active' | i18n }}</p>
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalActive() }}</p>
-                    </div>
-                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
-                </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'active' | i18n }}</p>
+                <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalActive() }}</p>
+              </div>
+              <i class="fas fa-check-circle text-green-500 text-2xl"></i>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'inactive' | i18n }}</p>
-                        <p class="text-2xl font-bold text-gray-600 dark:text-gray-400">{{ totalInactive() }}</p>
-                    </div>
-                    <i class="fas fa-ban text-gray-500 text-2xl"></i>
-                </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'inactive' | i18n }}</p>
+                <p class="text-2xl font-bold text-gray-600 dark:text-gray-400">{{ totalInactive() }}</p>
+              </div>
+              <i class="fas fa-ban text-gray-500 text-2xl"></i>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalProfessionals' | i18n }}</p>
-                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ totalProfessionals() }}</p>
-                    </div>
-                    <i class="fas fa-user-tie text-blue-500 text-2xl"></i>
-                </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalProfessionals' | i18n }}</p>
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ totalProfessionals() }}</p>
+              </div>
+              <i class="fas fa-user-tie text-blue-500 text-2xl"></i>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalContractedProfessionals' | i18n }}</p>
-                        <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ totalContractedProfessionals() }}</p>
-                    </div>
-                    <i class="fas fa-building text-purple-500 text-2xl"></i>
-                </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalContractedProfessionals' | i18n }}</p>
+                <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ totalContractedProfessionals() }}</p>
+              </div>
+              <i class="fas fa-building text-purple-500 text-2xl"></i>
             </div>
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalServiceProviderProfessionals' | i18n }}</p>
-                        <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ totalServiceProviderProfessionals() }}</p>
-                    </div>
-                    <i class="fas fa-tools text-orange-500 text-2xl"></i>
-                </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ 'totalServiceProviderProfessionals' | i18n }}</p>
+                <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ totalServiceProviderProfessionals() }}</p>
+              </div>
+              <i class="fas fa-tools text-orange-500 text-2xl"></i>
             </div>
+          </div>
         </div>
-    </div>
-
+      </div>
+    }
     <!-- Filtros e Busca -->
-    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700" *ngIf="!showAddClientForm()">
+    @if (!showAddClientForm()) {
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
         <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <!-- Busca -->
-            <div>
-                <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
-                </label>
-                <input id="searchInput" type="text" 
-                    [ngModel]="searchTerm()" 
-                    (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
-                    [placeholder]="'searchNameEmail' | i18n"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
-            </div>
-
-            <!-- Filtro Role -->
-            <div>
-                <label for="filterRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <i class="fas fa-user-tag mr-1"></i>{{ 'profileType' | i18n }}
-                </label>
-                <select id="filterRole" [ngModel]="filterRole()" 
-                    (ngModelChange)="filterRole.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
-                    <option value="all">{{ 'all' | i18n }}</option>
-                    <option value="professional">{{ 'professional' | i18n }}</option>
-                    <option value="admin">{{ 'admin' | i18n }}</option>
-                </select>
-            </div>
-
-            <!-- Filtro Status -->
-            <div>
-                <label for="filterStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <i class="fas fa-filter mr-1"></i>{{ 'status' | i18n }}
-                </label>
-                <select id="filterStatus" [ngModel]="filterStatus()" 
-                    (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
-                    <option value="all">{{ 'all' | i18n }}</option>
-                    <option value="Active">{{ 'active' | i18n }}</option>
-                    <option value="Inactive">{{ 'inactive' | i18n }}</option>
-                    <option value="Pending">{{ 'pending' | i18n }}</option>
-                </select>
-            </div>
-
-            <!-- Filtro Especialidade -->
-            <div>
-                <label for="filterSpecialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <i class="fas fa-tools mr-1"></i>{{ 'specialties' | i18n }}
-                </label>
-                <select id="filterSpecialty" [ngModel]="filterSpecialty()"
-                    (ngModelChange)="filterSpecialty.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
-                    <option [ngValue]="'all'">{{ 'allSpecialties' | i18n }}</option>
-                    @for (category of categories(); track category.id) {
-                        <option [ngValue]="category.id">{{ category.name }}</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Filtro Modalidade -->
-            <div>
-                <label for="filterModality" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    <i class="fas fa-briefcase mr-1"></i>{{ 'isNatanEmployee' | i18n }}
-                </label>
-                <select id="filterModality" [ngModel]="filterModality()" 
-                    (ngModelChange)="filterModality.set($event); currentPage.set(1)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
-                    <option value="all">{{ 'all' | i18n }}</option>
-                    <option value="contracted">{{ 'natanEmployeeYes' | i18n }}</option>
-                    <option value="service_provider">{{ 'natanEmployeeNo' | i18n }}</option>
-                </select>
-            </div>
+          <!-- Busca -->
+          <div>
+            <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <i class="fas fa-search mr-1"></i>{{ 'search' | i18n }}
+            </label>
+            <input id="searchInput" type="text"
+              [ngModel]="searchTerm()"
+              (ngModelChange)="searchTerm.set($event); currentPage.set(1)"
+              [placeholder]="'searchNameEmail' | i18n"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+          </div>
+          <!-- Filtro Role -->
+          <div>
+            <label for="filterRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <i class="fas fa-user-tag mr-1"></i>{{ 'profileType' | i18n }}
+            </label>
+            <select id="filterRole" [ngModel]="filterRole()"
+              (ngModelChange)="filterRole.set($event); currentPage.set(1)"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+              <option value="all">{{ 'all' | i18n }}</option>
+              <option value="professional">{{ 'professional' | i18n }}</option>
+              <option value="admin">{{ 'admin' | i18n }}</option>
+            </select>
+          </div>
+          <!-- Filtro Status -->
+          <div>
+            <label for="filterStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <i class="fas fa-filter mr-1"></i>{{ 'status' | i18n }}
+            </label>
+            <select id="filterStatus" [ngModel]="filterStatus()"
+              (ngModelChange)="filterStatus.set($event); currentPage.set(1)"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+              <option value="all">{{ 'all' | i18n }}</option>
+              <option value="Active">{{ 'active' | i18n }}</option>
+              <option value="Inactive">{{ 'inactive' | i18n }}</option>
+              <option value="Pending">{{ 'pending' | i18n }}</option>
+            </select>
+          </div>
+          <!-- Filtro Especialidade -->
+          <div>
+            <label for="filterSpecialty" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <i class="fas fa-tools mr-1"></i>{{ 'specialties' | i18n }}
+            </label>
+            <select id="filterSpecialty" [ngModel]="filterSpecialty()"
+              (ngModelChange)="filterSpecialty.set($event); currentPage.set(1)"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+              <option [ngValue]="'all'">{{ 'allSpecialties' | i18n }}</option>
+              @for (category of categories(); track category.id) {
+                <option [ngValue]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+          <!-- Filtro Modalidade -->
+          <div>
+            <label for="filterModality" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <i class="fas fa-briefcase mr-1"></i>{{ 'isNatanEmployee' | i18n }}
+            </label>
+            <select id="filterModality" [ngModel]="filterModality()"
+              (ngModelChange)="filterModality.set($event); currentPage.set(1)"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
+              <option value="all">{{ 'all' | i18n }}</option>
+              <option value="contracted">{{ 'natanEmployeeYes' | i18n }}</option>
+              <option value="service_provider">{{ 'natanEmployeeNo' | i18n }}</option>
+            </select>
+          </div>
         </div>
-
         <!-- Botão Limpar Filtros -->
         @if(searchTerm() || filterRole() !== 'all' || filterStatus() !== 'all' || filterSpecialty() !== 'all' || filterModality() !== 'all') {
-        <div class="mt-3">
+          <div class="mt-3">
             <button (click)="clearFilters()"
-                class="text-sm text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 font-medium">
-                <i class="fas fa-times-circle mr-1"></i>{{ 'clearFilters' | i18n }}
+              class="text-sm text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 font-medium">
+              <i class="fas fa-times-circle mr-1"></i>{{ 'clearFilters' | i18n }}
             </button>
-        </div>
+          </div>
         }
-    </div>
-    
+      </div>
+    }
     <!-- Formulário de Cadastro -->
     @if(showAddClientForm()) {
-    <!-- Cabeçalho do Formulário -->
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
+      <!-- Cabeçalho do Formulário -->
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-user-plus mr-3"></i>
-                    {{ "addNewClient" | i18n }}
-                </h2>
-                <p class="text-brand-primary-200 text-sm mt-1">
-                    {{ "addNewClientDesc" | i18n }}
-                </p>
-            </div>
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center">
+              <i class="fas fa-user-plus mr-3"></i>
+              {{ "addNewClient" | i18n }}
+            </h2>
+            <p class="text-brand-primary-200 text-sm mt-1">
+              {{ "addNewClientDesc" | i18n }}
+            </p>
+          </div>
         </div>
-    </div>
-    
-    <!-- Conteúdo do Formulário -->
-    <div class="p-6 bg-gray-50 dark:bg-gray-700">
+      </div>
+      <!-- Conteúdo do Formulário -->
+      <div class="p-6 bg-gray-50 dark:bg-gray-700">
         <div class="space-y-4">
+          <div>
+            <label for="newClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ "name" | i18n }}
+            </label>
+            <input id="newClientName" type="text" [ngModel]="newClientName()" (ngModelChange)="newClientName.set($event)"
+              [placeholder]="'name' | i18n"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+          </div>
+          <div>
+            <label for="newClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ "email" | i18n }}
+            </label>
+            <input id="newClientEmail" type="email" [ngModel]="newClientEmail()" (ngModelChange)="newClientEmail.set($event)"
+              [placeholder]="'email' | i18n"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+          </div>
+          <div>
+            <label for="newClientPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ "phone" | i18n }} <span class="text-red-500">*</span>
+            </label>
+            <input id="newClientPhone" type="tel" [ngModel]="newClientPhone()" (ngModelChange)="newClientPhone.set($event)"
+              [placeholder]="'+351 96000-3323' | i18n"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ 'phoneFormatPortugal' | i18n }}</p>
+          </div>
+          <div>
+            <label for="newClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ "profileType" | i18n }}
+            </label>
+            <select id="newClientRole" [ngModel]="newClientRole()" (ngModelChange)="newClientRole.set($event)"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
+              @for(roleOption of availableRoles; track roleOption) {
+                <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
+              }
+            </select>
+          </div>
+          <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
+          @if (newClientRole() === 'professional') {
             <div>
-                <label for="newClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "name" | i18n }}
-                </label>
-                <input id="newClientName" type="text" [ngModel]="newClientName()" (ngModelChange)="newClientName.set($event)"
-                    [placeholder]="'name' | i18n" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
+              <!-- Especialidades -->
+              <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {{ 'specialties' | i18n }}
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                @if (categories() && categories().length > 0) {
+                  @for (cat of categories(); track trackByCategoryId($index, cat)) {
+                    <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <input
+                        type="checkbox"
+                        [checked]="isNewSpecialtySelected(cat)"
+                        (change)="onNewSpecialtyToggle(cat, $event)"
+                        class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                    </label>
+                  }
+                } @else {
+                  <span class="text-sm text-gray-400">{{ 'noCategoriesAvailable' | i18n }}</span>
+                }
+              </div>
+              <!-- Campo de vínculo com Natan Construtora -->
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [checked]="newClientIsNatanEmployee()"
+                  (change)="newClientIsNatanEmployee.set($any($event.target).checked)"
+                  class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                  aria-label="{{ 'isNatanEmployee' | i18n }}" />
+                <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                  {{ "natanEmployeeYes" | i18n }}
+                </span>
+              </label>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ newClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
+              </p>
             </div>
-            
-            <div>
-                <label for="newClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "email" | i18n }}
-                </label>
-                <input id="newClientEmail" type="email" [ngModel]="newClientEmail()" (ngModelChange)="newClientEmail.set($event)"
-                    [placeholder]="'email' | i18n" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
-            </div>
-            
-            <div>
-                <label for="newClientPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "phone" | i18n }} <span class="text-red-500">*</span>
-                </label>
-                <input id="newClientPhone" type="tel" [ngModel]="newClientPhone()" (ngModelChange)="newClientPhone.set($event)"
-                    [placeholder]="'+351 96000-3323' | i18n" 
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" />
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ 'phoneFormatPortugal' | i18n }}</p>
-            </div>
-            
-            <div>
-                <label for="newClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "profileType" | i18n }}
-                </label>
-                <select id="newClientRole" [ngModel]="newClientRole()" (ngModelChange)="newClientRole.set($event)"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    @for(roleOption of availableRoles; track roleOption) {
-                        <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
-
-            <div *ngIf="newClientRole() === 'professional'">
-                <!-- Especialidades -->
-                <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ 'specialties' | i18n }}
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
-                    <ng-container *ngIf="categories() && categories().length > 0; else noCategoriesAdd">
-                        <ng-container *ngFor="let cat of categories(); trackBy: trackByCategoryId">
-                            <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    [checked]="isNewSpecialtySelected(cat)"
-                                    (change)="onNewSpecialtyToggle(cat, $event)"
-                                    class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
-                            </label>
-                        </ng-container>
-                    </ng-container>
-                    <ng-template #noCategoriesAdd>
-                        <span class="text-sm text-gray-400">{{ 'noCategoriesAvailable' | i18n }}</span>
-                    </ng-template>
-                </div>
-                <!-- Campo de vínculo com Natan Construtora -->
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        [checked]="newClientIsNatanEmployee()"
-                        (change)="newClientIsNatanEmployee.set($any($event.target).checked)"
-                        class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                        aria-label="{{ 'isNatanEmployee' | i18n }}" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {{ "natanEmployeeYes" | i18n }}
-                    </span>
-                </label>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ newClientIsNatanEmployee() ? ("natanEmployeeYes" | i18n) : ("natanEmployeeNo" | i18n) }}
-                </p>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-                <button (click)="resetNewClientForm()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
-                </button>
-                <button (click)="addClient()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 transition-colors shadow-md">
-                    <i class="fas fa-save mr-2"></i>{{ "add" | i18n }}
-                </button>
-            </div>
+          }
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+            <button (click)="resetNewClientForm()"
+              class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
+            </button>
+            <button (click)="addClient()"
+              class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600 transition-colors shadow-md">
+              <i class="fas fa-save mr-2"></i>{{ "add" | i18n }}
+            </button>
+          </div>
         </div>
-    </div>
+      </div>
     }
-
     <!-- Desktop Table View -->
-    <div class="hidden lg:block" *ngIf="!showAddClientForm()">
+    @if (!showAddClientForm()) {
+      <div class="hidden lg:block">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 tracking-wider cursor-pointer select-none" 
-                        tabindex="0" 
-                        (click)="setSort('name')" 
-                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
-                        {{ "name" | i18n }}
-                        <span *ngIf="sortColumn() === 'name'">
-                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
-                        </span>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
-                        tabindex="0" 
-                        (click)="setSort('email')" 
-                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
-                        {{ "email" | i18n }}
-                        <span *ngIf="sortColumn() === 'email'">
-                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
-                        </span>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
-                        tabindex="0" 
-                        (click)="setSort('role')" 
-                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('role')">
-                        {{ "profileType" | i18n }}
-                        <span *ngIf="sortColumn() === 'role'">
-                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
-                        </span>
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider">
-                        {{ 'specialties' | i18n }}
-                    </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none" 
-                        tabindex="0" 
-                        (click)="setSort('status')" 
-                        (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('status')">
-                        {{ "status" | i18n }}
-                        <span *ngIf="sortColumn() === 'status'">
-                            <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
-                        </span>
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                        {{ "action" | i18n }}
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                @for(client of clients(); track client.id) {
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        <div class="flex items-center gap-3">
-                            @if (client.avatar_url) {
-                            <img [src]="client.avatar_url" [alt]="client.name"
-                                class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
-                                loading="lazy" />
-                            } @else {
-                            <div class="w-8 h-8 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center shrink-0">
-                                <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-sm"></i>
-                            </div>
-                            }
-                            <span>{{ client.name }}</span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                        {{ client.email }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-1 text-xs rounded-full" 
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 tracking-wider cursor-pointer select-none"
+                tabindex="0"
+                (click)="setSort('name')"
+                (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('name')">
+                {{ "name" | i18n }}
+                @if (sortColumn() === 'name') {
+                  <span>
+                    <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                  </span>
+                }
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none"
+                tabindex="0"
+                (click)="setSort('email')"
+                (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('email')">
+                {{ "email" | i18n }}
+                @if (sortColumn() === 'email') {
+                  <span>
+                    <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                  </span>
+                }
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none"
+                tabindex="0"
+                (click)="setSort('role')"
+                (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('role')">
+                {{ "profileType" | i18n }}
+                @if (sortColumn() === 'role') {
+                  <span>
+                    <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                  </span>
+                }
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider">
+                {{ 'specialties' | i18n }}
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-brand-primary-700 tracking-wider cursor-pointer select-none"
+                tabindex="0"
+                (click)="setSort('status')"
+                (keydown)="($event.key === 'Enter' || $event.key === ' ') && setSort('status')">
+                {{ "status" | i18n }}
+                @if (sortColumn() === 'status') {
+                  <span>
+                    <i [ngClass]="sortDirection() === 'asc' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+                  </span>
+                }
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                {{ "action" | i18n }}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            @for(client of clients(); track client.id) {
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div class="flex items-center gap-3">
+                    @if (client.avatar_url) {
+                      <img [src]="client.avatar_url" [alt]="client.name"
+                        class="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+                        loading="lazy" />
+                    } @else {
+                      <div class="w-8 h-8 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center shrink-0">
+                        <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-sm"></i>
+                      </div>
+                    }
+                    <span>{{ client.name }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  {{ client.email }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <span class="px-2 py-1 text-xs rounded-full"
                             [ngClass]="{
                                 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional',
                                 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
                             }">
-                            {{ getRoleLabel(client.role) }}
-                            @if (client.role === 'professional') {
-                            <span class="ml-1 text-xs opacity-75">
-                                ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
-                            </span>
-                            }
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm">
-                        @if (client.role === 'professional') {
-                        @let specialtyList = getProfessionalSpecialties(client);
-                        @if (specialtyList.length > 0) {
-                        <div class="flex flex-wrap gap-1">
-                            @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
-                            <span class="px-2 py-0.5 text-xs rounded-full bg-brand-primary-50 dark:bg-gray-800 text-brand-primary-700 dark:text-brand-primary-300 border border-brand-primary-200 dark:border-gray-700">
-                                {{ specialty.name }}
-                            </span>
-                            }
-                            @if (specialtyList.length > 2) {
-                            <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                                +{{ specialtyList.length - 2 }}
-                            </span>
-                            }
-                        </div>
-                        } @else {
-                        <span class="text-gray-400 dark:text-gray-500">-</span>
+                    {{ getRoleLabel(client.role) }}
+                    @if (client.role === 'professional') {
+                      <span class="ml-1 text-xs opacity-75">
+                        ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
+                      </span>
+                    }
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm">
+                  @if (client.role === 'professional') {
+                    @let specialtyList = getProfessionalSpecialties(client);
+                    @if (specialtyList.length > 0) {
+                      <div class="flex flex-wrap gap-1">
+                        @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
+                          <span class="px-2 py-0.5 text-xs rounded-full bg-brand-primary-50 dark:bg-gray-800 text-brand-primary-700 dark:text-brand-primary-300 border border-brand-primary-200 dark:border-gray-700">
+                            {{ specialty.name }}
+                          </span>
                         }
-                        } @else {
-                        <span class="text-gray-400 dark:text-gray-500">-</span>
+                        @if (specialtyList.length > 2) {
+                          <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                            +{{ specialtyList.length - 2 }}
+                          </span>
                         }
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 py-1 text-xs rounded-full" 
+                      </div>
+                    } @else {
+                      <span class="text-gray-400 dark:text-gray-500">-</span>
+                    }
+                  } @else {
+                    <span class="text-gray-400 dark:text-gray-500">-</span>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <span class="px-2 py-1 text-xs rounded-full"
                             [ngClass]="{
                                 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': client.status === 'Active',
                                 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': client.status === 'Inactive',
                                 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': client.status === 'Pending',
                                 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.status === 'Rejected'
                             }">
-                            {{ client.status }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <div class="flex items-center space-x-2">
-                            <button (click)="viewClientDetails(client)"
-                                class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
-                                title="{{ 'viewDetails' | i18n }}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button (click)="startEditClient(client)"
-                                class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
-                                title="{{ 'edit' | i18n }}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            @if(client.status === 'Inactive') {
-                            <button (click)="confirmReactivateClient(client)"
-                                class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
-                                title="{{ 'activate' | i18n }}">
-                                <i class="fas fa-check-circle"></i>
-                            </button>
-                            } @else {
-                            <button (click)="confirmDeleteClient(client)"
-                                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
-                                title="{{ 'deactivate' | i18n }}">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                            }
-                        </div>
-                    </td>
-                </tr>
-                }
-            </tbody>
-        </table>
-        
-        <!-- Paginação Desktop -->
-        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 dark:bg-gray-800 border-t border-brand-primary-200 dark:border-gray-700">
-            <div class="text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 px-6 py-2">
-                {{ 'totalRecords' | i18n }}: {{ filteredClients().length }}
-            </div>
-            <div class="flex items-center gap-2">
-                <button (click)="prevPage()" 
-                    [disabled]="currentPage() === 1" 
-                    class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
-                    &lt;
-                </button>
-                <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
-                <button (click)="nextPage()" 
-                    [disabled]="currentPage() === totalPages()" 
-                    class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
-                    &gt;
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mobile Card View -->
-    <div class="lg:hidden p-4 space-y-4" *ngIf="!showAddClientForm()">
-        @for(client of clients(); track client.id) {
-        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
-            <!-- Header with name and edit button -->
-            <div class="flex justify-between items-start">
-                <div class="flex items-center flex-1">
-                    @if (client.avatar_url) {
-                    <img [src]="client.avatar_url" [alt]="client.name"
-                        class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-600 mr-3 shrink-0"
-                        loading="lazy" />
-                    } @else {
-                    <div class="h-10 w-10 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center mr-3 shrink-0">
-                        <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400"></i>
-                    </div>
-                    }
-                    <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                            {{ client.name }}
-                        </h4>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ getRoleLabel(client.role) }}
-                            @if (client.role === 'professional') {
-                            <span class="ml-1 text-xs opacity-75">
-                                ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
-                            </span>
-                            }
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1">
+                    {{ client.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <div class="flex items-center space-x-2">
                     <button (click)="viewClientDetails(client)"
-                        class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
-                        title="{{ 'viewDetails' | i18n }}">
-                        <i class="fas fa-eye text-sm"></i>
+                      class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                      title="{{ 'viewDetails' | i18n }}">
+                      <i class="fas fa-eye"></i>
                     </button>
                     <button (click)="startEditClient(client)"
-                        class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
-                        title="{{ 'edit' | i18n }}">
-                        <i class="fas fa-edit text-sm"></i>
+                      class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                      title="{{ 'edit' | i18n }}">
+                      <i class="fas fa-edit"></i>
                     </button>
                     @if(client.status === 'Inactive') {
-                    <button (click)="confirmReactivateClient(client)"
+                      <button (click)="confirmReactivateClient(client)"
                         class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
                         title="{{ 'activate' | i18n }}">
-                        <i class="fas fa-check-circle text-sm"></i>
-                    </button>
+                        <i class="fas fa-check-circle"></i>
+                      </button>
                     } @else {
-                    <button (click)="confirmDeleteClient(client)"
+                      <button (click)="confirmDeleteClient(client)"
                         class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
                         title="{{ 'deactivate' | i18n }}">
-                        <i class="fas fa-ban text-sm"></i>
-                    </button>
+                        <i class="fas fa-ban"></i>
+                      </button>
                     }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <!-- Paginação Desktop -->
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-2 py-4 bg-brand-primary-50 dark:bg-gray-800 border-t border-brand-primary-200 dark:border-gray-700">
+          <div class="text-xs font-bold text-brand-primary-700 dark:text-brand-primary-400 px-6 py-2">
+            {{ 'totalRecords' | i18n }}: {{ filteredClients().length }}
+          </div>
+          <div class="flex items-center gap-2">
+            <button (click)="prevPage()"
+              [disabled]="currentPage() === 1"
+              class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
+              &lt;
+            </button>
+            <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
+            <button (click)="nextPage()"
+              [disabled]="currentPage() === totalPages()"
+              class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
+              &gt;
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+    <!-- Mobile Card View -->
+    @if (!showAddClientForm()) {
+      <div class="lg:hidden p-4 space-y-4">
+        @for(client of clients(); track client.id) {
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+            <!-- Header with name and edit button -->
+            <div class="flex justify-between items-start">
+              <div class="flex items-center flex-1">
+                @if (client.avatar_url) {
+                  <img [src]="client.avatar_url" [alt]="client.name"
+                    class="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-600 mr-3 shrink-0"
+                    loading="lazy" />
+                } @else {
+                  <div class="h-10 w-10 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center mr-3 shrink-0">
+                    <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400"></i>
+                  </div>
+                }
+                <div class="flex-1">
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {{ client.name }}
+                  </h4>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ getRoleLabel(client.role) }}
+                    @if (client.role === 'professional') {
+                      <span class="ml-1 text-xs opacity-75">
+                        ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
+                      </span>
+                    }
+                  </p>
                 </div>
+              </div>
+              <div class="flex items-center space-x-1">
+                <button (click)="viewClientDetails(client)"
+                  class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                  title="{{ 'viewDetails' | i18n }}">
+                  <i class="fas fa-eye text-sm"></i>
+                </button>
+                <button (click)="startEditClient(client)"
+                  class="p-2 text-brand-primary-600 hover:text-brand-primary-800 hover:bg-brand-primary-50 rounded-full transition-colors duration-200"
+                  title="{{ 'edit' | i18n }}">
+                  <i class="fas fa-edit text-sm"></i>
+                </button>
+                @if(client.status === 'Inactive') {
+                  <button (click)="confirmReactivateClient(client)"
+                    class="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors duration-200"
+                    title="{{ 'activate' | i18n }}">
+                    <i class="fas fa-check-circle text-sm"></i>
+                  </button>
+                } @else {
+                  <button (click)="confirmDeleteClient(client)"
+                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-200"
+                    title="{{ 'deactivate' | i18n }}">
+                    <i class="fas fa-ban text-sm"></i>
+                  </button>
+                }
+              </div>
             </div>
-
             <!-- Contact info -->
             <div class="space-y-2 text-sm">
-                <div class="flex items-center">
-                    <i class="fas fa-envelope text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
-                    <span class="text-gray-900 dark:text-gray-100">{{ client.email }}</span>
-                </div>
-                <div class="flex items-center">
-                    <i class="fas fa-circle-dot text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
-                    <span class="px-2 py-1 text-xs rounded-full" 
+              <div class="flex items-center">
+                <i class="fas fa-envelope text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
+                <span class="text-gray-900 dark:text-gray-100">{{ client.email }}</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-circle-dot text-gray-400 dark:text-gray-500 w-4 mr-2"></i>
+                <span class="px-2 py-1 text-xs rounded-full"
                         [ngClass]="{
                             'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': client.status === 'Active',
                             'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': client.status === 'Inactive',
                             'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': client.status === 'Pending',
                             'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.status === 'Rejected'
                         }">
-                        {{ client.status }}
-                    </span>
-                </div>
-                @if (client.role === 'professional') {
+                  {{ client.status }}
+                </span>
+              </div>
+              @if (client.role === 'professional') {
                 @let specialtyList = getProfessionalSpecialties(client);
                 <div class="flex items-start">
-                    <i class="fas fa-tools text-gray-400 dark:text-gray-500 w-4 mr-2 mt-0.5"></i>
-                    @if (specialtyList.length > 0) {
+                  <i class="fas fa-tools text-gray-400 dark:text-gray-500 w-4 mr-2 mt-0.5"></i>
+                  @if (specialtyList.length > 0) {
                     <div class="flex flex-wrap gap-1">
-                        @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
+                      @for (specialty of specialtyList.slice(0, 2); track specialty.id) {
                         <span class="px-2 py-0.5 text-xs rounded-full bg-brand-primary-50 dark:bg-gray-800 text-brand-primary-700 dark:text-brand-primary-300 border border-brand-primary-200 dark:border-gray-700">
-                            {{ specialty.name }}
+                          {{ specialty.name }}
                         </span>
-                        }
-                        @if (specialtyList.length > 2) {
+                      }
+                      @if (specialtyList.length > 2) {
                         <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
-                            +{{ specialtyList.length - 2 }}
+                          +{{ specialtyList.length - 2 }}
                         </span>
-                        }
+                      }
                     </div>
-                    } @else {
+                  } @else {
                     <span class="text-xs text-gray-500 dark:text-gray-400">-</span>
-                    }
+                  }
                 </div>
-                }
+              }
             </div>
-        </div>
+          </div>
         }
-        
         <!-- Paginação Mobile -->
         <div class="flex justify-center items-center gap-2 py-4">
-            <button (click)="prevPage()" 
-                [disabled]="currentPage() === 1" 
-                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
-                &lt;
-            </button>
-            <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
-            <button (click)="nextPage()" 
-                [disabled]="currentPage() === totalPages()" 
-                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
-                &gt;
-            </button>
+          <button (click)="prevPage()"
+            [disabled]="currentPage() === 1"
+            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
+            &lt;
+          </button>
+          <span class="text-sm text-gray-900 dark:text-gray-100">{{ currentPage() }} / {{ totalPages() }}</span>
+          <button (click)="nextPage()"
+            [disabled]="currentPage() === totalPages()"
+            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-600">
+            &gt;
+          </button>
         </div>
-    </div>
-</div>
+      </div>
+    }
+  </div>
+}
 
 <!-- Formulário de Edição (Tela Normal) -->
-<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md" *ngIf="editingClient() && !showAddClientForm()">
+@if (editingClient() && !showAddClientForm()) {
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md">
     <!-- Cabeçalho do Formulário -->
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-brand-primary-500 to-brand-primary-600">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white flex items-center">
-                    <i class="fas fa-user-edit mr-3"></i>
-                    {{ "editClient" | i18n }}
-                </h2>
-                <p class="text-brand-primary-200 text-sm mt-1">{{ editingClientName() }}</p>
-            </div>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-user-edit mr-3"></i>
+            {{ "editClient" | i18n }}
+          </h2>
+          <p class="text-brand-primary-200 text-sm mt-1">{{ editingClientName() }}</p>
         </div>
+      </div>
     </div>
-    
     <!-- Conteúdo do Formulário -->
     <div class="p-6 bg-gray-50 dark:bg-gray-700">
-        <div class="space-y-4">
-            <div>
-                <label for="editClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "name" | i18n }}
-                </label>
-                <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
-                    [placeholder]="'name' | i18n"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
-            </div>
-            
-            <div>
-                <label for="editClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "email" | i18n }}
-                </label>
-                <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
-                    [placeholder]="'email' | i18n"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
-            </div>
-            
-            <div>
-                <label for="editClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ "profileType" | i18n }}
-                </label>
-                <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-                    disabled
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md cursor-not-allowed opacity-60">
-                    @for(roleOption of availableRoles; track roleOption) {
-                        <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
-                    }
-                </select>
-            </div>
-
-            <!-- Especialidades (apenas para profissionais) -->
-
-            <!-- Especialidades (apenas para profissionais) -->
-            <div *ngIf="editingClientRole() === 'professional'">
-                <div id="editingSpecialties" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {{ 'specialties' | i18n }}
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" aria-labelledby="editingSpecialties">
-                    <ng-container *ngIf="categories() && categories().length > 0; else noCategories">
-                        <ng-container *ngFor="let cat of categories(); trackBy: trackByCategoryId">
-                            <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <input 
-                                    type="checkbox" 
-                                    [checked]="isEditingSpecialtySelected(cat)"
-                                    (change)="onEditingSpecialtyToggle(cat, $event)"
-                                    class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
-                            </label>
-                        </ng-container>
-                    </ng-container>
-                    <ng-template #noCategories>
-                        <span class="text-sm text-gray-400">{{ 'noCategoriesAvailable' | i18n }}</span>
-                    </ng-template>
-                </div>
-            </div>
-
-            <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
-            <div *ngIf="editingClientRole() === 'professional'">
-                <label for="editingClientIsNatanEmployee" class="flex items-center gap-3 cursor-pointer">
-                    <input 
-                        id="editingClientIsNatanEmployee"
-                        type="checkbox" 
-                        [checked]="editingClientIsNatanEmployee()"
-                        (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
-                        class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                        aria-label="{{ 'isNatanEmployee' | i18n }}" />
-                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {{ 'natanEmployeeYes' | i18n }}
-                    </span>
-                </label>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ editingClientIsNatanEmployee() ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
-                </p>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
-                <button (click)="cancelEdit()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
-                </button>
-                <button (click)="saveClientEdit()" 
-                    class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors shadow-md">
-                    <i class="fas fa-save mr-2"></i>{{ "save" | i18n }}
-                </button>
-            </div>
+      <div class="space-y-4">
+        <div>
+          <label for="editClientName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ "name" | i18n }}
+          </label>
+          <input id="editClientName" type="text" [ngModel]="editingClientName()" (ngModelChange)="editingClientName.set($event)"
+            [placeholder]="'name' | i18n"
+            class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
         </div>
+        <div>
+          <label for="editClientEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ "email" | i18n }}
+          </label>
+          <input id="editClientEmail" type="email" [ngModel]="editingClientEmail()" (ngModelChange)="editingClientEmail.set($event)"
+            [placeholder]="'email' | i18n"
+            class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" />
+        </div>
+        <div>
+          <label for="editClientRole" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ "profileType" | i18n }}
+          </label>
+          <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
+            disabled
+            class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md cursor-not-allowed opacity-60">
+            @for(roleOption of availableRoles; track roleOption) {
+              <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
+            }
+          </select>
+        </div>
+        <!-- Especialidades (apenas para profissionais) -->
+        <!-- Especialidades (apenas para profissionais) -->
+        @if (editingClientRole() === 'professional') {
+          <div>
+            <div id="editingSpecialties" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ 'specialties' | i18n }}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" aria-labelledby="editingSpecialties">
+              @if (categories() && categories().length > 0) {
+                @for (cat of categories(); track trackByCategoryId($index, cat)) {
+                  <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <input
+                      type="checkbox"
+                      [checked]="isEditingSpecialtySelected(cat)"
+                      (change)="onEditingSpecialtyToggle(cat, $event)"
+                      class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                  </label>
+                }
+              } @else {
+                <span class="text-sm text-gray-400">{{ 'noCategoriesAvailable' | i18n }}</span>
+              }
+            </div>
+          </div>
+        }
+        <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
+        @if (editingClientRole() === 'professional') {
+          <div>
+            <label for="editingClientIsNatanEmployee" class="flex items-center gap-3 cursor-pointer">
+              <input
+                id="editingClientIsNatanEmployee"
+                type="checkbox"
+                [checked]="editingClientIsNatanEmployee()"
+                (change)="editingClientIsNatanEmployee.set($any($event.target).checked)"
+                class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                aria-label="{{ 'isNatanEmployee' | i18n }}" />
+              <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                {{ 'natanEmployeeYes' | i18n }}
+              </span>
+            </label>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {{ editingClientIsNatanEmployee() ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
+            </p>
+          </div>
+        }
+        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+          <button (click)="cancelEdit()"
+            class="px-6 py-2 text-sm font-medium rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+            <i class="fas fa-times mr-2"></i>{{ "cancel" | i18n }}
+          </button>
+          <button (click)="saveClientEdit()"
+            class="px-6 py-2 text-sm font-medium rounded-lg text-white bg-brand-primary-600 dark:bg-brand-primary-700 hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600 transition-colors shadow-md">
+            <i class="fas fa-save mr-2"></i>{{ "save" | i18n }}
+          </button>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+}
 
 <!-- Edit Client Modal - REMOVIDO - Usar tela full-page acima -->
 
 <!-- View Details Modal -->
-<div *ngIf="viewingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+@if (viewingClient()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'viewDetails' | i18n }}</h3>
-            <button (click)="closeDetails()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        
-        <div class="space-y-4">
-            <!-- User Avatar and Basic Info -->
-            <div class="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                @if (viewingClient()!.avatar_url) {
-                <img [src]="viewingClient()!.avatar_url" [alt]="viewingClient()!.name"
-                    class="h-16 w-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                    loading="lazy" />
-                } @else {
-                <div class="h-16 w-16 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center">
-                    <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-2xl"></i>
-                </div>
-                }
-                <div>
-                    <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ viewingClient()!.name }}</h4>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ viewingClient()!.email }}</p>
-                </div>
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'viewDetails' | i18n }}</h3>
+        <button (click)="closeDetails()" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <!-- User Avatar and Basic Info -->
+        <div class="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          @if (viewingClient()!.avatar_url) {
+            <img [src]="viewingClient()!.avatar_url" [alt]="viewingClient()!.name"
+              class="h-16 w-16 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+              loading="lazy" />
+          } @else {
+            <div class="h-16 w-16 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900 flex items-center justify-center">
+              <i class="fas fa-user text-brand-primary-600 dark:text-brand-primary-400 text-2xl"></i>
             </div>
-
-            <!-- Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'profileType' | i18n }}</div>
-                    <span class="px-3 py-1 text-sm rounded-full inline-block" 
+          }
+          <div>
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ viewingClient()!.name }}</h4>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ viewingClient()!.email }}</p>
+          </div>
+        </div>
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'profileType' | i18n }}</div>
+            <span class="px-3 py-1 text-sm rounded-full inline-block"
                         [ngClass]="{
                             'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': viewingClient()!.role === 'professional',
                             'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': viewingClient()!.role === 'admin'
                         }">
-                        @if(viewingClient()!.role === 'professional') {
-                            {{ getRoleLabel(viewingClient()!.role) }} - {{ viewingClient()!.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
-                        } @else {
-                            {{ getRoleLabel(viewingClient()!.role) }}
-                        }
-                    </span>
-                </div>
-                
-                <div>
-                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'status' | i18n }}</div>
-                    <span class="px-3 py-1 text-sm rounded-full inline-block"
+              @if(viewingClient()!.role === 'professional') {
+                {{ getRoleLabel(viewingClient()!.role) }} - {{ viewingClient()!.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
+              } @else {
+                {{ getRoleLabel(viewingClient()!.role) }}
+              }
+            </span>
+          </div>
+          <div>
+            <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'status' | i18n }}</div>
+            <span class="px-3 py-1 text-sm rounded-full inline-block"
                         [ngClass]="{
                             'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200': viewingClient()!.status === 'Active',
                             'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200': viewingClient()!.status === 'Inactive',
                             'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200': viewingClient()!.status === 'Pending'
                         }">
-                        {{ viewingClient()!.status }}
-                    </span>
-                </div>
-
-                @if(viewingClient()!.phone) {
-                <div>
-                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'phone' | i18n }}</div>
-                    <p class="text-gray-900 dark:text-gray-100">{{ viewingClient()!.phone }}</p>
-                </div>
-                }
-
-                @if(viewingClient()!.specialties && viewingClient()!.specialties.length > 0) {
-                <div class="md:col-span-2">
-                    <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'specialties' | i18n }}</div>
-                    <div class="flex flex-wrap gap-2">
-                        @for(specialty of viewingClient()!.specialties; track specialty.id) {
-                        <span class="px-2 py-1 bg-brand-primary-100 dark:bg-brand-primary-900 text-brand-primary-800 dark:text-brand-primary-200 text-xs rounded-full">
-                            {{ specialty.name | i18n }}
-                        </span>
-                        }
-                    </div>
-                </div>
-                }
+              {{ viewingClient()!.status }}
+            </span>
+          </div>
+          @if(viewingClient()!.phone) {
+            <div>
+              <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'phone' | i18n }}</div>
+              <p class="text-gray-900 dark:text-gray-100">{{ viewingClient()!.phone }}</p>
             </div>
+          }
+          @if(viewingClient()!.specialties && viewingClient()!.specialties.length > 0) {
+            <div class="md:col-span-2">
+              <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'specialties' | i18n }}</div>
+              <div class="flex flex-wrap gap-2">
+                @for(specialty of viewingClient()!.specialties; track specialty.id) {
+                  <span class="px-2 py-1 bg-brand-primary-100 dark:bg-brand-primary-900 text-brand-primary-800 dark:text-brand-primary-200 text-xs rounded-full">
+                    {{ specialty.name | i18n }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
         </div>
-
-        <div class="flex justify-end mt-6">
-            <button (click)="closeDetails()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
-                {{ 'close' | i18n }}
-            </button>
-        </div>
+      </div>
+      <div class="flex justify-end mt-6">
+        <button (click)="closeDetails()"
+          class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          {{ 'close' | i18n }}
+        </button>
+      </div>
     </div>
-</div>
+  </div>
+}
 
 <!-- Delete Confirmation Modal -->
-<div *ngIf="deletingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+@if (deletingClient()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
-            </div>
-            <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmDeactivateClient' | i18n }}</h3>
+      <div class="flex items-center mb-4">
+        <div class="flex-shrink-0 h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
         </div>
-        
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {{ 'areYouSureDeactivate' | i18n }} <strong>{{ deletingClient()!.name }}</strong>?
-        </p>
-
-        <div class="flex justify-end space-x-3">
-            <button (click)="cancelDelete()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
-                {{ 'cancel' | i18n }}
-            </button>
-            <button (click)="deleteClient()" 
-                class="px-4 py-2 text-sm rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600">
-                {{ 'deactivate' | i18n }}
-            </button>
-        </div>
+        <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmDeactivateClient' | i18n }}</h3>
+      </div>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        {{ 'areYouSureDeactivate' | i18n }} <strong>{{ deletingClient()!.name }}</strong>?
+      </p>
+      <div class="flex justify-end space-x-3">
+        <button (click)="cancelDelete()"
+          class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          {{ 'cancel' | i18n }}
+        </button>
+        <button (click)="deleteClient()"
+          class="px-4 py-2 text-sm rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600">
+          {{ 'deactivate' | i18n }}
+        </button>
+      </div>
     </div>
-</div>
+  </div>
+}
 
 <!-- Reactivate Confirmation Modal -->
-<div *ngIf="reactivatingClient()" class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
+@if (reactivatingClient()) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-xl"></i>
-            </div>
-            <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmActivateClient' | i18n }}</h3>
+      <div class="flex items-center mb-4">
+        <div class="flex-shrink-0 h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+          <i class="fas fa-check-circle text-green-600 dark:text-green-400 text-xl"></i>
         </div>
-        
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {{ 'areYouSureActivate' | i18n }} <strong>{{ reactivatingClient()!.name }}</strong>?
-        </p>
-
-        <div class="flex justify-end space-x-3">
-            <button (click)="cancelReactivate()" 
-                class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
-                {{ 'cancel' | i18n }}
-            </button>
-            <button (click)="reactivateClient()" 
-                class="px-4 py-2 text-sm rounded-md text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600">
-                {{ 'activate' | i18n }}
-            </button>
-        </div>
+        <h3 class="ml-4 text-xl font-semibold text-gray-900 dark:text-gray-100">{{ 'confirmActivateClient' | i18n }}</h3>
+      </div>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        {{ 'areYouSureActivate' | i18n }} <strong>{{ reactivatingClient()!.name }}</strong>?
+      </p>
+      <div class="flex justify-end space-x-3">
+        <button (click)="cancelReactivate()"
+          class="px-4 py-2 text-sm rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+          {{ 'cancel' | i18n }}
+        </button>
+        <button (click)="reactivateClient()"
+          class="px-4 py-2 text-sm rounded-md text-white bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-600">
+          {{ 'activate' | i18n }}
+        </button>
+      </div>
     </div>
-</div>
+  </div>
+}

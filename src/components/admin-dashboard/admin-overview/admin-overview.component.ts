@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
@@ -12,11 +12,10 @@ import { StatusPieChartComponent } from '../../status-pie-chart.component';
     selector: "app-admin-overview",
     standalone: true,
     imports: [
-        CommonModule,
-        I18nPipe,
-        StatusPieChartComponent,
-        CategoryBarChartComponent,
-    ],
+    I18nPipe,
+    StatusPieChartComponent,
+    CategoryBarChartComponent
+],
     templateUrl: "./admin-overview.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { I18nService } from '../../i18n.service';
 import { InAppNotificationService } from '../../services/in-app-notification.service';
@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [I18nPipe],
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.css'],
 })

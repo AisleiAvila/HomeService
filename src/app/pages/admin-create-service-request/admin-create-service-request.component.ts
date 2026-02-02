@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { AdminServiceRequestFormComponent } from "../../../components/admin-service-request-form/admin-service-request-form.component";
 import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-admin-create-service-request',
   standalone: true,
-  imports: [CommonModule, AdminServiceRequestFormComponent],
+  imports: [AdminServiceRequestFormComponent],
   template: `
     <div class="w-full h-full">
       <app-admin-service-request-form

@@ -1,82 +1,80 @@
 <!-- Modal Backdrop -->
-<div
-  *ngIf="isVisible()"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-  (click)="close()"
->
-  <!-- Modal Content -->
+@if (isVisible()) {
   <div
-    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
-    (click)="$event.stopPropagation()"
-  >
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold text-gray-900">
-        {{ title() }}
-      </h2>
-      <button
-        type="button"
-        (click)="close()"
-        class="text-gray-400 hover:text-gray-600 focus:outline-none"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="close()"
+    >
+    <!-- Modal Content -->
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+      (click)="$event.stopPropagation()"
       >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Body -->
-    <div class="mb-6">
-      <div class="flex items-center mb-4">
-        <div class="flex-shrink-0">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ title() }}
+        </h2>
+        <button
+          type="button"
+          (click)="close()"
+          class="text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
           <svg
-            class="w-8 h-8 text-green-500"
+            class="w-6 h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-          >
+            >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              d="M6 18L18 6M6 6l12 12"
             ></path>
           </svg>
+        </button>
+      </div>
+      <!-- Body -->
+      <div class="mb-6">
+        <div class="flex items-center mb-4">
+          <div class="flex-shrink-0">
+            <svg
+              class="w-8 h-8 text-green-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-gray-700">
+              {{ message() }}
+            </p>
+          </div>
         </div>
-        <div class="ml-3">
-          <p class="text-gray-700">
-            {{ message() }}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-brand-primary-800">
+            {{ "checkEmailBeforeAccess" | i18n }}
           </p>
         </div>
       </div>
-
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-sm text-brand-primary-800">
-          {{ "checkEmailBeforeAccess" | i18n }}
-        </p>
+      <!-- Footer -->
+      <div class="flex justify-end">
+        <button
+          type="button"
+          (click)="close()"
+          class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+          {{ "ok" | i18n }}
+        </button>
       </div>
     </div>
-
-    <!-- Footer -->
-    <div class="flex justify-end">
-      <button
-        type="button"
-        (click)="close()"
-        class="px-4 py-2 bg-brand-primary-600 text-white rounded-lg hover:bg-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      >
-        {{ "ok" | i18n }}
-      </button>
-    </div>
   </div>
-</div>
+}
 

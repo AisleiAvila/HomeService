@@ -5,13 +5,13 @@ import {
   output,
   signal,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-modal",
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [I18nPipe],
   templateUrl: "./modal.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

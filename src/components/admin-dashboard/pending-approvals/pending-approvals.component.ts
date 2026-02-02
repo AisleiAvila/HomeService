@@ -1,5 +1,5 @@
 
-import { CommonModule } from "@angular/common";
+
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit } from "@angular/core";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
@@ -9,7 +9,7 @@ import { NotificationService } from "../../../services/notification.service";
 @Component({
     selector: "app-pending-approvals",
     standalone: true,
-    imports: [CommonModule, I18nPipe],
+    imports: [I18nPipe],
     templateUrl: "./pending-approvals.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

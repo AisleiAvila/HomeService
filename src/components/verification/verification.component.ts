@@ -5,14 +5,14 @@ import {
   output,
   signal,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-verification",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./verification.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

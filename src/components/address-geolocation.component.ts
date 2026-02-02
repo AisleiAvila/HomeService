@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { PortugalAddressDatabaseService } from '../services/portugal-address-database.service';
 import { EnderecoCompleto } from '../models/maintenance.models';
@@ -7,7 +7,7 @@ import { EnderecoCompleto } from '../models/maintenance.models';
 @Component({
   selector: 'app-address-geolocation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
     <div class="max-w-xl mx-auto p-4">
       <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
@@ -16,17 +16,25 @@ import { EnderecoCompleto } from '../models/maintenance.models';
       </h3>
       <input type="text" [(ngModel)]="postalCode" placeholder="Código Postal (ex: 1000-001)" class="input input-bordered w-full mb-2" />
       <button (click)="buscarEndereco()" class="btn btn-primary w-full mb-4">Buscar</button>
-      <div *ngIf="error()" class="text-red-600 mb-2">{{ error() }}</div>
-      <div *ngIf="endereco()">
-        <div class="mb-2">Endereço: {{ endereco().designacao_postal }}, {{ endereco().localidade }}, {{ endereco().concelho }}, {{ endereco().distrito }}</div>
-        <div *ngIf="endereco().latitude && endereco().longitude">
-          <div>Latitude: {{ endereco().latitude }}</div>
-          <div>Longitude: {{ endereco().longitude }}</div>
+      @if (error()) {
+        <div class="text-red-600 mb-2">{{ error() }}</div>
+      }
+      @if (endereco()) {
+        <div>
+          <div class="mb-2">Endereço: {{ endereco().designacao_postal }}, {{ endereco().localidade }}, {{ endereco().concelho }}, {{ endereco().distrito }}</div>
+          @if (endereco().latitude && endereco().longitude) {
+            <div>
+              <div>Latitude: {{ endereco().latitude }}</div>
+              <div>Longitude: {{ endereco().longitude }}</div>
+            </div>
+          }
+          @if (!endereco().latitude || !endereco().longitude) {
+            <div class="text-yellow-600">Este código postal não possui coordenadas cadastradas.</div>
+          }
         </div>
-        <div *ngIf="!endereco().latitude || !endereco().longitude" class="text-yellow-600">Este código postal não possui coordenadas cadastradas.</div>
-      </div>
+      }
     </div>
-  `,
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddressGeolocationComponent {

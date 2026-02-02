@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -18,20 +18,26 @@ import {
 @Component({
   selector: "app-postal-code-demo",
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule],
   template: `
     <div class="max-w-4xl mx-auto p-6 bg-white">
       <h1 class="text-3xl font-bold text-gray-900 mb-8">
         🇵🇹 Demonstração da Validação de Códigos Postais Portugueses
       </h1>
-
+    
       <!-- API Status -->
       <div class="mb-6 p-4 rounded-lg" [class]="getApiStatusClass()">
         <div class="flex items-center">
           <div class="mr-3">
-            <span *ngIf="apiStatus === 'checking'" class="text-2xl">⏳</span>
-            <span *ngIf="apiStatus === 'online'" class="text-2xl">✅</span>
-            <span *ngIf="apiStatus === 'offline'" class="text-2xl">❌</span>
+            @if (apiStatus === 'checking') {
+              <span class="text-2xl">⏳</span>
+            }
+            @if (apiStatus === 'online') {
+              <span class="text-2xl">✅</span>
+            }
+            @if (apiStatus === 'offline') {
+              <span class="text-2xl">❌</span>
+            }
           </div>
           <div>
             <p class="font-semibold">{{ getApiStatusText() }}</p>
@@ -39,13 +45,13 @@ import {
           </div>
         </div>
       </div>
-
+    
       <!-- Quick Test Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Quick Validation -->
         <div class="bg-gray-50 p-6 rounded-lg">
           <h2 class="text-xl font-semibold mb-4">🚀 Teste Rápido</h2>
-
+    
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -64,281 +70,300 @@ import {
                 [class.border-green-500]="
                   quickTestResult && quickTestResult.isValid
                 "
-              />
-            </div>
-
-            <!-- Loading -->
-            <div *ngIf="isQuickTesting" class="flex items-center text-blue-600">
-              <svg
-                class="animate-spin h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Validando...
-            </div>
-
-            <!-- Result -->
-            <div
-              *ngIf="quickTestResult && !isQuickTesting"
-              class="p-3 rounded-lg"
+                />
+              </div>
+    
+              <!-- Loading -->
+              @if (isQuickTesting) {
+                <div class="flex items-center text-blue-600">
+                  <svg
+                    class="animate-spin h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Validando...
+                </div>
+              }
+    
+              <!-- Result -->
+              @if (quickTestResult && !isQuickTesting) {
+                <div
+                  class="p-3 rounded-lg"
               [class]="
                 quickTestResult.isValid
                   ? 'bg-green-100 text-green-800'
                   : 'bg-red-100 text-red-800'
               "
-            >
-              <div class="flex items-center">
-                <span class="mr-2">{{
-                  quickTestResult.isValid ? "✅" : "❌"
-                }}</span>
-                <span class="font-medium">
-                  {{
-                    quickTestResult.isValid
+                  >
+                  <div class="flex items-center">
+                    <span class="mr-2">{{
+                      quickTestResult.isValid ? "✅" : "❌"
+                    }}</span>
+                    <span class="font-medium">
+                      {{
+                      quickTestResult.isValid
                       ? "Código Postal Válido"
                       : "Código Postal Inválido"
-                  }}
-                </span>
-              </div>
-
-              <div *ngIf="quickTestResult.isValid" class="mt-2 text-sm">
-                <p>
-                  <strong>Localidade:</strong> {{ quickTestResult.locality }}
-                </p>
-                <p><strong>Distrito:</strong> {{ quickTestResult.district }}</p>
-                <p>
-                  <strong>Concelho:</strong> {{ quickTestResult.municipality }}
-                </p>
-                <p *ngIf="quickTestResult.street">
-                  <strong>Rua:</strong> {{ quickTestResult.street }}
-                </p>
-              </div>
-
-              <div
-                *ngIf="!quickTestResult.isValid && quickTestResult.error"
-                class="mt-2 text-sm"
-              >
-                <p>{{ quickTestResult.error }}</p>
-              </div>
+                      }}
+                    </span>
+                  </div>
+                  @if (quickTestResult.isValid) {
+                    <div class="mt-2 text-sm">
+                      <p>
+                        <strong>Localidade:</strong> {{ quickTestResult.locality }}
+                      </p>
+                      <p><strong>Distrito:</strong> {{ quickTestResult.district }}</p>
+                      <p>
+                        <strong>Concelho:</strong> {{ quickTestResult.municipality }}
+                      </p>
+                      @if (quickTestResult.street) {
+                        <p>
+                          <strong>Rua:</strong> {{ quickTestResult.street }}
+                        </p>
+                      }
+                    </div>
+                  }
+                  @if (!quickTestResult.isValid && quickTestResult.error) {
+                    <div
+                      class="mt-2 text-sm"
+                      >
+                      <p>{{ quickTestResult.error }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+    
+          <!-- Predefined Tests -->
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">🧪 Códigos de Teste</h2>
+    
+            <div class="space-y-2">
+              @for (testCase of predefinedTests; track testCase) {
+                <button
+                  (click)="testPredefinedCode(testCase.code)"
+                  class="w-full text-left p-3 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <span class="font-mono text-sm">{{ testCase.code }}</span>
+                      <span class="text-gray-600 ml-2">{{
+                        testCase.description
+                      }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">{{
+                      testCase.expected
+                    }}</span>
+                  </div>
+                </button>
+              }
             </div>
           </div>
         </div>
-
-        <!-- Predefined Tests -->
-        <div class="bg-gray-50 p-6 rounded-lg">
-          <h2 class="text-xl font-semibold mb-4">🧪 Códigos de Teste</h2>
-
-          <div class="space-y-2">
+    
+        <!-- Batch Testing -->
+        <div class="bg-gray-50 p-6 rounded-lg mb-8">
+          <h2 class="text-xl font-semibold mb-4">📊 Teste em Lote</h2>
+    
+          <div class="flex gap-4 mb-4">
             <button
-              *ngFor="let testCase of predefinedTests"
-              (click)="testPredefinedCode(testCase.code)"
-              class="w-full text-left p-3 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              <div class="flex justify-between items-center">
-                <div>
-                  <span class="font-mono text-sm">{{ testCase.code }}</span>
-                  <span class="text-gray-600 ml-2">{{
-                    testCase.description
-                  }}</span>
-                </div>
-                <span class="text-xs text-gray-400">{{
-                  testCase.expected
-                }}</span>
-              </div>
+              (click)="runBatchTest()"
+              [disabled]="isBatchTesting"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+              {{ isBatchTesting ? "Testando..." : "Executar Teste em Lote" }}
+            </button>
+    
+            <button
+              (click)="clearBatchResults()"
+              [disabled]="batchResults.length === 0"
+              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+              Limpar Resultados
             </button>
           </div>
-        </div>
-      </div>
-
-      <!-- Batch Testing -->
-      <div class="bg-gray-50 p-6 rounded-lg mb-8">
-        <h2 class="text-xl font-semibold mb-4">📊 Teste em Lote</h2>
-
-        <div class="flex gap-4 mb-4">
-          <button
-            (click)="runBatchTest()"
-            [disabled]="isBatchTesting"
-            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ isBatchTesting ? "Testando..." : "Executar Teste em Lote" }}
-          </button>
-
-          <button
-            (click)="clearBatchResults()"
-            [disabled]="batchResults.length === 0"
-            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Limpar Resultados
-          </button>
-        </div>
-
-        <!-- Batch Progress -->
-        <div *ngIf="isBatchTesting" class="mb-4">
-          <div class="bg-gray-200 rounded-full h-2">
+    
+          <!-- Batch Progress -->
+          @if (isBatchTesting) {
+            <div class="mb-4">
+              <div class="bg-gray-200 rounded-full h-2">
+                <div
+                  class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  [style.width.%]="batchProgress"
+                ></div>
+              </div>
+              <p class="text-sm text-gray-600 mt-1">
+                Progresso: {{ batchCurrentIndex }} de {{ batchTotalTests }}
+              </p>
+            </div>
+          }
+    
+          <!-- Batch Results -->
+          @if (batchResults.length > 0) {
             <div
-              class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              [style.width.%]="batchProgress"
-            ></div>
-          </div>
-          <p class="text-sm text-gray-600 mt-1">
-            Progresso: {{ batchCurrentIndex }} de {{ batchTotalTests }}
-          </p>
-        </div>
-
-        <!-- Batch Results -->
-        <div
-          *ngIf="batchResults.length > 0"
-          class="space-y-2 max-h-64 overflow-y-auto"
-        >
-          <div
-            *ngFor="let result of batchResults"
-            class="p-3 rounded-md border"
+              class="space-y-2 max-h-64 overflow-y-auto"
+              >
+              @for (result of batchResults; track result) {
+                <div
+                  class="p-3 rounded-md border"
             [class]="
               result.isValid
                 ? 'bg-green-50 border-green-200'
                 : 'bg-red-50 border-red-200'
             "
-          >
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="font-mono text-sm">{{ result.postalCode }}</span>
-                <span class="ml-2">{{ result.isValid ? "✅" : "❌" }}</span>
-                <div *ngIf="result.isValid" class="text-xs text-gray-600 mt-1">
-                  {{ result.locality }}, {{ result.district }}
-                </div>
-                <div
-                  *ngIf="!result.isValid && result.error"
-                  class="text-xs text-red-600 mt-1"
+                  >
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <span class="font-mono text-sm">{{ result.postalCode }}</span>
+                      <span class="ml-2">{{ result.isValid ? "✅" : "❌" }}</span>
+                      @if (result.isValid) {
+                        <div class="text-xs text-gray-600 mt-1">
+                          {{ result.locality }}, {{ result.district }}
+                        </div>
+                      }
+                      @if (!result.isValid && result.error) {
+                        <div
+                          class="text-xs text-red-600 mt-1"
+                          >
+                          {{ result.error }}
+                        </div>
+                      }
+                    </div>
+                    <span class="text-xs text-gray-400"
+                      >{{ result.responseTime }}ms</span
+                      >
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+    
+            <!-- Batch Statistics -->
+            @if (batchResults.length > 0 && !isBatchTesting) {
+              <div
+                class="mt-4 p-4 bg-white rounded-lg border"
                 >
-                  {{ result.error }}
+                <h3 class="font-medium mb-2">📈 Estatísticas</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <p class="text-gray-600">Total testado</p>
+                    <p class="font-semibold">{{ batchResults.length }}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-600">Válidos</p>
+                    <p class="font-semibold text-green-600">
+                      {{ getBatchValidCount() }}
+                    </p>
+                  </div>
+                  <div>
+                    <p class="text-gray-600">Inválidos</p>
+                    <p class="font-semibold text-red-600">
+                      {{ getBatchInvalidCount() }}
+                    </p>
+                  </div>
+                  <div>
+                    <p class="text-gray-600">Tempo médio</p>
+                    <p class="font-semibold">{{ getAverageResponseTime() }}ms</p>
+                  </div>
                 </div>
               </div>
-              <span class="text-xs text-gray-400"
-                >{{ result.responseTime }}ms</span
-              >
-            </div>
+            }
           </div>
-        </div>
-
-        <!-- Batch Statistics -->
-        <div
-          *ngIf="batchResults.length > 0 && !isBatchTesting"
-          class="mt-4 p-4 bg-white rounded-lg border"
-        >
-          <h3 class="font-medium mb-2">📈 Estatísticas</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p class="text-gray-600">Total testado</p>
-              <p class="font-semibold">{{ batchResults.length }}</p>
-            </div>
-            <div>
-              <p class="text-gray-600">Válidos</p>
-              <p class="font-semibold text-green-600">
-                {{ getBatchValidCount() }}
-              </p>
-            </div>
-            <div>
-              <p class="text-gray-600">Inválidos</p>
-              <p class="font-semibold text-red-600">
-                {{ getBatchInvalidCount() }}
-              </p>
-            </div>
-            <div>
-              <p class="text-gray-600">Tempo médio</p>
-              <p class="font-semibold">{{ getAverageResponseTime() }}ms</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Locality Search -->
-      <div class="bg-gray-50 p-6 rounded-lg">
-        <h2 class="text-xl font-semibold mb-4">🏙️ Busca por Localidade</h2>
-
-        <div class="mb-4">
-          <input
-            type="text"
-            [(ngModel)]="localityQuery"
-            (input)="onLocalitySearch()"
-            placeholder="Digite o nome da cidade (ex: Lisboa, Porto, Coimbra)"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
-          />
-        </div>
-
-        <div
-          *ngIf="isSearchingLocality"
-          class="flex items-center text-blue-600 mb-4"
-        >
-          <svg
-            class="animate-spin h-4 w-4 mr-2"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          Buscando códigos postais...
-        </div>
-
-        <div
-          *ngIf="localityResults.length > 0"
-          class="space-y-2 max-h-48 overflow-y-auto"
-        >
-          <div
-            *ngFor="let result of localityResults"
-            class="p-3 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer"
-            (click)="useLocalityResult(result)"
-          >
-            <div class="flex justify-between items-center">
-              <div>
-                <span class="font-mono text-sm">{{ result.cp }}</span>
-                <span class="text-gray-600 ml-2">{{ result.locality }}</span>
-                <div class="text-xs text-gray-500">
-                  {{ result.municipality }}, {{ result.district }}
-                </div>
+    
+          <!-- Locality Search -->
+          <div class="bg-gray-50 p-6 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">🏙️ Busca por Localidade</h2>
+    
+            <div class="mb-4">
+              <input
+                type="text"
+                [(ngModel)]="localityQuery"
+                (input)="onLocalitySearch()"
+                placeholder="Digite o nome da cidade (ex: Lisboa, Porto, Coimbra)"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
+                />
               </div>
-              <span class="text-xs text-blue-600">Usar</span>
+    
+              @if (isSearchingLocality) {
+                <div
+                  class="flex items-center text-blue-600 mb-4"
+                  >
+                  <svg
+                    class="animate-spin h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    >
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Buscando códigos postais...
+                </div>
+              }
+    
+              @if (localityResults.length > 0) {
+                <div
+                  class="space-y-2 max-h-48 overflow-y-auto"
+                  >
+                  @for (result of localityResults; track result) {
+                    <div
+                      class="p-3 bg-white border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer"
+                      (click)="useLocalityResult(result)"
+                      >
+                      <div class="flex justify-between items-center">
+                        <div>
+                          <span class="font-mono text-sm">{{ result.cp }}</span>
+                          <span class="text-gray-600 ml-2">{{ result.locality }}</span>
+                          <div class="text-xs text-gray-500">
+                            {{ result.municipality }}, {{ result.district }}
+                          </div>
+                        </div>
+                        <span class="text-xs text-blue-600">Usar</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+    
+              @if (
+                localityQuery.length > 2 &&
+                localityResults.length === 0 &&
+                !isSearchingLocality
+                ) {
+                <div
+                  class="text-gray-500 text-center py-4"
+                  >
+                  Nenhum resultado encontrado para "{{ localityQuery }}"
+                </div>
+              }
             </div>
           </div>
-        </div>
-
-        <div
-          *ngIf="
-            localityQuery.length > 2 &&
-            localityResults.length === 0 &&
-            !isSearchingLocality
-          "
-          class="text-gray-500 text-center py-4"
-        >
-          Nenhum resultado encontrado para "{{ localityQuery }}"
-        </div>
-      </div>
-    </div>
-  `,
+    `,
   styles: [
     `
       .animate-spin {

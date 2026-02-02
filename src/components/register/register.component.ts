@@ -5,7 +5,7 @@ import {
   signal,
   inject,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { UserRole } from "../../models/maintenance.models";
 import { I18nPipe } from "../../pipes/i18n.pipe";
@@ -22,7 +22,7 @@ export interface RegisterPayload {
 @Component({
   selector: "app-register",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./register.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

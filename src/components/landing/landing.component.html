@@ -11,15 +11,17 @@
       class="w-auto h-full max-w-full object-contain"
       loading="eager"
       (error)="imgError = true"
-    />
-    <div *ngIf="imgError" class="flex flex-col items-center justify-center">
-      <svg class="w-20 h-20 text-brand-primary-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 48 48" aria-hidden="true">
-        <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="3" fill="none" />
-        <path d="M16 32l8-8 8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        <path d="M24 16v8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-      </svg>
-      <span class="text-brand-primary-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
-    </div>
+      />
+    @if (imgError) {
+      <div class="flex flex-col items-center justify-center">
+        <svg class="w-20 h-20 text-brand-primary-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="3" fill="none" />
+          <path d="M16 32l8-8 8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M24 16v8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <span class="text-brand-primary-100 text-lg font-semibold text-center drop-shadow">Imagem não encontrada<br>Verifique o arquivo <b>assets/landing-page.png</b></span>
+      </div>
+    }
     <!-- Controles no canto superior direito: idioma + botões -->
     <div class="absolute top-2 right-2 left-2 sm:left-auto sm:right-16 lg:right-24 z-50 flex flex-row items-center justify-end gap-2">
       <ng-content select="[language-switcher]"></ng-content>
@@ -27,13 +29,13 @@
         (click)="signIn.emit()"
         class="bg-white text-brand-primary-600 font-semibold py-2 px-4 sm:py-3 sm:px-7 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-brand-primary-400 active:bg-brand-primary-100/80 border-2 border-brand-primary-200 h-12 flex items-center justify-center whitespace-nowrap flex-shrink-0"
         aria-label="{{ 'signIn' | i18n }}"
-      >
-          <!-- Ícone login: porta com seta -->
-          <svg class="inline-block w-5 h-5 text-brand-primary-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
-          </svg>
-          <span class="ml-2 text-base font-semibold">{{ "signIn" | i18n }}</span>
+        >
+        <!-- Ícone login: porta com seta -->
+        <svg class="inline-block w-5 h-5 text-brand-primary-500 align-middle" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
+        </svg>
+        <span class="ml-2 text-base font-semibold">{{ "signIn" | i18n }}</span>
       </button>
     </div>
   </div>
@@ -42,26 +44,26 @@
 
 
     <!-- Estatísticas -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-16 max-w-4xl mx-auto">
-  <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-16 max-w-4xl mx-auto">
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
         <div class="text-4xl font-bold text-brand-accent-300 mb-2">20+</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsYears' | i18n }}</div>
       </div>
-  <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
         <div class="text-4xl font-bold text-brand-accent-300 mb-2">500+</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsProjects' | i18n }}</div>
       </div>
-  <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 sm:p-6 text-center transform hover:scale-105 transition-all duration-300 hover:bg-white/15">
         <div class="text-4xl font-bold text-brand-accent-300 mb-2">100%</div>
         <div class="text-sm text-white/80 font-sans">{{ 'landingStatsSatisfaction' | i18n }}</div>
       </div>
     </section>
 
     <!-- Quem Somos -->
-    <section 
+    <section
       id="about"
       class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-brand-primary-500/20 hover:border-white/40 w-full"
-    >
+      >
       <h2 class="text-3xl font-serif font-bold mb-6 tracking-tight flex items-center gap-3">
         <svg class="w-8 h-8 text-brand-accent-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -118,11 +120,11 @@
     </section>
 
 
-   <!-- Formulário de Contato-->
-    <section 
+    <!-- Formulário de Contato-->
+    <section
       id="contact"
       class="bg-gradient-to-br from-white/20 via-blue-100/10 to-indigo-200/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto mb-12 shadow-2xl transition-all duration-300 hover:shadow-blue-500/20 hover:border-white/40"
-    >
+      >
       <h2 class="text-3xl font-serif font-bold mb-6 tracking-tight text-center flex items-center justify-center gap-3">
         <svg class="w-8 h-8 text-brand-primary-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 012 2z"/>
@@ -185,34 +187,34 @@
       </div>
     </section>
 
-  <!-- WhatsApp Floating Button -->
-  <a 
-    href="https://wa.me/351910997548?text={{ 'landingWhatsAppMessage' | i18n }}" 
-    target="_blank"
-    rel="noopener noreferrer"
-    class="fixed bottom-20 right-4 sm:bottom-24 sm:right-12 bg-green-500 hover:bg-green-600 text-white rounded-full p-3 sm:p-4 shadow-2xl transform hover:scale-110 transition-all duration-300 z-50 animate-bounce focus:outline-none focus:ring-2 focus:ring-white"
-    aria-label="Contatar via WhatsApp"
-  >
-    <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-    </svg>
-  </a>
+    <!-- WhatsApp Floating Button -->
+    <a
+      href="https://wa.me/351910997548?text={{ 'landingWhatsAppMessage' | i18n }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="fixed bottom-20 right-4 sm:bottom-24 sm:right-12 bg-green-500 hover:bg-green-600 text-white rounded-full p-3 sm:p-4 shadow-2xl transform hover:scale-110 transition-all duration-300 z-50 animate-bounce focus:outline-none focus:ring-2 focus:ring-white"
+      aria-label="Contatar via WhatsApp"
+      >
+      <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+      </svg>
+    </a>
 
-  <!-- Rodapé -->
-  <footer class="w-full fixed bottom-0 left-0 z-40 bg-gradient-to-r from-brand-secondary-900/95 via-brand-secondary-800/95 to-brand-primary-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
-    <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
-      <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-4">
-        <span class="font-semibold">&copy; {{ currentYear }} Natan Construtora</span>
-        <span class="hidden sm:inline text-white/50">|</span>
-        <span class="text-white/70">{{ 'landingFooterTagline' | i18n }}</span>
+    <!-- Rodapé -->
+    <footer class="w-full fixed bottom-0 left-0 z-40 bg-gradient-to-r from-brand-secondary-900/95 via-brand-secondary-800/95 to-brand-primary-700/95 backdrop-blur-md text-white/90 text-xs py-2 sm:py-3 px-2 sm:px-4 shadow-2xl border-t border-white/10">
+      <div class="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
+        <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-4">
+          <span class="font-semibold">&copy; {{ currentYear }} Natan Construtora</span>
+          <span class="hidden sm:inline text-white/50">|</span>
+          <span class="text-white/70">{{ 'landingFooterTagline' | i18n }}</span>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-4">
+          <a href="#privacy" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterPrivacy' | i18n }}</a>
+          <span class="hidden sm:inline text-white/50">|</span>
+          <a href="#terms" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterTerms' | i18n }}</a>
+          <span class="hidden sm:inline text-white/50">|</span>
+          <a href="mailto:natanconstrucoes@gmail.com" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterContact' | i18n }}</a>
+        </div>
       </div>
-  <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-4">
-        <a href="#privacy" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterPrivacy' | i18n }}</a>
-        <span class="hidden sm:inline text-white/50">|</span>
-        <a href="#terms" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterTerms' | i18n }}</a>
-        <span class="hidden sm:inline text-white/50">|</span>
-        <a href="mailto:natanconstrucoes@gmail.com" class="hover:text-brand-primary-300 transition-colors underline">{{ 'landingFooterContact' | i18n }}</a>
-      </div>
-    </div>
-  </footer>
+    </footer>
 

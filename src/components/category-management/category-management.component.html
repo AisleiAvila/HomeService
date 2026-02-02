@@ -14,7 +14,7 @@
       <button
         (click)="showAddCategoryModal.set(true)"
         class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full"
-      >
+        >
         <i class="fas fa-plus"></i>
         <span>{{ "addNewCategory" | i18n }}</span>
       </button>
@@ -28,28 +28,28 @@
         <tr>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
-          >
+            >
             {{ "category" | i18n }}
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
-          >
+            >
             {{ "professionals" | i18n }}
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
-          >
+            >
             {{ "subcategories" | i18n }}
           </th>
           <th
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
-          >
+            >
             {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-        <ng-container *ngFor="let cat of paginatedCategories(); trackBy: trackById">
+        @for (cat of paginatedCategories(); track trackById($index, cat)) {
           <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
               <div class="flex items-center gap-3">
@@ -60,7 +60,7 @@
                   class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                   [attr.aria-expanded]="isExpanded(cat.id)"
                   [attr.aria-label]="isExpanded(cat.id) ? ('collapse' | i18n) : ('expand' | i18n)"
-                >
+                  >
                   <i [class]="isExpanded(cat.id) ? 'fas fa-chevron-down' : 'fas fa-chevron-right'"></i>
                 </button>
                 <span>{{ cat.name }}</span>
@@ -81,7 +81,7 @@
                   (click)="showDetails(cat)"
                   class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full transition-colors"
                   title="{{ 'details' | i18n }}"
-                >
+                  >
                   <i class="fas fa-eye"></i>
                 </button>
                 <button
@@ -89,7 +89,7 @@
                   (click)="startEditCategory(cat)"
                   class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors"
                   title="{{ 'edit' | i18n }}"
-                >
+                  >
                   <i class="fas fa-edit"></i>
                 </button>
                 <button
@@ -97,7 +97,7 @@
                   (click)="requestDeleteCategory(cat)"
                   class="p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors"
                   title="{{ 'delete' | i18n }}"
-                >
+                  >
                   <i class="fas fa-times"></i>
                 </button>
                 <button
@@ -105,90 +105,91 @@
                   (click)="manageSubcategories(cat)"
                   class="p-2 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-gray-700 rounded-full transition-colors"
                   title="{{ 'addSubcategory' | i18n }}"
-                >
+                  >
                   <i class="fas fa-plus"></i>
                 </button>
               </div>
             </td>
           </tr>
-
           <!-- Subcategories Row (expanded) -->
-          <tr *ngIf="isExpanded(cat.id)" class="bg-gray-50 dark:bg-gray-700">
-            <td colspan="4" class="px-6 py-4">
-              <div class="pl-12">
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  {{ "subcategories" | i18n }}
-                </h4>
-                @if(subcategoriesOf(cat.id).length > 0) {
-                  <div class="space-y-2">
-                    @for(sub of subcategoriesOf(cat.id); track sub.id) {
-                      <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
-                        <div class="flex-1">
-                          <div class="flex items-center gap-2">
-                            <i class="fas fa-tag text-gray-400 dark:text-gray-500 text-xs"></i>
-                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ sub.name }}</span>
-                            @if(sub.type) {
-                              <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full"
-                                    [class.bg-blue-100]="sub.type === 'precificado'"
-                                    [class.dark:bg-blue-900]="sub.type === 'precificado'"
-                                    [class.text-brand-primary-800]="sub.type === 'precificado'"
-                                    [class.dark:text-blue-200]="sub.type === 'precificado'"
-                                    [class.bg-orange-100]="sub.type === 'orçado'"
-                                    [class.dark:bg-orange-900]="sub.type === 'orçado'"
-                                    [class.text-orange-800]="sub.type === 'orçado'"
-                                    [class.dark:text-orange-200]="sub.type === 'orçado'">
-                                {{ sub.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
-                              </span>
-                            }
+          @if (isExpanded(cat.id)) {
+            <tr class="bg-gray-50 dark:bg-gray-700">
+              <td colspan="4" class="px-6 py-4">
+                <div class="pl-12">
+                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    {{ "subcategories" | i18n }}
+                  </h4>
+                  @if(subcategoriesOf(cat.id).length > 0) {
+                    <div class="space-y-2">
+                      @for(sub of subcategoriesOf(cat.id); track sub.id) {
+                        <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <i class="fas fa-tag text-gray-400 dark:text-gray-500 text-xs"></i>
+                              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ sub.name }}</span>
+                              @if(sub.type) {
+                                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full"
+                                  [class.bg-blue-100]="sub.type === 'precificado'"
+                                  [class.dark:bg-blue-900]="sub.type === 'precificado'"
+                                  [class.text-brand-primary-800]="sub.type === 'precificado'"
+                                  [class.dark:text-blue-200]="sub.type === 'precificado'"
+                                  [class.bg-orange-100]="sub.type === 'orçado'"
+                                  [class.dark:bg-orange-900]="sub.type === 'orçado'"
+                                  [class.text-orange-800]="sub.type === 'orçado'"
+                                  [class.dark:text-orange-200]="sub.type === 'orçado'">
+                                  {{ sub.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
+                                </span>
+                              }
+                            </div>
+                            <div class="flex items-center gap-4 mt-1 ml-5 text-xs text-gray-500 dark:text-gray-400">
+                              @if(sub.average_time_minutes) {
+                                <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time_minutes }} min</span>
+                              }
+                              @if(sub.price) {
+                                <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>
+                              }
+                            </div>
                           </div>
-                          <div class="flex items-center gap-4 mt-1 ml-5 text-xs text-gray-500 dark:text-gray-400">
-                            @if(sub.average_time_minutes) {
-                              <span><i class="fas fa-clock mr-1"></i>{{ sub.average_time_minutes }} min</span>
-                            }
-                            @if(sub.price) {
-                              <span><i class="fas fa-euro-sign mr-1"></i>{{ sub.price | number : '1.2-2' }}</span>
-                            }
+                          <div class="flex gap-1 ml-4">
+                            <button
+                              type="button"
+                              (click)="showSubcategoryDetails(sub)"
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full transition-colors"
+                              title="{{ 'details' | i18n }}"
+                              >
+                              <i class="fas fa-eye text-xs"></i>
+                            </button>
+                            <button
+                              type="button"
+                              (click)="startEditSubcategory(sub)"
+                              class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors"
+                              title="{{ 'edit' | i18n }}"
+                              >
+                              <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <button
+                              type="button"
+                              (click)="requestDeleteSubcategory(sub)"
+                              class="p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors"
+                              title="{{ 'delete' | i18n }}"
+                              >
+                              <i class="fas fa-times text-xs"></i>
+                            </button>
                           </div>
                         </div>
-                        <div class="flex gap-1 ml-4">
-                          <button
-                            type="button"
-                            (click)="showSubcategoryDetails(sub)"
-                            class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full transition-colors"
-                            title="{{ 'details' | i18n }}"
-                          >
-                            <i class="fas fa-eye text-xs"></i>
-                          </button>
-                          <button
-                            type="button"
-                            (click)="startEditSubcategory(sub)"
-                            class="p-2 text-brand-primary-600 dark:text-brand-primary-400 hover:text-brand-primary-800 dark:hover:text-brand-primary-300 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-full transition-colors"
-                            title="{{ 'edit' | i18n }}"
-                          >
-                            <i class="fas fa-edit text-xs"></i>
-                          </button>
-                          <button
-                            type="button"
-                            (click)="requestDeleteSubcategory(sub)"
-                            class="p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-gray-700 rounded-full transition-colors"
-                            title="{{ 'delete' | i18n }}"
-                          >
-                            <i class="fas fa-times text-xs"></i>
-                          </button>
-                        </div>
-                      </div>
-                    }
-                  </div>
-                } @else {
-                  <div class="text-center py-6">
-                    <i class="fas fa-inbox text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ "noSubcategories" | i18n }}</p>
-                  </div>
-                }
-              </div>
-            </td>
-          </tr>
-        </ng-container>
+                      }
+                    </div>
+                  } @else {
+                    <div class="text-center py-6">
+                      <i class="fas fa-inbox text-3xl text-gray-300 dark:text-gray-600 mb-2"></i>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">{{ "noSubcategories" | i18n }}</p>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
       </tbody>
     </table>
   </div>
@@ -210,7 +211,7 @@
               type="button"
               (click)="toggleExpand(cat.id)"
               class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-full"
-            >
+              >
               <i [class]="isExpanded(cat.id) ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
             </button>
           </div>
@@ -222,7 +223,7 @@
               (click)="showDetails(cat)"
               class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
               title="{{ 'details' | i18n }}"
-            >
+              >
               <i class="fas fa-eye mr-2"></i>
               <span class="sr-only sm:not-sr-only">{{ "details" | i18n }}</span>
             </button>
@@ -231,7 +232,7 @@
               (click)="startEditCategory(cat)"
               class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
               title="{{ 'edit' | i18n }}"
-            >
+              >
               <i class="fas fa-edit mr-2"></i>
               <span class="sr-only sm:not-sr-only">{{ "edit" | i18n }}</span>
             </button>
@@ -240,7 +241,7 @@
               (click)="manageSubcategories(cat)"
               class="flex-1 min-w-[44px] sm:min-w-[80px] px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-gray-700 hover:bg-green-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
               title="{{ 'addSubcategory' | i18n }}"
-            >
+              >
               <i class="fas fa-plus mr-2"></i>
               <span class="sr-only sm:not-sr-only">{{ "add" | i18n }}</span>
             </button>
@@ -249,7 +250,7 @@
               (click)="requestDeleteCategory(cat)"
               class="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-gray-600 rounded-md transition-colors"
               title="{{ 'delete' | i18n }}"
-            >
+              >
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -269,14 +270,14 @@
                           <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ sub.name }}</span>
                           @if(sub.type) {
                             <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full"
-                                  [class.bg-blue-100]="sub.type === 'precificado'"
-                                  [class.dark:bg-blue-900]="sub.type === 'precificado'"
-                                  [class.text-brand-primary-800]="sub.type === 'precificado'"
-                                  [class.dark:text-blue-200]="sub.type === 'precificado'"
-                                  [class.bg-orange-100]="sub.type === 'orçado'"
-                                  [class.dark:bg-orange-900]="sub.type === 'orçado'"
-                                  [class.text-orange-800]="sub.type === 'orçado'"
-                                  [class.dark:text-orange-200]="sub.type === 'orçado'">
+                              [class.bg-blue-100]="sub.type === 'precificado'"
+                              [class.dark:bg-blue-900]="sub.type === 'precificado'"
+                              [class.text-brand-primary-800]="sub.type === 'precificado'"
+                              [class.dark:text-blue-200]="sub.type === 'precificado'"
+                              [class.bg-orange-100]="sub.type === 'orçado'"
+                              [class.dark:bg-orange-900]="sub.type === 'orçado'"
+                              [class.text-orange-800]="sub.type === 'orçado'"
+                              [class.dark:text-orange-200]="sub.type === 'orçado'">
                               {{ sub.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
                             </span>
                           }
@@ -297,7 +298,7 @@
                         (click)="showSubcategoryDetails(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
                         title="{{ 'details' | i18n }}"
-                      >
+                        >
                         <i class="fas fa-eye mr-1"></i>
                         <span class="sr-only sm:not-sr-only">{{ "details" | i18n }}</span>
                       </button>
@@ -306,7 +307,7 @@
                         (click)="startEditSubcategory(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors flex items-center justify-center"
                         title="{{ 'edit' | i18n }}"
-                      >
+                        >
                         <i class="fas fa-edit mr-1"></i>
                         <span class="sr-only sm:not-sr-only">{{ "edit" | i18n }}</span>
                       </button>
@@ -315,7 +316,7 @@
                         (click)="requestDeleteSubcategory(sub)"
                         class="flex-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors flex items-center justify-center"
                         title="{{ 'delete' | i18n }}"
-                      >
+                        >
                         <i class="fas fa-times mr-1"></i>
                         <span class="sr-only sm:not-sr-only">{{ "delete" | i18n }}</span>
                       </button>
@@ -339,14 +340,14 @@
 @if(allCategories().length > 0) {
   <div
     class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0 mt-4 rounded-lg shadow-sm"
-  >
+    >
     <div class="flex items-center space-x-2">
       <span class="text-sm text-gray-700 dark:text-gray-200">{{ "itemsPerPage" | i18n }}:</span>
       <select
         [value]="itemsPerPage()"
         (change)="setItemsPerPage(+$event.target.value)"
         class="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-      >
+        >
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="25">25</option>
@@ -376,7 +377,7 @@
           (click)="previousPage()"
           [disabled]="currentPage() === 1"
           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          >
           <i class="fas fa-chevron-left"></i>
           <span class="sr-only">Previous</span>
         </button>
@@ -386,7 +387,7 @@
             @if(page === -1) {
               <span
                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+                >
                 ...
               </span>
             } @else {
@@ -397,7 +398,7 @@
                     ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-300'
                     : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 "
-              >
+                >
                 {{ page }}
               </button>
             }
@@ -406,7 +407,7 @@
 
         <div
           class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
+          >
           {{ currentPage() }} / {{ totalPages() || 1 }}
         </div>
 
@@ -414,7 +415,7 @@
           (click)="nextPage()"
           [disabled]="totalPages() === 0 || currentPage() === totalPages()"
           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          >
           <i class="fas fa-chevron-right"></i>
           <span class="sr-only">Next</span>
         </button>
@@ -426,24 +427,24 @@
 <!-- Modais (fora da tabela) -->
 
 <!-- Modal inclusão categoria -->
+@if (showAddCategoryModal()) {
   <div
-    *ngIf="showAddCategoryModal()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="closeAddCategoryModal()"
     (keydown.escape)="closeAddCategoryModal()"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ "addNewCategory" | i18n }}</h2>
         <button
           type="button"
           (click)="closeAddCategoryModal()"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -455,46 +456,47 @@
           placeholder="Nome da categoria"
           class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
           (keydown.enter)="addCategory()"
-        />
+          />
       </div>
       <div class="flex justify-end gap-2">
         <button
           type="button"
           (click)="addCategory()"
           class="px-4 py-2 bg-brand-primary-600 dark:bg-brand-primary-700 text-white rounded-md hover:bg-brand-primary-700 dark:hover:bg-brand-primary-600"
-        >
+          >
           {{ "add" | i18n }}
         </button>
         <button
           type="button"
           (click)="closeAddCategoryModal()"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           {{ "cancel" | i18n }}
         </button>
       </div>
     </div>
   </div>
+}
 
-  <!-- Modal edição categoria (reaproveita editingCategory signal) -->
+<!-- Modal edição categoria (reaproveita editingCategory signal) -->
+@if (editingCategory()) {
   <div
-    *ngIf="editingCategory()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="editingCategory.set(null)"
     (keydown.escape)="editingCategory.set(null)"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ "editCategory" | i18n }}</h2>
         <button
           type="button"
           (click)="editingCategory.set(null)"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -505,46 +507,47 @@
           (input)="editingCategoryName.set($event.target.value)"
           class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
           (keydown.enter)="saveCategoryEdit()"
-        />
+          />
       </div>
       <div class="flex justify-end gap-2">
         <button
           type="button"
           (click)="saveCategoryEdit()"
           class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
-        >
+          >
           {{ "save" | i18n }}
         </button>
         <button
           type="button"
           (click)="editingCategory.set(null)"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           {{ "cancel" | i18n }}
         </button>
       </div>
     </div>
   </div>
+}
 
-  <!-- Modal detalhes categoria -->
+<!-- Modal detalhes categoria -->
+@if (selectedCategoryForDetails()) {
   <div
-    *ngIf="selectedCategoryForDetails()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="selectedCategoryForDetails.set(null)"
     (keydown.escape)="selectedCategoryForDetails.set(null)"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ "categoryDetails" | i18n }}</h2>
         <button
           type="button"
           (click)="selectedCategoryForDetails.set(null)"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -554,7 +557,7 @@
         <p class="mt-2 font-semibold text-gray-900 dark:text-gray-100">Total de Subcategorias</p>
         <p class="text-gray-700 dark:text-gray-300">
           {{
-            subcategoryCounts().get(selectedCategoryForDetails()?.id || 0) || 0
+          subcategoryCounts().get(selectedCategoryForDetails()?.id || 0) || 0
           }}
         </p>
       </div>
@@ -563,38 +566,39 @@
           type="button"
           (click)="selectedCategoryForDetails.set(null)"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           {{ "close" | i18n }}
         </button>
       </div>
     </div>
   </div>
+}
 
-  <!-- Modal gerenciamento de subcategorias (reaproveita selectedCategoryForSubcategories) -->
+<!-- Modal gerenciamento de subcategorias (reaproveita selectedCategoryForSubcategories) -->
+@if (selectedCategoryForSubcategories()) {
   <div
-    *ngIf="selectedCategoryForSubcategories()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="selectedCategoryForSubcategories.set(null)"
     (keydown.escape)="selectedCategoryForSubcategories.set(null)"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
           {{
-            "subcategoriesOf"
-              | i18n
-                : { category: selectedCategoryForSubcategories()?.name || "" }
+          "subcategoriesOf"
+          | i18n
+          : { category: selectedCategoryForSubcategories()?.name || "" }
           }}
         </h2>
         <button
           type="button"
           (click)="selectedCategoryForSubcategories.set(null)"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -606,13 +610,13 @@
           placeholder="Nome da subcategoria"
           class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
           (keydown.enter)="addSubcategoryToCategory()"
-        />
+          />
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
           <select
             [value]="newSubcategoryType()"
             (change)="onNewSubcategoryTypeChange($event.target.value)"
             class="p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-          >
+            >
             <option value="">{{ "selectOption" | i18n }}</option>
             <option value="precificado">{{ "priced" | i18n }}</option>
             <option value="orçado">{{ "quoted" | i18n }}</option>
@@ -628,7 +632,7 @@
             min="0"
             [disabled]="newSubcategoryType() === 'orçado'"
             [class.opacity-50]="newSubcategoryType() === 'orçado'"
-          />
+            />
           <input
             type="number"
             [value]="newSubcategoryPrice()"
@@ -641,7 +645,7 @@
             min="0"
             [disabled]="newSubcategoryType() === 'orçado'"
             [class.opacity-50]="newSubcategoryType() === 'orçado'"
-          />
+            />
           <textarea
             [value]="newSubcategoryDescription()"
             (input)="newSubcategoryDescription.set($event.target.value)"
@@ -654,68 +658,69 @@
             type="button"
             (click)="addSubcategoryToCategory()"
             class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-600"
-          >
+            >
             {{ "addSubcategory" | i18n }}
           </button>
           <button
             type="button"
             (click)="selectedCategoryForSubcategories.set(null)"
             class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-          >
+            >
             {{ "cancel" | i18n }}
           </button>
         </div>
       </div>
       <ul class="list-disc pl-6 text-gray-900 dark:text-gray-100">
-        <li
-          *ngFor="
-            let sub of subcategoriesForSelectedCategory();
-            trackBy: trackBySubId
-          "
-          class="flex items-center justify-between mb-2"
-        >
-          <span>{{ sub.name }}</span>
-          <div class="flex gap-2">
-            <button
-              type="button"
-              (click)="startEditSubcategory(sub)"
-              class="px-2 py-1 bg-blue-500 dark:bg-blue-600 text-white rounded text-xs hover:bg-blue-600 dark:hover:bg-blue-500"
+        @for (
+          sub of subcategoriesForSelectedCategory(); track trackBySubId($index,
+          sub)) {
+          <li
+            class="flex items-center justify-between mb-2"
             >
-              {{ "edit" | i18n }}
-            </button>
-            <button
-              type="button"
-              (click)="requestDeleteSubcategory(sub)"
-              class="px-2 py-1 bg-red-500 dark:bg-red-600 text-white rounded text-xs hover:bg-red-600 dark:hover:bg-red-500"
-            >
-              {{ "delete" | i18n }}
-            </button>
-          </div>
-        </li>
+            <span>{{ sub.name }}</span>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="startEditSubcategory(sub)"
+                class="px-2 py-1 bg-blue-500 dark:bg-blue-600 text-white rounded text-xs hover:bg-blue-600 dark:hover:bg-blue-500"
+                >
+                {{ "edit" | i18n }}
+              </button>
+              <button
+                type="button"
+                (click)="requestDeleteSubcategory(sub)"
+                class="px-2 py-1 bg-red-500 dark:bg-red-600 text-white rounded text-xs hover:bg-red-600 dark:hover:bg-red-500"
+                >
+                {{ "delete" | i18n }}
+              </button>
+            </div>
+          </li>
+        }
       </ul>
     </div>
   </div>
+}
 
-  <!-- Modal de confirmação de exclusão de subcategoria -->
-  <!-- Modal de edição de subcategoria -->
+<!-- Modal de confirmação de exclusão de subcategoria -->
+<!-- Modal de edição de subcategoria -->
+@if (editingSubcategory()) {
   <div
-    *ngIf="editingSubcategory()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="editingSubcategory.set(null)"
     (keydown.escape)="editingSubcategory.set(null)"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ "editSubcategory" | i18n }}</h2>
         <button
           type="button"
           (click)="editingSubcategory.set(null)"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -725,12 +730,12 @@
           [value]="editingSubcategoryName()"
           (input)="editingSubcategoryName.set($event.target.value)"
           class="w-full p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-        />
+          />
         <select
           [value]="editingSubcategoryType()"
           (change)="onEditingSubcategoryTypeChange($event.target.value)"
           class="p-2 border rounded-md bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-        >
+          >
           <option value="">{{ "selectOption" | i18n }}</option>
           <option value="precificado">{{ "priced" | i18n }}</option>
           <option value="orçado">{{ "quoted" | i18n }}</option>
@@ -748,7 +753,7 @@
           min="0"
           [disabled]="editingSubcategoryType() === 'orçado'"
           [class.opacity-50]="editingSubcategoryType() === 'orçado'"
-        />
+          />
         <input
           type="number"
           [value]="editingSubcategoryPrice()"
@@ -761,7 +766,7 @@
           min="0"
           [disabled]="editingSubcategoryType() === 'orçado'"
           [class.opacity-50]="editingSubcategoryType() === 'orçado'"
-        />
+          />
         <textarea
           [value]="editingSubcategoryDescription()"
           (input)="editingSubcategoryDescription.set($event.target.value)"
@@ -774,37 +779,38 @@
           type="button"
           (click)="saveSubcategoryEdit()"
           class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
-        >
+          >
           {{ "save" | i18n }}
         </button>
         <button
           type="button"
           (click)="editingSubcategory.set(null)"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           {{ "cancel" | i18n }}
         </button>
       </div>
     </div>
   </div>
+}
+@if (showDeleteSubcategoryModal() && subcategoryToDelete()) {
   <div
-    *ngIf="showDeleteSubcategoryModal() && subcategoryToDelete()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="cancelDeleteSubcategory()"
     (keydown.escape)="cancelDeleteSubcategory()"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Excluir Subcategoria</h2>
         <button
           type="button"
           (click)="cancelDeleteSubcategory()"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -814,39 +820,40 @@
           type="button"
           (click)="confirmDeleteSubcategory()"
           class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600"
-        >
+          >
           Excluir
         </button>
         <button
           type="button"
           (click)="cancelDeleteSubcategory()"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           Cancelar
         </button>
       </div>
     </div>
   </div>
+}
 
-  <!-- Modal de confirmação de exclusão de categoria -->
+<!-- Modal de confirmação de exclusão de categoria -->
+@if (showDeleteModal() && categoryToDelete()) {
   <div
-    *ngIf="showDeleteModal() && categoryToDelete()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="cancelDeleteCategory()"
     (keydown.escape)="cancelDeleteCategory()"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Excluir Categoria</h2>
         <button
           type="button"
           (click)="cancelDeleteCategory()"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-        >
+          >
           ✕
         </button>
       </div>
@@ -856,42 +863,42 @@
           type="button"
           (click)="confirmDeleteCategory()"
           class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600"
-        >
+          >
           Excluir
         </button>
         <button
           type="button"
           (click)="cancelDeleteCategory()"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
-        >
+          >
           Cancelar
         </button>
       </div>
     </div>
   </div>
-  <!-- Modal de detalhes de subcategoria -->
+}
+<!-- Modal de detalhes de subcategoria -->
+@if (selectedSubcategoryForDetails()) {
   <div
-    *ngIf="selectedSubcategoryForDetails()"
     class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center z-50"
     (click)="closeSubcategoryDetails()"
     (keydown.escape)="closeSubcategoryDetails()"
-  >
+    >
     <div
       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-4 p-6"
       (click)="$event.stopPropagation()"
       (keydown)="$event.stopPropagation()"
-    >
+      >
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ "subcategoryDetails" | i18n }}</h2>
         <button
           type="button"
           (click)="closeSubcategoryDetails()"
           class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-        >
+          >
           <i class="fas fa-times text-xl"></i>
         </button>
       </div>
-      
       <div class="space-y-4">
         <!-- Nome -->
         <div>
@@ -900,7 +907,6 @@
           </p>
           <p class="text-base text-gray-900 dark:text-gray-100">{{ selectedSubcategoryForDetails()?.name }}</p>
         </div>
-
         <!-- Categoria -->
         <div>
           <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -910,72 +916,76 @@
             {{ getCategoryName(selectedSubcategoryForDetails()?.category_id || 0) }}
           </p>
         </div>
-
         <!-- Tipo -->
-        <div *ngIf="selectedSubcategoryForDetails()?.type">
-          <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {{ "type" | i18n }}
-          </p>
-          <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
-                [class.bg-blue-100]="selectedSubcategoryForDetails()?.type === 'precificado'"
-                [class.dark:bg-blue-900]="selectedSubcategoryForDetails()?.type === 'precificado'"
-                [class.text-brand-primary-800]="selectedSubcategoryForDetails()?.type === 'precificado'"
-                [class.dark:text-blue-200]="selectedSubcategoryForDetails()?.type === 'precificado'"
-                [class.bg-orange-100]="selectedSubcategoryForDetails()?.type === 'orçado'"
-                [class.dark:bg-orange-900]="selectedSubcategoryForDetails()?.type === 'orçado'"
-                [class.text-orange-800]="selectedSubcategoryForDetails()?.type === 'orçado'"
-                [class.dark:text-orange-200]="selectedSubcategoryForDetails()?.type === 'orçado'">
-            {{ selectedSubcategoryForDetails()?.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
-          </span>
-        </div>
-
+        @if (selectedSubcategoryForDetails()?.type) {
+          <div>
+            <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {{ "type" | i18n }}
+            </p>
+            <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full"
+              [class.bg-blue-100]="selectedSubcategoryForDetails()?.type === 'precificado'"
+              [class.dark:bg-blue-900]="selectedSubcategoryForDetails()?.type === 'precificado'"
+              [class.text-brand-primary-800]="selectedSubcategoryForDetails()?.type === 'precificado'"
+              [class.dark:text-blue-200]="selectedSubcategoryForDetails()?.type === 'precificado'"
+              [class.bg-orange-100]="selectedSubcategoryForDetails()?.type === 'orçado'"
+              [class.dark:bg-orange-900]="selectedSubcategoryForDetails()?.type === 'orçado'"
+              [class.text-orange-800]="selectedSubcategoryForDetails()?.type === 'orçado'"
+              [class.dark:text-orange-200]="selectedSubcategoryForDetails()?.type === 'orçado'">
+              {{ selectedSubcategoryForDetails()?.type === 'precificado' ? ('priced' | i18n) : ('quoted' | i18n) }}
+            </span>
+          </div>
+        }
         <!-- Tempo Médio -->
-        <div *ngIf="selectedSubcategoryForDetails()?.average_time_minutes">
-          <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {{ "averageTime" | i18n }}
-          </p>
-          <p class="text-base text-gray-900 dark:text-gray-100">
-            <i class="fas fa-clock mr-2 text-gray-500 dark:text-gray-400"></i>
-            {{ selectedSubcategoryForDetails()?.average_time_minutes }} {{ "minutes" | i18n }}
-          </p>
-        </div>
-
+        @if (selectedSubcategoryForDetails()?.average_time_minutes) {
+          <div>
+            <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {{ "averageTime" | i18n }}
+            </p>
+            <p class="text-base text-gray-900 dark:text-gray-100">
+              <i class="fas fa-clock mr-2 text-gray-500 dark:text-gray-400"></i>
+              {{ selectedSubcategoryForDetails()?.average_time_minutes }} {{ "minutes" | i18n }}
+            </p>
+          </div>
+        }
         <!-- Preço -->
-        <div *ngIf="selectedSubcategoryForDetails()?.price">
-          <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {{ "price" | i18n }}
-          </p>
-          <p class="text-base text-gray-900 dark:text-gray-100">
-            <i class="fas fa-euro-sign mr-2 text-gray-500 dark:text-gray-400"></i>
-            {{ selectedSubcategoryForDetails()?.price | number : '1.2-2' }}
-          </p>
-        </div>
-
+        @if (selectedSubcategoryForDetails()?.price) {
+          <div>
+            <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {{ "price" | i18n }}
+            </p>
+            <p class="text-base text-gray-900 dark:text-gray-100">
+              <i class="fas fa-euro-sign mr-2 text-gray-500 dark:text-gray-400"></i>
+              {{ selectedSubcategoryForDetails()?.price | number : '1.2-2' }}
+            </p>
+          </div>
+        }
         <!-- Descrição -->
-        <div *ngIf="selectedSubcategoryForDetails()?.description">
-          <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {{ "description" | i18n }}
-          </p>
-          <p class="text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-            {{ selectedSubcategoryForDetails()?.description }}
-          </p>
-        </div>
-
+        @if (selectedSubcategoryForDetails()?.description) {
+          <div>
+            <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {{ "description" | i18n }}
+            </p>
+            <p class="text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+              {{ selectedSubcategoryForDetails()?.description }}
+            </p>
+          </div>
+        }
         <!-- Se não houver descrição -->
-        <div *ngIf="!selectedSubcategoryForDetails()?.description">
-          <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            {{ "description" | i18n }}
-          </p>
-          <p class="text-sm text-gray-500 dark:text-gray-400 italic">{{ "noDescription" | i18n }}</p>
-        </div>
+        @if (!selectedSubcategoryForDetails()?.description) {
+          <div>
+            <p class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {{ "description" | i18n }}
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 italic">{{ "noDescription" | i18n }}</p>
+          </div>
+        }
       </div>
-
       <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="button"
           (click)="startEditSubcategory(selectedSubcategoryForDetails()!)"
           class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2"
-        >
+          >
           <i class="fas fa-edit"></i>
           {{ "edit" | i18n }}
         </button>
@@ -983,9 +993,10 @@
           type="button"
           (click)="closeSubcategoryDetails()"
           class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
-        >
+          >
           {{ "close" | i18n }}
         </button>
       </div>
     </div>
   </div>
+}

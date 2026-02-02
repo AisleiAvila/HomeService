@@ -7,7 +7,7 @@ import {
   computed,
   inject,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
@@ -16,7 +16,7 @@ import { I18nPipe } from "../../pipes/i18n.pipe";
 @Component({
   selector: "app-scheduler",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./scheduler.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

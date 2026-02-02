@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { 
   ChangeDetectionStrategy, 
   Component, 
@@ -16,7 +16,7 @@ declare const L: any;
 @Component({
   selector: 'app-leaflet-map-viewer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="w-full space-y-3">
       <!-- Botões de Ação -->

@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -12,7 +12,7 @@ import { SupabaseService } from "../../../services/supabase.service";
 @Component({
     selector: "app-professional-edit-page",
     standalone: true,
-    imports: [CommonModule, FormsModule, I18nPipe],
+    imports: [FormsModule, I18nPipe],
     templateUrl: "./professional-edit-page.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

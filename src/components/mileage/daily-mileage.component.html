@@ -17,7 +17,7 @@
   <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
     <h2 class="text-lg font-semibold mb-4">{{ 'todayStatus' | i18n }}</h2>
 
-    <ng-container *ngIf="todayMileage(); else noMileageToday">
+    @if (todayMileage()) {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="text-center">
           <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'initial' | i18n }}</p>
@@ -32,233 +32,244 @@
           <p class="text-xl font-bold">{{ getKilometersDriven(todayMileage()!) | number:'1.0-0':'pt-PT' }} km</p>
         </div>
       </div>
-
       <div class="flex gap-2">
-        <button
-          *ngIf="!todayMileage()!.end_kilometers"
-          (click)="showEndForm.set(true)"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {{ 'endDay' | i18n }}
-        </button>
+        @if (!todayMileage()!.end_kilometers) {
+          <button
+            (click)="showEndForm.set(true)"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            {{ 'endDay' | i18n }}
+          </button>
+        }
         <button
           (click)="showFuelingForm.set(true)"
           class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           {{ 'addFueling' | i18n }}
         </button>
       </div>
-    </ng-container>
-
-    <ng-template #noMileageToday>
+    } @else {
       <p class="text-gray-600 dark:text-neutral-400 mb-4">{{ 'noMileageToday' | i18n }}</p>
-      <button
-        *ngIf="!isAdmin()"
-        (click)="showStartForm.set(true)"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        {{ 'startDay' | i18n }}
-      </button>
-      <button
-        *ngIf="isAdmin()"
-        (click)="showAdminRegisterForm.set(true)"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        {{ 'registerMileage' | i18n }}
-      </button>
-    </ng-template>
+      @if (!isAdmin()) {
+        <button
+          (click)="showStartForm.set(true)"
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          {{ 'startDay' | i18n }}
+        </button>
+      }
+      @if (isAdmin()) {
+        <button
+          (click)="showAdminRegisterForm.set(true)"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          {{ 'registerMileage' | i18n }}
+        </button>
+      }
+    }
+
   </div>
 
   <!-- Start Day Form -->
-  <div *ngIf="showStartForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">{{ 'startDay' | i18n }}</h3>
-    <form (ngSubmit)="startDay()" class="space-y-4">
-      <div>
-        <label for="startDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
-        <input
-          id="startDate"
-          type="date"
-          [ngModel]="startDate()"
-          (ngModelChange)="startDate.set($event)"
-          name="startDate"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          required>
-      </div>
-      <div>
-        <label for="startKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
-        <input
-          id="startKilometers"
-          type="number"
-          [ngModel]="startKilometers()"
-          (input)="onStartKilometersChange($event)"
-          name="startKilometers"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="0"
-          min="0"
-          required>
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {{ 'save' | i18n }}
-        </button>
-        <button type="button" (click)="showStartForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-          {{ 'cancel' | i18n }}
-        </button>
-      </div>
-    </form>
-  </div>
+  @if (showStartForm()) {
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">{{ 'startDay' | i18n }}</h3>
+      <form (ngSubmit)="startDay()" class="space-y-4">
+        <div>
+          <label for="startDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
+          <input
+            id="startDate"
+            type="date"
+            [ngModel]="startDate()"
+            (ngModelChange)="startDate.set($event)"
+            name="startDate"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            required>
+        </div>
+        <div>
+          <label for="startKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
+          <input
+            id="startKilometers"
+            type="number"
+            [ngModel]="startKilometers()"
+            (input)="onStartKilometersChange($event)"
+            name="startKilometers"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="0"
+            min="0"
+            required>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            {{ 'save' | i18n }}
+          </button>
+          <button type="button" (click)="showStartForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            {{ 'cancel' | i18n }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 
   <!-- End Day Form -->
-  <div *ngIf="showEndForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">{{ 'endDay' | i18n }}</h3>
-    <form (ngSubmit)="endDay()" class="space-y-4">
-      <div>
-        <label for="endKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }}</label>
-        <input
-          id="endKilometers"
-          type="number"
-          [ngModel]="endKilometers()"
-          (ngModelChange)="onEndKilometersChange($event)"
-          name="endKilometers"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          [placeholder]="todayMileage()?.start_kilometers.toString()"
-          [min]="todayMileage()?.start_kilometers"
-          required>
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {{ 'save' | i18n }}
-        </button>
-        <button type="button" (click)="showEndForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-          {{ 'cancel' | i18n }}
-        </button>
-      </div>
-    </form>
-  </div>
+  @if (showEndForm()) {
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">{{ 'endDay' | i18n }}</h3>
+      <form (ngSubmit)="endDay()" class="space-y-4">
+        <div>
+          <label for="endKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }}</label>
+          <input
+            id="endKilometers"
+            type="number"
+            [ngModel]="endKilometers()"
+            (ngModelChange)="onEndKilometersChange($event)"
+            name="endKilometers"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            [placeholder]="todayMileage()?.start_kilometers.toString()"
+            [min]="todayMileage()?.start_kilometers"
+            required>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            {{ 'save' | i18n }}
+          </button>
+          <button type="button" (click)="showEndForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            {{ 'cancel' | i18n }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 
   <!-- Admin Register Mileage Form -->
-  <div *ngIf="showAdminRegisterForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">{{ 'registerMileage' | i18n }}</h3>
-    <form (ngSubmit)="registerMileageAsAdmin()" class="space-y-4">
-      <div>
-        <label for="adminRegisterDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
-        <input
-          id="adminRegisterDate"
-          type="date"
-          [ngModel]="adminRegisterDate()"
-          (ngModelChange)="adminRegisterDate.set($event)"
-          name="adminRegisterDate"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          required>
-      </div>
-      <div>
-        <label for="adminRegisterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
-        <select
-          id="adminRegisterProfessional"
-          [ngModel]="adminRegisterProfessionalId()"
-          (change)="onAdminProfessionalChange($event)"
-          name="adminRegisterProfessional"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          required>
-          <option value="">{{ 'selectProfessional' | i18n }}</option>
-          <option *ngFor="let professional of professionals()" [value]="professional.id.toString()">
-            {{ professional.name }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <label for="adminRegisterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
-        <input
-          id="adminRegisterLicensePlate"
-          type="text"
-          [ngModel]="adminRegisterLicensePlate()"
-          (ngModelChange)="adminRegisterLicensePlate.set($event)"
-          name="adminRegisterLicensePlate"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="AA-00-BB"
-          required>
-      </div>
-      <div>
-        <label for="adminRegisterStartKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
-        <input
-          id="adminRegisterStartKilometers"
-          type="number"
-          [ngModel]="adminRegisterStartKilometers()"
-          (input)="onAdminRegisterStartKilometersChange($event)"
-          name="adminRegisterStartKilometers"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="0"
-          min="0"
-          required>
-      </div>
-      <div>
-        <label for="adminRegisterEndKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }} <span class="text-sm text-gray-500">({{ 'optional' | i18n }})</span></label>
-        <input
-          id="adminRegisterEndKilometers"
-          type="number"
-          [ngModel]="adminRegisterEndKilometers()"
-          (input)="onAdminRegisterEndKilometersChange($event)"
-          name="adminRegisterEndKilometers"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="0"
-          min="0">
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          {{ 'save' | i18n }}
-        </button>
-        <button type="button" (click)="showAdminRegisterForm.set(false); adminRegisterProfessionalId.set(null); adminRegisterLicensePlate.set(''); adminRegisterStartKilometers.set(null); adminRegisterEndKilometers.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-          {{ 'cancel' | i18n }}
-        </button>
-      </div>
-    </form>
-  </div>
+  @if (showAdminRegisterForm()) {
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">{{ 'registerMileage' | i18n }}</h3>
+      <form (ngSubmit)="registerMileageAsAdmin()" class="space-y-4">
+        <div>
+          <label for="adminRegisterDate" class="block text-sm font-medium mb-1">{{ 'date' | i18n }}</label>
+          <input
+            id="adminRegisterDate"
+            type="date"
+            [ngModel]="adminRegisterDate()"
+            (ngModelChange)="adminRegisterDate.set($event)"
+            name="adminRegisterDate"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            required>
+        </div>
+        <div>
+          <label for="adminRegisterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
+          <select
+            id="adminRegisterProfessional"
+            [ngModel]="adminRegisterProfessionalId()"
+            (change)="onAdminProfessionalChange($event)"
+            name="adminRegisterProfessional"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            required>
+            <option value="">{{ 'selectProfessional' | i18n }}</option>
+            @for (professional of professionals(); track professional) {
+              <option [value]="professional.id.toString()">
+                {{ professional.name }}
+              </option>
+            }
+          </select>
+        </div>
+        <div>
+          <label for="adminRegisterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+          <input
+            id="adminRegisterLicensePlate"
+            type="text"
+            [ngModel]="adminRegisterLicensePlate()"
+            (ngModelChange)="adminRegisterLicensePlate.set($event)"
+            name="adminRegisterLicensePlate"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="AA-00-BB"
+            required>
+        </div>
+        <div>
+          <label for="adminRegisterStartKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
+          <input
+            id="adminRegisterStartKilometers"
+            type="number"
+            [ngModel]="adminRegisterStartKilometers()"
+            (input)="onAdminRegisterStartKilometersChange($event)"
+            name="adminRegisterStartKilometers"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="0"
+            min="0"
+            required>
+        </div>
+        <div>
+          <label for="adminRegisterEndKilometers" class="block text-sm font-medium mb-1">{{ 'final' | i18n }} <span class="text-sm text-gray-500">({{ 'optional' | i18n }})</span></label>
+          <input
+            id="adminRegisterEndKilometers"
+            type="number"
+            [ngModel]="adminRegisterEndKilometers()"
+            (input)="onAdminRegisterEndKilometersChange($event)"
+            name="adminRegisterEndKilometers"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="0"
+            min="0">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            {{ 'save' | i18n }}
+          </button>
+          <button type="button" (click)="showAdminRegisterForm.set(false); adminRegisterProfessionalId.set(null); adminRegisterLicensePlate.set(''); adminRegisterStartKilometers.set(null); adminRegisterEndKilometers.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            {{ 'cancel' | i18n }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 
   <!-- Fueling Form -->
-  <div *ngIf="showFuelingForm()" class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-4">{{ 'addFueling' | i18n }}</h3>
-    <form (ngSubmit)="addFueling()" class="space-y-4">
-      <div>
-        <label for="fuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
-        <input
-          id="fuelingValue"
-          type="number"
-          step="0.01"
-          [ngModel]="fuelingValue()"
-          (ngModelChange)="onFuelingValueChange($event)"
-          name="fuelingValue"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="0.00"
-          min="0"
-          required>
-      </div>
-      <div>
-        <label for="fuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
-        <input
-          id="fuelingLicensePlate"
-          type="text"
-          [ngModel]="fuelingLicensePlate()"
-          (ngModelChange)="fuelingLicensePlate.set($event)"
-          name="fuelingLicensePlate"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
-          placeholder="AA-00-BB"
-          required>
-      </div>
-      <div>
-        <label for="receiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
-        <input
-          id="receiptImage"
-          type="file"
-          accept="image/*"
-          (change)="onFileSelected($event)"
-          class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
-      </div>
-      <div class="flex gap-2">
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          {{ 'save' | i18n }}
-        </button>
-        <button type="button" (click)="showFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-          {{ 'cancel' | i18n }}
-        </button>
-      </div>
-    </form>
-  </div>
+  @if (showFuelingForm()) {
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+      <h3 class="text-lg font-semibold mb-4">{{ 'addFueling' | i18n }}</h3>
+      <form (ngSubmit)="addFueling()" class="space-y-4">
+        <div>
+          <label for="fuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+          <input
+            id="fuelingValue"
+            type="number"
+            step="0.01"
+            [ngModel]="fuelingValue()"
+            (ngModelChange)="onFuelingValueChange($event)"
+            name="fuelingValue"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="0.00"
+            min="0"
+            required>
+        </div>
+        <div>
+          <label for="fuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+          <input
+            id="fuelingLicensePlate"
+            type="text"
+            [ngModel]="fuelingLicensePlate()"
+            (ngModelChange)="fuelingLicensePlate.set($event)"
+            name="fuelingLicensePlate"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            placeholder="AA-00-BB"
+            required>
+        </div>
+        <div>
+          <label for="receiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+          <input
+            id="receiptImage"
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            {{ 'save' | i18n }}
+          </button>
+          <button type="button" (click)="showFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            {{ 'cancel' | i18n }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 
   <!-- History -->
   <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
@@ -272,126 +283,136 @@
     </div>
 
     <!-- Active Filters -->
-    <div *ngIf="activeFilters().length > 0" class="mb-4 p-3 bg-white dark:bg-neutral-800 rounded border dark:border-neutral-600">
-      <h4 class="text-sm font-medium mb-2">{{ 'activeFilters' | i18n }}</h4>
-      <div class="flex flex-wrap gap-2">
-        <span *ngFor="let filter of activeFilters()" class="inline-flex items-center bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm">
-          {{ filter.labelKey | i18n }}: {{ filter.value }}
-          <button (click)="clearFilter(filter.key)" class="ml-2 text-red-600 hover:text-red-800" aria-label="Remover filtro">
-            ×
-          </button>
-        </span>
+    @if (activeFilters().length > 0) {
+      <div class="mb-4 p-3 bg-white dark:bg-neutral-800 rounded border dark:border-neutral-600">
+        <h4 class="text-sm font-medium mb-2">{{ 'activeFilters' | i18n }}</h4>
+        <div class="flex flex-wrap gap-2">
+          @for (filter of activeFilters(); track filter) {
+            <span class="inline-flex items-center bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded text-sm">
+              {{ filter.labelKey | i18n }}: {{ filter.value }}
+              <button (click)="clearFilter(filter.key)" class="ml-2 text-red-600 hover:text-red-800" aria-label="Remover filtro">
+                ×
+              </button>
+            </span>
+          }
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Filters -->
-    <div *ngIf="showFilters()" class="mb-6 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
-      <h3 class="text-md font-medium mb-3">{{ 'filters' | i18n }}</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div>
-          <label for="filterStartDate" class="block text-sm font-medium mb-1">{{ 'startDate' | i18n }}</label>
-          <input
-            id="filterStartDate"
-            type="date"
-            [ngModel]="filterStartDate()"
-            (ngModelChange)="filterStartDate.set($event)"
-            name="filterStartDate"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
-        </div>
-        <div>
-          <label for="filterEndDate" class="block text-sm font-medium mb-1">{{ 'endDate' | i18n }}</label>
-          <input
-            id="filterEndDate"
-            type="date"
-            [ngModel]="filterEndDate()"
-            (ngModelChange)="filterEndDate.set($event)"
-            name="filterEndDate"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
-        </div>
-        <div>
-          <label for="filterMinDriven" class="block text-sm font-medium mb-1">{{ 'minDriven' | i18n }}</label>
-          <input
-            id="filterMinDriven"
-            type="number"
-            [ngModel]="filterMinDriven()"
-            (ngModelChange)="onFilterMinDrivenChange($event)"
-            name="filterMinDriven"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            [placeholder]="'placeholderMinDriven' | i18n"
-            min="0">
-        </div>
-        <div>
-          <label for="filterMaxDriven" class="block text-sm font-medium mb-1">{{ 'maxDriven' | i18n }}</label>
-          <input
-            id="filterMaxDriven"
-            type="number"
-            [ngModel]="filterMaxDriven()"
-            (ngModelChange)="onFilterMaxDrivenChange($event)"
-            name="filterMaxDriven"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            [placeholder]="'placeholderMaxDriven' | i18n"
-            min="0">
-        </div>
-        <div>
-          <label for="filterMinFueling" class="block text-sm font-medium mb-1">{{ 'minFueling' | i18n }}</label>
-          <input
-            id="filterMinFueling"
-            type="number"
-            step="0.01"
-            [ngModel]="filterMinFueling()"
-            (ngModelChange)="onFilterMinFuelingChange($event)"
-            name="filterMinFueling"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            [placeholder]="'placeholderMinFueling' | i18n"
-            min="0">
-        </div>
-        <div>
-          <label for="filterMaxFueling" class="block text-sm font-medium mb-1">{{ 'maxFueling' | i18n }}</label>
-          <input
-            id="filterMaxFueling"
-            type="number"
-            step="0.01"
-            [ngModel]="filterMaxFueling()"
-            (ngModelChange)="onFilterMaxFuelingChange($event)"
-            name="filterMaxFueling"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            [placeholder]="'placeholderMaxFueling' | i18n"
-            min="0">
-        </div>
-        <div>
-          <label for="filterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
-          <input
-            id="filterLicensePlate"
-            type="text"
-            [ngModel]="filterLicensePlate()"
-            (ngModelChange)="onFilterLicensePlateChange($event)"
-            name="filterLicensePlate"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-            [placeholder]="'placeholderLicensePlate' | i18n">
-        </div>
-        <div *ngIf="isAdmin()">
-          <label for="filterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
-          <select
-            id="filterProfessional"
-            [ngModel]="filterProfessionalId()"
-            (ngModelChange)="onFilterProfessionalChange($event)"
-            name="filterProfessional"
-            class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
-            <option value="">{{ 'all' | i18n }}</option>
-            <option *ngFor="let professional of professionals()" [value]="professional.id">
-              {{ professional.name }}
-            </option>
-          </select>
-        </div>
-        <div class="flex items-end">
-          <button
-            (click)="clearFilters()"
-            class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-            {{ 'clearFilters' | i18n }}
-          </button>
+    @if (showFilters()) {
+      <div class="mb-6 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
+        <h3 class="text-md font-medium mb-3">{{ 'filters' | i18n }}</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label for="filterStartDate" class="block text-sm font-medium mb-1">{{ 'startDate' | i18n }}</label>
+            <input
+              id="filterStartDate"
+              type="date"
+              [ngModel]="filterStartDate()"
+              (ngModelChange)="filterStartDate.set($event)"
+              name="filterStartDate"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+          </div>
+          <div>
+            <label for="filterEndDate" class="block text-sm font-medium mb-1">{{ 'endDate' | i18n }}</label>
+            <input
+              id="filterEndDate"
+              type="date"
+              [ngModel]="filterEndDate()"
+              (ngModelChange)="filterEndDate.set($event)"
+              name="filterEndDate"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+          </div>
+          <div>
+            <label for="filterMinDriven" class="block text-sm font-medium mb-1">{{ 'minDriven' | i18n }}</label>
+            <input
+              id="filterMinDriven"
+              type="number"
+              [ngModel]="filterMinDriven()"
+              (ngModelChange)="onFilterMinDrivenChange($event)"
+              name="filterMinDriven"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              [placeholder]="'placeholderMinDriven' | i18n"
+              min="0">
+          </div>
+          <div>
+            <label for="filterMaxDriven" class="block text-sm font-medium mb-1">{{ 'maxDriven' | i18n }}</label>
+            <input
+              id="filterMaxDriven"
+              type="number"
+              [ngModel]="filterMaxDriven()"
+              (ngModelChange)="onFilterMaxDrivenChange($event)"
+              name="filterMaxDriven"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              [placeholder]="'placeholderMaxDriven' | i18n"
+              min="0">
+          </div>
+          <div>
+            <label for="filterMinFueling" class="block text-sm font-medium mb-1">{{ 'minFueling' | i18n }}</label>
+            <input
+              id="filterMinFueling"
+              type="number"
+              step="0.01"
+              [ngModel]="filterMinFueling()"
+              (ngModelChange)="onFilterMinFuelingChange($event)"
+              name="filterMinFueling"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              [placeholder]="'placeholderMinFueling' | i18n"
+              min="0">
+          </div>
+          <div>
+            <label for="filterMaxFueling" class="block text-sm font-medium mb-1">{{ 'maxFueling' | i18n }}</label>
+            <input
+              id="filterMaxFueling"
+              type="number"
+              step="0.01"
+              [ngModel]="filterMaxFueling()"
+              (ngModelChange)="onFilterMaxFuelingChange($event)"
+              name="filterMaxFueling"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              [placeholder]="'placeholderMaxFueling' | i18n"
+              min="0">
+          </div>
+          <div>
+            <label for="filterLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+            <input
+              id="filterLicensePlate"
+              type="text"
+              [ngModel]="filterLicensePlate()"
+              (ngModelChange)="onFilterLicensePlateChange($event)"
+              name="filterLicensePlate"
+              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+              [placeholder]="'placeholderLicensePlate' | i18n">
+          </div>
+          @if (isAdmin()) {
+            <div>
+              <label for="filterProfessional" class="block text-sm font-medium mb-1">{{ 'professional' | i18n }}</label>
+              <select
+                id="filterProfessional"
+                [ngModel]="filterProfessionalId()"
+                (ngModelChange)="onFilterProfessionalChange($event)"
+                name="filterProfessional"
+                class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+                <option value="">{{ 'all' | i18n }}</option>
+                @for (professional of professionals(); track professional) {
+                  <option [value]="professional.id">
+                    {{ professional.name }}
+                  </option>
+                }
+              </select>
+            </div>
+          }
+          <div class="flex items-end">
+            <button
+              (click)="clearFilters()"
+              class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              {{ 'clearFilters' | i18n }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    }
 
     <div class="space-y-4">
       <!-- Mileage Table -->
@@ -404,7 +425,9 @@
                   {{ 'date' | i18n }} {{ sortBy() === 'date' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
               </th>
-              <th *ngIf="isAdmin()" class="px-4 py-2 text-left">{{ 'professional' | i18n }}</th>
+              @if (isAdmin()) {
+                <th class="px-4 py-2 text-left">{{ 'professional' | i18n }}</th>
+              }
               <th class="px-4 py-2 text-left">{{ 'licensePlate' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'initial' | i18n }}</th>
               <th class="px-4 py-2 text-right">{{ 'final' | i18n }}</th>
@@ -422,66 +445,70 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let mileage of paginatedMileages()" class="border-b dark:border-neutral-600 md:table-row block md:table-row">
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'date' | i18n }}:</span>
-                  <span class="text-right">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
-                </div>
-                <span class="hidden md:block text-center">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
-              </td>
-              <td *ngIf="isAdmin()" class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'professional' | i18n }}:</span>
-                  <span class="text-right">{{ getProfessionalName(mileage.professional_id) }}</span>
-                </div>
-                <span class="hidden md:block text-left">{{ getProfessionalName(mileage.professional_id) }}</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'licensePlate' | i18n }}:</span>
-                  <span class="text-right">{{ getLicensePlateForMileage(mileage) }}</span>
-                </div>
-                <span class="hidden md:block text-left">{{ getLicensePlateForMileage(mileage) }}</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'initial' | i18n }}:</span>
-                  <span class="text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
-                </div>
-                <span class="hidden md:block text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'final' | i18n }}:</span>
-                  <span class="text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
-                </div>
-                <span class="hidden md:block text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'kilometersDriven' | i18n }}:</span>
-                  <span class="text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
-                </div>
-                <span class="hidden md:block text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block">
-                <div class="md:hidden flex justify-between items-center">
-                  <span class="font-semibold text-left">{{ 'fuelings' | i18n }}:</span>
-                  <span class="text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
-                </div>
-                <span class="hidden md:block text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
-              </td>
-              <td class="px-4 py-2 md:table-cell block text-left">
-                <button
-                  (click)="viewFuelings(mileage)"
-                  class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                  [attr.aria-label]="'viewFuelings' | i18n"
-                  title="Ver abastecimentos">
-                  <i class="fas fa-eye" aria-hidden="true"></i>
-                </button>
-              </td>
-            </tr>
+            @for (mileage of paginatedMileages(); track mileage) {
+              <tr class="border-b dark:border-neutral-600 md:table-row block md:table-row">
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'date' | i18n }}:</span>
+                    <span class="text-right">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <span class="hidden md:block text-center">{{ mileage.date | date:'dd/MM/yyyy' }}</span>
+                </td>
+                @if (isAdmin()) {
+                  <td class="px-4 py-2 md:table-cell block">
+                    <div class="md:hidden flex justify-between items-center">
+                      <span class="font-semibold text-left">{{ 'professional' | i18n }}:</span>
+                      <span class="text-right">{{ getProfessionalName(mileage.professional_id) }}</span>
+                    </div>
+                    <span class="hidden md:block text-left">{{ getProfessionalName(mileage.professional_id) }}</span>
+                  </td>
+                }
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'licensePlate' | i18n }}:</span>
+                    <span class="text-right">{{ getLicensePlateForMileage(mileage) }}</span>
+                  </div>
+                  <span class="hidden md:block text-left">{{ getLicensePlateForMileage(mileage) }}</span>
+                </td>
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'initial' | i18n }}:</span>
+                    <span class="text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
+                  </div>
+                  <span class="hidden md:block text-right">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
+                </td>
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'final' | i18n }}:</span>
+                    <span class="text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
+                  </div>
+                  <span class="hidden md:block text-right">{{ (mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') : '-') + (mileage.end_kilometers ? ' km' : '') }}</span>
+                </td>
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'kilometersDriven' | i18n }}:</span>
+                    <span class="text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
+                  </div>
+                  <span class="hidden md:block text-right">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
+                </td>
+                <td class="px-4 py-2 md:table-cell block">
+                  <div class="md:hidden flex justify-between items-center">
+                    <span class="font-semibold text-left">{{ 'fuelings' | i18n }}:</span>
+                    <span class="text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
+                  </div>
+                  <span class="hidden md:block text-right">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
+                </td>
+                <td class="px-4 py-2 md:table-cell block text-left">
+                  <button
+                    (click)="viewFuelings(mileage)"
+                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                    [attr.aria-label]="'viewFuelings' | i18n"
+                    title="Ver abastecimentos">
+                    <i class="fas fa-eye" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
@@ -506,88 +533,98 @@
   </div>
 
   <!-- Fuelings Modal -->
-  <div *ngIf="selectedDailyMileage()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">{{ 'fuelingsFor' | i18n }} {{ selectedDailyMileage()!.date }}</h3>
-        <div class="flex gap-2">
-          <button
-            *ngIf="isAdmin()"
-            (click)="showModalFuelingForm.set(true)"
-            class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
-            <i class="fas fa-plus mr-1"></i>{{ 'addFueling' | i18n }}
-          </button>
-          <button (click)="selectedDailyMileage.set(null)" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-      <div class="space-y-2">
-        <div *ngFor="let fueling of filteredFuelingsForSelectedMileage()" class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
-          <div>
-            <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
-            <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
-          </div>
-          <div *ngIf="fueling.receipt_image_url">
-            <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800">
-              <i class="fas fa-image"></i> {{ 'viewReceipt' | i18n }}
-            </a>
-          </div>
-        </div>
-        <div *ngIf="filteredFuelingsForSelectedMileage().length === 0" class="text-center text-gray-600 dark:text-neutral-400 py-4">
-          {{ 'noFuelings' | i18n }}
-        </div>
-      </div>
-
-      <!-- Add Fueling Form (for modal) -->
-      <div *ngIf="showModalFuelingForm()" class="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
-        <h4 class="text-md font-medium mb-3">{{ 'addFueling' | i18n }}</h4>
-        <form (ngSubmit)="addFuelingToMileage(selectedDailyMileage()!.id)" class="space-y-3">
-          <div>
-            <label for="modalFuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
-            <input
-              id="modalFuelingValue"
-              type="number"
-              step="0.01"
-              [ngModel]="fuelingValue()"
-              (ngModelChange)="onFuelingValueChange($event)"
-              name="modalFuelingValue"
-              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-              placeholder="0.00"
-              min="0"
-              required>
-          </div>
-          <div>
-            <label for="modalFuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
-            <input
-              id="modalFuelingLicensePlate"
-              type="text"
-              [ngModel]="fuelingLicensePlate()"
-              (ngModelChange)="fuelingLicensePlate.set($event)"
-              name="modalFuelingLicensePlate"
-              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-              placeholder="AA-00-BB"
-              required>
-          </div>
-          <div>
-            <label for="modalReceiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
-            <input
-              id="modalReceiptImage"
-              type="file"
-              accept="image/*"
-              (change)="onFileSelected($event)"
-              class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
-          </div>
+  @if (selectedDailyMileage()) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">{{ 'fuelingsFor' | i18n }} {{ selectedDailyMileage()!.date }}</h3>
           <div class="flex gap-2">
-            <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
-              {{ 'save' | i18n }}
-            </button>
-            <button type="button" (click)="showModalFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm">
-              {{ 'cancel' | i18n }}
+            @if (isAdmin()) {
+              <button
+                (click)="showModalFuelingForm.set(true)"
+                class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+                <i class="fas fa-plus mr-1"></i>{{ 'addFueling' | i18n }}
+              </button>
+            }
+            <button (click)="selectedDailyMileage.set(null)" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times"></i>
             </button>
           </div>
-        </form>
+        </div>
+        <div class="space-y-2">
+          @for (fueling of filteredFuelingsForSelectedMileage(); track fueling) {
+            <div class="flex justify-between items-center p-2 border rounded dark:border-neutral-600">
+              <div>
+                <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
+                <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
+              </div>
+              @if (fueling.receipt_image_url) {
+                <div>
+                  <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-image"></i> {{ 'viewReceipt' | i18n }}
+                  </a>
+                </div>
+              }
+            </div>
+          }
+          @if (filteredFuelingsForSelectedMileage().length === 0) {
+            <div class="text-center text-gray-600 dark:text-neutral-400 py-4">
+              {{ 'noFuelings' | i18n }}
+            </div>
+          }
+        </div>
+        <!-- Add Fueling Form (for modal) -->
+        @if (showModalFuelingForm()) {
+          <div class="mt-4 p-4 bg-gray-50 dark:bg-neutral-700 rounded">
+            <h4 class="text-md font-medium mb-3">{{ 'addFueling' | i18n }}</h4>
+            <form (ngSubmit)="addFuelingToMileage(selectedDailyMileage()!.id)" class="space-y-3">
+              <div>
+                <label for="modalFuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+                <input
+                  id="modalFuelingValue"
+                  type="number"
+                  step="0.01"
+                  [ngModel]="fuelingValue()"
+                  (ngModelChange)="onFuelingValueChange($event)"
+                  name="modalFuelingValue"
+                  class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+                  placeholder="0.00"
+                  min="0"
+                  required>
+              </div>
+              <div>
+                <label for="modalFuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+                <input
+                  id="modalFuelingLicensePlate"
+                  type="text"
+                  [ngModel]="fuelingLicensePlate()"
+                  (ngModelChange)="fuelingLicensePlate.set($event)"
+                  name="modalFuelingLicensePlate"
+                  class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
+                  placeholder="AA-00-BB"
+                  required>
+              </div>
+              <div>
+                <label for="modalReceiptImage" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+                <input
+                  id="modalReceiptImage"
+                  type="file"
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500">
+              </div>
+              <div class="flex gap-2">
+                <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+                  {{ 'save' | i18n }}
+                </button>
+                <button type="button" (click)="showModalFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700 text-sm">
+                  {{ 'cancel' | i18n }}
+                </button>
+              </div>
+            </form>
+          </div>
+        }
       </div>
     </div>
-  </div>
+  }
 </div>

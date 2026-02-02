@@ -1,171 +1,167 @@
-<dialog
-  *ngIf="show()"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-  aria-labelledby="technical-report-modal-title"
-  (keydown)="onModalKeydown($event)"
-  open
-  #modalContainer
->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full p-6 relative max-h-[90vh] overflow-auto">
-    <button
-      (click)="handleClose()"
-      [disabled]="generating()"
-      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
-      aria-label="{{ 'close' | i18n }}"
-      type="button"
-      tabindex="0"
+@if (show()) {
+  <dialog
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+    aria-labelledby="technical-report-modal-title"
+    (keydown)="onModalKeydown($event)"
+    open
+    #modalContainer
     >
-      <i class="fas fa-times" aria-hidden="true"></i>
-    </button>
-
-    <h2 id="technical-report-modal-title" class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-      {{ 'technicalReport' | i18n }}
-    </h2>
-    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-      {{ 'origin' | i18n }}: <span class="font-semibold">{{ originLabel() }}</span>
-    </p>
-
-    @if (needsWortenVariantSelection()) {
-      <div class="mb-4 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-        <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-          Selecione o tipo de relatório Worten:
-        </p>
-        <div class="flex gap-3">
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input
-              type="radio"
-              name="wortenVariant"
-              [checked]="selectedWortenVariant() === 'worten_verde'"
-              (change)="selectedWortenVariant.set('worten_verde')"
-            />
-            Verde
-          </label>
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input
-              type="radio"
-              name="wortenVariant"
-              [checked]="selectedWortenVariant() === 'worten_azul'"
-              (change)="selectedWortenVariant.set('worten_azul')"
-            />
-            Azul
-          </label>
-        </div>
-
-        <!-- Serviços Extras for Worten Verde -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Serviços Extras Realizados</h3>
-            <button type="button" (click)="addVerdeExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full p-6 relative max-h-[90vh] overflow-auto">
+      <button
+        (click)="handleClose()"
+        [disabled]="generating()"
+        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
+        aria-label="{{ 'close' | i18n }}"
+        type="button"
+        tabindex="0"
+        >
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+      <h2 id="technical-report-modal-title" class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+        {{ 'technicalReport' | i18n }}
+      </h2>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+        {{ 'origin' | i18n }}: <span class="font-semibold">{{ originLabel() }}</span>
+      </p>
+      @if (needsWortenVariantSelection()) {
+        <div class="mb-4 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+          <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+            Selecione o tipo de relatório Worten:
+          </p>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="radio"
+                name="wortenVariant"
+                [checked]="selectedWortenVariant() === 'worten_verde'"
+                (change)="selectedWortenVariant.set('worten_verde')"
+                />
+              Verde
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="radio"
+                name="wortenVariant"
+                [checked]="selectedWortenVariant() === 'worten_azul'"
+                (change)="selectedWortenVariant.set('worten_azul')"
+                />
+              Azul
+            </label>
           </div>
-          <div *ngIf="verdeExtraServicesInstalled().length === 0" class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
-          <div *ngIf="verdeExtraServicesInstalled().length > 0" class="space-y-3">
-            <div *ngFor="let item of verdeExtraServicesInstalled(); let idx = index; trackBy: trackByVerdeExtraServiceId" class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-              <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraDesc' + idx">Descrição do Serviço *</label>
-                <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'verdeExtraDesc' + idx"
-                  [ngModel]="item.description" (ngModelChange)="updateVerdeExtraServiceDescription(idx, $event)" />
+          <!-- Serviços Extras for Worten Verde -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Serviços Extras Realizados</h3>
+              <button type="button" (click)="addVerdeExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+            </div>
+            @if (verdeExtraServicesInstalled().length === 0) {
+              <div class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
+            }
+            @if (verdeExtraServicesInstalled().length > 0) {
+              <div class="space-y-3">
+                @for (item of verdeExtraServicesInstalled(); track trackByVerdeExtraServiceId(idx, item); let idx = $index) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraDesc' + idx">Descrição do Serviço *</label>
+                      <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'verdeExtraDesc' + idx"
+                        [ngModel]="item.description" (ngModelChange)="updateVerdeExtraServiceDescription(idx, $event)" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraValue' + idx">Valor do Serviço (€) *</label>
+                      <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'verdeExtraValue' + idx"
+                        [ngModel]="item.value" (ngModelChange)="updateVerdeExtraServiceValue(idx, $event)" />
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                      <button type="button" (click)="removeVerdeExtraService(idx)" class="text-sm text-red-600">Remover</button>
+                    </div>
+                  </div>
+                }
               </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraValue' + idx">Valor do Serviço (€) *</label>
-                <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'verdeExtraValue' + idx"
-                  [ngModel]="item.value" (ngModelChange)="updateVerdeExtraServiceValue(idx, $event)" />
-              </div>
-              <div class="md:col-span-3 flex justify-end">
-                <button type="button" (click)="removeVerdeExtraService(idx)" class="text-sm text-red-600">Remover</button>
+            }
+          </div>
+        </div>
+      }
+      @if (error()) {
+        <div class="mb-4 text-sm text-red-600 dark:text-red-400 flex items-center">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          {{ error() }}
+        </div>
+      }
+      @if (activeOriginKey() === 'worten_verde') {
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="verdeProcess" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Processo *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeProcess"
+                [ngModel]="verdeProcess()" (ngModelChange)="verdeProcess.set($event)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Serviço *</label>
+              <div class="space-y-1">
+                <label class="flex items-center gap-2">
+                  <input type="checkbox" [checked]="verdeServiceType().includes('Instalação')"
+                    (change)="onVerdeServiceTypeChange('Instalação', $event.target.checked)" />
+                  Instalação
+                </label>
+                <label class="font-semibold mt-2">Reparação:</label>
+                <div class="pl-4 space-y-1">
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" [checked]="verdeServiceType().includes('Garantia')"
+                      (change)="onVerdeServiceTypeChange('Garantia', $event.target.checked)" />
+                    Garantia
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" [checked]="verdeServiceType().includes('Extensão de Garantia')"
+                      (change)="onVerdeServiceTypeChange('Extensão de Garantia', $event.target.checked)" />
+                    Extensão de Garantia
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" [checked]="verdeServiceType().includes('Orçamento')"
+                      (change)="onVerdeServiceTypeChange('Orçamento', $event.target.checked)" />
+                    Orçamento
+                  </label>
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" [checked]="verdeServiceType().includes('SAT24')"
+                      (change)="onVerdeServiceTypeChange('SAT24', $event.target.checked)" />
+                    SAT24
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    }
-
-    <div *ngIf="error()" class="mb-4 text-sm text-red-600 dark:text-red-400 flex items-center">
-      <i class="fas fa-exclamation-circle mr-2"></i>
-      {{ error() }}
-    </div>
-
-    @if (activeOriginKey() === 'worten_verde') {
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="verdeProcess" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Processo *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeProcess"
-              [ngModel]="verdeProcess()" (ngModelChange)="verdeProcess.set($event)" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Serviço *</label>
-            <div class="space-y-1">
-              <label class="flex items-center gap-2">
-                <input type="checkbox" [checked]="verdeServiceType().includes('Instalação')"
-                  (change)="onVerdeServiceTypeChange('Instalação', $event.target.checked)" />
-                Instalação
-              </label>
-              <label class="font-semibold mt-2">Reparação:</label>
-              <div class="pl-4 space-y-1">
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [checked]="verdeServiceType().includes('Garantia')"
-                    (change)="onVerdeServiceTypeChange('Garantia', $event.target.checked)" />
-                  Garantia
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [checked]="verdeServiceType().includes('Extensão de Garantia')"
-                    (change)="onVerdeServiceTypeChange('Extensão de Garantia', $event.target.checked)" />
-                  Extensão de Garantia
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [checked]="verdeServiceType().includes('Orçamento')"
-                    (change)="onVerdeServiceTypeChange('Orçamento', $event.target.checked)" />
-                  Orçamento
-                </label>
-                <label class="flex items-center gap-2">
-                  <input type="checkbox" [checked]="verdeServiceType().includes('SAT24')"
-                    (change)="onVerdeServiceTypeChange('SAT24', $event.target.checked)" />
-                  SAT24
-                </label>
-              </div>
+            <div>
+              <label for="verdeTypology" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipologia</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeTypology"
+                [ngModel]="verdeTypology()" (ngModelChange)="verdeTypology.set($event)" />
+            </div>
+            <div>
+              <label for="verdeBrand" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marca *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeBrand"
+                [ngModel]="verdeBrand()" (ngModelChange)="verdeBrand.set($event)" />
+            </div>
+            <div>
+              <label for="verdeModel" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modelo *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeModel"
+                [ngModel]="verdeModel()" (ngModelChange)="verdeModel.set($event)" />
+            </div>
+            <div>
+              <label for="verdeSerialNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Série *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeSerialNumber"
+                [ngModel]="verdeSerialNumber()" (ngModelChange)="verdeSerialNumber.set($event)" />
+            </div>
+            <div>
+              <label for="verdeProductCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código do Produto</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="verdeProductCode"
+                [ngModel]="verdeProductCode()" (ngModelChange)="verdeProductCode.set($event)" />
             </div>
           </div>
-
-          <div>
-            <label for="verdeTypology" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipologia</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeTypology"
-              [ngModel]="verdeTypology()" (ngModelChange)="verdeTypology.set($event)" />
-          </div>
-
-          <div>
-            <label for="verdeBrand" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marca *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeBrand"
-              [ngModel]="verdeBrand()" (ngModelChange)="verdeBrand.set($event)" />
-          </div>
-
-          <div>
-            <label for="verdeModel" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modelo *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeModel"
-              [ngModel]="verdeModel()" (ngModelChange)="verdeModel.set($event)" />
-          </div>
-
-          <div>
-            <label for="verdeSerialNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Série *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeSerialNumber"
-              [ngModel]="verdeSerialNumber()" (ngModelChange)="verdeSerialNumber.set($event)" />
-          </div>
-
-          <div>
-            <label for="verdeProductCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Código do Produto</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="verdeProductCode"
-              [ngModel]="verdeProductCode()" (ngModelChange)="verdeProductCode.set($event)" />
-          </div>
-        </div>
-
           <div>
             <label for="verdeReportedFailure" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Avaria Reportada</label>
             <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
@@ -176,300 +172,299 @@
             <label for="verdeClientComments" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comentários/Sugestões do Cliente</label>
             <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
               id="verdeClientComments"
-              [ngModel]="verdeClientComments()" (ngModelChange)="verdeClientComments.set($event)"></textarea>
+            [ngModel]="verdeClientComments()" (ngModelChange)="verdeClientComments.set($event)"></textarea>
           </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" class="rounded" [ngModel]="verdeOldItemCollected()" (ngModelChange)="verdeOldItemCollected.set($event)" />
-            Artigo antigo recolhido?
-          </label>
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" class="rounded" [ngModel]="verdeItemPickedUpAtWorkshop()" (ngModelChange)="verdeItemPickedUpAtWorkshop.set($event)" />
-            Artigo levantado oficina?
-          </label>
-        </div>
-
-        <div>
-          <label for="verdeTechnicalNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observações técnicas *</label>
-          <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-            id="verdeTechnicalNotes"
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" class="rounded" [ngModel]="verdeOldItemCollected()" (ngModelChange)="verdeOldItemCollected.set($event)" />
+              Artigo antigo recolhido?
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" class="rounded" [ngModel]="verdeItemPickedUpAtWorkshop()" (ngModelChange)="verdeItemPickedUpAtWorkshop.set($event)" />
+              Artigo levantado oficina?
+            </label>
+          </div>
+          <div>
+            <label for="verdeTechnicalNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observações técnicas *</label>
+            <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="verdeTechnicalNotes"
             [ngModel]="verdeTechnicalNotes()" (ngModelChange)="verdeTechnicalNotes.set($event)"></textarea>
-        </div>
-
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Material</h3>
-            <button type="button" (click)="addMaterialItem()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">
-              + Adicionar
-            </button>
           </div>
-
-          @if (verdeMaterials().length === 0) {
-            <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum item adicionado.</p>
-          } @else {
-            <div class="space-y-3">
-              @for (item of verdeMaterials(); track $index; let idx = $index) {
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-                  <div class="md:col-span-2">
-                    <label
-                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      [attr.for]="'materialDesc' + idx"
-                    >Descrição *</label>
-                    <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                      [attr.id]="'materialDesc' + idx"
-                      [ngModel]="item.description" (ngModelChange)="updateMaterialDescription(idx, $event)" />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      [attr.for]="'materialTotal' + idx"
-                    >Total com IVA (€) *</label>
-                    <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                      [attr.id]="'materialTotal' + idx"
-                      [ngModel]="item.totalWithVat" (ngModelChange)="updateMaterialTotal(idx, $event)" />
-                  </div>
-                  <div class="md:col-span-3 flex justify-end">
-                    <button type="button" (click)="removeMaterialItem(idx)" class="text-sm text-red-600">
-                      Remover
-                    </button>
-                  </div>
-                </div>
-              }
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Material</h3>
+              <button type="button" (click)="addMaterialItem()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">
+                + Adicionar
+              </button>
             </div>
-          }
-        </div>
-
-        <!-- Serviços Extras for Worten Verde (always visible in the form) -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-          <div class="flex items-center justify-between mb-2">
-            <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serviços Extras Realizados</span>
-            <button type="button" (click)="addVerdeExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+            @if (verdeMaterials().length === 0) {
+              <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum item adicionado.</p>
+            } @else {
+              <div class="space-y-3">
+                @for (item of verdeMaterials(); track $index; let idx = $index) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div class="md:col-span-2">
+                      <label
+                        class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        [attr.for]="'materialDesc' + idx"
+                      >Descrição *</label>
+                      <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'materialDesc' + idx"
+                        [ngModel]="item.description" (ngModelChange)="updateMaterialDescription(idx, $event)" />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
+                        [attr.for]="'materialTotal' + idx"
+                      >Total com IVA (€) *</label>
+                      <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'materialTotal' + idx"
+                        [ngModel]="item.totalWithVat" (ngModelChange)="updateMaterialTotal(idx, $event)" />
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                      <button type="button" (click)="removeMaterialItem(idx)" class="text-sm text-red-600">
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
-          <div *ngIf="verdeExtraServicesInstalled().length === 0" class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
-          <div *ngIf="verdeExtraServicesInstalled().length > 0" class="space-y-3">
-            <div *ngFor="let item of verdeExtraServicesInstalled(); let idx = index; trackBy: trackByVerdeExtraServiceId" class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-              <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraDesc' + idx">Descrição do Serviço *</label>
-                <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'verdeExtraDesc' + idx"
-                  [ngModel]="item.description" (ngModelChange)="updateVerdeExtraServiceDescription(idx, $event)" />
+          <!-- Serviços Extras for Worten Verde (always visible in the form) -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+            <div class="flex items-center justify-between mb-2">
+              <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serviços Extras Realizados</span>
+              <button type="button" (click)="addVerdeExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+            </div>
+            @if (verdeExtraServicesInstalled().length === 0) {
+              <div class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
+            }
+            @if (verdeExtraServicesInstalled().length > 0) {
+              <div class="space-y-3">
+                @for (item of verdeExtraServicesInstalled(); track trackByVerdeExtraServiceId(idx, item); let idx = $index) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraDesc' + idx">Descrição do Serviço *</label>
+                      <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'verdeExtraDesc' + idx"
+                        [ngModel]="item.description" (ngModelChange)="updateVerdeExtraServiceDescription(idx, $event)" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraValue' + idx">Valor do Serviço (€) *</label>
+                      <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'verdeExtraValue' + idx"
+                        [ngModel]="item.value" (ngModelChange)="updateVerdeExtraServiceValue(idx, $event)" />
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                      <button type="button" (click)="removeVerdeExtraService(idx)" class="text-sm text-red-600">Remover</button>
+                    </div>
+                  </div>
+                }
               </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'verdeExtraValue' + idx">Valor do Serviço (€) *</label>
-                <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'verdeExtraValue' + idx"
-                  [ngModel]="item.value" (ngModelChange)="updateVerdeExtraServiceValue(idx, $event)" />
-              </div>
-              <div class="md:col-span-3 flex justify-end">
-                <button type="button" (click)="removeVerdeExtraService(idx)" class="text-sm text-red-600">Remover</button>
-              </div>
+            }
+          </div>
+        </div>
+      }
+      @if (activeOriginKey() === 'worten_azul') {
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="azulInvoiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número da Fatura *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="azulInvoiceNumber"
+                [ngModel]="azulInvoiceNumber()" (ngModelChange)="azulInvoiceNumber.set($event)" />
+            </div>
+            <div>
+              <label for="azulServiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número do Serviço *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="azulServiceNumber"
+                [ngModel]="azulServiceNumber()" (ngModelChange)="azulServiceNumber.set($event)" />
             </div>
           </div>
-        </div>
-      </div>
-    }
-
-    @if (activeOriginKey() === 'worten_azul') {
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="azulInvoiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número da Fatura *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="azulInvoiceNumber"
-              [ngModel]="azulInvoiceNumber()" (ngModelChange)="azulInvoiceNumber.set($event)" />
-          </div>
-          <div>
-            <label for="azulServiceNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número do Serviço *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="azulServiceNumber"
-              [ngModel]="azulServiceNumber()" (ngModelChange)="azulServiceNumber.set($event)" />
-          </div>
-        </div>
-
-        <div>
-          <label for="azulReportNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Relatório Técnico / Observações *</label>
-          <textarea rows="5" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-            id="azulReportNotes"
+            <label for="azulReportNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Relatório Técnico / Observações *</label>
+            <textarea rows="5" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="azulReportNotes"
             [ngModel]="azulReportNotes()" (ngModelChange)="azulReportNotes.set($event)"></textarea>
-        </div>
-
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" class="rounded" [ngModel]="azulConfirmServiceOk()" (ngModelChange)="azulConfirmServiceOk.set($event)" />
-            O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.
-          </label>
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" class="rounded" [ngModel]="azulConfirmOldGasCollected()" (ngModelChange)="azulConfirmOldGasCollected.set($event)" />
-            O cliente e o instalador confirmam que foi/foram recolhido(s) o(s) equipamento(s) antigo(s) a gás.
-          </label>
-        </div>
-
-        <!-- Serviços Extras para Worten Azul -->
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-          <div class="flex items-center justify-between mb-2">
+          </div>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" class="rounded" [ngModel]="azulConfirmServiceOk()" (ngModelChange)="azulConfirmServiceOk.set($event)" />
+              O cliente confirma que o serviço de instalação está em conformidade com o planeado, sem defeitos ou alterações aparentes.
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" class="rounded" [ngModel]="azulConfirmOldGasCollected()" (ngModelChange)="azulConfirmOldGasCollected.set($event)" />
+              O cliente e o instalador confirmam que foi/foram recolhido(s) o(s) equipamento(s) antigo(s) a gás.
+            </label>
+          </div>
+          <!-- Serviços Extras para Worten Azul -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+            <div class="flex items-center justify-between mb-2">
               <span class="block text-sm font-medium text-gray-700 dark:text-gray-300" role="presentation">Serviços Extras Realizados</span>
-            <button type="button" (click)="addAzulExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+              <button type="button" (click)="addAzulExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+            </div>
+            @if (azulExtraServicesInstalled().length === 0) {
+              <div class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
+            }
+            @if (azulExtraServicesInstalled().length > 0) {
+              <div class="space-y-3">
+                @for (item of azulExtraServicesInstalled(); track trackByAzulExtraServiceId(idx, item); let idx = $index) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div class="md:col-span-2">
+                      <span class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'azulExtraDesc' + idx">Descrição do Serviço *</span>
+                      <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'azulExtraDesc' + idx"
+                        [ngModel]="item.description" (ngModelChange)="updateAzulExtraServiceDescription(idx, $event)" />
+                    </div>
+                    <div>
+                      <span class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'azulExtraValue' + idx">Valor do Serviço (€) *</span>
+                      <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'azulExtraValue' + idx"
+                        [ngModel]="item.value" (ngModelChange)="updateAzulExtraServiceValue(idx, $event)" />
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                      <button type="button" (click)="removeAzulExtraService(idx)" class="text-sm text-red-600">Remover</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
           </div>
-          <div *ngIf="azulExtraServicesInstalled().length === 0" class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
-          <div *ngIf="azulExtraServicesInstalled().length > 0" class="space-y-3">
-            <div *ngFor="let item of azulExtraServicesInstalled(); let idx = index; trackBy: trackByAzulExtraServiceId" class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-              <div class="md:col-span-2">
-                  <span class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'azulExtraDesc' + idx">Descrição do Serviço *</span>
-                <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'azulExtraDesc' + idx"
-                  [ngModel]="item.description" (ngModelChange)="updateAzulExtraServiceDescription(idx, $event)" />
-              </div>
-              <div>
-                  <span class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'azulExtraValue' + idx">Valor do Serviço (€) *</span>
-                <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'azulExtraValue' + idx"
-                  [ngModel]="item.value" (ngModelChange)="updateAzulExtraServiceValue(idx, $event)" />
-              </div>
-              <div class="md:col-span-3 flex justify-end">
-                <button type="button" (click)="removeAzulExtraService(idx)" class="text-sm text-red-600">Remover</button>
-              </div>
+        </div>
+      }
+      @if (activeOriginKey() === 'radio_popular') {
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="radioServiceNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nota Serviço *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="radioServiceNote"
+                [ngModel]="radioServiceNote()" (ngModelChange)="radioServiceNote.set($event)" />
+            </div>
+            <div>
+              <label for="radioInstallation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instalação *</label>
+              <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                id="radioInstallation"
+                [ngModel]="radioInstallation()" (ngModelChange)="radioInstallation.set($event)" />
             </div>
           </div>
-        </div>
-      </div>
-    }
-
-    @if (activeOriginKey() === 'radio_popular') {
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="radioServiceNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nota Serviço *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="radioServiceNote"
-              [ngModel]="radioServiceNote()" (ngModelChange)="radioServiceNote.set($event)" />
-          </div>
-          <div>
-            <label for="radioInstallation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instalação *</label>
-            <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-              id="radioInstallation"
-              [ngModel]="radioInstallation()" (ngModelChange)="radioInstallation.set($event)" />
-          </div>
-        </div>
-
-        <div>
-          <label for="radioWorkDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição dos trabalhos *</label>
-          <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-            id="radioWorkDescription"
+            <label for="radioWorkDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição dos trabalhos *</label>
+            <textarea rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+              id="radioWorkDescription"
             [ngModel]="radioWorkDescription()" (ngModelChange)="radioWorkDescription.set($event)"></textarea>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serviços Extras Realizados</span>
-            <button type="button" (click)="addRadioExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
           </div>
-          <div *ngIf="radioExtraServicesInstalled().length === 0" class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
-          <div *ngIf="radioExtraServicesInstalled().length > 0" class="space-y-3">
-            <div *ngFor="let item of radioExtraServicesInstalled(); let idx = index; trackBy: trackByExtraServiceId" class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
-              <div class="md:col-span-2">
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'radioExtraDesc' + idx">Descrição do Serviço *</label>
-                <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'radioExtraDesc' + idx"
-                  [ngModel]="item.description" (ngModelChange)="updateRadioExtraServiceDescription(idx, $event)" />
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Serviços Extras Realizados</span>
+              <button type="button" (click)="addRadioExtraService()" class="px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-sm">+ Adicionar</button>
+            </div>
+            @if (radioExtraServicesInstalled().length === 0) {
+              <div class="text-sm text-gray-500 dark:text-gray-400">Nenhum serviço extra adicionado.</div>
+            }
+            @if (radioExtraServicesInstalled().length > 0) {
+              <div class="space-y-3">
+                @for (item of radioExtraServicesInstalled(); track trackByExtraServiceId(idx, item); let idx = $index) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div class="md:col-span-2">
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'radioExtraDesc' + idx">Descrição do Serviço *</label>
+                      <input class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'radioExtraDesc' + idx"
+                        [ngModel]="item.description" (ngModelChange)="updateRadioExtraServiceDescription(idx, $event)" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'radioExtraValue' + idx">Valor do Serviço (€) *</label>
+                      <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
+                        [attr.id]="'radioExtraValue' + idx"
+                        [ngModel]="item.value" (ngModelChange)="updateRadioExtraServiceValue(idx, $event)" />
+                    </div>
+                    <div class="md:col-span-3 flex justify-end">
+                      <button type="button" (click)="removeRadioExtraService(idx)" class="text-sm text-red-600">Remover</button>
+                    </div>
+                  </div>
+                }
               </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1" [attr.for]="'radioExtraValue' + idx">Valor do Serviço (€) *</label>
-                <input type="number" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm"
-                  [attr.id]="'radioExtraValue' + idx"
-                  [ngModel]="item.value" (ngModelChange)="updateRadioExtraServiceValue(idx, $event)" />
-              </div>
-              <div class="md:col-span-3 flex justify-end">
-                <button type="button" (click)="removeRadioExtraService(idx)" class="text-sm text-red-600">Remover</button>
-              </div>
+            }
+          </div>
+        </div>
+      }
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-600 dark:text-gray-300">
+          Faça a(s) assinatura(s) manualmente no ecrã do telemóvel (sem certificado).
+        </p>
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do profissional *</h3>
+              <button
+                type="button"
+                (click)="clearProfessionalSignature()"
+                class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                Limpar
+              </button>
+            </div>
+            <div class="mt-3">
+              <canvas
+                #professionalSigCanvas
+                class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
+                style="touch-action: none;"
+                (pointerdown)="onProfessionalSigPointerDown($event)"
+                (pointermove)="onProfessionalSigPointerMove($event)"
+                (pointerup)="onProfessionalSigPointerUp($event)"
+                (pointercancel)="onProfessionalSigPointerUp($event)"
+              ></canvas>
+            </div>
+          </div>
+          <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do cliente *</h3>
+              <button
+                type="button"
+                (click)="clearClientSignature()"
+                class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                Limpar
+              </button>
+            </div>
+            <div class="mt-3">
+              <canvas
+                #clientSigCanvas
+                class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
+                style="touch-action: none;"
+                (pointerdown)="onClientSigPointerDown($event)"
+                (pointermove)="onClientSigPointerMove($event)"
+                (pointerup)="onClientSigPointerUp($event)"
+                (pointercancel)="onClientSigPointerUp($event)"
+              ></canvas>
             </div>
           </div>
         </div>
       </div>
-    }
-
-    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <p class="text-xs text-gray-600 dark:text-gray-300">
-        Faça a(s) assinatura(s) manualmente no ecrã do telemóvel (sem certificado).
-      </p>
-
-      <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
-          <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do profissional *</h3>
-            <button
-              type="button"
-              (click)="clearProfessionalSignature()"
-              class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Limpar
-            </button>
-          </div>
-
-          <div class="mt-3">
-            <canvas
-              #professionalSigCanvas
-              class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
-              style="touch-action: none;"
-              (pointerdown)="onProfessionalSigPointerDown($event)"
-              (pointermove)="onProfessionalSigPointerMove($event)"
-              (pointerup)="onProfessionalSigPointerUp($event)"
-              (pointercancel)="onProfessionalSigPointerUp($event)"
-            ></canvas>
-          </div>
-        </div>
-
-        <div class="rounded-md border border-gray-200 dark:border-gray-700 p-3">
-          <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Assinatura do cliente *</h3>
-            <button
-              type="button"
-              (click)="clearClientSignature()"
-              class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Limpar
-            </button>
-          </div>
-
-          <div class="mt-3">
-            <canvas
-              #clientSigCanvas
-              class="w-full h-40 rounded-md border border-gray-300 dark:border-gray-600 bg-white touch-none"
-              style="touch-action: none;"
-              (pointerdown)="onClientSigPointerDown($event)"
-              (pointermove)="onClientSigPointerMove($event)"
-              (pointerup)="onClientSigPointerUp($event)"
-              (pointercancel)="onClientSigPointerUp($event)"
-            ></canvas>
-          </div>
-        </div>
+      <div class="mt-6 flex gap-3">
+        <button
+          (click)="handleGenerate()"
+          [disabled]="generating()"
+          class="flex-1 bg-brand-primary-600 hover:bg-brand-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
+          type="button"
+          >
+          <i
+            [class]="generating() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-file-pdf mr-2'"
+            aria-hidden="true"
+          ></i>
+          <span>{{ 'generateReport' | i18n }}</span>
+        </button>
+        <button
+          (click)="handleClose()"
+          [disabled]="generating()"
+          class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          type="button"
+          >
+          {{ 'close' | i18n }}
+        </button>
       </div>
+      <!-- Opção de link para assinatura remota do cliente removida (não necessária). -->
     </div>
-
-    <div class="mt-6 flex gap-3">
-      <button
-        (click)="handleGenerate()"
-        [disabled]="generating()"
-        class="flex-1 bg-brand-primary-600 hover:bg-brand-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
-        type="button"
-      >
-        <i
-          [class]="generating() ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-file-pdf mr-2'"
-          aria-hidden="true"
-        ></i>
-        <span>{{ 'generateReport' | i18n }}</span>
-      </button>
-      <button
-        (click)="handleClose()"
-        [disabled]="generating()"
-        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-        type="button"
-      >
-        {{ 'close' | i18n }}
-      </button>
-    </div>
-
-    <!-- Opção de link para assinatura remota do cliente removida (não necessária). -->
-
-  </div>
-</dialog>
+  </dialog>
+}

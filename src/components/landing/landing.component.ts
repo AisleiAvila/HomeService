@@ -1,12 +1,12 @@
 
 import { Component, ChangeDetectionStrategy, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { I18nPipe } from '../../pipes/i18n.pipe';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [I18nPipe],
   templateUrl: './landing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

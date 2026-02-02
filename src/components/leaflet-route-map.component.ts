@@ -7,7 +7,7 @@ import {
   effect,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { I18nPipe } from '../pipes/i18n.pipe';
 
 declare const L: any;
@@ -26,7 +26,7 @@ interface RouteInfo {
 @Component({
   selector: 'app-leaflet-route-map',
   standalone: true,
-  imports: [CommonModule, I18nPipe],
+  imports: [I18nPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-4">

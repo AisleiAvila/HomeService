@@ -1,18 +1,20 @@
 import { Component, ChangeDetectionStrategy, signal, Output, EventEmitter, inject } from '@angular/core';
 import { GeolocationService } from '../services/geolocation.service';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-geolocation-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <button (click)="getLocation()" class="btn btn-primary w-full flex items-center justify-center gap-2">
       <i class="fas fa-location-arrow"></i>
       Obter minha localização
     </button>
-    <div *ngIf="error()" class="text-red-500 mt-2">{{ error() }}</div>
-  `,
+    @if (error()) {
+      <div class="text-red-500 mt-2">{{ error() }}</div>
+    }
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GeolocationButtonComponent {

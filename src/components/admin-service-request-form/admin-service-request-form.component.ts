@@ -6,7 +6,7 @@ import {
   signal,
   computed,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../pipes/i18n.pipe";
 import { I18nService } from "../../i18n.service";
@@ -41,7 +41,7 @@ export interface AdminServiceRequestPayload {
 @Component({
   selector: "app-admin-service-request-form",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./admin-service-request-form.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

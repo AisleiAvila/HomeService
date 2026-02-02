@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal, DoCheck } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { GeolocationButtonComponent } from './geolocation-button.component';
 import { LeafletMapViewerComponent } from './leaflet-map-viewer.component';
 import { GeolocationService } from '../services/geolocation.service';
@@ -10,7 +10,7 @@ import { ProfessionalGeolocationService } from '../services/professional-geoloca
 @Component({
   selector: 'app-professional-geolocation',
   standalone: true,
-  imports: [CommonModule, GeolocationButtonComponent, LeafletMapViewerComponent],
+  imports: [GeolocationButtonComponent, LeafletMapViewerComponent],
   template: `
     <div class="max-w-xl mx-auto p-4">
       <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
@@ -19,23 +19,29 @@ import { ProfessionalGeolocationService } from '../services/professional-geoloca
       </h3>
       <app-geolocation-button></app-geolocation-button>
       <div class="mt-6">
-        <div *ngIf="error()" class="text-red-600 mb-2">{{ error() }}</div>
-        <app-leaflet-map-viewer
-          *ngIf="isValidCoords"
-          [latitude]="latitude()!"
-          [longitude]="longitude()!">
-        </app-leaflet-map-viewer>
+        @if (error()) {
+          <div class="text-red-600 mb-2">{{ error() }}</div>
+        }
+        @if (isValidCoords) {
+          <app-leaflet-map-viewer
+            [latitude]="latitude()!"
+            [longitude]="longitude()!">
+          </app-leaflet-map-viewer>
+        }
       </div>
-      <button
-        *ngIf="latitude() && longitude() && user()"
-        (click)="saveLocation()"
-        class="btn btn-success mt-6 w-full flex items-center justify-center gap-2">
-        <i class="fas fa-save"></i>
-        Salvar localização no perfil
-      </button>
-      <div *ngIf="feedback()" class="mt-2 text-green-600">{{ feedback() }}</div>
+      @if (latitude() && longitude() && user()) {
+        <button
+          (click)="saveLocation()"
+          class="btn btn-success mt-6 w-full flex items-center justify-center gap-2">
+          <i class="fas fa-save"></i>
+          Salvar localização no perfil
+        </button>
+      }
+      @if (feedback()) {
+        <div class="mt-2 text-green-600">{{ feedback() }}</div>
+      }
     </div>
-  `,
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 

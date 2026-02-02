@@ -12,7 +12,7 @@ import {
   ViewChild,
   ElementRef,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import type {
@@ -39,7 +39,7 @@ import {
 @Component({
   selector: "app-technical-report-modal",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./technical-report-modal.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

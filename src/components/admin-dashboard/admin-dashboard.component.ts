@@ -1,5 +1,5 @@
 
-import { CommonModule } from "@angular/common";
+
 import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Router, RouterModule } from "@angular/router";
 import { I18nService } from "../../i18n.service";
@@ -9,9 +9,8 @@ import { AuthService } from "../../services/auth.service";
   selector: "app-admin-dashboard",
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-  ],
+    RouterModule
+],
   templateUrl: "./admin-dashboard.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

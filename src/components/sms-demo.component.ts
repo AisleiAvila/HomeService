@@ -32,12 +32,14 @@ import { I18nPipe } from '../pipes/i18n.pipe';
       <button
         (click)="simulateSms()"
         class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg mb-2"
-      >
+        >
         Simular envio
       </button>
-      <div *ngIf="simulationResult()" class="mt-2 p-3 rounded bg-yellow-100 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100">
-        <strong>Simulação:</strong> {{ simulationResult() }}
-      </div>
+      @if (simulationResult()) {
+        <div class="mt-2 p-3 rounded bg-yellow-100 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100">
+          <strong>Simulação:</strong> {{ simulationResult() }}
+        </div>
+      }
     </div>
     <div class="container mx-auto p-6 max-w-4xl">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -50,13 +52,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
             {{ 'sms_demo_description' | i18n }}
           </p>
         </div>
-
+    
         <!-- Formulário de Envio -->
         <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
             {{ 'send_sms' | i18n }}
           </h3>
-
+    
           <!-- Campo de telefone -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -67,12 +69,12 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               [(ngModel)]="phoneNumber"
               placeholder="+351912345678"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-            />
+              />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {{ 'phone_format_hint' | i18n }}
             </p>
           </div>
-
+    
           <!-- Seletor de template -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -82,14 +84,14 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               [(ngModel)]="selectedTemplate"
               (change)="onTemplateChange()"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-transparent dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-            >
+              >
               <option value="custom">{{ 'custom_message' | i18n }}</option>
               <option value="verification">{{ 'verification_code' | i18n }}</option>
               <option value="notification">{{ 'service_notification' | i18n }}</option>
               <option value="reminder">{{ 'reminder' | i18n }}</option>
             </select>
           </div>
-
+    
           <!-- Variáveis do template (condicional) -->
           @if (selectedTemplate() !== 'custom') {
             <div class="mb-4 p-3 bg-brand-primary-50 dark:bg-brand-primary-900/20 rounded-lg">
@@ -102,13 +104,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   [(ngModel)]="verificationCode"
                   placeholder="Código (ex: 123456)"
                   class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
                 <input
                   type="number"
                   [(ngModel)]="expiresIn"
                   placeholder="Expira em (minutos)"
                   class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
               }
               @if (selectedTemplate() === 'notification') {
                 <input
@@ -116,13 +118,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   [(ngModel)]="requestId"
                   placeholder="ID do Pedido (ex: SR-001)"
                   class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
                 <input
                   type="text"
                   [(ngModel)]="status"
                   placeholder="Status (ex: Concluído)"
                   class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
               }
               @if (selectedTemplate() === 'reminder') {
                 <input
@@ -130,17 +132,17 @@ import { I18nPipe } from '../pipes/i18n.pipe';
                   [(ngModel)]="serviceName"
                   placeholder="Nome do Serviço"
                   class="w-full px-3 py-2 mb-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
                 <input
                   type="text"
                   [(ngModel)]="serviceDate"
                   placeholder="Data (ex: 15/01/2024 às 14:00)"
                   class="w-full px-3 py-2 border border-brand-primary-300 rounded-lg dark:bg-gray-700 dark:border-brand-primary-700 dark:text-white"
-                />
+                  />
               }
             </div>
           }
-
+    
           <!-- Campo de mensagem -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -159,13 +161,13 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               <span>~{{ Math.ceil(message().length / 160) }} SMS</span>
             </div>
           </div>
-
+    
           <!-- Botão de envio -->
           <button
             (click)="sendSms()"
             [disabled]="!phoneNumber() || !message() || smsService.isSending()"
             class="w-full bg-brand-primary-600 hover:bg-brand-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-          >
+            >
             @if (smsService.isSending()) {
               <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -177,7 +179,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
             }
           </button>
         </div>
-
+    
         <!-- Histórico de SMS -->
         @if (smsService.smsHistory().length > 0) {
           <div class="mt-6">
@@ -188,11 +190,11 @@ import { I18nPipe } from '../pipes/i18n.pipe';
               <button
                 (click)="clearHistory()"
                 class="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
-              >
+                >
                 {{ 'clear_history' | i18n }}
               </button>
             </div>
-
+    
             <div class="space-y-3">
               @for (sms of smsService.smsHistory(); track sms.id) {
                 <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4"
@@ -232,7 +234,7 @@ import { I18nPipe } from '../pipes/i18n.pipe';
         }
       </div>
     </div>
-  `,
+    `,
   styles: [`
     :host {
       display: block;

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ButtonComponent } from './button.component';
 import { InputComponent } from './input.component';
 import { SkeletonGroupComponent } from './skeleton.component';
@@ -9,14 +9,12 @@ import { AlertComponent, LoadingComponent } from './feedback.component';
   selector: 'app-ui-components-showcase',
   standalone: true,
   imports: [
-    CommonModule,
     ButtonComponent,
     InputComponent,
-
     SkeletonGroupComponent,
     AlertComponent,
-    LoadingComponent,
-  ],
+    LoadingComponent
+],
   template: `
     <div class="min-h-screen bg-neutral-50 p-8">
       <div class="max-w-6xl mx-auto space-y-12">

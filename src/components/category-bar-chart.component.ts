@@ -10,72 +10,72 @@ import {
   ViewChild,
   ElementRef,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { I18nService } from "@/src/i18n.service";
 
 @Component({
   selector: "app-category-bar-chart",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
     @if (hasData()) {
-    <div
-      class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
-    >
-      <!-- Filtro de Período -->
-      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-3">
-        <h3 class="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center shrink-0">
-          <i [class]="icon() + ' text-brand-primary-500 mr-1.5 text-xs sm:text-sm'"></i>
-          {{ title() }}
-        </h3>
-      </div>
-
-      <!-- Legenda de Cores para Pago/Pendente -->
-      @if (showPaidPendingLegend()) {
-      <div class="w-full flex gap-3 justify-center mb-2 flex-wrap">
-        <div class="flex items-center gap-1.5">
-          <div class="w-3 h-3 rounded" style="background-color: #00C853;"></div>
-          <span class="text-xs text-gray-700 dark:text-gray-300">Pago</span>
+      <div
+        class="w-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6 mobile-safe flex flex-col items-center gap-1.5"
+        >
+        <!-- Filtro de Período -->
+        <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-3">
+          <h3 class="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center shrink-0">
+            <i [class]="icon() + ' text-brand-primary-500 mr-1.5 text-xs sm:text-sm'"></i>
+            {{ title() }}
+          </h3>
         </div>
-        <div class="flex items-center gap-1.5">
-          <div class="w-3 h-3 rounded" style="background-color: #FFA500;"></div>
-          <span class="text-xs text-gray-700 dark:text-gray-300">Pendente</span>
+    
+        <!-- Legenda de Cores para Pago/Pendente -->
+        @if (showPaidPendingLegend()) {
+          <div class="w-full flex gap-3 justify-center mb-2 flex-wrap">
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded" style="background-color: #00C853;"></div>
+              <span class="text-xs text-gray-700 dark:text-gray-300">Pago</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded" style="background-color: #FFA500;"></div>
+              <span class="text-xs text-gray-700 dark:text-gray-300">Pendente</span>
+            </div>
+          </div>
+        }
+    
+        <!-- Canvas com scroll horizontal - otimizado para mobile -->
+        <div class="w-full overflow-x-auto overflow-y-hidden" style="max-width: 100%; margin: 0 -12px; padding: 0 12px;">
+          <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1">
+            <canvas
+              #barCanvas
+              [width]="canvasWidth()"
+              [height]="canvasHeight()"
+              class="w-full"
+              [style.height.px]="canvasHeight()"
+            ></canvas>
+          </div>
         </div>
-      </div>
-      }
-      
-      <!-- Canvas com scroll horizontal - otimizado para mobile -->
-      <div class="w-full overflow-x-auto overflow-y-hidden" style="max-width: 100%; margin: 0 -12px; padding: 0 12px;">
-        <div [style.min-width.px]="canvasMinWidth()" class="flex justify-center items-center py-1">
-          <canvas
-            #barCanvas
-            [width]="canvasWidth()"
-            [height]="canvasHeight()"
-            class="w-full"
-            [style.height.px]="canvasHeight()"
-          ></canvas>
-        </div>
-      </div>
-      
-      <!-- Legendas com valores - Grid responsivo melhorado -->
-      <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2 justify-items-center mt-1.5 px-1">
-        <ng-container *ngFor="let item of sortedChartData()">
-          @if (item.value > 0) {
-            <span
-              class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200"
-              [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
-              [style.background]="item.color"
-            >
-              <span class="font-bold text-xs sm:text-xs md:text-sm flex-shrink-0">●</span>
-              <span class="text-xs sm:text-xs md:text-sm truncate">{{ item.label }}: {{ formatValue(item.value) }}</span>
-            </span>
+    
+        <!-- Legendas com valores - Grid responsivo melhorado -->
+        <div class="w-full grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2 justify-items-center mt-1.5 px-1">
+          @for (item of sortedChartData(); track item) {
+            @if (item.value > 0) {
+              <span
+                class="px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200"
+                [class]="'px-2 py-1 sm:px-2.5 sm:py-1.5 md:px-3 md:py-2 rounded-lg text-xs sm:text-xs md:text-sm font-semibold shadow-lg border border-opacity-50 transition-transform hover:scale-110 cursor-default inline-flex items-center gap-1 sm:gap-1.5 whitespace-normal break-words line-clamp-2 max-w-full dark:border-white dark:border-opacity-30 border-gray-200 ' + getTextColor(item.color)"
+                [style.background]="item.color"
+                >
+                <span class="font-bold text-xs sm:text-xs md:text-sm flex-shrink-0">●</span>
+                <span class="text-xs sm:text-xs md:text-sm truncate">{{ item.label }}: {{ formatValue(item.value) }}</span>
+              </span>
+            }
           }
-        </ng-container>
+        </div>
       </div>
-    </div>
     }
-  `,
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryBarChartComponent implements AfterViewInit {

@@ -6,7 +6,7 @@ import {
   computed,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import {
   ServiceRequest,
@@ -20,7 +20,7 @@ import { I18nService } from "@/src/i18n.service";
 @Component({
   selector: "app-time-control",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./time-control.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

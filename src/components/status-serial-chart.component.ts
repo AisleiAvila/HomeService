@@ -4,23 +4,23 @@ import {
   input,
   computed,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 
 @Component({
   selector: "app-status-serial-chart",
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="w-full p-4">
       <h3 class="text-lg font-semibold mb-2">{{ title }}</h3>
-      <ng-container *ngIf="chartData().length > 0; else noData">
+      @if (chartData().length > 0) {
         <div class="flex items-end gap-2 h-40">
-          <ng-container *ngFor="let item of chartData()">
+          @for (item of chartData(); track item) {
             <div class="flex flex-col items-center justify-end h-full">
               <div
-              class="bg-red-500 rounded-t w-8"
-              [style.height]="item.value * scale + 'px'"
-              [style.background]="'#FF3838'"
+                class="bg-red-500 rounded-t w-8"
+                [style.height]="item.value * scale + 'px'"
+                [style.background]="'#FF3838'"
                 [title]="item.label + ': ' + item.value"
               ></div>
               <span class="text-xs mt-1 text-center break-words max-w-[64px]">{{
@@ -28,16 +28,15 @@ import { CommonModule } from "@angular/common";
               }}</span>
               <span class="text-xs text-gray-600">{{ item.value }}</span>
             </div>
-          </ng-container>
+          }
         </div>
-      </ng-container>
-      <ng-template #noData>
+      } @else {
         <div class="text-center text-gray-400 py-8">
           Nenhum dado para exibir
         </div>
-      </ng-template>
+      }
     </div>
-  `,
+    `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusSerialChartComponent {

@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, inject, EventEmitter, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../i18n.service';
 import { AuthService } from '../../services/auth.service';
@@ -8,7 +8,7 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 @Component({
     selector: 'app-change-password',
     standalone: true,
-    imports: [CommonModule, FormsModule, I18nPipe],
+    imports: [FormsModule, I18nPipe],
     templateUrl: './change-password.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

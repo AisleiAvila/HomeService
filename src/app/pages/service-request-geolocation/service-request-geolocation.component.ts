@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+
 import {
   ChangeDetectionStrategy,
   Component,
@@ -25,11 +25,10 @@ import { I18nService } from "@/src/i18n.service";
   selector: "app-service-request-geolocation",
   standalone: true,
   imports: [
-    CommonModule,
     I18nPipe,
     LeafletMapViewerComponent,
-    LeafletRouteMapComponent,
-  ],
+    LeafletRouteMapComponent
+],
   templateUrl: "./service-request-geolocation.component.html",
   styleUrls: ["./service-request-geolocation.component.css"],
   changeDetection: ChangeDetectionStrategy.OnPush,

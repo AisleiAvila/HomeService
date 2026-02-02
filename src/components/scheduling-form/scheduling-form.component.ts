@@ -7,7 +7,7 @@ import {
   computed,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { ServiceRequest, User } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
@@ -24,7 +24,7 @@ import { formatInTimeZone } from "date-fns-tz";
 @Component({
   selector: "app-scheduling-form",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe],
+  imports: [FormsModule, I18nPipe],
   templateUrl: "./scheduling-form.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

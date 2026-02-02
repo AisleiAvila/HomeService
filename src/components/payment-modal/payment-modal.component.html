@@ -1,112 +1,119 @@
-<dialog
-  *ngIf="show()"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-  aria-labelledby="payment-modal-title"
-  (keydown)="onModalKeydown($event)"
-  open
-  #modalContainer
->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative">
-    <button
-      (click)="handleClose()"
-      [disabled]="loading()"
-      class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
-      aria-label="{{ 'close' | i18n }}"
-      type="button"
-      tabindex="0"
+@if (show()) {
+  <dialog
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+    aria-labelledby="payment-modal-title"
+    (keydown)="onModalKeydown($event)"
+    open
+    #modalContainer
     >
-      <i class="fas fa-times" aria-hidden="true"></i>
-    </button>
-    <h2 id="payment-modal-title" class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{{ "payNow" | i18n }}</h2>
-    <!-- Bloco: Informações do Serviço -->
-    <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-      <!-- Serviço -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "service" | i18n }}:</span>
-        <span class="font-medium"> {{ request().title | i18n }}</span>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <button
+        (click)="handleClose()"
+        [disabled]="loading()"
+        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 disabled:opacity-50"
+        aria-label="{{ 'close' | i18n }}"
+        type="button"
+        tabindex="0"
+        >
+        <i class="fas fa-times" aria-hidden="true"></i>
+      </button>
+      <h2 id="payment-modal-title" class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{{ "payNow" | i18n }}</h2>
+      <!-- Bloco: Informações do Serviço -->
+      <div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <!-- Serviço -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "service" | i18n }}:</span>
+          <span class="font-medium"> {{ request().title | i18n }}</span>
+        </div>
+        <!-- Categoria -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "category" | i18n }}:</span>
+          <span class="font-medium">
+            {{ (request()?.category && request().category.name) ? (request().category.name | i18n) : ('—' | i18n) }}
+          </span>
+          @if (request()?.category && request().category.description) {
+            @if (request().category.description.trim()) {
+              <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().category.description | i18n }}</span>
+            }
+          }
+        </div>
+        <!-- Subcategoria -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "subcategory" | i18n }}:</span>
+          <span class="font-medium">
+            {{ request()?.subcategory?.name ? (request().subcategory.name | i18n) : ('—' | i18n) }}
+          </span>
+          @if (request()?.subcategory?.description) {
+            @if (request().subcategory.description.trim()) {
+              <span class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().subcategory.description | i18n }}</span>
+            }
+          }
+        </div>
+        <!-- Profissional -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "professional" | i18n }}:</span>
+          <span class="font-medium">
+            {{ (request()?.professional_name && (request().professional_name + '').trim()) ? request().professional_name : ("unassigned" | i18n) }}
+          </span>
+        </div>
+        <!-- Valor do Prestador -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "valorPrestador" | i18n }}:</span>
+          <span class="font-semibold text-green-700 dark:text-green-400"> {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
+        </div>
+        <!-- Valor Total -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "TotalValue" | i18n }}:</span>
+          <span class="font-semibold text-blue-600 dark:text-blue-400"> {{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
+        </div>
+        <!-- Status -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "status" | i18n }}:</span>
+          <span class="font-medium"> {{ request().status | i18n }}</span>
+        </div>
+        <!-- Período de Execução -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <span class="font-bold">{{ "executionPeriod" | i18n }}:</span>
+          <span class="font-medium">
+            {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
+            —
+            {{ request().actual_end_datetime ? (request().actual_end_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
+          </span>
+        </div>
       </div>
-      <!-- Categoria -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "category" | i18n }}:</span>
-        <span class="font-medium">
-          {{ (request()?.category && request().category.name) ? (request().category.name | i18n) : ('—' | i18n) }}
-        </span>
-        <ng-container *ngIf="request()?.category && request().category.description">
-          <span *ngIf="request().category.description.trim()" class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().category.description | i18n }}</span>
-        </ng-container>
+      <!-- Mensagem de confirmação de pagamento -->
+      <div class="mb-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-700 dark:text-gray-300">
+          {{ "confirmPayment" | i18n }}:
+          <span class="font-semibold">{{ request().title }}</span>
+          <br />
+          {{ "value" | i18n }}:
+          <span class="font-semibold text-green-700 dark:text-green-400">
+            {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}
+          </span>
+        </p>
+        <!-- Mensagem de erro -->
+        @if (error()) {
+          <div class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            {{ error() }}
+          </div>
+        }
       </div>
-      <!-- Subcategoria -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "subcategory" | i18n }}:</span>
-        <span class="font-medium">
-          {{ request()?.subcategory?.name ? (request().subcategory.name | i18n) : ('—' | i18n) }}
-        </span>
-        <ng-container *ngIf="request()?.subcategory?.description">
-          <span *ngIf="request().subcategory.description.trim()" class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ request().subcategory.description | i18n }}</span>
-        </ng-container>
-      </div>
-      <!-- Profissional -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "professional" | i18n }}:</span>
-        <span class="font-medium">
-          {{ (request()?.professional_name && (request().professional_name + '').trim()) ? request().professional_name : ("unassigned" | i18n) }}
-        </span>
-      </div>
-      <!-- Valor do Prestador -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "valorPrestador" | i18n }}:</span>
-        <span class="font-semibold text-green-700 dark:text-green-400"> {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}</span>
-      </div>
-      <!-- Valor Total -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "TotalValue" | i18n }}:</span>
-        <span class="font-semibold text-blue-600 dark:text-blue-400"> {{ "currencySymbol" | i18n }} {{ request().valor | number : '1.2-2' }}</span>
-      </div>
-      <!-- Status -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "status" | i18n }}:</span>
-        <span class="font-medium"> {{ request().status | i18n }}</span>
-      </div>
-      <!-- Período de Execução -->
-      <div class="text-sm text-gray-700 dark:text-gray-300 mb-2">
-        <span class="font-bold">{{ "executionPeriod" | i18n }}:</span>
-        <span class="font-medium">
-          {{ request().actual_start_datetime ? (request().actual_start_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
-          —
-          {{ request().actual_end_datetime ? (request().actual_end_datetime | date : 'dd/MM/yyyy HH:mm') : ('—' | i18n) }}
-        </span>
-      </div>
+      <button
+        (click)="handlePay()"
+        [disabled]="loading() || processing()"
+        class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
+        type="button"
+        tabindex="0"
+        >
+        <i
+          [class]="(loading() || processing()) ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
+          aria-hidden="true"
+        ></i>
+        <span>{{ "confirmPayment" | i18n }}</span>
+      </button>
     </div>
-    <!-- Mensagem de confirmação de pagamento -->
-    <div class="mb-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <p class="text-sm text-gray-700 dark:text-gray-300">
-        {{ "confirmPayment" | i18n }}: 
-        <span class="font-semibold">{{ request().title }}</span>
-        <br />
-        {{ "value" | i18n }}: 
-        <span class="font-semibold text-green-700 dark:text-green-400">
-          {{ "currencySymbol" | i18n }} {{ request().valor_prestador | number : '1.2-2' }}
-        </span>
-      </p>
-      <!-- Mensagem de erro -->
-      <div *ngIf="error()" class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-        <i class="fas fa-exclamation-circle mr-2"></i>
-        {{ error() }}
-      </div>
-    </div>
-    <button
-      (click)="handlePay()"
-      [disabled]="loading() || processing()"
-      class="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
-      type="button"
-      tabindex="0"
-    >
-      <i
-        [class]="(loading() || processing()) ? 'fas fa-circle-notch fa-spin mr-2' : 'fas fa-credit-card mr-2'"
-        aria-hidden="true"
-      ></i>
-      <span>{{ "confirmPayment" | i18n }}</span>
-    </button>
-  </div>
-</dialog>
+  </dialog>
+}
 
