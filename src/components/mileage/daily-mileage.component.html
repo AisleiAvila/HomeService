@@ -198,6 +198,27 @@
   }
 
   <!-- Fueling Form -->
+    <!-- Cards de Resumo -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900">
+          <i class="fas fa-road text-2xl text-blue-600 dark:text-blue-300"></i>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500 dark:text-gray-300 font-medium">{{ 'totalDriven' | i18n }}</div>
+          <div class="text-xl font-bold text-gray-900 dark:text-white">{{ totalDriven() | number:'1.0-0':'pt-PT' }} km</div>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900">
+          <i class="fas fa-gas-pump text-2xl text-green-600 dark:text-green-300"></i>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500 dark:text-gray-300 font-medium">{{ 'totalFueling' | i18n }}</div>
+          <div class="text-xl font-bold text-gray-900 dark:text-white">{{ totalFueling() | number:'1.2-2':'pt-PT' }} €</div>
+        </div>
+      </div>
+    </div>
   @if (showFuelingForm()) {
     <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
       <h3 class="text-lg font-semibold mb-4">{{ 'addFueling' | i18n }}</h3>

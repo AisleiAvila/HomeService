@@ -1148,6 +1148,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     noExtraServices: "No extra services recorded.", 
     confirm: "Confirm",
     scheduledServices: "Scheduled Services",
+    totalDriven: "Total Driven",
+    totalFueling: "Total Fueling",
 
   },
   pt: {
@@ -2306,6 +2308,8 @@ const allTranslations: Record<Language, Record<string, string>> = {
     noExtraServices: "Nenhum serviço extra adicionado.",
     confirm: "Confirmar",
     scheduledServices: "Serviços Agendados",
+    totalDriven: "Total Percorrido",
+    totalFueling: "Total Abastecido",
 
 
   },

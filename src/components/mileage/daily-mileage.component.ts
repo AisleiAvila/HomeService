@@ -16,6 +16,13 @@ import { DailyMileageService } from '../../services/daily-mileage.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailyMileageComponent implements OnInit {
+      // Cards de resumo baseados nos filtros
+      totalDriven = computed(() => {
+        return this.filteredMileages().reduce((sum, m) => sum + this.getKilometersDriven(m), 0);
+      });
+      totalFueling = computed(() => {
+        return this.filteredMileages().reduce((sum, m) => sum + this.getTotalFueling(m), 0);
+      });
     // Abastecimentos filtrados para o modal
     filteredFuelingsForSelectedMileage = computed(() => {
       const selected = this.selectedDailyMileage();
