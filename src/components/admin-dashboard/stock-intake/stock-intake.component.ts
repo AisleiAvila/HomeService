@@ -8,6 +8,7 @@ import {
   ViewChild,
   inject,
   signal,
+  computed
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -52,6 +53,26 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   readonly statusMessage = signal<string | null>(null);
   readonly statusType = signal<"success" | "error" | "info" | null>(null);
   readonly recentItems = signal<StockItem[]>([]);
+  readonly allStockItems = signal<StockItem[]>([]);
+
+  async loadAllStockItems(): Promise<void> {
+    if (!this.isAuthorized()) {
+      return;
+    }
+    // Busca todos os itens do estoque (sem limite)
+    const { data, error } = await this.inventoryService["supabase"].client
+      .from("stock_items")
+      .select("*")
+      .order("received_at", { ascending: false });
+    if (!error && data) {
+      this.allStockItems.set(data as StockItem[]);
+    } else {
+      this.allStockItems.set([]);
+    }
+  }
+  readonly totalMaterials = computed(() =>
+    this.recentItems().reduce((acc, item) => acc + item.quantity, 0)
+  );
   readonly isAuthorized = signal(false);
   readonly cameraSupported = signal(
     !!navigator.mediaDevices?.getUserMedia
@@ -80,6 +101,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     }
 
     this.loadRecentItems();
+    this.loadAllStockItems();
   }
 
   ngOnDestroy(): void {

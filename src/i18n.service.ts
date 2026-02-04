@@ -1150,6 +1150,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scheduledServices: "Scheduled Services",
     totalDriven: "Total Driven",
     totalFueling: "Total Fueling",
+    totalMaterials: "Total Materials",
+    materialsList: "Materials List",
+    productName: "Product Name",
+    noMaterialsFound: "No materials found.",
 
   },
   pt: {
@@ -2310,7 +2314,10 @@ const allTranslations: Record<Language, Record<string, string>> = {
     scheduledServices: "Serviços Agendados",
     totalDriven: "Total Percorrido",
     totalFueling: "Total Abastecido",
-
+    totalMaterials: "Total de Materiais",
+    materialsList: "Lista de Materiais",
+    productName: "Nome do Produto",
+    noMaterialsFound: "Nenhum material encontrado.",
 
   },
 };
