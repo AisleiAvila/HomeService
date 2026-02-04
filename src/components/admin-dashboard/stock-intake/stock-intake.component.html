@@ -14,12 +14,13 @@
       </div>
 
       <!-- Botão Registar Material -->
-      <button type="button"
-        class="ml-4 inline-flex items-center gap-2 px-4 py-2 bg-brand-primary-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-brand-primary-700 transition-colors"
-        (click)="null">
+      <a
+        routerLink="/admin/stock-register"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 text-brand-primary-500 dark:!text-white text-sm font-medium rounded-lg hover:bg-brand-primary-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full"
+      >
         <i class="fa-solid fa-plus"></i>
-        {{ 'registerMaterial' | i18n }}
-      </button>
+        <span>{{ 'registerMaterial' | i18n }}</span>
+      </a>
     </div>
   </div>
 

@@ -65,6 +65,7 @@ export const routes: Routes = [
       { path: 'finances', loadComponent: () => import('../components/admin-dashboard/financial-reports/financial-reports.component').then(m => m.FinancialReportsComponent) },
       { path: 'daily-mileage', loadComponent: () => import('../components/mileage/daily-mileage.component').then(m => m.DailyMileageComponent) },
       { path: 'stock-intake', loadComponent: () => import('../components/admin-dashboard/stock-intake/stock-intake.component').then(m => m.StockIntakeComponent) },
+      { path: 'stock-register', loadComponent: () => import('./pages/stock-register/stock-register.page').then(m => m.StockRegisterPage) },
       { path: 'clients', loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
       { path: 'categories', loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
       { path: 'extra-services',
