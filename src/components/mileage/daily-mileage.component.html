@@ -1,13 +1,13 @@
 <div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
   <div>
-    <div class="bg-brand-primary-500 dark:bg-brand-primary-700 rounded-lg px-6 py-4 mb-2">
+    <div class="bg-linear-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden mb-2">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="min-w-0">
-          <h2 class="text-xl sm:text-2xl font-bold text-white wrap-break-word">
-            <i class="fas fa-tachometer-alt mr-2"></i>
+          <h2 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-tachometer-alt mr-3"></i>
             {{ 'dailyMileage' | i18n }}
           </h2>
-          <p class="text-white dark:text-neutral-100 text-sm mt-1">{{ 'dailyMileageSubtitle' | i18n }}</p>
+          <p class="text-white text-sm mt-1">{{ 'dailyMileageSubtitle' | i18n }}</p>
         </div>
         <!-- Botão Cadastrar Quilometragem - Apenas para Admin -->
                 @if (!isAdmin() && todayMileage()) {
@@ -46,7 +46,7 @@
 
   <!-- Start Day Form -->
   @if (showStartForm()) {
-    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
+    <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
       <h3 class="text-lg font-semibold mb-4">{{ 'startDay' | i18n }}</h3>
       <form (ngSubmit)="startDay()" class="space-y-4">
         <div>
@@ -454,7 +454,7 @@
             <div class="flex flex-col gap-2 mb-2">
               <div>
                 <div class="text-xs text-gray-500 dark:text-neutral-400 font-medium">{{ mileage.date | date:'dd/MM/yyyy' }}</div>
-                <div class="font-semibold text-base text-gray-800 dark:text-neutral-100">{{ getProfessionalName(mileage.professional_id) }}</div>
+                <div class="font-semibold text-sm text-gray-800 dark:text-neutral-100">{{ getProfessionalName(mileage.professional_id) }}</div>
               </div>
               <div class="flex flex-wrap gap-2 text-sm mt-1">
                 <div class="flex items-center gap-1">
@@ -483,7 +483,7 @@
               <div class="flex items-center gap-1 text-sm mt-1">
                 <i class="fas fa-road text-gray-400"></i>
                 <span class="text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}:</span>
-                <span class="font-semibold">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
+                <span class="font-semibold text-sm">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
               </div>
             </div>
             <div class="flex items-center justify-center gap-4 mt-3">
