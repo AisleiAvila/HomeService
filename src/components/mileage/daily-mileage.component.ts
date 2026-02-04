@@ -17,11 +17,11 @@ import { DailyMileageService } from '../../services/daily-mileage.service';
 })
 export class DailyMileageComponent implements OnInit {
     // Abastecimentos filtrados para o modal
-    filteredFuelingsForSelectedMileage = computed(() =>
-      this.selectedDailyMileage()
-        ? this.fuelings().filter(f => f.daily_mileage_id === this.selectedDailyMileage()!.id)
-        : []
-    );
+    filteredFuelingsForSelectedMileage = computed(() => {
+      const selected = this.selectedDailyMileage();
+      if (selected === null) return [];
+      return this.fuelings().filter(f => f.daily_mileage_id === selected.id);
+    });
   private readonly dailyMileageService = inject(DailyMileageService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
@@ -35,6 +35,12 @@ export class DailyMileageComponent implements OnInit {
   showAdminRegisterForm = signal(false);
   selectedDailyMileage = signal<DailyMileage | null>(null);
   showFilters = signal(false);
+
+  // Edit daily mileage (history)
+  editingDailyMileage = signal<DailyMileage | null>(null);
+  editLicensePlate = signal('');
+  editStartKilometers = signal<number | null>(null);
+  editEndKilometers = signal<number | null>(null);
 
   // Start day form
   startDate = signal(new Date().toISOString().split('T')[0]);
@@ -245,6 +251,36 @@ export class DailyMileageComponent implements OnInit {
 
   onEndKilometersChange(value: string) {
     this.endKilometers.set(Number(value) || null);
+  }
+
+  onEditStartKilometersChange(value: string) {
+    if (value === '') {
+      this.editStartKilometers.set(null);
+      return;
+    }
+
+    const next = Number(value);
+    if (Number.isNaN(next)) {
+      this.editStartKilometers.set(null);
+      return;
+    }
+
+    this.editStartKilometers.set(next);
+  }
+
+  onEditEndKilometersChange(value: string) {
+    if (value === '') {
+      this.editEndKilometers.set(null);
+      return;
+    }
+
+    const next = Number(value);
+    if (Number.isNaN(next)) {
+      this.editEndKilometers.set(null);
+      return;
+    }
+
+    this.editEndKilometers.set(next);
   }
 
   onFuelingValueChange(value: string) {
@@ -548,6 +584,70 @@ export class DailyMileageComponent implements OnInit {
     return dailyMileage.end_kilometers - dailyMileage.start_kilometers;
   }
 
+  openEditDailyMileage(mileage: DailyMileage) {
+    const user = this.currentUser();
+    if (!user) return;
+
+    if (user.role === 'professional' && mileage.professional_id !== user.id) {
+      alert('Você só pode editar suas próprias quilometragens.');
+      return;
+    }
+
+    this.editingDailyMileage.set(mileage);
+    this.editLicensePlate.set(mileage.license_plate?.trim() || '');
+    this.editStartKilometers.set(mileage.start_kilometers);
+    this.editEndKilometers.set(mileage.end_kilometers ?? null);
+  }
+
+  closeEditDailyMileage() {
+    this.editingDailyMileage.set(null);
+    this.editLicensePlate.set('');
+    this.editStartKilometers.set(null);
+    this.editEndKilometers.set(null);
+  }
+
+  async saveEditedDailyMileage() {
+    const user = this.currentUser();
+    if (!user) return;
+
+    const mileage = this.editingDailyMileage();
+    if (!mileage) return;
+
+    if (user.role === 'professional' && mileage.professional_id !== user.id) {
+      alert('Você só pode editar suas próprias quilometragens.');
+      return;
+    }
+
+    const startKm = this.editStartKilometers();
+    if (startKm === null || Number.isNaN(Number(startKm)) || startKm < 0) {
+      alert('Por favor, insira uma quilometragem inicial válida.');
+      return;
+    }
+
+    const endKm = this.editEndKilometers();
+    if (endKm !== null && (Number.isNaN(Number(endKm)) || endKm < startKm)) {
+      alert('A quilometragem final deve ser maior ou igual à inicial.');
+      return;
+    }
+
+    const plate = this.editLicensePlate().trim();
+
+    const updates: Partial<DailyMileage> = {
+      start_kilometers: startKm,
+      end_kilometers: endKm,
+      license_plate: null,
+    };
+
+    if (plate) {
+      updates.license_plate = plate;
+    }
+
+    await this.dailyMileageService.updateDailyMileage(mileage.id, updates);
+
+    this.closeEditDailyMileage();
+    await this.loadData();
+  }
+
   clearFilter(key: string) {
     switch (key) {
       case 'startDate':
@@ -571,7 +671,22 @@ export class DailyMileageComponent implements OnInit {
       case 'licensePlate':
         this.filterLicensePlate.set('');
         break;
+      case 'professional':
+        this.filterProfessionalId.set(null);
+        break;
     }
+  }
+
+  clearFilters() {
+    this.filterStartDate.set('');
+    this.filterEndDate.set('');
+    this.filterMinDriven.set(null);
+    this.filterMaxDriven.set(null);
+    this.filterMinFueling.set(null);
+    this.filterMaxFueling.set(null);
+    this.filterLicensePlate.set('');
+    this.filterProfessionalId.set(null);
+    this.currentPage.set(1);
   }
 
   toggleFilters() {
