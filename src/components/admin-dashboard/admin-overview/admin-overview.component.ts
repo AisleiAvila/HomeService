@@ -164,7 +164,7 @@ export class AdminOverviewComponent implements OnInit {
             
             // Receita por dia (usar completed_at e filtro por profissional)
             const dayRevenue = this.dataService.serviceRequests()
-                .filter(r => r.payment_status === "Paid" && r.completed_at)
+                .filter(r => this.isPaymentMarkedAsPaid(r.payment_status) && r.completed_at)
                 .filter(r => {
                     // verificar profissional selecionado
                     const pro = this.selectedProfessional();
@@ -463,9 +463,9 @@ export class AdminOverviewComponent implements OnInit {
             }
 
             // Separar valores pagos e pendentes
-            if (request.payment_status === 'Paid') {
+            if (this.isPaymentMarkedAsPaid(request.payment_status)) {
                 revenueData[categoryName].paid += revenue;
-            } else if (request.payment_status === 'Pending' || request.payment_status === 'Unpaid' || request.payment_status === 'Processing') {
+            } else if (!this.isPaymentMarkedAsPaid(request.payment_status)) {
                 revenueData[categoryName].pending += revenue;
             }
         });
@@ -492,13 +492,13 @@ export class AdminOverviewComponent implements OnInit {
         const filteredRequests = this.filteredRequests();
         const users = this.dataService.users();
         
-        const paidRequests = filteredRequests.filter(r => 
-            r.payment_status === 'Paid' && r.professional_id && r.valor
+        const validRequests = filteredRequests.filter(r => 
+            r.professional_id && r.valor
         );
 
         const revenueByPro: Record<string, number> = {};
 
-        paidRequests.forEach(request => {
+        validRequests.forEach(request => {
             const professional = users.find(u => u.id === request.professional_id);
             const proName = professional ? professional.name : 'Desconhecido';
             const revenue = this.validateCost(request.valor);
