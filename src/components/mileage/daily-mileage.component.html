@@ -1,7 +1,7 @@
 <div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
   <div>
     <div class="bg-brand-primary-500 dark:bg-brand-primary-700 rounded-lg px-6 py-4 mb-2">
-      <div class="flex items-start justify-between gap-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="min-w-0">
           <h2 class="text-xl sm:text-2xl font-bold text-white wrap-break-word">
             <i class="fas fa-tachometer-alt mr-2"></i>
@@ -9,62 +9,19 @@
           </h2>
           <p class="text-white dark:text-neutral-100 text-sm mt-1">{{ 'dailyMileageSubtitle' | i18n }}</p>
         </div>
+        <!-- Botão Cadastrar Quilometragem - Apenas para Admin -->
+        @if (isAdmin()) {
+        <button (click)="showAdminRegisterForm.set(true)"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
+            <i class="fas fa-plus"></i>
+            <span>{{ "registerMileage" | i18n }}</span>
+        </button>
+        }
       </div>
     </div>
   </div>
 
-  <!-- Today's Status -->
-  <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-    <h2 class="text-lg font-semibold mb-4">{{ 'todayStatus' | i18n }}</h2>
 
-    @if (todayMileage()) {
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'initial' | i18n }}</p>
-          <p class="text-xl font-bold">{{ todayMileage()!.start_kilometers | number:'1.0-0':'pt-PT' }} km</p>
-        </div>
-        <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'final' | i18n }}</p>
-          <p class="text-xl font-bold">{{ todayMileage()!.end_kilometers ? (todayMileage()!.end_kilometers | number:'1.0-0':'pt-PT') + ' km' : '-' }}</p>
-        </div>
-        <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}</p>
-          <p class="text-xl font-bold">{{ getKilometersDriven(todayMileage()!) | number:'1.0-0':'pt-PT' }} km</p>
-        </div>
-      </div>
-      <div class="flex gap-2">
-        @if (!todayMileage()!.end_kilometers) {
-          <button
-            (click)="showEndForm.set(true)"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            {{ 'endDay' | i18n }}
-          </button>
-        }
-        <button
-          (click)="showFuelingForm.set(true)"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          {{ 'addFueling' | i18n }}
-        </button>
-      </div>
-    } @else {
-      <p class="text-gray-600 dark:text-neutral-400 mb-4">{{ 'noMileageToday' | i18n }}</p>
-      @if (!isAdmin()) {
-        <button
-          (click)="showStartForm.set(true)"
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          {{ 'startDay' | i18n }}
-        </button>
-      }
-      @if (isAdmin()) {
-        <button
-          (click)="showAdminRegisterForm.set(true)"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          {{ 'registerMileage' | i18n }}
-        </button>
-      }
-    }
-
-  </div>
 
   <!-- Start Day Form -->
   @if (showStartForm()) {
