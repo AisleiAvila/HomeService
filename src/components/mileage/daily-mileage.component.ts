@@ -720,4 +720,25 @@ export class DailyMileageComponent implements OnInit {
       this.currentPage.set(this.currentPage() + 1);
     }
   }
+
+  // Pagination helpers
+  Math = Math;
+  get pageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    pages.push(1);
+    let start = Math.max(2, current - 2);
+    let end = Math.min(total - 1, current + 2);
+    if (start > 2) pages.push(-1);
+    for (let i = start; i <= end; i++) if (i !== 1 && i !== total) pages.push(i);
+    if (end < total - 1) pages.push(-1);
+    if (total > 1) pages.push(total);
+    return pages;
+  }
+
+  setItemsPerPage(items: number) { 
+    this.itemsPerPage.set(items); 
+    this.currentPage.set(1); 
+  }
 }

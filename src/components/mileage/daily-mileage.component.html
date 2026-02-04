@@ -376,53 +376,57 @@
       <!-- Mobile cards -->
       <div class="md:hidden space-y-3">
         @for (mileage of paginatedMileages(); track mileage) {
-          <div class="rounded-lg border dark:border-neutral-600 bg-white dark:bg-neutral-800 p-4 shadow-sm">
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <div class="text-sm text-gray-600 dark:text-neutral-400">{{ 'date' | i18n }}</div>
-                <div class="font-semibold">{{ mileage.date | date:'dd/MM/yyyy' }}</div>
+          <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-md p-4 mb-4 border border-gray-200 dark:border-neutral-700">
+            <div class="flex flex-col gap-2 mb-2">
+              <div>
+                <div class="text-xs text-gray-500 dark:text-neutral-400 font-medium">{{ mileage.date | date:'dd/MM/yyyy' }}</div>
+                <div class="font-semibold text-base text-gray-800 dark:text-neutral-100">{{ getProfessionalName(mileage.professional_id) }}</div>
               </div>
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  (click)="openEditDailyMileage(mileage)"
-                  class="inline-flex items-center gap-2 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm"
-                  [attr.aria-label]="'editDailyMileage' | i18n">
-                  <i class="fas fa-pen" aria-hidden="true"></i>
-                  <span>{{ 'edit' | i18n }}</span>
-                </button>
-                <button
-                  type="button"
-                  (click)="viewFuelings(mileage)"
-                  class="inline-flex items-center gap-2 px-3 py-2 rounded bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-neutral-100 hover:bg-gray-300 dark:hover:bg-neutral-600 text-sm"
-                  [attr.aria-label]="'viewFuelings' | i18n">
-                  <i class="fas fa-gas-pump" aria-hidden="true"></i>
-                  <span>{{ 'fuelings' | i18n }}</span>
-                </button>
+              <div class="flex flex-wrap gap-2 text-sm mt-1">
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-car text-gray-400"></i>
+                  <span class="text-gray-600 dark:text-neutral-400">{{ 'licensePlate' | i18n }}:</span>
+                  <span class="font-medium">{{ getLicensePlateForMileage(mileage) }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-gas-pump text-gray-400"></i>
+                  <span class="text-gray-600 dark:text-neutral-400">{{ 'fuelingTotal' | i18n }}:</span>
+                  <span class="font-medium">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</span>
+                </div>
+              </div>
+              <div class="flex flex-wrap gap-2 text-sm">
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-sign-in-alt text-gray-400"></i>
+                  <span class="text-gray-600 dark:text-neutral-400">{{ 'initial' | i18n }}:</span>
+                  <span class="font-medium">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-sign-out-alt text-gray-400"></i>
+                  <span class="text-gray-600 dark:text-neutral-400">{{ 'final' | i18n }}:</span>
+                  <span class="font-medium">{{ mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') + ' km' : '-' }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 text-sm mt-1">
+                <i class="fas fa-road text-gray-400"></i>
+                <span class="text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}:</span>
+                <span class="font-semibold">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</span>
               </div>
             </div>
-
-            <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div class="text-gray-600 dark:text-neutral-400">{{ 'licensePlate' | i18n }}</div>
-                <div class="font-medium">{{ getLicensePlateForMileage(mileage) }}</div>
-              </div>
-              <div>
-                <div class="text-gray-600 dark:text-neutral-400">{{ 'fuelingTotal' | i18n }}</div>
-                <div class="font-medium">{{ getTotalFueling(mileage) | number:'1.2-2':'pt-PT' }} €</div>
-              </div>
-              <div>
-                <div class="text-gray-600 dark:text-neutral-400">{{ 'initial' | i18n }}</div>
-                <div class="font-medium">{{ mileage.start_kilometers | number:'1.0-0':'pt-PT' }} km</div>
-              </div>
-              <div>
-                <div class="text-gray-600 dark:text-neutral-400">{{ 'final' | i18n }}</div>
-                <div class="font-medium">{{ mileage.end_kilometers ? (mileage.end_kilometers | number:'1.0-0':'pt-PT') + ' km' : '-' }}</div>
-              </div>
-              <div class="col-span-2">
-                <div class="text-gray-600 dark:text-neutral-400">{{ 'kilometersDriven' | i18n }}</div>
-                <div class="font-semibold">{{ getKilometersDriven(mileage) | number:'1.0-0':'pt-PT' }} km</div>
-              </div>
+            <div class="flex items-center justify-center gap-4 mt-3">
+              <button
+                type="button"
+                (click)="openEditDailyMileage(mileage)"
+                class="w-10 h-10 flex items-center justify-center text-blue-600 hover:text-blue-800 dark:text-blue-400 bg-gray-100 dark:bg-neutral-700 rounded-md transition-colors"
+                [attr.aria-label]="'editDailyMileage' | i18n">
+                <i class="fas fa-pen" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                (click)="viewFuelings(mileage)"
+                class="w-10 h-10 flex items-center justify-center text-blue-600 hover:text-blue-800 dark:text-blue-400 bg-gray-100 dark:bg-neutral-700 rounded-md transition-colors"
+                [attr.aria-label]="'viewFuelings' | i18n">
+                <i class="fas fa-eye" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
         }
@@ -520,6 +524,7 @@
                       [attr.aria-label]="'editDailyMileage' | i18n"
                       [title]="'editDailyMileage' | i18n">
                       <i class="fas fa-pen" aria-hidden="true"></i>
+                      <span class="hidden sm:inline ml-1">{{ 'edit' | i18n }}</span>
                     </button>
                     <button
                       type="button"
@@ -527,6 +532,28 @@
                       class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
                       [attr.aria-label]="'viewFuelings' | i18n"
                       [title]="'viewFuelings' | i18n">
+                      <i class="fas fa-eye" aria-hidden="true"></i>
+                      <span class="hidden sm:inline ml-1">{{ 'view' | i18n }}</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Mobile Actions Row -->
+              <tr class="md:hidden border-b dark:border-neutral-600">
+                <td colspan="100%" class="px-4 py-2">
+                  <div class="flex items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      (click)="openEditDailyMileage(mileage)"
+                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2"
+                      [attr.aria-label]="'editDailyMileage' | i18n">
+                      <i class="fas fa-pen" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="viewFuelings(mileage)"
+                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2"
+                      [attr.aria-label]="'viewFuelings' | i18n">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                     </button>
                   </div>
@@ -538,22 +565,84 @@
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-center items-center mt-4 space-x-2">
-      <button
-        (click)="previousPage()"
-        [disabled]="!hasPreviousPage()"
-        class="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 hover:bg-blue-700">
-        {{ 'previous' | i18n }}
-      </button>
-      <span class="text-sm">{{ 'page' | i18n }} {{ currentPage() }} {{ 'of' | i18n }} {{ totalPages() }}</span>
-      <button
-        (click)="nextPage()"
-        [disabled]="!hasNextPage()"
-        class="px-3 py-1 bg-blue-600 text-white rounded disabled:bg-gray-400 hover:bg-blue-700">
-        {{ 'next' | i18n }}
-      </button>
+    <!-- Pagination Controls -->
+    @if(dailyMileages().length > 0) {
+    <div
+        class="bg-white dark:bg-gray-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
+        <!-- Items per page selector -->
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
+            <select [value]="itemsPerPage()" (change)="setItemsPerPage(+$event.target.value)"
+                class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+        </div>
+
+        <!-- Pagination info (hidden on mobile) -->
+        <div class="hidden sm:block">
+            <p class="text-sm text-gray-700">
+                {{ "showing" | i18n }}
+                <span class="font-medium">{{
+                    (currentPage() - 1) * itemsPerPage() + 1
+                    }}</span>
+                {{ "to" | i18n }}
+                <span class="font-medium">{{
+                    Math.min(currentPage() * itemsPerPage(), dailyMileages().length)
+                    }}</span>
+                {{ "of" | i18n }}
+                <span class="font-medium">{{ dailyMileages().length }}</span>
+                {{ "results" | i18n }}
+            </p>
+        </div>
+
+        <!-- Pagination buttons -->
+        <div class="flex justify-center sm:justify-end">
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <!-- Previous button -->
+                <button (click)="previousPage()" [disabled]="currentPage() === 1"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-left"></i>
+                    <span class="sr-only">Previous</span>
+                </button>
+
+                <!-- Page numbers (simplified for mobile) -->
+                <div class="hidden sm:flex">
+                    @for(page of pageNumbers; track page) { @if(page === -1) {
+                    <!-- Ellipsis -->
+                    <span
+                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        ...
+                    </span>
+                    } @else {
+                    <button (click)="goToPage(page)" [class]="
+              page === currentPage()
+                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-400'
+                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+            ">
+                        {{ page }}
+                    </button>
+                    } }
+                </div>
+
+                <!-- Mobile page indicator -->
+                <div
+                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ currentPage() }} / {{ totalPages() }}
+                </div>
+
+                <!-- Next button -->
+                <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="sr-only">Next</span>
+                </button>
+            </nav>
+        </div>
     </div>
+    }
   </div>
 
   <!-- Fuelings Modal -->
