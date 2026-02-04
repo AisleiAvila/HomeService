@@ -16,6 +16,15 @@ export interface ServiceRequestOrigin {
   name: string;
 }
 
+
+// Armazém
+export interface Warehouse {
+  id: number;
+  name: string;
+  location?: string | null;
+  created_at?: string;
+}
+
 // Estoque (materiais recebidos)
 export interface StockItem {
   id: number;
@@ -27,6 +36,8 @@ export interface StockItem {
   notes?: string | null;
   created_by_admin_id?: number | null;
   created_at?: string;
+  warehouse_id?: number | null;
+  warehouse?: Warehouse | null;
 }
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";

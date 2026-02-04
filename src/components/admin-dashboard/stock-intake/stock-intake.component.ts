@@ -14,6 +14,7 @@ import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { I18nService } from "../../../i18n.service";
 import { InventoryService } from "../../../services/inventory.service";
+import { WarehouseService } from "../../../services/warehouse.service";
 import { AuthService } from "../../../services/auth.service";
 import { NotificationService } from "../../../services/notification.service";
 import { StockItem } from "../../../models/maintenance.models";
@@ -38,10 +39,12 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
   readonly i18n = inject(I18nService);
+  private readonly warehouseService = inject(WarehouseService);
 
   @ViewChild("barcodeVideo") barcodeVideo?: ElementRef<HTMLVideoElement>;
 
   readonly barcode = signal("");
+  readonly warehouseId = signal<number|null>(null);
   readonly productName = signal("");
   readonly quantity = signal(1);
   readonly supplier = signal("Worten");
@@ -59,10 +62,10 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     if (!this.isAuthorized()) {
       return;
     }
-    // Busca todos os itens do estoque (sem limite)
+    // Busca todos os itens do estoque, incluindo o armazém relacionado
     const { data, error } = await this.inventoryService["supabase"].client
       .from("stock_items")
-      .select("*")
+      .select("*, warehouse:warehouses(*)")
       .order("received_at", { ascending: false });
     if (!error && data) {
       this.allStockItems.set(data as StockItem[]);
@@ -101,6 +104,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     }
 
     this.loadRecentItems();
+    this.warehouseService.fetchWarehouses();
     this.loadAllStockItems();
   }
 
@@ -127,6 +131,11 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.warehouseId()) {
+      this.setStatus("error", this.i18n.translate("warehouseRequired"));
+      return;
+    }
+
     this.isSaving.set(true);
     try {
       const receivedAtIso = this.toIsoFromInput(this.receivedAt());
@@ -140,6 +149,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
         notes: this.notes().trim() || null,
         received_at: receivedAtIso,
         created_by_admin_id: createdBy,
+        warehouse_id: this.warehouseId(),
       });
 
       if (saved) {
@@ -168,6 +178,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     this.quantity.set(1);
     this.notes.set("");
     this.receivedAt.set(this.formatDateTimeLocal(new Date()));
+    this.warehouseId.set(null);
   }
 
   async startScanning(): Promise<void> {

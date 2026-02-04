@@ -11,6 +11,7 @@ export interface StockItemCreatePayload {
   received_at?: string;
   notes?: string | null;
   created_by_admin_id?: number | null;
+  warehouse_id?: number | null;
 }
 
 @Injectable({

@@ -1154,6 +1154,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     materialsList: "Materials List",
     productName: "Product Name",
     noMaterialsFound: "No materials found.",
+    warehouse: "Warehouse",
+    selectWarehouse: "Select Warehouse",
+    registerMaterial: "Register Material",
 
   },
   pt: {
@@ -2318,6 +2321,9 @@ const allTranslations: Record<Language, Record<string, string>> = {
     materialsList: "Lista de Materiais",
     productName: "Nome do Produto",
     noMaterialsFound: "Nenhum material encontrado.",
+    warehouse: "Armazém",
+    selectWarehouse: "Selecione o armazém",
+    registerMaterial: "Registar Material",
 
   },
 };
