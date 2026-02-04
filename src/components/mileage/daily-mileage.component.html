@@ -255,8 +255,13 @@
       <h2 class="text-lg font-semibold">{{ 'mileageHistory' | i18n }}</h2>
       <button
         (click)="toggleFilters()"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        {{ showFilters() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}
+        class="px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200
+               bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700
+               text-brand-primary-600 dark:text-gray-200 hover:bg-brand-primary-50 dark:hover:bg-gray-700
+               focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500
+               flex items-center gap-2 shadow-lg">
+        <i class="fas" [ngClass]="showFilters() ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+        <span class="hidden sm:inline">{{ showFilters() ? ('hideFilters' | i18n) : ('showFilters' | i18n) }}</span>
       </button>
     </div>
 
