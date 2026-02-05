@@ -37,6 +37,7 @@ export class StockIntakeComponent {
 	constructor() {
 		effect(() => {
 			this.loadStockItems();
+			this.warehouseService.fetchWarehouses();
 		});
 	}
 
