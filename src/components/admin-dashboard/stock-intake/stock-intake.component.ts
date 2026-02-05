@@ -41,7 +41,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
-  private readonly warehouseService = inject(WarehouseService);
+  readonly warehouseService = inject(WarehouseService);
 
   @ViewChild("barcodeVideo") barcodeVideo?: ElementRef<HTMLVideoElement>;
 
