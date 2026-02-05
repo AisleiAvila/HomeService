@@ -201,7 +201,8 @@
       </h3>
     </div>
     <!-- Lista de Materiais em Estoque -->
-    <div class="overflow-x-auto rounded-lg shadow border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block overflow-x-auto rounded-lg shadow border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead class="bg-gray-50 dark:bg-gray-700">
           <tr>
@@ -217,7 +218,7 @@
         <tbody>
           @if (filteredStockItems().length === 0) {
             <tr>
-              <td colspan="6" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</td>
+              <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</td>
             </tr>
           } @else {
             @for (item of filteredStockItems(); track item.id) {
@@ -234,5 +235,49 @@
           }
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden">
+      <div class="divide-y divide-gray-200 dark:divide-gray-700">
+        @if (filteredStockItems().length === 0) {
+          <div class="p-6 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</div>
+        } @else {
+          @for (item of filteredStockItems(); track item.id) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="font-semibold text-gray-900 dark:text-gray-100 text-base">
+                  <i class="fas fa-cube text-brand-primary-500 mr-2"></i>
+                  {{ item.product_name || ('materialWithoutName' | i18n) }}
+                </div>
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-brand-primary-50 dark:bg-brand-primary-900 text-brand-primary-600 dark:text-brand-primary-200">
+                  {{ item.quantity }} {{ 'quantity' | i18n }}
+                </span>
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-300 mb-2">
+                <i class="fas fa-barcode mr-1"></i> {{ 'barcodeLabel' | i18n }}: <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.barcode || '-' }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs mb-2">
+                <div>
+                  <i class="fas fa-truck mr-1"></i> {{ 'supplier' | i18n }}:
+                  <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.supplier || '-' }}</span>
+                </div>
+                <div>
+                  <i class="fas fa-warehouse mr-1"></i> {{ 'warehouse' | i18n }}:
+                  <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.warehouse?.name || '-' }}</span>
+                </div>
+                <div>
+                  <i class="fas fa-calendar-check mr-1"></i> {{ 'receivedAt' | i18n }}:
+                  <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.received_at | date: 'dd/MM/yyyy HH:mm':'':'pt-PT' }}</span>
+                </div>
+                <div>
+                  <i class="fas fa-sticky-note mr-1"></i> {{ 'notes' | i18n }}:
+                  <span class="font-medium text-gray-700 dark:text-gray-200">{{ item.notes || '-' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
     </div>
 </div>
