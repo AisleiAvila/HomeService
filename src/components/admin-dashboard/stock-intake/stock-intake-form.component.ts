@@ -46,7 +46,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   warehouseId = signal<number|null>(null);
   productName = signal("");
   quantity = signal(1);
-  supplier = signal("Worten");
+  supplier = signal("");
   receivedAt = signal(this.formatDateTimeLocal(new Date()));
   notes = signal("");
 

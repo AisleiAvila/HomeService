@@ -119,6 +119,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     pendingApprovals: "Pending Approvals",
     activeServices: "Active Services",
     stockIntakeTitle: "Stock intake",
+    stockTitle: "Stock",
     stockIntakeSubtitle:
       "Scan barcodes for Worten deliveries and register materials in stock.",
     scanBarcode: "Scan barcode",
@@ -1187,6 +1188,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     profile: "Perfil",
     extraServices: "Serviços Extras",
     stockIntake: "Estoque",
+    stockTitle: "Estoque",
     language: "Idioma",
     english: "English",
     portuguese: "Português",
