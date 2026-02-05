@@ -1,5 +1,3 @@
-import { CommonModule } from "@angular/common";
-import { Router, RouterModule } from "@angular/router";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,16 +7,15 @@ import {
   ViewChild,
   inject,
   signal,
-  computed
 } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { I18nService } from "../../../i18n.service";
-import { InventoryService } from "../../../services/inventory.service";
 import { WarehouseService } from "../../../services/warehouse.service";
+import { InventoryService } from "../../../services/inventory.service";
 import { AuthService } from "../../../services/auth.service";
 import { NotificationService } from "../../../services/notification.service";
-import { StockItem } from "../../../models/maintenance.models";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
 declare const BarcodeDetector: {
@@ -29,124 +26,74 @@ declare const BarcodeDetector: {
 };
 
 @Component({
-  selector: "app-stock-intake",
+  selector: "app-stock-intake-form",
   standalone: true,
-  imports: [CommonModule, FormsModule, I18nPipe, RouterModule],
-  templateUrl: "./stock-intake.component.html",
+  imports: [CommonModule, FormsModule, I18nPipe],
+  templateUrl: "./stock-intake-form.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StockIntakeComponent implements OnInit, OnDestroy {
-  private readonly inventoryService = inject(InventoryService);
-  private readonly authService = inject(AuthService);
-  private readonly notificationService = inject(NotificationService);
-  private readonly router = inject(Router);
-  readonly i18n = inject(I18nService);
-  private readonly warehouseService = inject(WarehouseService);
+export class StockIntakeFormComponent implements OnInit, OnDestroy {
+  warehouseService = inject(WarehouseService);
+  inventoryService = inject(InventoryService);
+  authService = inject(AuthService);
+  notificationService = inject(NotificationService);
+  private readonly i18n = inject(I18nService);
 
   @ViewChild("barcodeVideo") barcodeVideo?: ElementRef<HTMLVideoElement>;
 
-  readonly barcode = signal("");
-  readonly warehouseId = signal<number|null>(null);
-  readonly productName = signal("");
-  readonly quantity = signal(1);
-  readonly supplier = signal("Worten");
-  readonly receivedAt = signal(this.formatDateTimeLocal(new Date()));
-  readonly notes = signal("");
+  // Signals para campos do formulário
+  barcode = signal("");
+  warehouseId = signal<number|null>(null);
+  productName = signal("");
+  quantity = signal(1);
+  supplier = signal("Worten");
+  receivedAt = signal(this.formatDateTimeLocal(new Date()));
+  notes = signal("");
 
-  readonly isSaving = signal(false);
-  readonly isScanning = signal(false);
-  readonly statusMessage = signal<string | null>(null);
-  readonly statusType = signal<"success" | "error" | "info" | null>(null);
-  readonly recentItems = signal<StockItem[]>([]);
-  readonly allStockItems = signal<StockItem[]>([]);
+  isSaving = signal(false);
+  statusMessage = signal<string | null>(null);
+  statusType = signal<"success" | "error" | "info" | null>(null);
 
-  async loadAllStockItems(): Promise<void> {
-    if (!this.isAuthorized()) {
-      return;
-    }
-    // Busca todos os itens do estoque, incluindo o armazém relacionado
-    const { data, error } = await this.inventoryService["supabase"].client
-      .from("stock_items")
-      .select("*, warehouse:warehouses(*)")
-      .order("received_at", { ascending: false });
-    if (!error && data) {
-      this.allStockItems.set(data as StockItem[]);
-    } else {
-      this.allStockItems.set([]);
-    }
-  }
-  readonly totalMaterials = computed(() =>
-    this.recentItems().reduce((acc, item) => acc + item.quantity, 0)
-  );
-  readonly isAuthorized = signal(false);
-  readonly cameraSupported = signal(
-    !!navigator.mediaDevices?.getUserMedia
-  );
-  readonly nativeDetectorSupported = signal(
+  // Scanner
+  isScanning = signal(false);
+  cameraSupported = signal(!!navigator.mediaDevices?.getUserMedia);
+  nativeDetectorSupported = signal(
     (globalThis as unknown as { BarcodeDetector?: unknown }).BarcodeDetector !==
       undefined
   );
-  readonly usingFallbackScanner = signal(false);
+  usingFallbackScanner = signal(false);
 
   private stream: MediaStream | null = null;
-  private detector: { detect: (video: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> } | null = null;
+  private detector:
+    | { detect: (video: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>> }
+    | null = null;
   private scanFrameId: number | null = null;
   private zxingReader: BrowserMultiFormatReader | null = null;
   private zxingControls: IScannerControls | null = null;
   private audioContext: AudioContext | null = null;
 
   ngOnInit(): void {
-    const email = this.authService.appUser()?.email?.toLowerCase();
-    const allowed = email === "admin@email.com";
-    this.isAuthorized.set(allowed);
-
-    if (!allowed) {
-      this.setStatus("error", this.i18n.translate("stockAccessRestricted"));
-      return;
-    }
-
-    this.loadRecentItems();
     this.warehouseService.fetchWarehouses();
-    this.loadAllStockItems();
   }
 
   ngOnDestroy(): void {
     this.stopScanning();
   }
 
-  async loadRecentItems(): Promise<void> {
-    if (!this.isAuthorized()) {
-      return;
-    }
-    const items = await this.inventoryService.fetchRecentStockItems(12);
-    this.recentItems.set(items);
-  }
-
-  goToRegister(): void {
-    this.router.navigate(["/admin", "stock-register"]);
-  }
-
   async saveToStock(): Promise<void> {
-    if (!this.isAuthorized()) {
-      this.setStatus("error", this.i18n.translate("stockAccessRestricted"));
-      return;
-    }
     const barcodeValue = this.barcode().trim();
     if (!barcodeValue) {
       this.setStatus("error", this.i18n.translate("barcodeRequired"));
       return;
     }
-
     if (!this.warehouseId()) {
-      this.setStatus("error", this.i18n.translate("warehouseRequired"));
+      this.setStatus("error", this.i18n.translate("selectWarehouse"));
       return;
     }
-
     this.isSaving.set(true);
     try {
       const receivedAtIso = this.toIsoFromInput(this.receivedAt());
       const createdBy = this.authService.appUser()?.id ?? null;
-
       const saved = await this.inventoryService.addStockItem({
         barcode: barcodeValue,
         product_name: this.productName().trim() || null,
@@ -157,9 +104,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
         created_by_admin_id: createdBy,
         warehouse_id: this.warehouseId(),
       });
-
       if (saved) {
-        this.recentItems.update((items) => [saved, ...items].slice(0, 12));
         this.setStatus("success", this.i18n.translate("stockSaved"));
         this.resetForm(false);
       } else {
@@ -167,9 +112,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error("Erro ao salvar estoque:", error);
-      this.notificationService.addNotification(
-        this.i18n.translate("stockSaveError")
-      );
+      this.notificationService.addNotification(this.i18n.translate("stockSaveError"));
       this.setStatus("error", this.i18n.translate("stockSaveError"));
     } finally {
       this.isSaving.set(false);
@@ -187,11 +130,12 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     this.warehouseId.set(null);
   }
 
+  setStatus(type: "success" | "error" | "info", message: string): void {
+    this.statusType.set(type);
+    this.statusMessage.set(message);
+  }
+
   async startScanning(): Promise<void> {
-    if (!this.isAuthorized()) {
-      this.setStatus("error", this.i18n.translate("stockAccessRestricted"));
-      return;
-    }
     if (!this.cameraSupported()) {
       this.setStatus("error", this.i18n.translate("errorCameraNotSupported"));
       return;
@@ -300,11 +244,6 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     this.scanFrameId = requestAnimationFrame(() => this.scanLoop());
   }
 
-  private setStatus(type: "success" | "error" | "info", message: string): void {
-    this.statusType.set(type);
-    this.statusMessage.set(message);
-  }
-
   private stopStreamOnly(): void {
     if (this.stream) {
       this.stream.getTracks().forEach((track) => track.stop());
@@ -363,6 +302,9 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
       this.barcode.set(trimmed);
       this.setStatus("success", this.i18n.translate("barcodeDetected"));
       this.playBeep();
+
+      // Para evitar leituras repetidas, para o scanner após detectar
+      this.stopScanning();
     }
   }
 
@@ -389,7 +331,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     }
   }
 
-  private formatDateTimeLocal(date: Date): string {
+  formatDateTimeLocal(date: Date): string {
     const pad = (value: number) => value.toString().padStart(2, "0");
     const yyyy = date.getFullYear();
     const mm = pad(date.getMonth() + 1);
@@ -399,7 +341,7 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
 
-  private toIsoFromInput(input: string): string {
+  toIsoFromInput(input: string): string {
     if (!input) {
       return new Date().toISOString();
     }

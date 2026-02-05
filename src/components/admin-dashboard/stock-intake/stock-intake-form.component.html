@@ -1,0 +1,143 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+  <div class="space-y-4">
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
+          <i class="fa-solid fa-camera"></i>
+          {{ "scanBarcode" | i18n }}
+        </h3>
+        @if (!isScanning()) {
+          <button
+            type="button"
+            (click)="startScanning()"
+            class="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md bg-brand-primary-600 text-white text-xs font-semibold hover:bg-brand-primary-700"
+          >
+            <i class="fa-solid fa-play"></i>
+            {{ "startScan" | i18n }}
+          </button>
+        }
+        @else {
+          <button
+            type="button"
+            (click)="stopScanning()"
+            class="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-gray-600"
+          >
+            <i class="fa-solid fa-stop"></i>
+            {{ "stopScan" | i18n }}
+          </button>
+        }
+      </div>
+
+      <div class="mt-3 text-xs text-gray-600 dark:text-gray-300">
+        {{ "scanHint" | i18n }}
+      </div>
+
+      @if (!cameraSupported()) {
+        <div class="mt-3 text-xs text-red-600 dark:text-red-300">
+          {{ "errorCameraNotSupported" | i18n }}
+        </div>
+      }
+
+      @if (usingFallbackScanner()) {
+        <div class="mt-2 text-xs text-blue-700 dark:text-blue-200">
+          {{ "barcodeDetectorFallback" | i18n }}
+        </div>
+      }
+
+      <div class="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-black">
+        <video
+          #barcodeVideo
+          class="w-full aspect-video object-cover"
+          autoplay
+          playsinline
+          muted
+        ></video>
+      </div>
+    </div>
+  </div>
+  <div class="space-y-4">
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+      <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2 mb-3">
+        <i class="fa-solid fa-clipboard-list"></i>
+        {{ "stockEntry" | i18n }}
+      </h3>
+      <form class="space-y-4" (ngSubmit)="saveToStock()">
+        <div class="grid gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+              {{ "barcodeLabel" | i18n }}
+              <input type="text" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                [ngModel]="barcode()" (ngModelChange)="barcode.set($event)" name="barcode" required />
+            </label>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+              {{ "productName" | i18n }}
+              <input type="text" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                [ngModel]="productName()" (ngModelChange)="productName.set($event)" name="productName" />
+            </label>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                {{ "warehouse" | i18n }}
+                <select class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                  [ngModel]="warehouseId()" (ngModelChange)="warehouseId.set($event)" name="warehouseId" required>
+                  <option [ngValue]="null">{{ 'selectWarehouse' | i18n }}</option>
+                  @for (w of warehouseService.warehouses(); track w.id) {
+                    <option [ngValue]="w.id">{{ w.name }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                {{ "quantity" | i18n }}
+                <input type="number" min="1" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                  [ngModel]="quantity()" (ngModelChange)="quantity.set($event)" name="quantity" required />
+              </label>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                {{ "supplier" | i18n }}
+                <input type="text" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                  [ngModel]="supplier()" (ngModelChange)="supplier.set($event)" name="supplier" />
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+              {{ "receivedAt" | i18n }}
+              <input type="datetime-local" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                [ngModel]="receivedAt()" (ngModelChange)="receivedAt.set($event)" name="receivedAt" required />
+            </label>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+              {{ "notes" | i18n }}
+              <textarea rows="2" class="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-500 px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500"
+                [ngModel]="notes()" (ngModelChange)="notes.set($event)" name="notes"></textarea>
+            </label>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button type="submit" [disabled]="isSaving()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-brand-primary-600 text-white text-sm font-semibold hover:bg-brand-primary-700 disabled:opacity-60 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>{{ "saveToStock" | i18n }}</span>
+            </button>
+            <button type="button" (click)="resetForm()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-600">
+              <i class="fa-solid fa-rotate"></i>
+              {{ "reset" | i18n }}
+            </button>
+          </div>
+        </div>
+        <div *ngIf="statusMessage()" class="mt-2 text-xs" [ngClass]="{
+          'text-green-600 dark:text-green-400': statusType() === 'success',
+          'text-red-600 dark:text-red-400': statusType() === 'error',
+          'text-blue-600 dark:text-blue-400': statusType() === 'info'
+        }">
+          {{ statusMessage() }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
