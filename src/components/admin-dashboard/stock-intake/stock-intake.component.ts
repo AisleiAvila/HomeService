@@ -409,4 +409,44 @@ export class StockIntakeComponent implements OnInit, OnDestroy {
     }
     return parsed.toISOString();
   }
+
+  // Filtros avançados
+  readonly filterProduct = signal("");
+  readonly filterBarcode = signal("");
+  readonly filterSupplier = signal("");
+  readonly filterWarehouse = signal("");
+  readonly filterDateStart = signal("");
+  readonly filterDateEnd = signal("");
+
+  readonly filteredStockItems = computed(() => {
+    let items = this.allStockItems();
+    const prod = this.filterProduct().toLowerCase();
+    const barcode = this.filterBarcode().toLowerCase();
+    const supplier = this.filterSupplier().toLowerCase();
+    const warehouse = this.filterWarehouse();
+    const dateStart = this.filterDateStart();
+    const dateEnd = this.filterDateEnd();
+
+    if (prod) {
+      items = items.filter(i => (i.product_name || "").toLowerCase().includes(prod));
+    }
+    if (barcode) {
+      items = items.filter(i => (i.barcode || "").toLowerCase().includes(barcode));
+    }
+    if (supplier) {
+      items = items.filter(i => (i.supplier || "").toLowerCase().includes(supplier));
+    }
+    if (warehouse) {
+      items = items.filter(i => String(i.warehouse_id) === String(warehouse));
+    }
+    if (dateStart) {
+      const start = new Date(dateStart);
+      items = items.filter(i => i.received_at && new Date(i.received_at) >= start);
+    }
+    if (dateEnd) {
+      const end = new Date(dateEnd);
+      items = items.filter(i => i.received_at && new Date(i.received_at) <= end);
+    }
+    return items;
+  });
 }

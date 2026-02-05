@@ -22,8 +22,50 @@
     </div>
   </div>
 
-  <!-- Card Total de Materiais -->
-  <div class="p-6">
+  <!-- Filtros Avançados Estoque -->
+  <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-linear-to-br from-gray-50 dark:from-gray-800 to-white dark:to-gray-750 space-y-4">
+    <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-sliders-h text-brand-primary-500"></i>
+          <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ 'advancedFilters' | i18n }}</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <!-- Produto -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ 'productName' | i18n }}</label>
+          <input type="text" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" [ngModel]="filterProduct()" (ngModelChange)="filterProduct.set($event)" placeholder="{{ 'productName' | i18n }}" />
+        </div>
+        <!-- Código de Barras -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ 'barcodeLabel' | i18n }}</label>
+          <input type="text" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" [ngModel]="filterBarcode()" (ngModelChange)="filterBarcode.set($event)" placeholder="{{ 'barcodeLabel' | i18n }}" />
+        </div>
+        <!-- Fornecedor -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ 'supplier' | i18n }}</label>
+          <input type="text" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" [ngModel]="filterSupplier()" (ngModelChange)="filterSupplier.set($event)" placeholder="{{ 'supplier' | i18n }}" />
+        </div>
+        <!-- Armazém -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ 'warehouse' | i18n }}</label>
+          <select class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" [ngModel]="filterWarehouse()" (ngModelChange)="filterWarehouse.set($event)">
+            <option value="">{{ 'all' | i18n }}</option>
+            @for (w of warehouseService.warehouses(); track w.id) {
+              <option [value]="w.id">{{ w.name }}</option>
+            }
+          </select>
+        </div>
+        <!-- Período -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ 'receivedAt' | i18n }}</label>
+          <input type="date" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 mb-1" [ngModel]="filterDateStart()" (ngModelChange)="filterDateStart.set($event)" />
+          <input type="date" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500" [ngModel]="filterDateEnd()" (ngModelChange)="filterDateEnd.set($event)" />
+        </div>
+      </div>
+    </div>
+  </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div class="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 flex items-center gap-4 p-4">
         <div class="flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary-100 dark:bg-brand-primary-900">
@@ -60,12 +102,12 @@
           </tr>
         </thead>
         <tbody>
-          @if (allStockItems().length === 0) {
+          @if (filteredStockItems().length === 0) {
             <tr>
               <td colspan="6" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</td>
             </tr>
           } @else {
-            @for (item of allStockItems(); track item.id) {
+            @for (item of filteredStockItems(); track item.id) {
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.product_name || ('materialWithoutName' | i18n) }}</td>
                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ item.barcode }}</td>
