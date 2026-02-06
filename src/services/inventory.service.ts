@@ -68,7 +68,11 @@ export class InventoryService {
   async fetchRecentStockItems(limit = 10): Promise<StockItem[]> {
     const { data, error } = await this.supabase.client
       .from("stock_items")
-      .select("*")
+      .select(`
+        *,
+        warehouse:warehouses(*),
+        created_by_admin:users!created_by_admin_id(name)
+      `)
       .order("received_at", { ascending: false })
       .limit(limit);
 

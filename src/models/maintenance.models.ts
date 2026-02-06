@@ -38,6 +38,9 @@ export interface StockItem {
   created_at?: string;
   warehouse_id?: number | null;
   warehouse?: Warehouse | null;
+  created_by_admin?: {
+    name: string;
+  } | null;
 }
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
