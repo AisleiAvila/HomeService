@@ -120,11 +120,11 @@
           <div class="flex flex-col sm:flex-row gap-2">
             <button type="submit" [disabled]="isSaving()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-brand-primary-600 text-white text-sm font-semibold hover:bg-brand-primary-700 disabled:opacity-60 disabled:cursor-not-allowed">
               <i class="fa-solid fa-floppy-disk"></i>
-              <span>{{ editItem() ? ("updateStock" | i18n) : ("saveToStock" | i18n) }}</span>
+              <span>{{ "save" | i18n }}</span>
             </button>
-            <button type="button" (click)="resetForm()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-600">
-              <i class="fa-solid fa-rotate"></i>
-              {{ "reset" | i18n }}
+            <button type="button" (click)="cancelEdit()" class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-600">
+              <i class="fa-solid fa-times"></i>
+              {{ "cancel" | i18n }}
             </button>
           </div>
         </div>

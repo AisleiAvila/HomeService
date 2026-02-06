@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
-import { I18nPipe } from "../../../pipes/i18n.pipe";
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { ActivatedRoute, RouterModule } from "@angular/router";
 import { StockIntakeFormComponent } from "../../../components/admin-dashboard/stock-intake/stock-intake-form.component";
-import { ActivatedRoute } from "@angular/router";
 import { StockItem } from "../../../models/maintenance.models";
+import { I18nPipe } from "../../../pipes/i18n.pipe";
 
 @Component({
   selector: "app-stock-register-page",

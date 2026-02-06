@@ -1,14 +1,15 @@
-import { Component, Input, input, inject, signal, ViewChild, ElementRef, OnInit, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, OnDestroy, OnInit, signal, ViewChild } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { I18nPipe } from "../../../pipes/i18n.pipe";
-import { I18nService } from "../../../i18n.service";
-import { WarehouseService } from "../../../services/warehouse.service";
-import { InventoryService } from "../../../services/inventory.service";
-import { AuthService } from "../../../services/auth.service";
-import { NotificationService } from "../../../services/notification.service";
-import { StockItem } from "../../../models/maintenance.models";
+import { Router } from "@angular/router";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
+import { I18nService } from "../../../i18n.service";
+import { StockItem } from "../../../models/maintenance.models";
+import { I18nPipe } from "../../../pipes/i18n.pipe";
+import { AuthService } from "../../../services/auth.service";
+import { InventoryService } from "../../../services/inventory.service";
+import { NotificationService } from "../../../services/notification.service";
+import { WarehouseService } from "../../../services/warehouse.service";
 
 declare const BarcodeDetector: {
   new (options?: { formats?: string[] }): {
@@ -30,6 +31,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
 
   // Input para modo de edição
   editItem = input<StockItem | null>(null);
@@ -114,7 +116,8 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
           warehouse_id: this.warehouseId(),
         });
         if (updated) {
-          this.setStatus("success", this.i18n.translate("stockUpdated"));
+          this.notificationService.addNotification(this.i18n.translate("itemUpdatedSuccessfully"));
+          this.router.navigate(['/admin/stock-intake']);
         } else {
           this.setStatus("error", this.i18n.translate("stockUpdateError"));
         }
@@ -133,7 +136,6 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
         });
         if (saved) {
           this.setStatus("success", this.i18n.translate("stockSaved"));
-          this.resetForm(false);
         } else {
           this.setStatus("error", this.i18n.translate("stockSaveError"));
         }
@@ -147,15 +149,8 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  resetForm(clearBarcode = true): void {
-    if (clearBarcode && !this.editItem()) {
-      this.barcode.set("");
-    }
-    this.productName.set("");
-    this.quantity.set(1);
-    this.notes.set("");
-    this.receivedAt.set(this.formatDateTimeLocal(new Date()));
-    this.warehouseId.set(null);
+  cancelEdit(): void {
+    this.router.navigate(['/admin/stock-intake']);
   }
 
   setStatus(type: "success" | "error" | "info", message: string): void {

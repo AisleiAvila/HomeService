@@ -648,83 +648,77 @@
 </div>
 
 <!-- Modal Detalhes do Material -->
-@if (showItemDetailsModal()) {
-<div class="fixed inset-0 z-[1000] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-    <!-- Background overlay -->
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" (click)="closeItemDetailsModal()"></div>
-
-    <!-- Modal panel -->
-    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-      <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-        <div class="sm:flex sm:items-start">
-          <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 sm:mx-0 sm:h-10 sm:w-10">
-            <i class="fas fa-eye text-green-600 dark:text-green-400"></i>
-          </div>
-          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
-              {{ 'materialDetails' | i18n }}
-            </h3>
-            <div class="mt-4 space-y-3">
-              @if (selectedItem()) {
-                <div class="grid grid-cols-1 gap-3">
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'productName' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.product_name || ('materialWithoutName' | i18n) }}</span>
-                  </div>
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'barcodeLabel' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ selectedItem()!.barcode }}</span>
-                  </div>
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'quantity' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.quantity }}</span>
-                  </div>
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'supplier' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.supplier }}</span>
-                  </div>
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'receivedAt' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.received_at | date: 'dd/MM/yyyy HH:mm':'':'pt-PT' }}</span>
-                  </div>
-                  <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'warehouse' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.warehouse?.name || '-' }}</span>
-                  </div>
-                  @if (selectedItem()!.notes) {
-                    <div class="py-2 border-b border-gray-200 dark:border-gray-600">
-                      <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'notes' | i18n }}:</span>
-                      <p class="text-sm text-gray-900 dark:text-gray-100 mt-1">{{ selectedItem()!.notes }}</p>
-                    </div>
-                  }
-                  <div class="flex justify-between items-center py-2">
-                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'createdBy' | i18n }}:</span>
-                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.created_by_admin?.name || ('unknown' | i18n) }}</span>
-                  </div>
+@if (showItemDetailsModal() && selectedItem()) {
+<div class="fixed inset-0 z-[1000] flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+      <div class="sm:flex sm:items-start">
+        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 sm:mx-0 sm:h-10 sm:w-10">
+          <i class="fas fa-eye text-green-600 dark:text-green-400"></i>
+        </div>
+        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
+            {{ 'materialDetails' | i18n }}
+          </h3>
+          <div class="mt-4 space-y-3">
+            @if (selectedItem()) {
+              <div class="grid grid-cols-1 gap-3">
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'productName' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.product_name || ('materialWithoutName' | i18n) }}</span>
                 </div>
-              }
-            </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'barcodeLabel' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100 font-mono">{{ selectedItem()!.barcode }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'quantity' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.quantity }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'supplier' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.supplier }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'receivedAt' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.received_at | date: 'dd/MM/yyyy HH:mm':'':'pt-PT' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'warehouse' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.warehouse?.name || '-' }}</span>
+                </div>
+                @if (selectedItem()!.notes) {
+                  <div class="py-2 border-b border-gray-200 dark:border-gray-600">
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'notes' | i18n }}:</span>
+                    <p class="text-sm text-gray-900 dark:text-gray-100 mt-1">{{ selectedItem()!.notes }}</p>
+                  </div>
+                }
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'createdBy' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.created_by_admin?.name || ('unknown' | i18n) }}</span>
+                </div>
+              </div>
+            }
           </div>
         </div>
       </div>
-      <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-        <button
-          type="button"
-          (click)="closeItemDetailsModal()"
-          class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-primary-600 text-base font-medium text-white hover:bg-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
-        >
-          {{ 'close' | i18n }}
-        </button>
-        <button
-          type="button"
-          (click)="editItem(selectedItem()!); closeItemDetailsModal()"
-          class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-        >
-          <i class="fas fa-edit mr-2"></i>
-          {{ 'edit' | i18n }}
-        </button>
-      </div>
+    </div>
+    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+      <button
+        type="button"
+        (click)="closeItemDetailsModal()"
+        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-primary-600 text-base font-medium text-white hover:bg-brand-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
+      >
+        {{ 'close' | i18n }}
+      </button>
+      <button
+        type="button"
+        (click)="editItem(selectedItem()!); closeItemDetailsModal()"
+        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+      >
+        <i class="fas fa-edit mr-2"></i>
+        {{ 'edit' | i18n }}
+      </button>
     </div>
   </div>
 </div>

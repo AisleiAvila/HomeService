@@ -172,7 +172,7 @@ export class AdminOverviewComponent implements OnInit {
                         if (Number.parseInt(pro, 10) !== r.professional_id) return false;
                     }
 
-                    const completed = new Date(r.completed_at as string);
+                    const completed = new Date(r.completed_at);
                     if (Number.isNaN(completed.getTime())) return false;
 
                     const completedDateStr = completed.toISOString().split('T')[0];
@@ -219,7 +219,7 @@ export class AdminOverviewComponent implements OnInit {
             }
 
             requests = requests.filter(r => {
-                const completed = new Date(r.completed_at as string);
+                const completed = new Date(r.completed_at);
                 if (Number.isNaN(completed.getTime())) return false;
                 if (startDate && completed < startDate) return false;
                 if (endDate && completed > endDate) return false;
@@ -558,7 +558,7 @@ export class AdminOverviewComponent implements OnInit {
         const isInteger = this.integerStats.has(statId);
 
         const startStored = this.animatedValues()[statId] || 0;
-        const startVal = isInteger ? Math.round(startStored) : Math.round(startStored);
+        const startVal = Math.round(startStored);
         const targetVal = isInteger ? Math.round(targetValue) : Math.round(targetValue * 100);
         const startTime = Date.now();
 
@@ -895,8 +895,9 @@ export class AdminOverviewComponent implements OnInit {
             }
 
             printWindow.document.open();
-            printWindow.document.write(html);
             printWindow.document.close();
+            // Definir o HTML usando innerHTML para evitar o uso de document.write (deprecated)
+            printWindow.document.documentElement.innerHTML = html;
             
             // Aguardar carregamento e abrir diálogo de impressão
             setTimeout(() => {

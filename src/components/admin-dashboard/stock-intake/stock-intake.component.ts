@@ -50,6 +50,27 @@ export class StockIntakeComponent {
 
 	// Carregar itens do estoque ao inicializar (padrão signals)
 	constructor() {
+		// Restaurar estado se existir
+		const savedState = sessionStorage.getItem('stockIntakeState');
+		if (savedState) {
+			try {
+				const state = JSON.parse(savedState);
+				this.filterProduct.set(state.filterProduct || '');
+				this.filterBarcode.set(state.filterBarcode || '');
+				this.filterSupplier.set(state.filterSupplier || '');
+				this.filterWarehouse.set(state.filterWarehouse || '');
+				this.filterDateStart.set(state.filterDateStart || '');
+				this.filterDateEnd.set(state.filterDateEnd || '');
+				this.sortBy.set(state.sortBy || 'received_at');
+				this.sortOrder.set(state.sortOrder || 'desc');
+				this.currentPage.set(state.currentPage || 1);
+				this.itemsPerPage.set(state.itemsPerPage || 10);
+				sessionStorage.removeItem('stockIntakeState');
+			} catch (error) {
+				console.error('Erro ao restaurar estado do estoque:', error);
+			}
+		}
+
 		effect(() => {
 			this.loadStockItems();
 			this.warehouseService.fetchWarehouses();
@@ -238,18 +259,32 @@ export class StockIntakeComponent {
 	}
 
 	viewItem(item: StockItem) {
-		// Mostra modal com detalhes do item
+		if (!item) return;
 		this.selectedItem.set(item);
 		this.showItemDetailsModal.set(true);
 	}
 
 	closeItemDetailsModal() {
-		// Fecha modal de detalhes
 		this.showItemDetailsModal.set(false);
 		this.selectedItem.set(null);
 	}
 
 	editItem(item: StockItem) {
+		// Armazenar estado atual para restauração após edição
+		const currentState = {
+			filterProduct: this.filterProduct(),
+			filterBarcode: this.filterBarcode(),
+			filterSupplier: this.filterSupplier(),
+			filterWarehouse: this.filterWarehouse(),
+			filterDateStart: this.filterDateStart(),
+			filterDateEnd: this.filterDateEnd(),
+			sortBy: this.sortBy(),
+			sortOrder: this.sortOrder(),
+			currentPage: this.currentPage(),
+			itemsPerPage: this.itemsPerPage()
+		};
+		sessionStorage.setItem('stockIntakeState', JSON.stringify(currentState));
+
 		// Navega para a página de registro com o item para edição
 		this.router.navigate(['/admin/stock-register'], {
 			queryParams: { editItem: JSON.stringify(item) }
