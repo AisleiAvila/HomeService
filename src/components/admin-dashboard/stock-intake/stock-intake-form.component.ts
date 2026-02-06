@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  inject,
-  signal,
-} from "@angular/core";
+import { Component, Input, input, inject, signal, ViewChild, ElementRef, OnInit, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -16,6 +7,7 @@ import { WarehouseService } from "../../../services/warehouse.service";
 import { InventoryService } from "../../../services/inventory.service";
 import { AuthService } from "../../../services/auth.service";
 import { NotificationService } from "../../../services/notification.service";
+import { StockItem } from "../../../models/maintenance.models";
 import { BrowserMultiFormatReader, IScannerControls } from "@zxing/browser";
 
 declare const BarcodeDetector: {
@@ -38,6 +30,9 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
   private readonly i18n = inject(I18nService);
+
+  // Input para modo de edição
+  editItem = input<StockItem | null>(null);
 
   @ViewChild("barcodeVideo") barcodeVideo?: ElementRef<HTMLVideoElement>;
 
@@ -74,6 +69,18 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseService.fetchWarehouses();
+
+    // Se estiver editando, preenche os campos
+    const item = this.editItem();
+    if (item) {
+      this.barcode.set(item.barcode);
+      this.productName.set(item.product_name || "");
+      this.quantity.set(item.quantity);
+      this.supplier.set(item.supplier);
+      this.receivedAt.set(this.formatDateTimeLocal(new Date(item.received_at)));
+      this.notes.set(item.notes || "");
+      this.warehouseId.set(item.warehouse_id);
+    }
   }
 
   ngOnDestroy(): void {
@@ -90,25 +97,46 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
       this.setStatus("error", this.i18n.translate("selectWarehouse"));
       return;
     }
+
+    const item = this.editItem();
     this.isSaving.set(true);
     try {
       const receivedAtIso = this.toIsoFromInput(this.receivedAt());
-      const createdBy = this.authService.appUser()?.id ?? null;
-      const saved = await this.inventoryService.addStockItem({
-        barcode: barcodeValue,
-        product_name: this.productName().trim() || null,
-        quantity: this.quantity() || 1,
-        supplier: this.supplier().trim() || "Worten",
-        notes: this.notes().trim() || null,
-        received_at: receivedAtIso,
-        created_by_admin_id: createdBy,
-        warehouse_id: this.warehouseId(),
-      });
-      if (saved) {
-        this.setStatus("success", this.i18n.translate("stockSaved"));
-        this.resetForm(false);
+
+      if (item) {
+        // Modo edição
+        const updated = await this.inventoryService.updateStockItem(item.id, {
+          product_name: this.productName().trim() || null,
+          quantity: this.quantity(),
+          supplier: this.supplier().trim(),
+          received_at: receivedAtIso,
+          notes: this.notes().trim() || null,
+          warehouse_id: this.warehouseId(),
+        });
+        if (updated) {
+          this.setStatus("success", this.i18n.translate("stockUpdated"));
+        } else {
+          this.setStatus("error", this.i18n.translate("stockUpdateError"));
+        }
       } else {
-        this.setStatus("error", this.i18n.translate("stockSaveError"));
+        // Modo criação
+        const createdBy = this.authService.appUser()?.id ?? null;
+        const saved = await this.inventoryService.addStockItem({
+          barcode: barcodeValue,
+          product_name: this.productName().trim() || null,
+          quantity: this.quantity() || 1,
+          supplier: this.supplier().trim() || "Worten",
+          notes: this.notes().trim() || null,
+          received_at: receivedAtIso,
+          created_by_admin_id: createdBy,
+          warehouse_id: this.warehouseId(),
+        });
+        if (saved) {
+          this.setStatus("success", this.i18n.translate("stockSaved"));
+          this.resetForm(false);
+        } else {
+          this.setStatus("error", this.i18n.translate("stockSaveError"));
+        }
       }
     } catch (error) {
       console.error("Erro ao salvar estoque:", error);
@@ -120,7 +148,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   }
 
   resetForm(clearBarcode = true): void {
-    if (clearBarcode) {
+    if (clearBarcode && !this.editItem()) {
       this.barcode.set("");
     }
     this.productName.set("");

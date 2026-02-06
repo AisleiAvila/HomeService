@@ -1,4 +1,4 @@
-// Garantir que o arquivo é tratado como módulo TypeScript
+import { Router } from '@angular/router';
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { I18nPipe } from '../../../pipes/i18n.pipe';
 import { WarehouseService } from '../../../services/warehouse.service';
 import { InventoryService } from '../../../services/inventory.service';
 import { NotificationService } from '../../../services/notification.service';
+import { StockItem } from '../../../models/maintenance.models';
 
 @Component({
 	selector: 'app-stock-intake',
@@ -19,6 +20,7 @@ export class StockIntakeComponent {
 	private readonly inventoryService = inject(InventoryService);
 	readonly warehouseService = inject(WarehouseService);
 	private readonly notificationService = inject(NotificationService);
+	private readonly router = inject(Router);
 
 	// Signals for filters
 	readonly showFilters = signal(false);
@@ -30,7 +32,20 @@ export class StockIntakeComponent {
 	readonly filterDateEnd = signal('');
 
 	// Stock items (simulate signal from service)
-	readonly stockItems = signal([]); // Inicialmente vazio
+	readonly stockItems = signal<StockItem[]>([]); // Inicialmente vazio
+
+	// Sorting signals (seguindo padrão de Solicitações)
+	sortBy = signal<string>('received_at');
+	sortOrder = signal<'asc' | 'desc'>('desc');
+
+	// Pagination signals (seguindo padrão de Solicitações)
+	currentPage = signal<number>(1);
+	itemsPerPage = signal<number>(10);
+	Math = Math;
+
+	// Modal signals
+	readonly showItemDetailsModal = signal(false);
+	readonly selectedItem = signal<StockItem | null>(null);
 
 
 	// Carregar itens do estoque ao inicializar (padrão signals)
@@ -38,6 +53,28 @@ export class StockIntakeComponent {
 		effect(() => {
 			this.loadStockItems();
 			this.warehouseService.fetchWarehouses();
+		});
+
+		// Sempre volta para a primeira página quando filtros/ordenação/tamanho mudam
+		effect(() => {
+			this.filterProduct();
+			this.filterBarcode();
+			this.filterSupplier();
+			this.filterWarehouse();
+			this.filterDateStart();
+			this.filterDateEnd();
+			this.sortBy();
+			this.sortOrder();
+			this.itemsPerPage();
+			this.currentPage.set(1);
+		});
+
+		// Garante que a página atual não excede o total de páginas após filtrar
+		effect(() => {
+			const total = this.totalPages();
+			if (this.currentPage() > total) {
+				this.currentPage.set(Math.max(total, 1));
+			}
 		});
 	}
 
@@ -70,8 +107,109 @@ export class StockIntakeComponent {
 		return items;
 	});
 
+	readonly sortedStockItems = computed(() => {
+		return this.sortStockItems(this.filteredStockItems());
+	});
+
+	readonly paginatedStockItems = computed(() => {
+		const items = this.sortedStockItems();
+		const start = (this.currentPage() - 1) * this.itemsPerPage();
+		const end = start + this.itemsPerPage();
+		return items.slice(start, end);
+	});
+
+	readonly totalPages = computed(() =>
+		Math.ceil(this.sortedStockItems().length / this.itemsPerPage())
+	);
+
 	// Total materials
 	readonly totalMaterials = computed(() => this.filteredStockItems().length);
+
+	// Pagination helpers (mesmo padrão de Solicitações)
+	get pageNumbers(): number[] {
+		const total = this.totalPages();
+		const current = this.currentPage();
+		const pages: number[] = [];
+		pages.push(1);
+		let start = Math.max(2, current - 2);
+		let end = Math.min(total - 1, current + 2);
+		if (start > 2) pages.push(-1);
+		for (let i = start; i <= end; i++) if (i !== 1 && i !== total) pages.push(i);
+		if (end < total - 1) pages.push(-1);
+		if (total > 1) pages.push(total);
+		return pages;
+	}
+
+	previousPage() { if (this.currentPage() > 1) this.currentPage.update(p => p - 1); }
+	nextPage() { if (this.currentPage() < this.totalPages()) this.currentPage.update(p => p + 1); }
+	goToPage(page: number) { if (page !== -1) this.currentPage.set(page); }
+	setItemsPerPage(items: number) { this.itemsPerPage.set(items); this.currentPage.set(1); }
+
+	// Sorting helpers (mesmo padrão de Solicitações)
+	sortByColumn(column: string) {
+		if (this.sortBy() === column) {
+			this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
+		} else {
+			this.sortBy.set(column);
+			this.sortOrder.set('desc');
+		}
+	}
+
+	private sortStockItems(items: StockItem[]): StockItem[] {
+		const sortBy = this.sortBy();
+		const sortOrder = this.sortOrder();
+		const multiplier = sortOrder === 'asc' ? 1 : -1;
+
+		const toText = (value: unknown): string => {
+			if (value === null || value === undefined) return '';
+			if (typeof value === 'string') return value;
+			if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') return String(value);
+			return '';
+		};
+
+		const compareText = (a: unknown, b: unknown): number =>
+			toText(a).localeCompare(toText(b), 'pt-PT', { sensitivity: 'base' });
+
+		const compareNullableNumber = (aValue: number | null | undefined, bValue: number | null | undefined): number => {
+			const aNum = typeof aValue === 'number' && Number.isFinite(aValue) ? aValue : null;
+			const bNum = typeof bValue === 'number' && Number.isFinite(bValue) ? bValue : null;
+			if (aNum === null && bNum === null) return 0;
+			if (aNum === null) return 1;
+			if (bNum === null) return -1;
+			return aNum - bNum;
+		};
+
+		const parseDateTime = (raw?: string | null): number | null => {
+			if (!raw) return null;
+			const t = Date.parse(String(raw));
+			return Number.isFinite(t) ? t : null;
+		};
+
+		return [...items].sort((a, b) => {
+			switch (sortBy) {
+				case 'received_at': {
+					const aTime = parseDateTime(a.received_at);
+					const bTime = parseDateTime(b.received_at);
+					if (aTime === null && bTime === null) return 0;
+					if (aTime === null) return 1;
+					if (bTime === null) return -1;
+					return (aTime - bTime) * multiplier;
+				}
+				case 'quantity':
+					return compareNullableNumber(a.quantity, b.quantity) * multiplier;
+				case 'product_name':
+					return compareText(a.product_name ?? '', b.product_name ?? '') * multiplier;
+				case 'barcode':
+					return compareText(a.barcode ?? '', b.barcode ?? '') * multiplier;
+				case 'supplier':
+					return compareText(a.supplier ?? '', b.supplier ?? '') * multiplier;
+				case 'warehouse':
+					return compareText(a.warehouse?.name ?? '', b.warehouse?.name ?? '') * multiplier;
+				default:
+					return 0;
+			}
+		});
+	}
 
 	// Helpers
 	hasActiveFilters = () => {
@@ -99,9 +237,27 @@ export class StockIntakeComponent {
 		this.filterDateEnd.set('');
 	}
 
+	viewItem(item: StockItem) {
+		// Mostra modal com detalhes do item
+		this.selectedItem.set(item);
+		this.showItemDetailsModal.set(true);
+	}
+
+	closeItemDetailsModal() {
+		// Fecha modal de detalhes
+		this.showItemDetailsModal.set(false);
+		this.selectedItem.set(null);
+	}
+
+	editItem(item: StockItem) {
+		// Navega para a página de registro com o item para edição
+		this.router.navigate(['/admin/stock-register'], {
+			queryParams: { editItem: JSON.stringify(item) }
+		});
+	}
+
 	goToRegister() {
 		// Navegação para tela de cadastro de material
-		this.notificationService.addNotification('Navegar para cadastro de material');
-		// Implemente navegação real conforme o roteamento da sua aplicação
+		this.router.navigate(['/admin/stock-register']);
 	}
 }
