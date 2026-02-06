@@ -420,37 +420,39 @@
     </div>
 
     <!-- Mobile Card View (seguindo o padrão da lista mobile de Solicitações) -->
-    <div class="lg:hidden">
+    <div class="lg:hidden overflow-visible">
       <!-- Mobile sorting controls -->
-      <div class="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-        <div class="flex items-center gap-3">
+      <div class="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 relative z-20">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
           <span class="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
             {{ 'sortBy' | i18n }}
           </span>
 
-          <select
-            class="flex-1 min-w-0 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            [value]="sortBy()"
-            (change)="sortBy.set($any($event.target).value)"
-            [attr.aria-label]="'sortBy' | i18n"
-          >
-            <option value="received_at">{{ 'receivedAt' | i18n }}</option>
-            <option value="product_name">{{ 'productName' | i18n }}</option>
-            <option value="barcode">{{ 'barcodeLabel' | i18n }}</option>
-            <option value="quantity">{{ 'quantity' | i18n }}</option>
-            <option value="supplier">{{ 'supplier' | i18n }}</option>
-            <option value="warehouse">{{ 'warehouse' | i18n }}</option>
-          </select>
+          <div class="flex flex-col sm:flex-row gap-2 flex-1">
+            <select
+              class="flex-1 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 min-w-0 relative z-30"
+              [value]="sortBy()"
+              (change)="sortBy.set($any($event.target).value)"
+              [attr.aria-label]="'sortBy' | i18n"
+            >
+              <option value="received_at">{{ 'receivedAt' | i18n }}</option>
+              <option value="product_name">{{ 'productName' | i18n }}</option>
+              <option value="barcode">{{ 'barcodeLabel' | i18n }}</option>
+              <option value="quantity">{{ 'quantity' | i18n }}</option>
+              <option value="supplier">{{ 'supplier' | i18n }}</option>
+              <option value="warehouse">{{ 'warehouse' | i18n }}</option>
+            </select>
 
-          <select
-            class="w-36 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            [value]="sortOrder()"
-            (change)="sortOrder.set($any($event.target).value)"
-            [attr.aria-label]="(sortOrder() === 'asc' ? ('ascending' | i18n) : ('descending' | i18n))"
-          >
-            <option value="asc">{{ 'ascending' | i18n }}</option>
-            <option value="desc">{{ 'descending' | i18n }}</option>
-          </select>
+            <select
+              class="w-full sm:w-32 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 relative z-30"
+              [value]="sortOrder()"
+              (change)="sortOrder.set($any($event.target).value)"
+              [attr.aria-label]="(sortOrder() === 'asc' ? ('ascending' | i18n) : ('descending' | i18n))"
+            >
+              <option value="asc">{{ 'ascending' | i18n }}</option>
+              <option value="desc">{{ 'descending' | i18n }}</option>
+            </select>
+          </div>
         </div>
       </div>
 

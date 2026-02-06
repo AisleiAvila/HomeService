@@ -47,6 +47,25 @@ export class InventoryService {
     return data as StockItem;
   }
 
+  async checkBarcodeExists(barcode: string): Promise<StockItem | null> {
+    const { data, error } = await this.supabase.client
+      .from("stock_items")
+      .select("*")
+      .eq("barcode", barcode)
+      .single();
+
+    if (error) {
+      // Se não encontrou (código 0), retorna null
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      console.error("Erro ao verificar código de barras:", error);
+      return null;
+    }
+
+    return data as StockItem;
+  }
+
   async updateStockItem(id: number, payload: StockItemUpdatePayload): Promise<StockItem | null> {
     const { data, error } = await this.supabase.client
       .from("stock_items")

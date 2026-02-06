@@ -51,6 +51,9 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   statusMessage = signal<string | null>(null);
   statusType = signal<"success" | "error" | "info" | null>(null);
 
+  // Indica se o código de barras atual corresponde a um item existente
+  existingItem = signal<StockItem | null>(null);
+
   // Scanner
   isScanning = signal(false);
   cameraSupported = signal(!!navigator.mediaDevices?.getUserMedia);
@@ -106,7 +109,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
       const receivedAtIso = this.toIsoFromInput(this.receivedAt());
 
       if (item) {
-        // Modo edição
+        // Modo edição - permite manter o mesmo código de barras
         const updated = await this.inventoryService.updateStockItem(item.id, {
           product_name: this.productName().trim() || null,
           quantity: this.quantity(),
@@ -122,8 +125,10 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
           this.setStatus("error", this.i18n.translate("stockUpdateError"));
         }
       } else {
-        // Modo criação
+        // Modo criação - agora permite códigos de barras duplicados
+        const existingItem = this.existingItem();
         const createdBy = this.authService.appUser()?.id ?? null;
+
         const saved = await this.inventoryService.addStockItem({
           barcode: barcodeValue,
           product_name: this.productName().trim() || null,
@@ -134,8 +139,15 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
           created_by_admin_id: createdBy,
           warehouse_id: this.warehouseId(),
         });
+
         if (saved) {
-          this.setStatus("success", this.i18n.translate("stockSaved"));
+          if (existingItem) {
+            this.setStatus("success", this.i18n.translate("duplicateItemAdded"));
+          } else {
+            this.setStatus("success", this.i18n.translate("stockSaved"));
+          }
+          // Limpar o formulário após salvar com sucesso
+          this.resetForm();
         } else {
           this.setStatus("error", this.i18n.translate("stockSaveError"));
         }
@@ -151,6 +163,18 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
 
   cancelEdit(): void {
     this.router.navigate(['/admin/stock-intake']);
+  }
+
+  private resetForm(): void {
+    this.barcode.set("");
+    this.productName.set("");
+    this.quantity.set(1);
+    this.supplier.set("");
+    this.receivedAt.set(this.formatDateTimeLocal(new Date()));
+    this.notes.set("");
+    this.existingItem.set(null);
+    this.statusMessage.set(null);
+    this.statusType.set(null);
   }
 
   setStatus(type: "success" | "error" | "info", message: string): void {
@@ -319,12 +343,34 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleBarcode(rawValue?: string | null): void {
+  private async handleBarcode(rawValue?: string | null): Promise<void> {
     const trimmed = rawValue?.trim();
     if (trimmed && trimmed !== this.barcode()) {
       this.barcode.set(trimmed);
       this.setStatus("success", this.i18n.translate("barcodeDetected"));
       this.playBeep();
+
+      // Verificar se o código de barras já existe e preencher automaticamente o nome
+      try {
+        const existingItem = await this.inventoryService.checkBarcodeExists(trimmed);
+        if (existingItem) {
+          this.existingItem.set(existingItem);
+          // Preencher automaticamente o nome do produto se estiver vazio
+          if (!this.productName() && existingItem.product_name) {
+            this.productName.set(existingItem.product_name);
+          }
+          // Preencher fornecedor se estiver vazio
+          if (!this.supplier() && existingItem.supplier) {
+            this.supplier.set(existingItem.supplier);
+          }
+          this.setStatus("info", this.i18n.translate("existingItemDetected"));
+        } else {
+          this.existingItem.set(null);
+        }
+      } catch (error) {
+        console.warn("Erro ao verificar código de barras existente:", error);
+        this.existingItem.set(null);
+      }
 
       // Para evitar leituras repetidas, para o scanner após detectar
       this.stopScanning();
