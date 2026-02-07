@@ -780,8 +780,8 @@
               </div>
               <div class="flex items-center gap-2">
                 @if (fueling.receipt_image_url) {
-                  <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-image"></i> {{ 'viewReceipt' | i18n }}
+                  <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800" [attr.aria-label]="'viewReceipt' | i18n" [title]="'viewReceipt' | i18n">
+                    <i class="fas fa-image"></i>
                   </a>
                 }
                 @if (isAdmin() || currentUser()?.role === 'professional') {
