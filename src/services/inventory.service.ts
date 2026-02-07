@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
-import { StockItem } from "../models/maintenance.models";
+import { StockItem, StockItemStatus } from "../models/maintenance.models";
 
 export interface StockItemCreatePayload {
   barcode: string;
@@ -33,13 +33,49 @@ export class InventoryService {
   async addStockItem(payload: StockItemCreatePayload): Promise<StockItem | null> {
     const { data, error } = await this.supabase.client
       .from("stock_items")
-      .insert(payload)
+      .insert({
+        ...payload,
+        status: "Recebido" satisfies StockItemStatus,
+      })
       .select("*")
       .single();
 
     if (error) {
       this.notificationService.addNotification(
         "Erro ao salvar item no estoque: " + error.message
+      );
+      return null;
+    }
+
+    return data as StockItem;
+  }
+
+  async transitionStockItemStatus(
+    id: number,
+    toStatus: StockItemStatus,
+    allowedFrom?: StockItemStatus[]
+  ): Promise<StockItem | null> {
+    let query = this.supabase.client
+      .from("stock_items")
+      .update({ status: toStatus })
+      .eq("id", id);
+
+    if (allowedFrom && allowedFrom.length > 0) {
+      query = query.in("status", allowedFrom);
+    }
+
+    const { data, error } = await query.select("*").single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        this.notificationService.addNotification(
+          "Transição de status inválida para este item."
+        );
+        return null;
+      }
+
+      this.notificationService.addNotification(
+        "Erro ao atualizar status do item: " + error.message
       );
       return null;
     }

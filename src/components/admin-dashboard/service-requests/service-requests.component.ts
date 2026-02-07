@@ -313,9 +313,13 @@ export class ServiceRequestsComponent implements OnInit {
         const query = (this.materialSearch() ?? "").trim().toLowerCase();
         const items = this.stockItemsCache();
 
-        let filtered = items;
+        // Na associação, apenas itens disponíveis (Recebido)
+        let filtered = items.filter((item) => {
+            const status = (item as unknown as { status?: string | null }).status ?? null;
+            return status === null || status === 'Recebido';
+        });
         if (query) {
-            filtered = items.filter((item) => {
+            filtered = filtered.filter((item) => {
                 const name = (item.product_name ?? "").toLowerCase();
                 const barcode = (item.barcode ?? "").toLowerCase();
                 return name.includes(query) || barcode.includes(query);
@@ -502,6 +506,14 @@ export class ServiceRequestsComponent implements OnInit {
         if (!ok) {
             return;
         }
+
+        // Atualiza cache local para refletir a transição Recebido -> Distribuído
+        // (evita que o item continue aparecendo no dropdown)
+        this.stockItemsCache.update((items) =>
+            items.map((item) =>
+                item.id === stockItemId ? { ...item, status: 'Distribuído' } : item
+            )
+        );
 
         await this.refreshMaterialsList(req.id);
         this.selectedStockItemId.set(null);

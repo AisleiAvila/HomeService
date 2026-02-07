@@ -3,6 +3,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, effect } 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { I18nPipe } from '../../../pipes/i18n.pipe';
+import { I18nService } from '../../../i18n.service';
 import { WarehouseService } from '../../../services/warehouse.service';
 import { InventoryService } from '../../../services/inventory.service';
 import { NotificationService } from '../../../services/notification.service';
@@ -20,6 +21,7 @@ export class StockIntakeComponent {
 	private readonly inventoryService = inject(InventoryService);
 	readonly warehouseService = inject(WarehouseService);
 	private readonly notificationService = inject(NotificationService);
+	private readonly i18n = inject(I18nService);
 	private readonly router = inject(Router);
 
 	// Signals for filters
@@ -226,10 +228,84 @@ export class StockIntakeComponent {
 					return compareText(a.supplier ?? '', b.supplier ?? '') * multiplier;
 				case 'warehouse':
 					return compareText(a.warehouse?.name ?? '', b.warehouse?.name ?? '') * multiplier;
+				case 'status':
+					return compareText(a.status ?? '', b.status ?? '') * multiplier;
 				default:
 					return 0;
 			}
 		});
+	}
+
+	canRegisterWithdrawal(item: StockItem): boolean {
+		return item?.status === 'Distribuído';
+	}
+
+	canRegisterReturn(item: StockItem): boolean {
+		return item?.status === 'Distribuído' || item?.status === 'Retirado';
+	}
+
+	private updateLocalItem(updated: StockItem): void {
+		this.stockItems.update((items) =>
+			items.map((i) => (i.id === updated.id ? { ...i, ...updated } : i))
+		);
+	}
+
+	async registerWithdrawal(item: StockItem): Promise<void> {
+		if (!item?.id) return;
+		if (!this.canRegisterWithdrawal(item)) {
+			this.notificationService.addNotification(
+				this.i18n.translate('invalidStatusTransition') ||
+					'Não é possível registrar retirada para este status.'
+			);
+			return;
+		}
+
+		const confirm = globalThis.confirm(
+			this.i18n.translate('confirmRegisterWithdrawal') ||
+				'Deseja registrar a retirada deste item do armazém?'
+		);
+		if (!confirm) return;
+
+		const updated = await this.inventoryService.transitionStockItemStatus(
+			item.id,
+			'Retirado',
+			['Distribuído']
+		);
+
+		if (!updated) return;
+		this.updateLocalItem(updated);
+		this.notificationService.addNotification(
+			this.i18n.translate('registerWithdrawal') || 'Retirada registrada.'
+		);
+	}
+
+	async registerReturn(item: StockItem): Promise<void> {
+		if (!item?.id) return;
+		if (!this.canRegisterReturn(item)) {
+			this.notificationService.addNotification(
+				this.i18n.translate('invalidStatusTransition') ||
+					'Não é possível registrar devolução para este status.'
+			);
+			return;
+		}
+
+		const confirm = globalThis.confirm(
+			this.i18n.translate('confirmRegisterReturn') ||
+				'Deseja registrar a devolução deste item?'
+		);
+		if (!confirm) return;
+
+		const updated = await this.inventoryService.transitionStockItemStatus(
+			item.id,
+			'Devolvido',
+			['Distribuído', 'Retirado']
+		);
+
+		if (!updated) return;
+		this.updateLocalItem(updated);
+		this.notificationService.addNotification(
+			this.i18n.translate('registerReturn') || 'Devolução registrada.'
+		);
 	}
 
 	// Helpers

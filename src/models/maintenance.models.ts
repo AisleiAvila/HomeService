@@ -25,6 +25,13 @@ export interface Warehouse {
   created_at?: string;
 }
 
+export type StockItemStatus =
+  | "Recebido"
+  | "Distribuído"
+  | "Retirado"
+  | "Instalado"
+  | "Devolvido";
+
 // Estoque (materiais recebidos)
 export interface StockItem {
   id: number;
@@ -33,6 +40,7 @@ export interface StockItem {
   quantity: number;
   supplier: string;
   received_at: string;
+  status: StockItemStatus;
   notes?: string | null;
   created_by_admin_id?: number | null;
   created_at?: string;

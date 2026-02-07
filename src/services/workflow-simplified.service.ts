@@ -842,6 +842,20 @@ export class WorkflowServiceSimplified {
       await this.validateFinalization(request.status, currentUser, requestId);
 
       await this.updateFinalizationStatus(requestId, adminId, adminNotes);
+
+      // Ao concluir a solicitação, materiais associados (Distribuído/Retirado) devem virar Instalado
+      try {
+        await this.updateAssociatedMaterialsStockStatusOnCompletion(requestId);
+      } catch (materialsError) {
+        console.error(
+          "Erro ao atualizar status dos materiais associados na conclusão:",
+          materialsError
+        );
+        this.notificationService.showError(
+          "Serviço concluído, mas falha ao atualizar status dos materiais do estoque."
+        );
+      }
+
       await this.recordFinalizationAudit(requestId, request.status, currentUser, adminNotes);
 
       this.notificationService.showSuccess(
@@ -858,6 +872,33 @@ export class WorkflowServiceSimplified {
       );
       return false;
     }
+  }
+
+  private async updateAssociatedMaterialsStockStatusOnCompletion(
+    requestId: number
+  ): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from("service_request_materials")
+      .select("stock_item_id")
+      .eq("service_request_id", requestId);
+
+    if (error) throw error;
+
+    const ids = (data || [])
+      .map((row: any) => Number(row?.stock_item_id))
+      .filter((id: number) => Number.isFinite(id) && id > 0);
+
+    if (ids.length === 0) {
+      return;
+    }
+
+    const { error: updateError } = await this.supabase.client
+      .from("stock_items")
+      .update({ status: "Instalado" })
+      .in("id", ids)
+      .in("status", ["Distribuído", "Retirado"]);
+
+    if (updateError) throw updateError;
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
-import { ServiceRequestMaterial } from "../models/maintenance.models";
+import { ServiceRequestMaterial, StockItemStatus } from "../models/maintenance.models";
 
 export interface UpsertServiceRequestMaterialPayload {
   service_request_id: number;
@@ -61,6 +61,28 @@ export class ServiceRequestMaterialsService {
   }
 
   async upsert(payload: UpsertServiceRequestMaterialPayload): Promise<boolean> {
+    // Validação de transições incoerentes: não permitir associar itens já instalados/devolvidos
+    const { data: stockItem, error: stockItemError } = await this.supabase.client
+      .from("stock_items")
+      .select("id,status")
+      .eq("id", payload.stock_item_id)
+      .single();
+
+    if (stockItemError) {
+      this.notificationService.addNotification(
+        "Erro ao validar status do material: " + stockItemError.message
+      );
+      return false;
+    }
+
+    const currentStatus = (stockItem as { status?: StockItemStatus | null })?.status ?? null;
+    if (currentStatus === "Instalado" || currentStatus === "Devolvido") {
+      this.notificationService.addNotification(
+        "Não é possível associar um material com status '" + currentStatus + "'."
+      );
+      return false;
+    }
+
     const { error } = await this.supabase.client
       .from("service_request_materials")
       .upsert(payload, {
@@ -72,6 +94,25 @@ export class ServiceRequestMaterialsService {
         "Erro ao associar material à solicitação: " + error.message
       );
       return false;
+    }
+
+    // Ao confirmar associação, se estiver como Recebido, mudar para Distribuído
+    if (currentStatus === "Recebido") {
+      const { error: statusError } = await this.supabase.client
+        .from("stock_items")
+        .update({ status: "Distribuído" satisfies StockItemStatus })
+        .eq("id", payload.stock_item_id)
+        .in("status", ["Recebido"])
+        .select("id")
+        .single();
+
+      if (statusError) {
+        // Não falha a associação, mas notifica para evitar inconsistência silenciosa
+        this.notificationService.addNotification(
+          "Material associado, mas falha ao atualizar status para 'Distribuído': " +
+            statusError.message
+        );
+      }
     }
 
     return true;

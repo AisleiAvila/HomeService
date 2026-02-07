@@ -250,7 +250,7 @@
                         <option [ngValue]="null">{{ 'selectMaterial' | i18n }}</option>
                         @for (item of filteredStockItemsForMaterials(); track item.id) {
                             <option [ngValue]="item.id">
-                                {{ item.product_name || ('materialWithoutName' | i18n) }} — {{ item.barcode }}
+                                {{ item.product_name || ('materialWithoutName' | i18n) }} — {{ item.barcode || '—' }} — {{ item.status | i18n }}
                             </option>
                         }
                     </select>

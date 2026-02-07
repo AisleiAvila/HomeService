@@ -370,6 +370,33 @@
 
             <th
               class="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-300"
+              [attr.aria-sort]="sortBy() === 'status' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
+              scope="col"
+            >
+              <button
+                type="button"
+                class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+                (click)="sortByColumn('status')"
+                [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
+                [attr.title]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
+              >
+                <div class="flex items-center justify-between">
+                  <span>{{ 'status' | i18n }}</span>
+                  @if (sortBy() === 'status') {
+                    @if (sortOrder() === 'asc') {
+                      <i class="fas fa-sort-up text-brand-primary-500 ml-1"></i>
+                    } @else {
+                      <i class="fas fa-sort-down text-brand-primary-500 ml-1"></i>
+                    }
+                  } @else {
+                    <i class="fas fa-sort text-gray-400 ml-1"></i>
+                  }
+                </div>
+              </button>
+            </th>
+
+            <th
+              class="px-4 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-300"
               scope="col"
             >
               {{ 'actions' | i18n }}
@@ -379,7 +406,7 @@
         <tbody>
           @if (sortedStockItems().length === 0) {
             <tr>
-              <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</td>
+              <td colspan="8" class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-300">{{ 'noMaterialsFound' | i18n }}</td>
             </tr>
           } @else {
             @for (item of paginatedStockItems(); track item.id) {
@@ -390,6 +417,7 @@
                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ item.supplier }}</td>
                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ item.received_at | date: 'dd/MM/yyyy HH:mm':'':'pt-PT' }}</td>
                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ item.warehouse?.name || '-' }}</td>
+                <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">{{ item.status | i18n }}</td>
                 <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                   <div class="flex items-center gap-1">
                     <button
@@ -410,6 +438,30 @@
                     >
                       <i class="fas fa-edit"></i>
                     </button>
+
+                    @if (canRegisterWithdrawal(item)) {
+                      <button
+                        type="button"
+                        (click)="registerWithdrawal(item)"
+                        class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900 rounded hover:bg-amber-100 dark:hover:bg-amber-800 transition-colors"
+                        [attr.title]="'registerWithdrawal' | i18n"
+                        [attr.aria-label]="'registerWithdrawal' | i18n"
+                      >
+                        <i class="fas fa-truck-loading"></i>
+                      </button>
+                    }
+
+                    @if (canRegisterReturn(item)) {
+                      <button
+                        type="button"
+                        (click)="registerReturn(item)"
+                        class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900 rounded hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors"
+                        [attr.title]="'registerReturn' | i18n"
+                        [attr.aria-label]="'registerReturn' | i18n"
+                      >
+                        <i class="fas fa-undo"></i>
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>
@@ -441,6 +493,7 @@
               <option value="quantity">{{ 'quantity' | i18n }}</option>
               <option value="supplier">{{ 'supplier' | i18n }}</option>
               <option value="warehouse">{{ 'warehouse' | i18n }}</option>
+              <option value="status">{{ 'status' | i18n }}</option>
             </select>
 
             <select
@@ -511,6 +564,21 @@
                   </div>
                 </div>
 
+                <!-- Status -->
+                <div class="service-request-info-item">
+                  <div class="flex items-start gap-2 sm:gap-3">
+                    <svg class="w-4 h-4 text-gray-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 002 2z" />
+                    </svg>
+                    <div class="text-sm text-gray-700 dark:text-gray-300 min-w-0 flex-1">
+                      <div class="flex items-start justify-between gap-2">
+                        <span class="font-semibold">{{ 'status' | i18n }}:</span>
+                        <span class="ml-auto text-right break-words">{{ item.status | i18n }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Recebido em -->
                 <div class="service-request-info-item">
                   <div class="flex items-start gap-2 sm:gap-3">
@@ -554,6 +622,30 @@
                           >
                             <i class="fas fa-edit"></i>
                           </button>
+
+                          @if (canRegisterWithdrawal(item)) {
+                            <button
+                              type="button"
+                              (click)="registerWithdrawal(item)"
+                              class="px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900 rounded hover:bg-amber-100 dark:hover:bg-amber-800 transition-colors"
+                              [attr.title]="'registerWithdrawal' | i18n"
+                              [attr.aria-label]="'registerWithdrawal' | i18n"
+                            >
+                              <i class="fas fa-truck-loading"></i>
+                            </button>
+                          }
+
+                          @if (canRegisterReturn(item)) {
+                            <button
+                              type="button"
+                              (click)="registerReturn(item)"
+                              class="px-2 py-1 text-xs font-medium text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900 rounded hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors"
+                              [attr.title]="'registerReturn' | i18n"
+                              [attr.aria-label]="'registerReturn' | i18n"
+                            >
+                              <i class="fas fa-undo"></i>
+                            </button>
+                          }
                         </div>
                       </div>
                     </div>
@@ -688,6 +780,10 @@
                 <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'warehouse' | i18n }}:</span>
                   <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.warehouse?.name || '-' }}</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'status' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.status | i18n }}</span>
                 </div>
                 @if (selectedItem()!.notes) {
                   <div class="py-2 border-b border-gray-200 dark:border-gray-600">
