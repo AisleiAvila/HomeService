@@ -653,6 +653,21 @@ export class WorkflowServiceSimplified {
       }
 
       await this.updateCompletionStatus(requestId, professionalId, notes);
+
+      // Ao concluir a solicitação, materiais associados devem virar Instalado
+      // (mantém o estoque consistente com o fluxo da solicitação)
+      try {
+        await this.updateAssociatedMaterialsStockStatusOnCompletion(requestId);
+      } catch (materialsError) {
+        console.error(
+          "Erro ao atualizar status dos materiais associados na conclusão:",
+          materialsError
+        );
+        this.notificationService.showError(
+          "Serviço concluído, mas falha ao atualizar status dos materiais do estoque."
+        );
+      }
+
       await this.recordCompletionAudit(requestId, previousStatus, currentUser, notes);
       await this.notifyCompletionToAdmin(request, requestId);
 
@@ -910,7 +925,7 @@ export class WorkflowServiceSimplified {
       .from("stock_items")
       .update({ status: "Instalado" })
       .in("id", ids)
-      .in("status", ["Distribuído", "Retirado"]);
+      .in("status", ["Recebido", "Distribuído", "Retirado"]);
 
     if (updateError) throw updateError;
   }
