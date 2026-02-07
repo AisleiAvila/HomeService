@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, s
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../i18n.service';
 import { DailyMileage } from '../../models/maintenance.models';
+import { Fueling } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { AuthService } from '../../services/auth.service';
 import { DailyMileageService } from '../../services/daily-mileage.service';
@@ -16,23 +17,73 @@ import { DailyMileageService } from '../../services/daily-mileage.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DailyMileageComponent implements OnInit {
-      // Cards de resumo baseados nos filtros
-      totalDriven = computed(() => {
-        return this.filteredMileages().reduce((sum, m) => sum + this.getKilometersDriven(m), 0);
-      });
-      totalFueling = computed(() => {
-        return this.filteredMileages().reduce((sum, m) => sum + this.getTotalFueling(m), 0);
-      });
-    // Abastecimentos filtrados para o modal
-    filteredFuelingsForSelectedMileage = computed(() => {
-      const selected = this.selectedDailyMileage();
-      if (selected === null) return [];
-      return this.fuelings().filter(f => f.daily_mileage_id === selected.id);
-    });
+    openStartDayForm() {
+      const user = this.currentUser();
+      if (user?.role === 'professional') {
+        const lastPlate = this.getLastLicensePlateForProfessional(user.id);
+        this.startLicensePlate.set(lastPlate);
+      }
+      this.showStartForm.set(true);
+    }
+  // Cards de resumo baseados nos filtros
+  totalDriven = computed(() => {
+    return this.filteredMileages().reduce((sum, m) => sum + this.getKilometersDriven(m), 0);
+  });
+  totalFueling = computed(() => {
+    return this.filteredMileages().reduce((sum, m) => sum + this.getTotalFueling(m), 0);
+  });
+  // Abastecimentos filtrados para o modal
+  filteredFuelingsForSelectedMileage = computed(() => {
+    const selected = this.selectedDailyMileage();
+    if (selected === null) return [];
+    return this.fuelings().filter(f => f.daily_mileage_id === selected.id);
+  });
   private readonly dailyMileageService = inject(DailyMileageService);
   private readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
+  // Modal de edição de abastecimento
+  editingFueling = signal<Fueling | null>(null);
+  editFuelingValue = signal<number | null>(null);
+  editFuelingLicensePlate = signal('');
+  editFuelingReceiptFile = signal<File | null>(null);
 
+  openEditFueling(fueling: Fueling) {
+    this.editingFueling.set(fueling);
+    this.editFuelingValue.set(fueling.value);
+    this.editFuelingLicensePlate.set(fueling.license_plate || '');
+    this.editFuelingReceiptFile.set(null);
+  }
+
+  closeEditFueling() {
+    this.editingFueling.set(null);
+    this.editFuelingValue.set(null);
+    this.editFuelingLicensePlate.set('');
+    this.editFuelingReceiptFile.set(null);
+  }
+
+  async saveEditedFueling() {
+    const fueling = this.editingFueling();
+    if (!fueling) return;
+    const value = this.editFuelingValue();
+    const licensePlate = this.editFuelingLicensePlate().trim();
+    let receiptUrl = fueling.receipt_image_url;
+    if (this.editFuelingReceiptFile()) {
+      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.editFuelingReceiptFile());
+    }
+    await this.dailyMileageService.updateFueling(fueling.id, {
+      value,
+      license_plate: licensePlate,
+      receipt_image_url: receiptUrl,
+    });
+    this.closeEditFueling();
+    await this.loadData();
+  }
+
+  async deleteFueling(fueling: Fueling) {
+    if (!confirm('Deseja realmente excluir este abastecimento?')) return;
+    await this.dailyMileageService.deleteFueling(fueling.id);
+    await this.loadData();
+  }
   // Current user
   currentUser = this.authService.appUser;
 
@@ -52,6 +103,7 @@ export class DailyMileageComponent implements OnInit {
   // Start day form
   startDate = signal(new Date().toISOString().split('T')[0]);
   startKilometers = signal<number | null>(null);
+  startLicensePlate = signal('');
 
   // End day form
   endKilometers = signal<number | null>(null);
@@ -225,7 +277,6 @@ export class DailyMileageComponent implements OnInit {
         this.loadData();
       }
     });
-
     // Reset page when filters change
     effect(() => {
       this.filterStartDate();
@@ -254,6 +305,10 @@ export class DailyMileageComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const value = input.value;
     this.startKilometers.set(Number(value) || null);
+  }
+
+  onStartLicensePlateChange(value: string) {
+    this.startLicensePlate.set(value);
   }
 
   onEndKilometersChange(value: string) {
@@ -314,28 +369,6 @@ export class DailyMileageComponent implements OnInit {
     this.filterLicensePlate.set(value);
   }
 
-  onFilterProfessionalChange(value: string) {
-    this.filterProfessionalId.set(Number(value) || null);
-  }
-
-  onAdminProfessionalChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const value = select.value;
-    this.adminRegisterProfessionalId.set(value === '' ? null : Number(value));
-  }
-
-  onAdminRegisterStartKilometersChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-    this.adminRegisterStartKilometers.set(Number(value) || null);
-  }
-
-  onAdminRegisterEndKilometersChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-    this.adminRegisterEndKilometers.set(Number(value) || null);
-  }
-
   getProfessionalName(professionalId: number): string {
     const professional = this.professionals().find(p => p.id === professionalId);
     return professional?.name || 'Desconhecido';
@@ -364,8 +397,12 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
-    if (this.todayMileage()) {
-      alert('Já existe uma quilometragem registrada para hoje.');
+    // Verifica se já existe registro para a data selecionada
+    const selectedDate = this.startDate();
+    const userId = user.id;
+    const exists = this.dailyMileages().some(m => m.professional_id === userId && m.date === selectedDate);
+    if (exists) {
+      alert('Já existe uma quilometragem registrada para esta data.');
       return;
     }
 
@@ -375,17 +412,37 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
+    const licensePlate = this.startLicensePlate().trim();
+    if (!licensePlate) {
+      alert('Por favor, informe a matrícula.');
+      return;
+    }
+
     const dailyMileage = await this.dailyMileageService.createDailyMileage({
       professional_id: user.id,
       date: this.startDate(),
       start_kilometers: startKm,
+      license_plate: licensePlate,
     });
 
     if (dailyMileage) {
       this.showStartForm.set(false);
       this.startKilometers.set(null);
+      this.startLicensePlate.set('');
       await this.loadData();
     }
+  }
+
+  getLastLicensePlateForProfessional(professionalId?: number): string {
+    if (!professionalId) return '';
+    // Busca o último abastecimento do profissional
+    const lastFueling = [...this.fuelings()]
+      .filter(f => {
+        const mileage = this.dailyMileages().find(dm => dm.id === f.daily_mileage_id);
+        return mileage?.professional_id === professionalId && f.license_plate;
+      })
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+    return lastFueling?.license_plate?.trim() || '';
   }
 
   async endDay() {

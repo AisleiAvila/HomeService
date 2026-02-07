@@ -32,11 +32,11 @@
           </button>
         }
         @if (!isAdmin() && !todayMileage()) {
-          <button (click)="showStartForm.set(true)"
+            <button (click)="openStartDayForm()"
               class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
               <i class="fas fa-plus"></i>
               <span>{{ "startDay" | i18n }}</span>
-          </button>
+            </button>
         }
       </div>
     </div>
@@ -60,6 +60,18 @@
             class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
             required>
         </div>
+          <div>
+            <label for="startLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+            <input
+              id="startLicensePlate"
+              type="text"
+              [ngModel]="startLicensePlate()"
+              (ngModelChange)="onStartLicensePlateChange($event)"
+              name="startLicensePlate"
+              class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+              placeholder="AA-00-BB"
+              required>
+          </div>
         <div>
           <label for="startKilometers" class="block text-sm font-medium mb-1">{{ 'initial' | i18n }}</label>
           <input
@@ -607,6 +619,16 @@
                       [title]="'viewFuelings' | i18n">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                     </button>
+                    @if (!isAdmin() && currentUser()?.role === 'professional') {
+                      <button
+                        type="button"
+                        (click)="selectedDailyMileage.set(mileage); showModalFuelingForm.set(true)"
+                        class="text-green-600 hover:text-green-800"
+                        [attr.aria-label]="'addFueling' | i18n"
+                        [title]="'addFueling' | i18n">
+                        <i class="fas fa-gas-pump"></i>
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>
@@ -751,14 +773,23 @@
               <div>
                 <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
                 <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
+                <span class="ml-2 text-xs text-gray-500">{{ fueling.license_plate }}</span>
               </div>
-              @if (fueling.receipt_image_url) {
-                <div>
+              <div class="flex items-center gap-2">
+                @if (fueling.receipt_image_url) {
                   <a [href]="fueling.receipt_image_url" target="_blank" class="text-blue-600 hover:text-blue-800">
                     <i class="fas fa-image"></i> {{ 'viewReceipt' | i18n }}
                   </a>
-                </div>
-              }
+                }
+                @if (isAdmin() || currentUser()?.role === 'professional') {
+                  <button (click)="openEditFueling(fueling)" class="text-blue-600 hover:text-blue-800" [attr.aria-label]="'editFueling' | i18n" [title]="'editFueling' | i18n">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                  <button (click)="deleteFueling(fueling)" class="text-red-600 hover:text-red-800" [attr.aria-label]="'deleteFueling' | i18n" [title]="'deleteFueling' | i18n">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                }
+              </div>
             </div>
           }
           @if (filteredFuelingsForSelectedMileage().length === 0) {
@@ -824,6 +855,68 @@
 
   <!-- Edit Daily Mileage Modal -->
   @if (editingDailyMileage()) {
+      <!-- Edit Fueling Modal -->
+      @if (editingFueling()) {
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-start gap-3 mb-4">
+              <h3 class="text-lg font-semibold min-w-0 wrap-break-word">{{ 'editFueling' | i18n }}</h3>
+              <button
+                type="button"
+                (click)="closeEditFueling()"
+                class="inline-flex items-center justify-center w-9 h-9 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600 shrink-0"
+                [attr.aria-label]="'close' | i18n"
+                [title]="'close' | i18n">
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </button>
+            </div>
+            <form (ngSubmit)="saveEditedFueling()" class="space-y-4">
+              <div>
+                <label for="editFuelingValue" class="block text-sm font-medium mb-1">{{ 'fuelingValue' | i18n }}</label>
+                <input
+                  id="editFuelingValue"
+                  type="number"
+                  step="0.01"
+                  [ngModel]="editFuelingValue()"
+                  (ngModelChange)="editFuelingValue.set($event)"
+                  name="editFuelingValue"
+                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                  min="0"
+                  required>
+              </div>
+              <div>
+                <label for="editFuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
+                <input
+                  id="editFuelingLicensePlate"
+                  type="text"
+                  [ngModel]="editFuelingLicensePlate()"
+                  (ngModelChange)="editFuelingLicensePlate.set($event)"
+                  name="editFuelingLicensePlate"
+                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                  placeholder="AA-00-BB"
+                  required>
+              </div>
+              <div>
+                <label for="editFuelingReceiptFile" class="block text-sm font-medium mb-1">{{ 'receiptImage' | i18n }}</label>
+                <input
+                  id="editFuelingReceiptFile"
+                  type="file"
+                  accept="image/*"
+                  (change)="editFuelingReceiptFile.set($event.target.files[0])"
+                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
+              </div>
+              <div class="flex gap-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                  {{ 'save' | i18n }}
+                </button>
+                <button type="button" (click)="closeEditFueling()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                  {{ 'cancel' | i18n }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-xl w-full mx-4">
         <div class="flex justify-between items-start gap-3 mb-4">
