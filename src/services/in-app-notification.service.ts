@@ -93,12 +93,14 @@ export class InAppNotificationService {
       }
 
       console.log('📬 [loadNotifications] Consultando banco de dados...');
+      
+      // Carregar as 50 notificações mais recentes para exibição
       const { data, error } = await this.supabase.client
         .from("enhanced_notifications")
         .select("*")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false })
-        .limit(50); // Limitar a 50 notificações mais recentes
+        .limit(50); // Limitar a 50 notificações mais recentes para exibição
 
       if (error) {
         console.error("📬 [loadNotifications] Erro ao carregar notificações:", error);
@@ -109,11 +111,23 @@ export class InAppNotificationService {
       
       this.notifications.set(data || []);
       
-      // Atualizar contagem de não lidas
-      const unread = (data || []).filter(n => !n.read).length;
-      this.unreadCount.set(unread);
+      // Contar TODAS as notificações não lidas (sem limite)
+      const { count: unreadCount, error: countError } = await this.supabase.client
+        .from("enhanced_notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", currentUser.id)
+        .eq("read", false);
+
+      if (countError) {
+        console.error("📬 [loadNotifications] Erro ao contar notificações não lidas:", countError);
+        // Fallback: contar baseado nas notificações carregadas
+        const unread = (data || []).filter(n => !n.read).length;
+        this.unreadCount.set(unread);
+      } else {
+        this.unreadCount.set(unreadCount || 0);
+      }
       
-      console.log(`📬 [loadNotifications] ✅ Carregadas ${data?.length || 0} notificações (${unread} não lidas)`);
+      console.log(`📬 [loadNotifications] ✅ Carregadas ${data?.length || 0} notificações (${this.unreadCount()} não lidas no total)`);
       console.log('📬 [loadNotifications] Signal state:', this.notifications());
     } catch (error) {
       console.error("📬 [loadNotifications] Erro ao carregar notificações:", error);
