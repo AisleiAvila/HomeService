@@ -96,32 +96,17 @@
 
             
             
-            <!-- Mini gráfico sparkline (apenas em modo expandido) -->
-            @if (stat.sparklineData && stat.sparklineData.length > 0 && !compactMode()) {
-                <div class="mb-3 relative z-10 h-10">
-                    <canvas 
-                        [id]="'sparkline-' + stat.id"
-                        width="200" 
-                        height="40"
-                        class="w-full h-full"
-                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, stat.sparklineData, stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('yellow') ? '#facc15' : stat.bgColor.includes('purple') ? '#a855f7' : stat.bgColor.includes('blue') ? '#3b82f6' : stat.bgColor.includes('teal') ? '#14b8a6' : stat.bgColor.includes('emerald') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : '#ea5455')">
-                    </canvas>
-                </div>
-            }
-            
-            <!-- Separador para cards sem sparkline -->
-            @if (stat.id === 'completedServices' || stat.id === 'finalizedServices' || stat.id === 'totalServices' || stat.id === 'scheduledServices') {
-                <!-- Draw a flat sparkline canvas to match the visual separator used by other cards -->
-                <div class="mb-3 relative z-10 h-10">
-                    <canvas
-                        [id]="'sparkline-' + stat.id"
-                        width="200"
-                        height="40"
-                        class="w-full h-full"
-                        [attr.data-init]="drawSparkline('sparkline-' + stat.id, [0,0,0,0,0,0,0], stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('yellow') ? '#facc15' : stat.bgColor.includes('purple') ? '#a855f7' : stat.bgColor.includes('blue') ? '#3b82f6' : stat.bgColor.includes('teal') ? '#14b8a6' : stat.bgColor.includes('emerald') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : '#ea5455')">
-                    </canvas>
-                </div>
-            }
+
+            <!-- Separador visual acima do percentual (linha/canvas) para TODOS os cards -->
+            <div class="mb-3 relative z-10 h-10">
+                <canvas
+                    [id]="'sparkline-' + stat.id"
+                    width="200"
+                    height="40"
+                    class="w-full h-full"
+                    [attr.data-init]="drawSparkline('sparkline-' + stat.id, (stat.sparklineData && stat.sparklineData.length > 0 && !compactMode()) ? stat.sparklineData : [0,0,0,0,0,0,0], stat.bgColor.includes('green') ? '#10b981' : stat.bgColor.includes('yellow') ? '#facc15' : stat.bgColor.includes('purple') ? '#a855f7' : stat.bgColor.includes('blue') ? '#3b82f6' : stat.bgColor.includes('teal') ? '#14b8a6' : stat.bgColor.includes('emerald') ? '#10b981' : stat.bgColor.includes('orange') ? '#f59e0b' : '#ea5455')">
+                </canvas>
+            </div>
 
             <!-- Tendência e comparação -->
             <div class="flex items-center justify-between mt-auto relative z-10">
