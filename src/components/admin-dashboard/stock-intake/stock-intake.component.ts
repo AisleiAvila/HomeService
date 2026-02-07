@@ -30,8 +30,11 @@ export class StockIntakeComponent {
 	readonly filterBarcode = signal('');
 	readonly filterSupplier = signal('');
 	readonly filterWarehouse = signal('');
+	readonly filterStatus = signal('');
 	readonly filterDateStart = signal('');
 	readonly filterDateEnd = signal('');
+
+	readonly statusOptions = ['Recebido', 'Distribuído', 'Retirado', 'Instalado', 'Devolvido'] as const;
 
 	// Stock items (simulate signal from service)
 	readonly stockItems = signal<StockItem[]>([]); // Inicialmente vazio
@@ -61,6 +64,7 @@ export class StockIntakeComponent {
 				this.filterBarcode.set(state.filterBarcode || '');
 				this.filterSupplier.set(state.filterSupplier || '');
 				this.filterWarehouse.set(state.filterWarehouse || '');
+				this.filterStatus.set(state.filterStatus || '');
 				this.filterDateStart.set(state.filterDateStart || '');
 				this.filterDateEnd.set(state.filterDateEnd || '');
 				this.sortBy.set(state.sortBy || 'received_at');
@@ -84,6 +88,7 @@ export class StockIntakeComponent {
 			this.filterBarcode();
 			this.filterSupplier();
 			this.filterWarehouse();
+			this.filterStatus();
 			this.filterDateStart();
 			this.filterDateEnd();
 			this.sortBy();
@@ -120,6 +125,9 @@ export class StockIntakeComponent {
 		}
 		if (this.filterWarehouse()) {
 			items = items.filter(i => String(i.warehouse?.id ?? i.warehouse_id ?? '') === this.filterWarehouse());
+		}
+		if (this.filterStatus()) {
+			items = items.filter(i => (i.status ?? '') === this.filterStatus());
 		}
 		if (this.filterDateStart()) {
 			items = items.filter(i => i.received_at && i.received_at >= this.filterDateStart());
@@ -315,6 +323,7 @@ export class StockIntakeComponent {
 			this.filterBarcode() ||
 			this.filterSupplier() ||
 			this.filterWarehouse() ||
+			this.filterStatus() ||
 			this.filterDateStart() ||
 			this.filterDateEnd()
 		);
@@ -330,6 +339,7 @@ export class StockIntakeComponent {
 		this.filterBarcode.set('');
 		this.filterSupplier.set('');
 		this.filterWarehouse.set('');
+		this.filterStatus.set('');
 		this.filterDateStart.set('');
 		this.filterDateEnd.set('');
 	}
@@ -352,6 +362,7 @@ export class StockIntakeComponent {
 			filterBarcode: this.filterBarcode(),
 			filterSupplier: this.filterSupplier(),
 			filterWarehouse: this.filterWarehouse(),
+			filterStatus: this.filterStatus(),
 			filterDateStart: this.filterDateStart(),
 			filterDateEnd: this.filterDateEnd(),
 			sortBy: this.sortBy(),
