@@ -546,6 +546,7 @@ export class DailyMileageComponent implements OnInit {
     this.fuelingLicensePlate.set('');
     this.fuelingReceiptFile.set(null);
     this.hasFueling.set(false);
+    this.selectedDailyMileage.set(null);
   }
 
   async registerMileageAsAdmin() {
