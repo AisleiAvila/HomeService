@@ -529,12 +529,6 @@ export class DailyMileageComponent implements OnInit {
       return;
     }
 
-    const licensePlate = this.fuelingLicensePlate().trim();
-    if (!licensePlate) {
-      alert('Por favor, informe a matrícula.');
-      return;
-    }
-
     let receiptUrl: string | undefined;
     if (this.fuelingReceiptFile()) {
       receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
@@ -543,7 +537,7 @@ export class DailyMileageComponent implements OnInit {
     await this.dailyMileageService.addFueling({
       daily_mileage_id: dailyMileageId,
       value: fuelValue,
-      license_plate: licensePlate,
+      license_plate: this.fuelingLicensePlate() || null,
       receipt_image_url: receiptUrl,
     });
 

@@ -774,7 +774,9 @@
               <div>
                 <span class="font-medium">{{ fueling.value | number:'1.2-2':'pt-PT' }} €</span>
                 <span class="text-sm text-gray-600 dark:text-neutral-400 ml-2">{{ fueling.created_at | date:'short' }}</span>
-                <span class="ml-2 text-xs text-gray-500">{{ fueling.license_plate }}</span>
+                @if (fueling.license_plate) {
+                  <span class="ml-2 text-xs text-gray-500">{{ fueling.license_plate }}</span>
+                }
               </div>
               <div class="flex items-center gap-2">
                 @if (fueling.receipt_image_url) {
@@ -783,9 +785,6 @@
                   </a>
                 }
                 @if (isAdmin() || currentUser()?.role === 'professional') {
-                  <button (click)="openEditFueling(fueling)" class="text-blue-600 hover:text-blue-800" [attr.aria-label]="'editFueling' | i18n" [title]="'editFueling' | i18n">
-                    <i class="fas fa-pen"></i>
-                  </button>
                   <button (click)="deleteFueling(fueling)" class="text-red-600 hover:text-red-800" [attr.aria-label]="'deleteFueling' | i18n" [title]="'deleteFueling' | i18n">
                     <i class="fas fa-trash"></i>
                   </button>
@@ -816,18 +815,6 @@
                   class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
                   placeholder="0.00"
                   min="0"
-                  required>
-              </div>
-              <div>
-                <label for="modalFuelingLicensePlate" class="block text-sm font-medium mb-1">{{ 'licensePlate' | i18n }}</label>
-                <input
-                  id="modalFuelingLicensePlate"
-                  type="text"
-                  [ngModel]="fuelingLicensePlate()"
-                  (ngModelChange)="fuelingLicensePlate.set($event)"
-                  name="modalFuelingLicensePlate"
-                  class="w-full p-2 border rounded dark:bg-neutral-600 dark:border-neutral-500"
-                  placeholder="AA-00-BB"
                   required>
               </div>
               <div>
