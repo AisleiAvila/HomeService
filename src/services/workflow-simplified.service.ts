@@ -572,12 +572,26 @@ export class WorkflowServiceSimplified {
         throw new Error(this.i18n.translate("beforeImageRequiredToStartService"));
       }
 
+      const nowIso = new Date().toISOString();
+      const scheduledStartIso = request.scheduled_start_datetime ?? null;
+      const shouldAdjustScheduledStart = (() => {
+        if (!scheduledStartIso) return false;
+        const scheduled = new Date(scheduledStartIso);
+        if (!Number.isFinite(scheduled.getTime())) return false;
+        return scheduled.getTime() > Date.now();
+      })();
+
+      // Evita violar o CHECK do banco (scheduled_start_datetime <= actual_start_datetime)
+      // quando o profissional inicia a execução antes do horário agendado.
+      const safeScheduledStartIso = shouldAdjustScheduledStart ? nowIso : undefined;
+
       const { error } = await this.supabase.client
         .from("service_requests")
         .update({
           status: "Em Progresso",
-          started_at: new Date().toISOString(),
-          actual_start_datetime: new Date().toISOString(),
+          started_at: nowIso,
+          actual_start_datetime: nowIso,
+          ...(safeScheduledStartIso ? { scheduled_start_datetime: safeScheduledStartIso } : {}),
         })
         .eq("id", requestId)
         .eq("professional_id", professionalId);
@@ -595,7 +609,7 @@ export class WorkflowServiceSimplified {
         previousStatus,
         "Em Progresso" as const,
         "Profissional iniciou a execução do serviço",
-        { actual_start: new Date().toISOString() }
+        { actual_start: nowIso }
       );
 
       this.notificationService.showSuccess(
