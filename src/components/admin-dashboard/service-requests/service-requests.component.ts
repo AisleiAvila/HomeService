@@ -5,12 +5,21 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, output, s
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
 import { I18nService } from "../../../i18n.service";
-import { PaymentStatus, ServiceRequest, ServiceStatus, User } from "../../../models/maintenance.models";
+import {
+    PaymentStatus,
+    ServiceRequest,
+    ServiceRequestMaterial,
+    ServiceStatus,
+    StockItem,
+    User,
+} from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { AuthService } from "../../../services/auth.service";
 import { DataService } from "../../../services/data.service";
+import { InventoryService } from "../../../services/inventory.service";
 import { NotificationService } from "../../../services/notification.service";
 import { PortugalAddressValidationService } from "../../../services/portugal-address-validation.service";
+import { ServiceRequestMaterialsService } from "../../../services/service-request-materials.service";
 import { PaymentModalComponent } from "../../payment-modal/payment-modal.component";
 import { WorkflowServiceSimplified } from "../../../services/workflow-simplified.service";
 import { StatusUtilsService } from "../../../utils/status-utils.service";
@@ -110,6 +119,8 @@ export class ServiceRequestsComponent implements OnInit {
     private readonly notificationService = inject(NotificationService);
     private readonly portugalAddressValidation = inject(PortugalAddressValidationService);
     private readonly workflowService = inject(WorkflowServiceSimplified);
+    private readonly inventoryService = inject(InventoryService);
+    private readonly requestMaterialsService = inject(ServiceRequestMaterialsService);
     readonly uiState = inject(UiStateService);
     private readonly completedPaymentStatuses = new Set<PaymentStatus>(["Paid", "Released"]);
     private readonly reassignmentBlockedStatuses = new Set(
@@ -284,6 +295,37 @@ export class ServiceRequestsComponent implements OnInit {
     requestToDelete = signal<ServiceRequest | null>(null);
     isDeletingRequest = signal(false);
 
+    // Materiais associados à solicitação (admin)
+    showMaterialsModal = signal(false);
+    materialsRequest = signal<ServiceRequest | null>(null);
+    materialsList = signal<ServiceRequestMaterial[]>([]);
+    isMaterialsLoading = signal(false);
+    isMaterialsSaving = signal(false);
+
+    // Estoque disponível para associar
+    stockItemsCache = signal<StockItem[]>([]);
+    materialSearch = signal<string>("");
+    selectedStockItemId = signal<number | null>(null);
+    materialQuantity = signal<number>(1);
+    materialNotes = signal<string>("");
+
+    filteredStockItemsForMaterials = computed(() => {
+        const query = (this.materialSearch() ?? "").trim().toLowerCase();
+        const items = this.stockItemsCache();
+
+        let filtered = items;
+        if (query) {
+            filtered = items.filter((item) => {
+                const name = (item.product_name ?? "").toLowerCase();
+                const barcode = (item.barcode ?? "").toLowerCase();
+                return name.includes(query) || barcode.includes(query);
+            });
+        }
+
+        // Evita listas enormes no dropdown
+        return filtered.slice(0, 100);
+    });
+
     private readonly viewTechnicalReportLoadingIds = signal<Set<number>>(new Set());
 
     canViewTechnicalReport(req: ServiceRequest): boolean {
@@ -353,6 +395,146 @@ export class ServiceRequestsComponent implements OnInit {
                 return next;
             });
         }
+    }
+
+    async openMaterialsModal(req: ServiceRequest): Promise<void> {
+        if (!req?.id) {
+            return;
+        }
+
+        if (this.currentUser()?.role !== 'admin') {
+            this.notificationService.addNotification(
+                this.i18n.translate('accessDenied') || 'Acesso negado.'
+            );
+            return;
+        }
+
+        this.materialsRequest.set(req);
+        this.showMaterialsModal.set(true);
+        this.materialSearch.set('');
+        this.selectedStockItemId.set(null);
+        this.materialQuantity.set(1);
+        this.materialNotes.set('');
+
+        await Promise.all([
+            this.refreshMaterialsList(req.id),
+            this.ensureStockItemsLoaded(),
+        ]);
+    }
+
+    closeMaterialsModal(): void {
+        this.showMaterialsModal.set(false);
+        this.materialsRequest.set(null);
+        this.materialsList.set([]);
+        this.isMaterialsLoading.set(false);
+        this.isMaterialsSaving.set(false);
+        this.materialSearch.set('');
+        this.selectedStockItemId.set(null);
+        this.materialQuantity.set(1);
+        this.materialNotes.set('');
+    }
+
+    private async ensureStockItemsLoaded(): Promise<void> {
+        if (this.stockItemsCache().length > 0) {
+            return;
+        }
+
+        try {
+            // Mesmo padrão já usado no módulo de estoque (carrega lote grande e filtra no front)
+            const items = await this.inventoryService.fetchRecentStockItems(1000);
+            this.stockItemsCache.set(items);
+        } catch (error) {
+            console.error('[ServiceRequestsComponent] Error loading stock items:', error);
+            this.stockItemsCache.set([]);
+        }
+    }
+
+    private async refreshMaterialsList(serviceRequestId: number): Promise<void> {
+        try {
+            this.isMaterialsLoading.set(true);
+            const list = await this.requestMaterialsService.fetchByRequest(serviceRequestId);
+            this.materialsList.set(list);
+        } finally {
+            this.isMaterialsLoading.set(false);
+        }
+    }
+
+    async addSelectedMaterialToRequest(): Promise<void> {
+        const req = this.materialsRequest();
+        if (!req?.id) {
+            return;
+        }
+
+        const stockItemId = this.selectedStockItemId();
+        if (!stockItemId) {
+            this.notificationService.addNotification(
+                this.i18n.translate('selectMaterial') || 'Selecione um material.'
+            );
+            return;
+        }
+
+        const quantity = Number(this.materialQuantity());
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+            this.notificationService.addNotification(
+                this.i18n.translate('invalidQuantity') || 'Quantidade inválida.'
+            );
+            return;
+        }
+
+        const existing = this.materialsList().find((m) => m.stock_item_id === stockItemId);
+        const nextQuantity = (existing?.quantity_used ?? 0) + quantity;
+
+        const ok = await (async () => {
+            try {
+                this.isMaterialsSaving.set(true);
+                return await this.requestMaterialsService.upsert({
+                    service_request_id: req.id,
+                    stock_item_id: stockItemId,
+                    quantity_used: nextQuantity,
+                    notes: (this.materialNotes() ?? '').trim() || null,
+                    created_by_admin_id: this.currentUser()?.id ?? null,
+                });
+            } finally {
+                this.isMaterialsSaving.set(false);
+            }
+        })();
+
+        if (!ok) {
+            return;
+        }
+
+        await this.refreshMaterialsList(req.id);
+        this.selectedStockItemId.set(null);
+        this.materialQuantity.set(1);
+        this.materialNotes.set('');
+
+        this.notificationService.addNotification(
+            this.i18n.translate('materialAssociated') || 'Material associado à solicitação.'
+        );
+    }
+
+    async removeMaterialFromRequest(material: ServiceRequestMaterial): Promise<void> {
+        const req = this.materialsRequest();
+        if (!req?.id || !material?.id) {
+            return;
+        }
+
+        const confirm = globalThis.confirm(
+            this.i18n.translate('confirmRemoveMaterial') || 'Remover este material da solicitação?'
+        );
+        if (!confirm) {
+            return;
+        }
+
+        const ok = await this.requestMaterialsService.removeById(material.id);
+        if (!ok) {
+            return;
+        }
+
+        await this.refreshMaterialsList(req.id);
+        this.notificationService.addNotification(
+            this.i18n.translate('materialRemoved') || 'Material removido.'
+        );
     }
 
     // Pagination signals
@@ -573,18 +755,18 @@ viewDetails = output<ServiceRequest>();
             if (Number.isFinite(normalizedParsed)) return normalizedParsed;
 
             // Last-resort manual parsing for "YYYY-MM-DDTHH:mm" (without timezone)
-            const m = normalized.match(
-                /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
-            );
-            if (!m) return null;
+            const dateTimeRegex =
+                /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/;
+            const match = dateTimeRegex.exec(normalized);
+            if (!match) return null;
 
-            const year = Number(m[1]);
-            const month = Number(m[2]);
-            const day = Number(m[3]);
-            const hour = Number(m[4]);
-            const minute = Number(m[5]);
-            const second = m[6] ? Number(m[6]) : 0;
-            const milli = m[7] ? Number(m[7].padEnd(3, "0")) : 0;
+            const year = Number(match[1]);
+            const month = Number(match[2]);
+            const day = Number(match[3]);
+            const hour = Number(match[4]);
+            const minute = Number(match[5]);
+            const second = match[6] ? Number(match[6]) : 0;
+            const milli = match[7] ? Number(match[7].padEnd(3, "0")) : 0;
 
             const time = new Date(year, month - 1, day, hour, minute, second, milli).getTime();
             return Number.isNaN(time) ? null : time;
@@ -617,10 +799,8 @@ viewDetails = output<ServiceRequest>();
 
                     // Keep null values at the end for both asc/desc.
                     applyMultiplier = false;
-                    if (aTime === null && bTime === null) compareResult = 0;
-                    else if (aTime === null) compareResult = 1;
-                    else if (bTime === null) compareResult = -1;
-                    else compareResult = (aTime - bTime) * multiplier;
+                    const cmp = compareNullableNumber(aTime, bTime);
+                    compareResult = cmp === 1 || cmp === -1 ? cmp : cmp * multiplier;
                     break;
                 }
                 case "status": {

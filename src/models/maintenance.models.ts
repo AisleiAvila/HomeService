@@ -42,6 +42,20 @@ export interface StockItem {
     name: string;
   } | null;
 }
+
+// Materiais associados a uma solicitação (service_request_materials)
+export interface ServiceRequestMaterial {
+  id: number;
+  service_request_id: number;
+  stock_item_id: number;
+  quantity_used: number;
+  notes?: string | null;
+  created_by_admin_id?: number | null;
+  created_at?: string;
+
+  // JOIN opcional
+  stock_item?: StockItem | null;
+}
 export type UserRole = "professional" | "admin";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 
