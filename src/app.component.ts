@@ -197,6 +197,11 @@ export class AppComponent implements OnInit {
           labelKey: "finances",
           icon: "fa-solid fa-chart-line",
         },
+        { 
+          id: "stock-intake",
+          labelKey: "stockIntake",
+          icon: "fa-solid fa-boxes-stacked",
+        },
         {
           id: "daily-mileage",
           labelKey: "dailyMileage",
@@ -219,13 +224,6 @@ export class AppComponent implements OnInit {
         }
       );
 
-      if (currentUser?.email?.toLowerCase() === "admin@email.com") {
-        items.splice(4, 0, {
-          id: "stock-intake",
-          labelKey: "stockIntake",
-          icon: "fa-solid fa-boxes-stacked",
-        });
-      }
     }
     
     // Profile item for everyone
