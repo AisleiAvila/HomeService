@@ -20,13 +20,13 @@ import { ServiceRequest } from "../../../models/maintenance.models";
     <div class="p-4 md:p-6 mobile-safe">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-linear-to-r from-brand-primary-500 to-brand-primary-600">
-          <div class="flex items-center justify-between gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 class="text-2xl font-bold text-white flex items-center">
-                <i class="fa-solid fa-calendar-days mr-3"></i>
+                <i class="fas fa-calendar-days mr-3"></i>
                 {{ 'agenda' | i18n }}
               </h2>
-              <p class="text-white text-sm mt-1">
+              <p class="text-brand-primary-200 text-sm mt-1">
                 {{ 'schedule' | i18n }}
               </p>
             </div>
