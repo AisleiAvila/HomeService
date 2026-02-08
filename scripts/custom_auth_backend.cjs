@@ -521,6 +521,19 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'Senha obrigatória.' });
     }
 
+    const allowedRoles = new Set([
+      'client',
+      'professional',
+      'admin',
+      'almoxarife',
+      'secretario',
+      'professional_almoxarife',
+    ]);
+
+    if (role && !allowedRoles.has(role)) {
+      return res.status(400).json({ error: 'Role inválida.' });
+    }
+
     // Hash da senha com SHA256
     const hash = crypto
       .createHash('sha256')

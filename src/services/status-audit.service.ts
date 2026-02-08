@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
-import { ServiceStatus } from "../models/maintenance.models";
+import { ServiceStatus, UserRole } from "../models/maintenance.models";
 
 /**
  * Interface para entrada de auditoria
@@ -11,7 +11,7 @@ export interface StatusAuditEntry {
   previous_status: ServiceStatus | null;
   new_status: ServiceStatus;
   changed_by_user_id: number;
-  changed_by_role: "admin" | "professional" | "client";
+  changed_by_role: UserRole;
   reason?: string;
   metadata?: Record<string, any>;
   timestamp: string;

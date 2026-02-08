@@ -1,12 +1,14 @@
 import { CommonModule } from "@angular/common";
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { User, UserRole, ServiceCategory } from "../../../models/maintenance.models";
+import { User, UserRole, ServiceCategory, Warehouse } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
 import { NotificationService } from "../../../services/notification.service";
 import { SupabaseService } from "../../../services/supabase.service";
+import { WarehouseService } from "../../../services/warehouse.service";
+import { UserWarehousesService } from "../../../services/user-warehouses.service";
 
 @Component({
     selector: "app-users-management",
@@ -20,12 +22,17 @@ export class UsersManagementComponent implements OnInit {
     private readonly i18n = inject(I18nService);
     private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
+    private readonly warehouseService = inject(WarehouseService);
+    private readonly userWarehousesService = inject(UserWarehousesService);
 
     ngOnInit() {
         console.log('[UsersManagementComponent] Inicializando - recarregando dados de usuários');
         this.dataService.reloadUsers();
         // Garante que as categorias estejam carregadas para especialidades
         this.dataService.fetchCategories();
+
+        // Admin needs full warehouses list for assignment UI
+        this.warehouseService.fetchWarehouses();
     }
 
 
@@ -60,7 +67,13 @@ export class UsersManagementComponent implements OnInit {
     // Lista filtrada (only professional and admin - client role removed)
     filteredClients = computed(() => {
         let users = this.dataService.users()
-            .filter((u) => u.role === "professional" || u.role === "admin");
+            .filter((u) =>
+                u.role === "professional" ||
+                u.role === "professional_almoxarife" ||
+                u.role === "almoxarife" ||
+                u.role === "secretario" ||
+                u.role === "admin"
+            );
 
         // Aplicar busca
         const search = this.searchTerm().toLowerCase();
@@ -93,9 +106,9 @@ export class UsersManagementComponent implements OnInit {
         const modality = this.filterModality();
         if (modality !== "all") {
             if (modality === "contracted") {
-                users = users.filter(u => u.role === "professional" && u.is_natan_employee === true);
+                users = users.filter(u => this.isProfessionalLikeRole(u.role) && u.is_natan_employee === true);
             } else if (modality === "service_provider") {
-                users = users.filter(u => u.role === "professional" && u.is_natan_employee === false);
+                users = users.filter(u => this.isProfessionalLikeRole(u.role) && u.is_natan_employee === false);
             }
         }
 
@@ -149,13 +162,13 @@ export class UsersManagementComponent implements OnInit {
         this.filteredClients().filter(u => u.status === "Inactive").length
     );
     totalProfessionals = computed(() => 
-        this.filteredClients().filter(u => u.role === "professional").length
+        this.filteredClients().filter(u => u.role === "professional" || u.role === "professional_almoxarife").length
     );
     totalContractedProfessionals = computed(() => 
-        this.filteredClients().filter(u => u.role === "professional" && u.is_natan_employee === true).length
+        this.filteredClients().filter(u => this.isProfessionalLikeRole(u.role) && u.is_natan_employee === true).length
     );
     totalServiceProviderProfessionals = computed(() => 
-        this.filteredClients().filter(u => u.role === "professional" && u.is_natan_employee === false).length
+        this.filteredClients().filter(u => this.isProfessionalLikeRole(u.role) && u.is_natan_employee === false).length
     );
 
     // Effect para resetar página quando filtros mudarem
@@ -174,7 +187,23 @@ export class UsersManagementComponent implements OnInit {
     }
 
     // Available roles for user management (only professional and admin - client role removed)
-    readonly availableRoles: UserRole[] = ["professional", "admin"];
+    readonly availableRoles: UserRole[] = [
+        "professional",
+        "almoxarife",
+        "secretario",
+        "professional_almoxarife",
+        "admin",
+    ];
+
+    readonly warehouses = computed(() => this.warehouseService.warehouses());
+
+    isStockRole(role: UserRole): boolean {
+        return role === "almoxarife" || role === "professional_almoxarife";
+    }
+
+    isProfessionalLikeRole(role: UserRole): boolean {
+        return role === "professional" || role === "professional_almoxarife";
+    }
 
     // Add Client Form
     showAddClientForm = signal(false);
@@ -193,6 +222,7 @@ export class UsersManagementComponent implements OnInit {
     editingClientRole = signal<UserRole>("professional");
     editingClientIsNatanEmployee = signal(false);
     editingClientSpecialties = signal<ServiceCategory[]>([]);
+    editingClientWarehouseIds = signal<number[]>([]);
 
     // View Details
     viewingClient = signal<User | null>(null);
@@ -354,7 +384,14 @@ export class UsersManagementComponent implements OnInit {
         this.editingClientRole.set(client.role);
         this.editingClientIsNatanEmployee.set(client.is_natan_employee ?? false);
         this.editingClientSpecialties.set(client.specialties || []);
+        this.editingClientWarehouseIds.set([]);
         console.log('[Editar Usuário] Papel:', client.role, '| editingClientRole:', this.editingClientRole());
+
+        // Load warehouse assignments for editing (best-effort)
+        this.userWarehousesService
+            .fetchWarehouseIdsForUser(client.id)
+            .then((ids) => this.editingClientWarehouseIds.set(ids))
+            .catch((err) => console.error('[UsersManagementComponent] Error loading user warehouses:', err));
     }
 
     isEditingSpecialtySelected(category: ServiceCategory): boolean {
@@ -394,7 +431,7 @@ export class UsersManagementComponent implements OnInit {
         try {
             // Atualizar dados básicos do usuário
             const updateData: any = { name, email, role };
-            if (role === 'professional') {
+            if (this.isProfessionalLikeRole(role)) {
                 updateData.is_natan_employee = this.editingClientIsNatanEmployee();
             }
             const { error } = await this.supabase.client
@@ -406,8 +443,8 @@ export class UsersManagementComponent implements OnInit {
                 throw error;
             }
 
-            // Se for profissional, atualizar especialidades na tabela user_specialties
-            if (role === 'professional') {
+            // Especialidades: manter apenas para perfis profissionais (inclui profissional+almoxarife)
+            if (this.isProfessionalLikeRole(role)) {
                 // 1. Remover todas as especialidades existentes
                 const { error: deleteError } = await this.supabase.client
                     .from("user_specialties")
@@ -435,6 +472,23 @@ export class UsersManagementComponent implements OnInit {
                         throw insertError;
                     }
                 }
+            } else {
+                // Se deixou de ser profissional, limpamos especialidades antigas (para evitar dados/permissões "sobrando")
+                const { error: deleteError } = await this.supabase.client
+                    .from("user_specialties")
+                    .delete()
+                    .eq("user_id", client.id);
+                if (deleteError) {
+                    console.error("Error deleting specialties (non-professional):", deleteError);
+                }
+            }
+
+            // Armazéns: manter apenas para perfis de estoque
+            if (this.isStockRole(role)) {
+                await this.userWarehousesService.setWarehousesForUser(client.id, this.editingClientWarehouseIds());
+            } else {
+                // Se deixou de ser perfil de estoque, limpamos associações antigas
+                await this.userWarehousesService.setWarehousesForUser(client.id, []);
             }
 
             this.notificationService.addNotification(
@@ -457,6 +511,7 @@ export class UsersManagementComponent implements OnInit {
         this.editingClientRole.set("professional");
         this.editingClientIsNatanEmployee.set(false);
         this.editingClientSpecialties.set([]);
+        this.editingClientWarehouseIds.set([]);
     }
 
     getRoleLabel(role: UserRole): string {
@@ -562,10 +617,26 @@ export class UsersManagementComponent implements OnInit {
     }
 
     getProfessionalSpecialties(user: User | null): ServiceCategory[] {
-        if (!user || user.role !== "professional") {
+        if (!user || !this.isProfessionalLikeRole(user.role)) {
             return [];
         }
         return (user.specialties ?? []).filter((category): category is ServiceCategory => !!category?.name);
+    }
+
+    isEditingWarehouseSelected(warehouse: Warehouse): boolean {
+        return this.editingClientWarehouseIds().includes(warehouse.id);
+    }
+
+    onEditingWarehouseToggle(warehouse: Warehouse, event: Event) {
+        const isChecked = (event.target as HTMLInputElement).checked;
+        const current = this.editingClientWarehouseIds();
+        if (isChecked) {
+            if (!current.includes(warehouse.id)) {
+                this.editingClientWarehouseIds.set([...current, warehouse.id]);
+            }
+        } else {
+            this.editingClientWarehouseIds.set(current.filter((id) => id !== warehouse.id));
+        }
     }
 
     // Pagination

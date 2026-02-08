@@ -108,6 +108,9 @@
               class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
               <option value="all">{{ 'all' | i18n }}</option>
               <option value="professional">{{ 'professional' | i18n }}</option>
+              <option value="professional_almoxarife">{{ 'professional_almoxarife' | i18n }}</option>
+              <option value="almoxarife">{{ 'almoxarife' | i18n }}</option>
+              <option value="secretario">{{ 'secretario' | i18n }}</option>
               <option value="admin">{{ 'admin' | i18n }}</option>
             </select>
           </div>
@@ -220,7 +223,7 @@
             </select>
           </div>
           <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
-          @if (newClientRole() === 'professional') {
+          @if (newClientRole() === 'professional' || newClientRole() === 'professional_almoxarife') {
             <div>
               <!-- Especialidades -->
               <div class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -353,11 +356,11 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                   <span class="px-2 py-1 text-xs rounded-full"
                             [ngClass]="{
-                                'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional',
+                                'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': client.role === 'professional' || client.role === 'professional_almoxarife' || client.role === 'almoxarife' || client.role === 'secretario',
                                 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': client.role === 'admin'
                             }">
                     {{ getRoleLabel(client.role) }}
-                    @if (client.role === 'professional') {
+                    @if (client.role === 'professional' || client.role === 'professional_almoxarife') {
                       <span class="ml-1 text-xs opacity-75">
                         ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
                       </span>
@@ -365,7 +368,7 @@
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm">
-                  @if (client.role === 'professional') {
+                  @if (client.role === 'professional' || client.role === 'professional_almoxarife') {
                     @let specialtyList = getProfessionalSpecialties(client);
                     @if (specialtyList.length > 0) {
                       <div class="flex flex-wrap gap-1">
@@ -473,7 +476,7 @@
                   </h4>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     {{ getRoleLabel(client.role) }}
-                    @if (client.role === 'professional') {
+                    @if (client.role === 'professional' || client.role === 'professional_almoxarife') {
                       <span class="ml-1 text-xs opacity-75">
                         ({{ client.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }})
                       </span>
@@ -525,7 +528,7 @@
                   {{ client.status }}
                 </span>
               </div>
-              @if (client.role === 'professional') {
+              @if (client.role === 'professional' || client.role === 'professional_almoxarife') {
                 @let specialtyList = getProfessionalSpecialties(client);
                 <div class="flex items-start">
                   <i class="fas fa-tools text-gray-400 dark:text-gray-500 w-4 mr-2 mt-0.5"></i>
@@ -608,8 +611,7 @@
             {{ "profileType" | i18n }}
           </label>
           <select id="editClientRole" [ngModel]="editingClientRole()" (ngModelChange)="editingClientRole.set($event)"
-            disabled
-            class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-md cursor-not-allowed opacity-60">
+            class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500">
             @for(roleOption of availableRoles; track roleOption) {
               <option [value]="roleOption">{{ getRoleLabel(roleOption) }}</option>
             }
@@ -617,7 +619,7 @@
         </div>
         <!-- Especialidades (apenas para profissionais) -->
         <!-- Especialidades (apenas para profissionais) -->
-        @if (editingClientRole() === 'professional') {
+        @if (editingClientRole() === 'professional' || editingClientRole() === 'professional_almoxarife') {
           <div>
             <div id="editingSpecialties" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {{ 'specialties' | i18n }}
@@ -641,7 +643,7 @@
           </div>
         }
         <!-- Campo de vínculo com Natan Construtora (apenas para profissionais) -->
-        @if (editingClientRole() === 'professional') {
+        @if (editingClientRole() === 'professional' || editingClientRole() === 'professional_almoxarife') {
           <div>
             <label for="editingClientIsNatanEmployee" class="flex items-center gap-3 cursor-pointer">
               <input
@@ -658,6 +660,30 @@
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {{ editingClientIsNatanEmployee() ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
             </p>
+          </div>
+        }
+
+        @if (isStockRole(editingClientRole())) {
+          <div>
+            <div id="editingWarehouses" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ 'warehouses' | i18n }}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" aria-labelledby="editingWarehouses">
+              @if (warehouses() && warehouses().length > 0) {
+                @for (wh of warehouses(); track wh.id) {
+                  <label class="flex items-center gap-2 cursor-pointer p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <input
+                      type="checkbox"
+                      [checked]="isEditingWarehouseSelected(wh)"
+                      (change)="onEditingWarehouseToggle(wh, $event)"
+                      class="form-checkbox h-4 w-4 text-brand-primary-600 rounded focus:ring-brand-primary-500" />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ wh.name }}</span>
+                  </label>
+                }
+              } @else {
+                <span class="text-sm text-gray-400">{{ 'noWarehousesAvailable' | i18n }}</span>
+              }
+            </div>
           </div>
         }
         <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
@@ -710,10 +736,10 @@
             <div class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{{ 'profileType' | i18n }}</div>
             <span class="px-3 py-1 text-sm rounded-full inline-block"
                         [ngClass]="{
-                            'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': viewingClient()!.role === 'professional',
+                            'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200': viewingClient()!.role === 'professional' || viewingClient()!.role === 'professional_almoxarife' || viewingClient()!.role === 'almoxarife' || viewingClient()!.role === 'secretario',
                             'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200': viewingClient()!.role === 'admin'
                         }">
-              @if(viewingClient()!.role === 'professional') {
+              @if(viewingClient()!.role === 'professional' || viewingClient()!.role === 'professional_almoxarife') {
                 {{ getRoleLabel(viewingClient()!.role) }} - {{ viewingClient()!.is_natan_employee ? ('natanEmployeeYes' | i18n) : ('natanEmployeeNo' | i18n) }}
               } @else {
                 {{ getRoleLabel(viewingClient()!.role) }}

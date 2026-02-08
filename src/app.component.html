@@ -130,14 +130,16 @@
                   <!-- Admin Dashboard is now routed -->
                 }
                 <!-- Dashboard de Profissional -->
-                @if (currentUser()?.role === 'professional') {
+                @if (currentUser()?.role === 'professional' || currentUser()?.role === 'professional_almoxarife') {
                   <app-dashboard [user]="currentUser()!" (viewDetails)="openDetails($event)"
                     (openChat)="openChat($event)" (payNow)="handlePayment($event)"
                     (scheduleRequest)="openScheduler($event)" (provideClarification)="openClarificationModal($event)" />
                 }
               }
               @case ('schedule') {
-                <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
+                @if (currentUser()?.role === 'professional' || currentUser()?.role === 'professional_almoxarife') {
+                  <app-schedule [user]="currentUser()!" (viewDetails)="openDetails($event)" />
+                }
               }
               @case ('daily-mileage') {
                 <app-daily-mileage />

@@ -1,7 +1,9 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
-import { StockItem, StockItemStatus } from "../models/maintenance.models";
+import { StockItem, StockItemStatus, UserRole } from "../models/maintenance.models";
+import { AuthService } from "./auth.service";
+import { UserWarehousesService } from "./user-warehouses.service";
 
 export interface StockItemCreatePayload {
   barcode: string;
@@ -29,8 +31,49 @@ export interface StockItemUpdatePayload {
 export class InventoryService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
+  private readonly auth = inject(AuthService);
+  private readonly userWarehouses = inject(UserWarehousesService);
+
+  private isStockRole(role: UserRole): boolean {
+    return role === "almoxarife" || role === "professional_almoxarife";
+  }
+
+  private async ensureWarehouseAllowed(warehouseId: number | null | undefined): Promise<boolean> {
+    const user = this.auth.appUser();
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    if (!this.isStockRole(user.role)) return false;
+
+    if (typeof warehouseId !== "number") return false;
+    const allowedIds = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
+    const ok = allowedIds.includes(warehouseId);
+    if (!ok) {
+      this.notificationService.addNotification(
+        "Você não tem acesso a este armazém."
+      );
+    }
+    return ok;
+  }
+
+  private async getAllowedWarehouseIdsForCurrentUser(): Promise<
+    { mode: "unrestricted" } | { mode: "restricted"; ids: number[] } | { mode: "denied" }
+  > {
+    const user = this.auth.appUser();
+    if (!user) return { mode: "denied" };
+    if (user.role === "admin") return { mode: "unrestricted" };
+    if (!this.isStockRole(user.role)) return { mode: "denied" };
+
+    const ids = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
+    if (ids.length === 0) return { mode: "restricted", ids: [] };
+    return { mode: "restricted", ids };
+  }
 
   async addStockItem(payload: StockItemCreatePayload): Promise<StockItem | null> {
+    const canWrite = await this.ensureWarehouseAllowed(payload.warehouse_id);
+    if (!canWrite) {
+      return null;
+    }
+
     const { data, error } = await this.supabase.client
       .from("stock_items")
       .insert({
@@ -55,10 +98,28 @@ export class InventoryService {
     toStatus: StockItemStatus,
     allowedFrom?: StockItemStatus[]
   ): Promise<StockItem | null> {
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      this.notificationService.addNotification(
+        "Você não tem permissão para alterar itens do estoque."
+      );
+      return null;
+    }
+
     let query = this.supabase.client
       .from("stock_items")
       .update({ status: toStatus })
       .eq("id", id);
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0) {
+        this.notificationService.addNotification(
+          "Você não tem armazéns associados para operar no estoque."
+        );
+        return null;
+      }
+      query = query.in("warehouse_id", allowed.ids);
+    }
 
     if (allowedFrom && allowedFrom.length > 0) {
       query = query.in("status", allowedFrom);
@@ -84,11 +145,22 @@ export class InventoryService {
   }
 
   async checkBarcodeExists(barcode: string): Promise<StockItem | null> {
-    const { data, error } = await this.supabase.client
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      return null;
+    }
+
+    let query = this.supabase.client
       .from("stock_items")
       .select("*")
-      .eq("barcode", barcode)
-      .single();
+      .eq("barcode", barcode);
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0) return null;
+      query = query.in("warehouse_id", allowed.ids);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) {
       // Se não encontrou (código 0), retorna null
@@ -103,12 +175,37 @@ export class InventoryService {
   }
 
   async updateStockItem(id: number, payload: StockItemUpdatePayload): Promise<StockItem | null> {
-    const { data, error } = await this.supabase.client
+    if (Object.hasOwn(payload, "warehouse_id")) {
+      const canWrite = await this.ensureWarehouseAllowed(payload.warehouse_id);
+      if (!canWrite) {
+        return null;
+      }
+    }
+
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      this.notificationService.addNotification(
+        "Você não tem permissão para alterar itens do estoque."
+      );
+      return null;
+    }
+
+    let query = this.supabase.client
       .from("stock_items")
       .update(payload)
-      .eq("id", id)
-      .select("*")
-      .single();
+      .eq("id", id);
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0) {
+        this.notificationService.addNotification(
+          "Você não tem armazéns associados para operar no estoque."
+        );
+        return null;
+      }
+      query = query.in("warehouse_id", allowed.ids);
+    }
+
+    const { data, error } = await query.select("*").single();
 
     if (error) {
       this.notificationService.addNotification(
@@ -121,7 +218,10 @@ export class InventoryService {
   }
 
   async fetchRecentStockItems(limit = 10): Promise<StockItem[]> {
-    const { data, error } = await this.supabase.client
+    const user = this.auth.appUser();
+    if (!user) return [];
+
+    let query = this.supabase.client
       .from("stock_items")
       .select(`
         *,
@@ -130,6 +230,16 @@ export class InventoryService {
       `)
       .order("received_at", { ascending: false })
       .limit(limit);
+
+    if (user.role !== "admin" && this.isStockRole(user.role)) {
+      const allowedIds = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
+      if (allowedIds.length === 0) {
+        return [];
+      }
+      query = query.in("warehouse_id", allowedIds);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       this.notificationService.addNotification(

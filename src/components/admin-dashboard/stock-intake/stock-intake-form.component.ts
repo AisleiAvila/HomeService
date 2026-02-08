@@ -33,6 +33,12 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   private readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
 
+  private getStockIntakeRoute(): string[] {
+    return this.router.url.startsWith('/admin')
+      ? ['/admin/stock-intake']
+      : ['/stock/intake'];
+  }
+
   // Input para modo de edição
   editItem = input<StockItem | null>(null);
 
@@ -120,7 +126,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
         });
         if (updated) {
           this.notificationService.addNotification(this.i18n.translate("itemUpdatedSuccessfully"));
-          this.router.navigate(['/admin/stock-intake']);
+          this.router.navigate(this.getStockIntakeRoute());
         } else {
           this.setStatus("error", this.i18n.translate("stockUpdateError"));
         }
@@ -162,7 +168,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
   }
 
   cancelEdit(): void {
-    this.router.navigate(['/admin/stock-intake']);
+    this.router.navigate(this.getStockIntakeRoute());
   }
 
   private resetForm(): void {

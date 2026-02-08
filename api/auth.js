@@ -27,10 +27,24 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.s
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc';
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const ALLOWED_ROLES = new Set([
+  'client',
+  'professional',
+  'admin',
+  'almoxarife',
+  'secretario',
+  'professional_almoxarife',
+]);
+
 app.post('/api/register', async (req, res) => {
   const { name, email, phone, specialty, password, role, status } = req.body;
   if (!email) return res.status(400).json({ error: 'Email obrigatório.' });
   if (!password) return res.status(400).json({ error: 'Senha obrigatória.' });
+
+  if (role && !ALLOWED_ROLES.has(role)) {
+    return res.status(400).json({ error: 'Role inválida.' });
+  }
+
   const tempPassword = password;
   const hash = crypto.createHash('sha256').update(tempPassword).digest('hex');
   try {

@@ -64,7 +64,13 @@ export interface ServiceRequestMaterial {
   // JOIN opcional
   stock_item?: StockItem | null;
 }
-export type UserRole = "professional" | "admin";
+export type UserRole =
+  | "client"
+  | "professional"
+  | "admin"
+  | "almoxarife"
+  | "secretario"
+  | "professional_almoxarife";
 export type UserStatus = "Pending" | "Active" | "Rejected" | "Inactive";
 
 // Sistema simplificado: 9 status (removido fluxo de orçamentos e aprovação de cliente)

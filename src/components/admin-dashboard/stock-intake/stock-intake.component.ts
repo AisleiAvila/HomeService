@@ -24,6 +24,18 @@ export class StockIntakeComponent {
 	private readonly i18n = inject(I18nService);
 	private readonly router = inject(Router);
 
+	private getStockIntakeRoute(): string[] {
+		return this.router.url.startsWith('/admin')
+			? ['/admin/stock-intake']
+			: ['/stock/intake'];
+	}
+
+	private getStockRegisterRoute(): string[] {
+		return this.router.url.startsWith('/admin')
+			? ['/admin/stock-register']
+			: ['/stock/register'];
+	}
+
 	// Signals for filters
 	readonly showFilters = signal(false);
 	readonly filterProduct = signal('');
@@ -373,13 +385,13 @@ export class StockIntakeComponent {
 		sessionStorage.setItem('stockIntakeState', JSON.stringify(currentState));
 
 		// Navega para a página de registro com o item para edição
-		this.router.navigate(['/admin/stock-register'], {
+		this.router.navigate(this.getStockRegisterRoute(), {
 			queryParams: { editItem: JSON.stringify(item) }
 		});
 	}
 
 	goToRegister() {
 		// Navegação para tela de cadastro de material
-		this.router.navigate(['/admin/stock-register']);
+		this.router.navigate(this.getStockRegisterRoute());
 	}
 }

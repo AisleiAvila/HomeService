@@ -6,6 +6,7 @@ import { EmailConfirmationComponent } from './components/email-confirmation.comp
 import { AdminDashboardComponent } from '../components/admin-dashboard/admin-dashboard.component';
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
+import { rolesGuard } from './guards/roles.guard';
 import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-showcase.component';
 import { DesignSystemShowcaseComponent } from '../components/design-system-showcase.component';
 export const routes: Routes = [
@@ -49,6 +50,42 @@ export const routes: Routes = [
         (m) => m.ServiceRequestGeolocationComponent
       ),
   },
+
+  // Estoque (Almoxarife e Profissional+Almoxarife)
+  {
+    path: 'stock',
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['almoxarife', 'professional_almoxarife'] },
+    children: [
+      { path: '', redirectTo: 'intake', pathMatch: 'full' },
+      {
+        path: 'intake',
+        loadComponent: () =>
+          import('../components/admin-dashboard/stock-intake/stock-intake.component').then(
+            (m) => m.StockIntakeComponent
+          ),
+      },
+      {
+        path: 'register',
+        loadComponent: () =>
+          import('./pages/stock-register/stock-register.page').then(
+            (m) => m.StockRegisterPage
+          ),
+      },
+    ],
+  },
+
+  // Agenda (Secretário)
+  {
+    path: 'agenda',
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['secretario'] },
+    loadComponent: () =>
+      import('./pages/secretary-agenda/secretary-agenda.page').then(
+        (m) => m.SecretaryAgendaPage
+      ),
+  },
+
   // (Removido rota antiga de confirmação)
   {
     path: 'admin',

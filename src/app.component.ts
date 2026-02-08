@@ -26,6 +26,8 @@ import { AlertService } from "./services/alert.service";
 // Models
 import {
   ServiceRequest,
+  User,
+  UserRole,
 } from "./models/maintenance.models";
 
 // Components
@@ -57,7 +59,23 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav = "dashboard" | "schedule" | "profile" | "daily-mileage" | "details" | "create-service-request" | "admin-create-service-request" | "overview" | "requests" | "approvals" | "finances" | "stock-intake" | "clients" | "categories" | "extra-services";
+type Nav =
+  | "dashboard"
+  | "schedule"
+  | "agenda"
+  | "profile"
+  | "daily-mileage"
+  | "details"
+  | "create-service-request"
+  | "admin-create-service-request"
+  | "overview"
+  | "requests"
+  | "approvals"
+  | "finances"
+  | "stock-intake"
+  | "clients"
+  | "categories"
+  | "extra-services";
 
 @Component({
   selector: "app-root",
@@ -149,12 +167,17 @@ export class AppComponent implements OnInit {
 
   navItems = computed(() => {
     const currentUser = this.currentUser();
-    const isAdmin = currentUser?.role === 'admin';
+    const role = currentUser?.role;
+
+    const isAdmin = role === 'admin';
+    const isProfessional = role === 'professional' || role === 'professional_almoxarife';
+    const canUseStock = role === 'almoxarife' || role === 'professional_almoxarife';
+    const isSecretary = role === 'secretario';
     
     const items: { id: Nav; labelKey: string; icon: string }[] = [];
     
-    // Items for professionals
-    if (!isAdmin) {
+    // Items for professionals (inclui perfil híbrido)
+    if (isProfessional) {
       items.push(
         {
           id: "dashboard",
@@ -172,6 +195,24 @@ export class AppComponent implements OnInit {
           icon: "fa-solid fa-tachometer-alt",
         }
       );
+    }
+
+    // Items for secretary
+    if (isSecretary) {
+      items.push({
+        id: 'agenda',
+        labelKey: 'agenda',
+        icon: 'fa-solid fa-calendar-days',
+      });
+    }
+
+    // Items for stock roles
+    if (canUseStock && !isAdmin) {
+      items.push({
+        id: 'stock-intake',
+        labelKey: 'stockIntake',
+        icon: 'fa-solid fa-boxes-stacked',
+      });
     }
     
     // Admin items
@@ -232,6 +273,21 @@ export class AppComponent implements OnInit {
     return items;
   });
 
+  private getDefaultNavForRole(role: UserRole): Nav {
+    switch (role) {
+      case 'admin':
+        return 'overview';
+      case 'secretario':
+        return 'agenda';
+      case 'almoxarife':
+        return 'stock-intake';
+      case 'professional':
+      case 'professional_almoxarife':
+      default:
+        return 'dashboard';
+    }
+  }
+
   // Track last loaded user to prevent infinite loops
   private lastLoadedUserId: number | undefined = undefined;
   private lastAlertSyncUserId: number | undefined = undefined;
@@ -240,8 +296,14 @@ export class AppComponent implements OnInit {
   private readonly pendingDetailsRequestId = signal<number | null>(null);
 
   constructor() {
-    // Reidratar request id de detalhes a partir da URL (refresh/deep link)
-    // (Usar window.location.search é mais confiável aqui do que router.url durante o bootstrap.)
+    this.initializeDetailsRequestFromUrl();
+    this.initializePasswordResetDeepLink();
+    this.initializeWindowMessageListener();
+    this.initializeSessionEffect();
+    this.initializeDetailsRehydrationEffect();
+  }
+
+  private initializeDetailsRequestFromUrl(): void {
     const qs = globalThis.window?.location?.search ?? '';
     const sp = new URLSearchParams(qs);
     const requestIdFromUrl = sp.get('requestId') ?? sp.get('sr');
@@ -249,8 +311,9 @@ export class AppComponent implements OnInit {
     if (Number.isFinite(parsedId)) {
       this.pendingDetailsRequestId.set(parsedId);
     }
+  }
 
-    // Detecta link de confirmação de e-mail e redireciona para redefinição de senha
+  private initializePasswordResetDeepLink(): void {
     const urlParams = new URLSearchParams(globalThis.window.location.search);
     const token = urlParams.get('token') || urlParams.get('access_token');
     const email = urlParams.get('email');
@@ -258,98 +321,46 @@ export class AppComponent implements OnInit {
       this.emailForPasswordReset.set(email);
       this.view.set('reset-password');
     }
+  }
 
-    globalThis.window.addEventListener("message", (event) => {
+  private initializeWindowMessageListener(): void {
+    globalThis.window.addEventListener('message', (event) => {
       if (event.origin !== globalThis.window.location.origin) {
         return;
       }
 
-      if (event.data?.type === "OPEN_REQUEST_DETAILS" && event.data?.payload) {
+      if (event.data?.type === 'OPEN_REQUEST_DETAILS' && event.data?.payload) {
         this.openDetails(event.data.payload);
-      } else if (event.data?.type === "OPEN_CHAT" && event.data?.payload) {
+      } else if (event.data?.type === 'OPEN_CHAT' && event.data?.payload) {
         this.openChat(event.data.payload);
       }
     });
+  }
 
+  private initializeSessionEffect(): void {
     effect(() => {
-      const user = this.currentUser();
-      const pendingEmail = this.pendingEmailConfirmation();
-
-      if (pendingEmail) {
-        this.emailForVerification.set(pendingEmail);
-        this.view.set("verification");
-        this.dataService.clearData();
-        this.lastLoadedUserId = undefined;
-        this.lastAlertSyncUserId = undefined;
-      } else if (user) {
-        if (user.status === "Active") {
-          this.view.set("app");
-
-          // Importante: não forçar navegação a cada refresh.
-          // Se o usuário der refresh numa rota profunda (ex: /admin/request-details/:id),
-          // manter a URL atual para o Router reidratar a tela corretamente.
-          const currentUrl = this.router.url || globalThis.window.location.pathname;
-
-          this.ensureRoleRouteConsistency(user.role, currentUrl);
-
-          // Default do nav interno (usado quando não há rota específica na URL)
-          this.currentNav.set('dashboard');
-          
-          // Only load data if we haven't loaded it for this user yet
-          if (this.lastLoadedUserId === user.id) {
-            console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
-          } else {
-            console.log(`[AppComponent] Loading initial data for user ${user.id}`);
-            this.dataService.loadInitialData();
-            this.lastLoadedUserId = user.id;
-            this.pushNotificationService.requestPermission();
-            
-            // Inicializar notificações in-app
-            this.inAppNotificationService.subscribeToNotifications();
-          }
-
-          this.initializeAlertMonitoring(user);
-        } else if (user.status === "Pending") {
-          this.view.set("app");
-        } else {
-          this.authService.logout();
-          this.lastLoadedUserId = undefined;
-          this.lastAlertSyncUserId = undefined;
-        }
-      } else {
-        this.view.set("landing");
-        this.dataService.clearData();
-        this.lastLoadedUserId = undefined;
-        this.lastAlertSyncUserId = undefined;
-      }
+      this.handleSessionState(this.currentUser(), this.pendingEmailConfirmation());
     });
+  }
 
-    // Reidrata a tela de detalhes para profissional a partir do query param.
-    // Observa serviceRequests() para funcionar mesmo se o refresh ocorrer antes do loadInitialData terminar.
+  private initializeDetailsRehydrationEffect(): void {
     effect(() => {
       const user = this.currentUser();
       const requestId = this.pendingDetailsRequestId();
       const requests = this.dataService.serviceRequests();
 
-      if (!user || user.role === 'admin') {
-        return;
-      }
+      if (!user) return;
+      if (user.role !== 'professional' && user.role !== 'professional_almoxarife') return;
+      if (!requestId) return;
 
-      if (!requestId) {
-        return;
-      }
-
-      // Se já está em detalhes com o mesmo request, não faz nada.
       const selected = this.selectedRequest();
-      if (selected?.id === requestId && this.currentNav() === 'details') {
-        return;
-      }
+      if (selected?.id === requestId && this.currentNav() === 'details') return;
 
       const found = requests.find((r) => r.id === requestId);
-      if (found) {
-        this.selectedRequest.set(found);
-        this.currentNav.set('details');
-      }
+      if (!found) return;
+
+      this.selectedRequest.set(found);
+      this.currentNav.set('details');
     });
   }
 
@@ -380,14 +391,23 @@ export class AppComponent implements OnInit {
       userEmail: user?.email
     });
     
+    this.currentNav.set(nav);
+
     if (nav === 'create-service-request') {
       this.router.navigate(['/create-service-request']);
     } else if (nav === 'admin-create-service-request') {
       this.router.navigate(['/admin-create-service-request']);
+    } else if (nav === 'agenda') {
+      this.router.navigate(['/agenda']);
+    } else if (nav === 'stock-intake') {
+      if (user?.role === 'admin') {
+        this.router.navigate(['/admin/stock-intake']);
+      } else {
+        this.router.navigate(['/stock/intake']);
+      }
     } else if (nav === 'profile') {
       // Profile is available for everyone
       this.router.navigate(['/']);
-      this.currentNav.set(nav);
     } else if (user?.role === 'admin') {
       // Admin navigation
       console.log('[AppComponent] Navegação de admin para:', nav);
@@ -396,7 +416,6 @@ export class AppComponent implements OnInit {
       // Professional navigation
       console.log('[AppComponent] Navegação de profissional para:', nav);
       this.router.navigate(['/']);
-      this.currentNav.set(nav);
     }
     if (this.isMobile()) this.isSidebarOpen.set(false);
   }
@@ -416,28 +435,156 @@ export class AppComponent implements OnInit {
     );
   }
 
-  private ensureRoleRouteConsistency(role: string | undefined, currentUrl: string): void {
-    if (role === 'admin') {
-      // Admin deve usar /admin/* por padrão.
-      // Se estiver na raiz (/), mandar para o painel admin para evitar cair no dashboard profissional (Overview vazio).
-      if (currentUrl === '/' || currentUrl.startsWith('/?')) {
-        console.log('[AppComponent] Admin na raiz, redirecionando para /admin');
-        this.router.navigate(['/admin']);
-        return;
-      }
-
-      // Admin deve permanecer em /admin/* (exceto rotas explícitas fora de /admin)
-      if (!currentUrl.startsWith('/admin') && !this.isAdminAllowedOutsideAdminRoute(currentUrl)) {
-        console.log('[AppComponent] Admin detectado, redirecionando para /admin');
-        this.router.navigate(['/admin']);
-      }
+  private handleSessionState(user: User | null, pendingEmail: string | null): void {
+    if (pendingEmail) {
+      this.handlePendingEmailConfirmation(pendingEmail);
       return;
     }
 
-    // Não-admin não deve permanecer em /admin/*.
-    if (currentUrl.startsWith('/admin')) {
-      console.log('[AppComponent] Usuário não-admin em rota /admin, redirecionando para /');
+    if (!user) {
+      this.resetToLanding();
+      return;
+    }
+
+    if (user.status === 'Active') {
+      this.handleActiveUser(user);
+      return;
+    }
+
+    if (user.status === 'Pending') {
+      this.view.set('app');
+      return;
+    }
+
+    this.handleInactiveUser();
+  }
+
+  private handlePendingEmailConfirmation(email: string): void {
+    this.emailForVerification.set(email);
+    this.view.set('verification');
+    this.dataService.clearData();
+    this.lastLoadedUserId = undefined;
+    this.lastAlertSyncUserId = undefined;
+  }
+
+  private resetToLanding(): void {
+    this.view.set('landing');
+    this.dataService.clearData();
+    this.lastLoadedUserId = undefined;
+    this.lastAlertSyncUserId = undefined;
+  }
+
+  private handleActiveUser(user: User): void {
+    this.view.set('app');
+
+    const currentUrl = this.router.url || globalThis.window.location.pathname;
+    this.ensureRoleRouteConsistency(user.role, currentUrl);
+
+    this.currentNav.set(this.getDefaultNavForRole(user.role));
+
+    if (this.lastLoadedUserId === user.id) {
+      console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
+    } else {
+      console.log(`[AppComponent] Loading initial data for user ${user.id}`);
+      this.dataService.loadInitialData();
+      this.lastLoadedUserId = user.id;
+      this.pushNotificationService.requestPermission();
+      this.inAppNotificationService.subscribeToNotifications();
+    }
+
+    this.initializeAlertMonitoring(user);
+  }
+
+  private handleInactiveUser(): void {
+    this.authService.logout();
+    this.lastLoadedUserId = undefined;
+    this.lastAlertSyncUserId = undefined;
+  }
+
+  private ensureNonAdminNotInAdminRoute(currentUrl: string): boolean {
+    if (!currentUrl.startsWith('/admin')) {
+      return false;
+    }
+    console.log('[AppComponent] Usuário não-admin em rota /admin, redirecionando para /');
+    this.router.navigate(['/']);
+    return true;
+  }
+
+  private ensureAdminRouteConsistency(currentUrl: string): void {
+    if (currentUrl === '/' || currentUrl.startsWith('/?')) {
+      console.log('[AppComponent] Admin na raiz, redirecionando para /admin');
+      this.router.navigate(['/admin']);
+      return;
+    }
+
+    if (!currentUrl.startsWith('/admin') && !this.isAdminAllowedOutsideAdminRoute(currentUrl)) {
+      console.log('[AppComponent] Admin detectado, redirecionando para /admin');
+      this.router.navigate(['/admin']);
+    }
+  }
+
+  private ensureSecretaryRouteConsistency(currentUrl: string): void {
+    if (currentUrl === '/' || currentUrl.startsWith('/?')) {
+      this.router.navigate(['/agenda']);
+      return;
+    }
+    if (currentUrl.startsWith('/admin') || currentUrl.startsWith('/stock')) {
+      this.router.navigate(['/agenda']);
+    }
+  }
+
+  private ensureStockClerkRouteConsistency(currentUrl: string): void {
+    if (currentUrl === '/' || currentUrl.startsWith('/?')) {
+      this.router.navigate(['/stock/intake']);
+      return;
+    }
+    if (currentUrl.startsWith('/admin') || currentUrl.startsWith('/agenda')) {
+      this.router.navigate(['/stock/intake']);
+    }
+  }
+
+  private ensureProfessionalStockRouteConsistency(currentUrl: string): void {
+    if (this.ensureNonAdminNotInAdminRoute(currentUrl)) {
+      return;
+    }
+
+    if (currentUrl.startsWith('/agenda')) {
       this.router.navigate(['/']);
+    }
+  }
+
+  private ensureProfessionalRouteConsistency(currentUrl: string): void {
+    if (this.ensureNonAdminNotInAdminRoute(currentUrl)) {
+      return;
+    }
+
+    if (currentUrl.startsWith('/stock') || currentUrl.startsWith('/agenda')) {
+      this.router.navigate(['/']);
+    }
+  }
+
+  private ensureRoleRouteConsistency(role: UserRole | undefined, currentUrl: string): void {
+    if (!role) {
+      return;
+    }
+
+    switch (role) {
+      case 'admin':
+        this.ensureAdminRouteConsistency(currentUrl);
+        return;
+      case 'secretario':
+        this.ensureSecretaryRouteConsistency(currentUrl);
+        return;
+      case 'almoxarife':
+        this.ensureStockClerkRouteConsistency(currentUrl);
+        return;
+      case 'professional_almoxarife':
+        this.ensureProfessionalStockRouteConsistency(currentUrl);
+        return;
+      case 'professional':
+      default:
+        this.ensureProfessionalRouteConsistency(currentUrl);
+        return;
     }
   }
 

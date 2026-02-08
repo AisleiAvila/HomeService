@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
-import { ActivatedRoute, RouterModule } from "@angular/router";
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
+import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 import { StockIntakeFormComponent } from "../../../components/admin-dashboard/stock-intake/stock-intake-form.component";
 import { StockItem } from "../../../models/maintenance.models";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
@@ -28,7 +28,7 @@ import { I18nPipe } from "../../../pipes/i18n.pipe";
                 </p>
               </div>
               <a
-                routerLink="/admin/stock-intake"
+                [routerLink]="backLink()"
                 class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-white border-opacity-30 text-white text-sm font-semibold hover:bg-white hover:bg-opacity-10 transition-all"
               >
                 <i class="fa-solid fa-arrow-left"></i>
@@ -48,7 +48,14 @@ import { I18nPipe } from "../../../pipes/i18n.pipe";
 })
 export class StockRegisterPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   editItem = signal<StockItem | null>(null);
+
+  backLink = computed(() => {
+    return this.router.url.startsWith('/admin')
+      ? ['/admin/stock-intake']
+      : ['/stock/intake'];
+  });
 
   constructor() {
     // Verifica se há parâmetro de edição na rota

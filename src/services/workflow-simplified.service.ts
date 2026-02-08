@@ -7,6 +7,7 @@ import { I18nService } from "../i18n.service";
 import { StatusAuditService } from "./status-audit.service";
 import { ServiceImageService } from "./service-image.service";
 import { InAppNotificationService } from "./in-app-notification.service";
+import { UserWarehousesService } from "./user-warehouses.service";
 import {
   ServiceRequest,
   ServiceStatus,
@@ -38,6 +39,15 @@ export class WorkflowServiceSimplified {
   private readonly smsService = inject(SmsService);
   private readonly imageService = inject(ServiceImageService);
   private readonly inAppNotificationService = inject(InAppNotificationService);
+  private readonly userWarehousesService = inject(UserWarehousesService);
+
+  private isProfessionalLikeRole(role: UserRole): boolean {
+    return role === "professional" || role === "professional_almoxarife";
+  }
+
+  private isStockRole(role: UserRole): boolean {
+    return role === "almoxarife" || role === "professional_almoxarife";
+  }
 
   /**
    * Mapeamento de transições válidas
@@ -98,8 +108,8 @@ export class WorkflowServiceSimplified {
       return true;
     }
 
-    // Profissional pode fazer transições específicas
-    if (userRole === "professional") {
+    // Profissional (inclui profissional+almoxarife) pode fazer transições específicas
+    if (this.isProfessionalLikeRole(userRole)) {
       const allowedProfessionalTransitions = [
         "Aguardando Confirmação->Aceito",
         "Aguardando Confirmação->Recusado",
@@ -645,7 +655,7 @@ export class WorkflowServiceSimplified {
       this.validateExecutionDuration(request);
 
       // Regra de negócio: para concluir, profissional precisa ter pelo menos 1 imagem "depois"
-      if (currentUser?.role === "professional") {
+      if (currentUser?.role && this.isProfessionalLikeRole(currentUser.role)) {
         const imageCount = await this.imageService.getImageCount(requestId);
         if (imageCount.after <= 0) {
           throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));
@@ -906,6 +916,8 @@ export class WorkflowServiceSimplified {
   private async updateAssociatedMaterialsStockStatusOnCompletion(
     requestId: number
   ): Promise<void> {
+    const currentUser = await this.getCurrentUser();
+
     const { data, error } = await this.supabase.client
       .from("service_request_materials")
       .select("stock_item_id")
@@ -921,11 +933,27 @@ export class WorkflowServiceSimplified {
       return;
     }
 
-    const { error: updateError } = await this.supabase.client
+    let updateQuery = this.supabase.client
       .from("stock_items")
       .update({ status: "Instalado" })
       .in("id", ids)
       .in("status", ["Recebido", "Distribuído", "Retirado"]);
+
+    // Restrição extra: se quem está concluindo também tem perfil de estoque,
+    // limita a atualização aos armazéns associados.
+    if (currentUser?.role && this.isStockRole(currentUser.role)) {
+      const allowedWarehouseIds = await this.userWarehousesService.fetchWarehouseIdsForUser(
+        currentUser.id
+      );
+
+      if (allowedWarehouseIds.length === 0) {
+        throw new Error(this.i18n.translate("noWarehousesAssociated"));
+      }
+
+      updateQuery = updateQuery.in("warehouse_id", allowedWarehouseIds);
+    }
+
+    const { error: updateError } = await updateQuery;
 
     if (updateError) throw updateError;
   }
@@ -1007,7 +1035,7 @@ export class WorkflowServiceSimplified {
       throw new Error("Usuário não tem permissão para finalizar serviço");
     }
 
-    if (currentUser.role === "professional") {
+    if (currentUser?.role && this.isProfessionalLikeRole(currentUser.role)) {
       const imageCount = await this.imageService.getImageCount(requestId);
       if (imageCount.after <= 0) {
         throw new Error(this.i18n.translate("afterImageRequiredToCompleteService"));

@@ -1,7 +1,9 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
-import { ServiceRequestMaterial, StockItemStatus } from "../models/maintenance.models";
+import { AuthService } from "./auth.service";
+import { UserWarehousesService } from "./user-warehouses.service";
+import { ServiceRequestMaterial, StockItemStatus, UserRole } from "../models/maintenance.models";
 
 export interface UpsertServiceRequestMaterialPayload {
   service_request_id: number;
@@ -17,6 +19,24 @@ export interface UpsertServiceRequestMaterialPayload {
 export class ServiceRequestMaterialsService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
+  private readonly auth = inject(AuthService);
+  private readonly userWarehouses = inject(UserWarehousesService);
+
+  private isStockRole(role: UserRole): boolean {
+    return role === "almoxarife" || role === "professional_almoxarife";
+  }
+
+  private async getAllowedWarehouseIdsForCurrentUser(): Promise<
+    { mode: "unrestricted" } | { mode: "restricted"; ids: number[] } | { mode: "passthrough" }
+  > {
+    const user = this.auth.appUser();
+    if (!user) return { mode: "passthrough" };
+    if (user.role === "admin") return { mode: "unrestricted" };
+    if (!this.isStockRole(user.role)) return { mode: "passthrough" };
+
+    const ids = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
+    return { mode: "restricted", ids };
+  }
 
   async fetchByRequest(serviceRequestId: number): Promise<ServiceRequestMaterial[]> {
     const { data, error } = await this.supabase.client
@@ -47,7 +67,7 @@ export class ServiceRequestMaterialsService {
     }
 
     const raw = (data || []) as any[];
-    return raw.map((row) => {
+    const normalized = raw.map((row) => {
       const embedded = row?.stock_item;
       const normalizedStockItem = Array.isArray(embedded)
         ? (embedded[0] ?? null)
@@ -58,13 +78,27 @@ export class ServiceRequestMaterialsService {
         stock_item: normalizedStockItem,
       } as ServiceRequestMaterial;
     });
+
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode !== "restricted") {
+      return normalized;
+    }
+
+    if (allowed.ids.length === 0) {
+      return [];
+    }
+
+    return normalized.filter((m) => {
+      const whId = m.stock_item?.warehouse_id ?? m.stock_item?.warehouse?.id ?? null;
+      return typeof whId === "number" && allowed.ids.includes(whId);
+    });
   }
 
   async upsert(payload: UpsertServiceRequestMaterialPayload): Promise<boolean> {
     // Validação de transições incoerentes: não permitir associar itens já instalados/devolvidos
     const { data: stockItem, error: stockItemError } = await this.supabase.client
       .from("stock_items")
-      .select("id,status")
+      .select("id,status,warehouse_id")
       .eq("id", payload.stock_item_id)
       .single();
 
@@ -73,6 +107,17 @@ export class ServiceRequestMaterialsService {
         "Erro ao validar status do material: " + stockItemError.message
       );
       return false;
+    }
+
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "restricted") {
+      const whId = (stockItem as { warehouse_id?: number | null })?.warehouse_id ?? null;
+      if (typeof whId !== "number" || allowed.ids.length === 0 || !allowed.ids.includes(whId)) {
+        this.notificationService.addNotification(
+          "Você não tem acesso ao armazém deste material."
+        );
+        return false;
+      }
     }
 
     const currentStatus = (stockItem as { status?: StockItemStatus | null })?.status ?? null;
@@ -98,13 +143,23 @@ export class ServiceRequestMaterialsService {
 
     // Ao confirmar associação, se estiver como Recebido, mudar para Distribuído
     if (currentStatus === "Recebido") {
-      const { error: statusError } = await this.supabase.client
-        .from("stock_items")
-        .update({ status: "Distribuído" satisfies StockItemStatus })
-        .eq("id", payload.stock_item_id)
-        .in("status", ["Recebido"])
-        .select("id")
-        .single();
+      let statusQuery = this.supabase.client
+          .from("stock_items")
+          .update({ status: "Distribuído" satisfies StockItemStatus })
+          .eq("id", payload.stock_item_id)
+          .in("status", ["Recebido"]);
+
+      if (allowed.mode === "restricted") {
+        if (allowed.ids.length === 0) {
+          this.notificationService.addNotification(
+            "Material associado, mas você não tem armazéns associados para atualizar status."
+          );
+          return true;
+        }
+        statusQuery = statusQuery.in("warehouse_id", allowed.ids);
+      }
+
+      const { error: statusError } = await statusQuery.select("id").single();
 
       if (statusError) {
         // Não falha a associação, mas notifica para evitar inconsistência silenciosa
