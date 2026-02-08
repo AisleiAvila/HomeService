@@ -285,7 +285,7 @@ export class DataService {
           id, name, description
         ),
         professional:users!service_requests_professional_id_fkey (
-          id, name
+          id, name, avatar_url
         ),
         origin:service_request_origins!service_requests_origin_id_fkey (
           id, name
@@ -314,6 +314,7 @@ export class DataService {
         client_phone: r.client_phone || "",
         client_nif: r.client_nif || "",
         professional_name: r.professional?.name || "Unassigned",
+        professional_avatar_url: r.professional?.avatar_url || null,
       };
       console.log(
         `🔍 [DataService] Request ID ${r.id}: client_name="${r.client_name}" -> mapped="${mapped.client_name}"`

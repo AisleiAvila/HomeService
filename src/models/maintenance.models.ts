@@ -247,6 +247,7 @@ export interface ServiceRequest {
   // DADOS DO PROFISSIONAL
   professional_id: number | null;
   professional_name?: string; // Denormalized for convenience
+  professional_avatar_url?: string; // Avatar URL do profissional
   
   // DADOS ADMINISTRATIVOS (novos campos)
   created_by_admin_id?: number; // FK para users (admin que criou)

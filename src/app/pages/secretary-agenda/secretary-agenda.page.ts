@@ -194,7 +194,7 @@ import { ServiceRequest } from "../../../models/maintenance.models";
                     </th>
                     <th class="py-2 pr-4">
                       <button type="button" class="inline-flex items-center gap-2" (click)="toggleSort('scheduled')">
-                        <span>{{ 'scheduled' | i18n }}</span>
+                        <span>{{ 'executionTimeline' | i18n }}</span>
                         @if (sortBy() === 'scheduled') {
                           <span class="text-xs text-gray-400">{{ sortOrder() === 'asc' ? '↑' : '↓' }}</span>
                         }
@@ -208,11 +208,45 @@ import { ServiceRequest } from "../../../models/maintenance.models";
                     <tr class="border-t border-gray-200 dark:border-gray-700">
                       <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">{{ r.client_name || '-' }}</td>
                       <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">{{ r.title || '-' }}</td>
-                      <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">{{ r.professional_name || '-' }}</td>
+                      <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">
+                        @if (r.professional_avatar_url) {
+                          <div class="flex items-center gap-2">
+                            <img [src]="r.professional_avatar_url" [alt]="r.professional_name || 'Professional'" class="w-8 h-8 rounded-full object-cover">
+                            <span>{{ r.professional_name || '-' }}</span>
+                          </div>
+                        } @else {
+                          {{ r.professional_name || '-' }}
+                        }
+                      </td>
                       <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">{{ r.city || '-' }}</td>
                       <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">{{ r.status || '-' }}</td>
                       <td class="py-3 pr-4 text-gray-700 dark:text-gray-200">
-                        {{ formatScheduledDateTime(r) }}
+                        <div class="flex flex-col gap-1">
+                          <div class="flex items-center gap-1">
+                            <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                              {{ "scheduled" | i18n }}:
+                            </span>
+                            <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                              {{ formatScheduledDateTime(r) }}
+                            </span>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                              {{ "executionStartLabel" | i18n }}:
+                            </span>
+                            <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                              {{ r.actual_start_datetime ? formatDateTime(r.actual_start_datetime) : "—" }}
+                            </span>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                              {{ "executionEndLabel" | i18n }}:
+                            </span>
+                            <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                              {{ r.actual_end_datetime ? formatDateTime(r.actual_end_datetime) : "—" }}
+                            </span>
+                          </div>
+                        </div>
                       </td>
                       <td class="py-3 pr-0 text-right">
                         <button
@@ -247,13 +281,47 @@ import { ServiceRequest } from "../../../models/maintenance.models";
                       <span class="font-medium">{{ 'client' | i18n }}:</span> {{ r.client_name || '-' }}
                     </div>
                     <div class="text-sm text-gray-600 dark:text-gray-300">
-                      <span class="font-medium">{{ 'professional' | i18n }}:</span> {{ r.professional_name || '-' }}
+                      <span class="font-medium">{{ 'professional' | i18n }}:</span>
+                      @if (r.professional_avatar_url) {
+                        <div class="flex items-center gap-2 mt-1">
+                          <img [src]="r.professional_avatar_url" [alt]="r.professional_name || 'Professional'" class="w-6 h-6 rounded-full object-cover">
+                          <span>{{ r.professional_name || '-' }}</span>
+                        </div>
+                      } @else {
+                        {{ r.professional_name || '-' }}
+                      }
                     </div>
                     <div class="text-sm text-gray-600 dark:text-gray-300">
                       <span class="font-medium">{{ 'locality' | i18n }}:</span> {{ r.city || '-' }}
                     </div>
                     <div class="text-sm text-gray-600 dark:text-gray-300">
-                      <span class="font-medium">{{ 'scheduled' | i18n }}:</span> {{ formatScheduledDateTime(r) }}
+                      <span class="font-medium">{{ 'executionTimeline' | i18n }}:</span>
+                      <div class="flex flex-col gap-1 mt-1 ml-2">
+                        <div class="flex items-center gap-1">
+                          <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                            {{ "scheduled" | i18n }}:
+                          </span>
+                          <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                            {{ formatScheduledDateTime(r) }}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                            {{ "executionStartLabel" | i18n }}:
+                          </span>
+                          <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                            {{ r.actual_start_datetime ? formatDateTime(r.actual_start_datetime) : "—" }}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <span class="font-semibold text-gray-600 dark:text-gray-200 text-xs">
+                            {{ "executionEndLabel" | i18n }}:
+                          </span>
+                          <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap text-xs">
+                            {{ r.actual_end_datetime ? formatDateTime(r.actual_end_datetime) : "—" }}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div class="flex justify-end mt-2">
@@ -412,6 +480,23 @@ export class SecretaryAgendaPage {
     const millis = this.parseFlexibleDateTime(
       req.scheduled_start_datetime || req.scheduled_date
     );
+    if (millis === null) return "—";
+
+    const formatted = new Intl.DateTimeFormat("pt-PT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date(millis));
+
+    return formatted.replace(", ", " ");
+  }
+
+  formatDateTime(dateTime: string | null): string {
+    if (!dateTime) return "—";
+    const millis = this.parseFlexibleDateTime(dateTime);
     if (millis === null) return "—";
 
     const formatted = new Intl.DateTimeFormat("pt-PT", {
