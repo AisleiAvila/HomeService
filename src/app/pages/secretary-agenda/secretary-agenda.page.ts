@@ -147,7 +147,8 @@ import { ServiceRequest } from "../../../models/maintenance.models";
           @if (filteredRequests().length === 0) {
             <div class="text-sm text-gray-600 dark:text-gray-300">{{ 'noData' | i18n }}</div>
           } @else {
-            <div class="overflow-x-auto">
+            <!-- Desktop Table -->
+            <div class="overflow-x-auto hidden lg:block">
               <table class="min-w-full text-sm">
                 <thead>
                   <tr class="text-left text-gray-600 dark:text-gray-300">
@@ -227,6 +228,46 @@ import { ServiceRequest } from "../../../models/maintenance.models";
                   }
                 </tbody>
               </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="lg:hidden divide-y divide-gray-200 dark:divide-gray-700">
+              @for (r of filteredPaginatedRequests(); track r.id) {
+                <div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-lg mb-4 shadow-sm">
+                  <div class="flex flex-col gap-2 mb-2">
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                        {{ r.title || ("service" | i18n) }}
+                      </h3>
+                      <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                        {{ r.status || '-' }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                      <span class="font-medium">{{ 'client' | i18n }}:</span> {{ r.client_name || '-' }}
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                      <span class="font-medium">{{ 'professional' | i18n }}:</span> {{ r.professional_name || '-' }}
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                      <span class="font-medium">{{ 'locality' | i18n }}:</span> {{ r.city || '-' }}
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-300">
+                      <span class="font-medium">{{ 'scheduled' | i18n }}:</span> {{ formatScheduledDateTime(r) }}
+                    </div>
+                  </div>
+                  <div class="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-brand-primary-600 text-white text-xs font-semibold hover:bg-brand-primary-700"
+                      (click)="openScheduler(r)"
+                    >
+                      <i class="fa-solid fa-calendar-check"></i>
+                      <span>{{ 'schedule' | i18n }}</span>
+                    </button>
+                  </div>
+                </div>
+              }
             </div>
 
             <!-- Pagination Controls (modelo inspirado em Solicitações do Admin) -->
