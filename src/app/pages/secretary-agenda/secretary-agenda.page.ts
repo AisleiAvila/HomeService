@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { SchedulerComponent } from "../../../components/scheduler/scheduler.component";
 import { DataService } from "../../../services/data.service";
@@ -15,7 +16,7 @@ import { ServiceRequest } from "../../../models/maintenance.models";
 @Component({
   selector: "app-secretary-agenda-page",
   standalone: true,
-  imports: [CommonModule, I18nPipe, SchedulerComponent],
+  imports: [CommonModule, FormsModule, I18nPipe, SchedulerComponent],
   template: `
     <div class="p-4 md:p-6 mobile-safe">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -33,117 +34,152 @@ import { ServiceRequest } from "../../../models/maintenance.models";
           </div>
         </div>
 
-        <div class="p-6">
-          <!-- Filters -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-              (click)="showFilters.set(!showFilters())"
-            >
-              <i class="fa-solid fa-filter"></i>
-              <span>{{ 'filters' | i18n }}</span>
-            </button>
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-linear-to-br from-gray-50 dark:from-gray-800 to-white dark:to-gray-750 space-y-4">
 
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-              (click)="clearFilters()"
-            >
-              <i class="fa-solid fa-eraser"></i>
-              <span>{{ 'clearFilters' | i18n }}</span>
-            </button>
-          </div>
+          <!-- Filtros Avançados -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-600">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2">
+                <i class="fas fa-sliders-h text-brand-primary-500"></i>
+                <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ "advancedFilters" | i18n }}</span>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold rounded-full border border-brand-primary-200 dark:border-gray-500 text-brand-primary-600 dark:text-brand-primary-300 bg-brand-primary-50 dark:bg-gray-800 hover:bg-brand-primary-100 dark:hover:bg-gray-700 transition-colors"
+                (click)="showFilters.set(!showFilters())"
+              >
+                <i class="fas" [ngClass]="showFilters() ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                <span>{{ showFilters() ? ("hideFilters" | i18n) : ("showFilters" | i18n) }}</span>
+              </button>
+            </div>
 
-          @if (showFilters()) {
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'status' | i18n }}</label>
-                <select
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterStatus()"
-                  (change)="filterStatus.set($any($event.target).value)"
+            @if (showFilters()) {
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-tags text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'status' | i18n }}
+                  </label>
+                  <select
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterStatus()"
+                    (ngModelChange)="filterStatus.set($event)"
+                  >
+                    <option value="">{{ 'all' | i18n }}</option>
+                    <option value="Solicitado">{{ 'Solicitado' | i18n }}</option>
+                    <option value="Atribuído">{{ 'Atribuído' | i18n }}</option>
+                    <option value="Aguardando Confirmação">{{ 'Aguardando Confirmação' | i18n }}</option>
+                    <option value="Aceito">{{ 'Aceito' | i18n }}</option>
+                    <option value="Recusado">{{ 'Recusado' | i18n }}</option>
+                    <option value="Data Definida">{{ 'Data Definida' | i18n }}</option>
+                    <option value="Em Progresso">{{ 'Em Progresso' | i18n }}</option>
+                    <option value="Concluído">{{ 'Concluído' | i18n }}</option>
+                    <option value="Finalizado">{{ 'Finalizado' | i18n }}</option>
+                    <option value="Cancelado">{{ 'Cancelado' | i18n }}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-user text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'client' | i18n }}
+                  </label>
+                  <input
+                    type="text"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterClient()"
+                    (ngModelChange)="filterClient.set($event)"
+                    placeholder="{{ 'client' | i18n }}"
+                  />
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-tools text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'service' | i18n }}
+                  </label>
+                  <input
+                    type="text"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterService()"
+                    (ngModelChange)="filterService.set($event)"
+                    placeholder="{{ 'service' | i18n }}"
+                  />
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-user-tie text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'professional' | i18n }}
+                  </label>
+                  <input
+                    type="text"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterProfessional()"
+                    (ngModelChange)="filterProfessional.set($event)"
+                    placeholder="{{ 'professional' | i18n }}"
+                  />
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-map-marker-alt text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'locality' | i18n }}
+                  </label>
+                  <input
+                    type="text"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterLocality()"
+                    (ngModelChange)="filterLocality.set($event)"
+                    placeholder="{{ 'locality' | i18n }}"
+                  />
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-calendar text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'startDate' | i18n }}
+                  </label>
+                  <input
+                    type="date"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterStartDate()"
+                    (ngModelChange)="filterStartDate.set($event)"
+                  />
+                </div>
+
+                <div>
+                  <label class="flex items-center text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-calendar-check text-brand-primary-500 mr-1 text-xs"></i>
+                    {{ 'endDate' | i18n }}
+                  </label>
+                  <input
+                    type="date"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+                    [ngModel]="filterEndDate()"
+                    (ngModelChange)="filterEndDate.set($event)"
+                  />
+                </div>
+              </div>
+
+              <!-- Botão Limpar -->
+              <div class="flex justify-end">
+                <button
+                  type="button"
+                  class="px-6 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 flex items-center gap-2 border border-gray-300 dark:border-gray-600"
+                  (click)="clearFilters()"
                 >
-                  <option value="">{{ 'all' | i18n }}</option>
-                  <option value="Solicitado">{{ 'Solicitado' | i18n }}</option>
-                  <option value="Atribuído">{{ 'Atribuído' | i18n }}</option>
-                  <option value="Aguardando Confirmação">{{ 'Aguardando Confirmação' | i18n }}</option>
-                  <option value="Aceito">{{ 'Aceito' | i18n }}</option>
-                  <option value="Recusado">{{ 'Recusado' | i18n }}</option>
-                  <option value="Data Definida">{{ 'Data Definida' | i18n }}</option>
-                  <option value="Em Progresso">{{ 'Em Progresso' | i18n }}</option>
-                  <option value="Concluído">{{ 'Concluído' | i18n }}</option>
-                  <option value="Finalizado">{{ 'Finalizado' | i18n }}</option>
-                  <option value="Cancelado">{{ 'Cancelado' | i18n }}</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'client' | i18n }}</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterClient()"
-                  (input)="filterClient.set($any($event.target).value)"
-                  placeholder="{{ 'client' | i18n }}"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'service' | i18n }}</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterService()"
-                  (input)="filterService.set($any($event.target).value)"
-                  placeholder="{{ 'service' | i18n }}"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'professional' | i18n }}</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterProfessional()"
-                  (input)="filterProfessional.set($any($event.target).value)"
-                  placeholder="{{ 'professional' | i18n }}"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'locality' | i18n }}</label>
-                <input
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterLocality()"
-                  (input)="filterLocality.set($any($event.target).value)"
-                  placeholder="{{ 'locality' | i18n }}"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'startDate' | i18n }}</label>
-                <input
-                  type="date"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterStartDate()"
-                  (change)="filterStartDate.set($any($event.target).value)"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">{{ 'endDate' | i18n }}</label>
-                <input
-                  type="date"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                  [value]="filterEndDate()"
-                  (change)="filterEndDate.set($any($event.target).value)"
-                />
+                  <i class="fas fa-times-circle"></i>
+                  {{ 'clearFilters' | i18n }}
+                </button>
               </div>
             </div>
-          }
+            }
+          </div>
+        </div>
 
+        <div class="p-6">
           @if (filteredRequests().length === 0) {
             <div class="text-sm text-gray-600 dark:text-gray-300">{{ 'noData' | i18n }}</div>
           } @else {
