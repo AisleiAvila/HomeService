@@ -203,7 +203,7 @@ export class DashboardComponent implements OnInit {
     );
     try {
       const currentUser = this.user();
-      if (currentUser?.role !== "professional") {
+      if (currentUser?.role !== "professional" && currentUser?.role !== "professional_almoxarife") {
         throw new Error("Apenas profissionais podem concluir serviços");
       }
 
@@ -236,7 +236,7 @@ export class DashboardComponent implements OnInit {
     );
     try {
       const currentUser = this.user();
-      if (currentUser?.role !== "professional") {
+      if (currentUser?.role !== "professional" && currentUser?.role !== "professional_almoxarife") {
         throw new Error("Apenas profissionais podem iniciar serviços");
       }
 
@@ -298,7 +298,7 @@ export class DashboardComponent implements OnInit {
 
     // Inicializar filtros de data para profissionais
     const currentUser = this.user();
-    if (currentUser?.role === 'professional') {
+    if (currentUser?.role === 'professional' || currentUser?.role === 'professional_almoxarife') {
       // Default de ordenação para profissionais: Agendado (timeline)
       this.sortBy.set('scheduled');
       this.sortOrder.set('asc');
@@ -345,7 +345,7 @@ export class DashboardComponent implements OnInit {
     const currentUser = this.user();
 
     let filtered = [];
-    if (currentUser.role === "professional") {
+    if (currentUser.role === "professional" || currentUser.role === "professional_almoxarife") {
       filtered = allRequests.filter(
         (r) => r.professional_id === currentUser.id
       );
@@ -872,7 +872,7 @@ export class DashboardComponent implements OnInit {
       ];
     }
 
-    if (currentUser.role === "professional") {
+    if (currentUser.role === "professional" || currentUser.role === "professional_almoxarife") {
       const paidTotal = requests
         .filter((r) => r.payment_status === "Paid" && r.valor_prestador)
         .reduce((sum, r) => sum + (r.valor_prestador ?? 0), 0);
@@ -951,7 +951,7 @@ export class DashboardComponent implements OnInit {
 
     try {
       const currentUser = this.user();
-      if (currentUser?.role !== "professional") {
+      if (currentUser?.role !== "professional" && currentUser?.role !== "professional_almoxarife") {
         throw new Error("Apenas profissionais podem gerar este relatório");
       }
 
@@ -1133,7 +1133,7 @@ export class DashboardComponent implements OnInit {
     requests: ServiceRequest[],
     currentUser: User
   ): Array<{ label: string; value: string }> {
-    if (currentUser.role !== "professional") return [];
+    if (currentUser.role !== "professional" && currentUser.role !== "professional_almoxarife") return [];
 
     const activeStatuses = new Set<ServiceStatus>([
       "Solicitado",
@@ -1550,7 +1550,7 @@ export class DashboardComponent implements OnInit {
     );
     try {
       const currentUser = this.user();
-      if (currentUser?.role !== "professional") {
+      if (currentUser?.role !== "professional" && currentUser?.role !== "professional_almoxarife") {
         throw new Error("Apenas profissionais podem confirmar atribuição");
       }
 
@@ -1585,7 +1585,7 @@ export class DashboardComponent implements OnInit {
     );
     try {
       const currentUser = this.user();
-      if (currentUser?.role !== "professional") {
+      if (currentUser?.role !== "professional" && currentUser?.role !== "professional_almoxarife") {
         throw new Error("Apenas profissionais podem rejeitar atribuição");
       }
 

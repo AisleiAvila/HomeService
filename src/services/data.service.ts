@@ -295,7 +295,7 @@ export class DataService {
     // Não listar solicitações apagadas logicamente
     query = query.is("deleted_at", null);
 
-    if (currentUser.role === "professional") {
+    if (currentUser.role === "professional" || currentUser.role === "professional_almoxarife") {
       query = query.eq("professional_id", currentUser.id);
     }
     // Admin: sem filtro
@@ -911,7 +911,7 @@ export class DataService {
     if (data) {
       this.serviceRequests.update((requests) =>
         requests.map((r) =>
-          r.id === id ? { ...r, ...(data ?? {}) } : r
+          r.id === id ? { ...r, ...data } : r
         )
       );
     }
