@@ -635,7 +635,7 @@ viewDetails = output<ServiceRequest>();
     });
 
     professionalOptions = computed(() =>
-        this.dataService.users().filter(u => u.role === 'professional' && u.status === 'Active')
+        this.dataService.users().filter(u => (u.role === 'professional' || u.role === 'professional_almoxarife') && u.status === 'Active')
     );
 
     originOptions = computed(() => this.dataService.origins());

@@ -1203,7 +1203,7 @@ export class DataService {
   getProfessionalsByCategory(category: ServiceCategory): User[] {
     return this.users().filter(
       (user) =>
-        user.role === "professional" &&
+        (user.role === "professional" || user.role === "professional_almoxarife") &&
         user.status === "Active" &&
         (user.specialties?.includes(category) || !user.specialties?.length)
     );
@@ -1523,7 +1523,7 @@ export class DataService {
     average_duration_minutes: number;
     on_time_percentage: number;
   }> {
-    const professionals = this.users().filter((u) => u.role === "professional");
+    const professionals = this.users().filter((u) => u.role === "professional" || u.role === "professional_almoxarife");
 
     return professionals.map((professional) => {
       const services = this.serviceRequests().filter(

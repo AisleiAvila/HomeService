@@ -43,7 +43,7 @@ export class AdminOverviewComponent implements OnInit {
     // Computed signal com lista de profissionais disponíveis
     professionalsList = computed(() => {
         const users = this.dataService.users();
-        return users.filter(u => u.role === 'professional').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        return users.filter(u => u.role === 'professional' || u.role === 'professional_almoxarife').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     });
     
     // Computed signal para filtrar requests por período e profissional

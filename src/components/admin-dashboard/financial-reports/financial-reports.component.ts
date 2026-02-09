@@ -121,7 +121,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     readonly availableProfessionals = computed(() =>
         this.dataService
             .users()
-            .filter((user) => user.role === "professional")
+            .filter((user) => user.role === "professional" || user.role === "professional_almoxarife")
     );
 
     readonly categoryFilter = signal<number | null>(null);

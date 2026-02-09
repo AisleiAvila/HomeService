@@ -57,7 +57,7 @@ export class DailyMileageService {
     try {
       // Use DataService.users() signal to get professionals
       const allUsers = this.dataService.users();
-      const professionals = allUsers.filter(user => user.role === 'professional');
+      const professionals = allUsers.filter(user => user.role === 'professional' || user.role === 'professional_almoxarife');
       this._professionals.set(professionals);
     } catch (error) {
       console.error('Error loading professionals:', error);
