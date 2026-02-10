@@ -192,6 +192,10 @@ export class ServiceRequestsComponent implements OnInit {
 
     readonly isSecretary = computed(() => this.currentUser()?.role === "secretario");
     readonly canManageRequests = computed(() => this.currentUser()?.role === "admin");
+    readonly canAssignProfessional = computed(() => {
+        const role = this.currentUser()?.role;
+        return role === "admin" || role === "secretario";
+    });
 
     // Signals for filters
     filterStatus = signal<string>("");
@@ -1015,6 +1019,9 @@ viewDetails = output<ServiceRequest>();
     }
 
     openDirectAssignmentModal(req: ServiceRequest) { 
+        if (!this.canAssignProfessional()) {
+            return;
+        }
         console.log('Direct Assign', req);
         console.log('requested_datetime:', req.requested_datetime);
         this.requestToAssign.set(req);
@@ -1097,6 +1104,9 @@ viewDetails = output<ServiceRequest>();
         return this.deletableStatuses.has(normalizedStatus);
     }
     openReassignmentModal(request: ServiceRequest): void {
+        if (!this.canAssignProfessional()) {
+            return;
+        }
         if (!this.canChangeProfessional(request)) {
             return;
         }
@@ -1173,6 +1183,9 @@ viewDetails = output<ServiceRequest>();
         );
     }
     async confirmProfessionalReassignment(): Promise<void> {
+        if (!this.canAssignProfessional()) {
+            return;
+        }
         const request = this.requestToReassign();
         const professionalId = this.replacementProfessionalId();
         if (!request || !professionalId) {
@@ -1227,7 +1240,7 @@ viewDetails = output<ServiceRequest>();
     }
     
     async confirmDirectAssignment() {
-        if (!this.canManageRequests()) {
+        if (!this.canAssignProfessional()) {
             return;
         }
         const request = this.requestToAssign();
