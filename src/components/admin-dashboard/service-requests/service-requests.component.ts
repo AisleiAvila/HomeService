@@ -226,17 +226,8 @@ export class ServiceRequestsComponent implements OnInit {
     isSavingValues = signal(false);
 
     openEditValuesModal(req: ServiceRequest): void {
-        if (!this.canManageRequests()) {
-            return;
-        }
-        this.requestToEditValues.set(req);
-        this.editValorInput.set(req?.valor !== null && req?.valor !== undefined ? String(req.valor) : "");
-        this.editValorPrestadorInput.set(
-            req?.valor_prestador !== null && req?.valor_prestador !== undefined
-                ? String(req.valor_prestador)
-                : ""
-        );
-        this.showEditValuesModal.set(true);
+        this.notificationService.showError('A ação Editar Valores foi descontinuada.');
+        return;
     }
 
     closeEditValuesModal(): void {
@@ -248,55 +239,12 @@ export class ServiceRequestsComponent implements OnInit {
     }
 
     async confirmEditValues(): Promise<void> {
-        if (!this.canManageRequests()) {
-            return;
-        }
-        const req = this.requestToEditValues();
-        if (!req) {
-            return;
-        }
+        this.notificationService.showError(
+            'A ação Editar Valores foi descontinuada.'
+        );
+        return;
 
-        const valor = Number(this.editValorInput());
-        const valorPrestador = Number(this.editValorPrestadorInput());
-
-        if (!Number.isFinite(valor) || valor < 0) {
-            this.notificationService.addNotification(
-                this.i18n.translate('invalidTotalValue') || 'Valor total inválido.'
-            );
-            return;
-        }
-
-        if (!Number.isFinite(valorPrestador) || valorPrestador < 0) {
-            this.notificationService.addNotification(
-                this.i18n.translate('invalidProviderValue') || 'Valor do prestador inválido.'
-            );
-            return;
-        }
-
-        try {
-            this.isSavingValues.set(true);
-            const ok = await this.dataService.updateServiceRequestValues(req.id, {
-                valor,
-                valor_prestador: valorPrestador,
-            });
-
-            if (!ok) {
-                this.isSavingValues.set(false);
-                return;
-            }
-
-            await this.dataService.reloadServiceRequests();
-            this.notificationService.addNotification(
-                this.i18n.translate('requestValuesUpdated') || 'Valores atualizados com sucesso.'
-            );
-            this.closeEditValuesModal();
-        } catch (error) {
-            console.error('Error updating request values:', error);
-            this.isSavingValues.set(false);
-            this.notificationService.addNotification(
-                this.i18n.translate('requestValuesUpdateError') || 'Falha ao atualizar valores.'
-            );
-        }
+        // Lógica descontinuada
     }
     showDirectAssignmentModal = signal(false);
     requestToAssign = signal<ServiceRequest | null>(null);
