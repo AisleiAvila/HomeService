@@ -891,6 +891,22 @@ export class DataService {
       return false;
     }
 
+    let beforeValor = 0;
+    let beforeValorPrestador = 0;
+    const currentRequest = this.getServiceRequestById(id);
+    if (currentRequest) {
+      beforeValor = Number(currentRequest.valor ?? 0);
+      beforeValorPrestador = Number(currentRequest.valor_prestador ?? 0);
+    } else {
+      const { data: beforeData } = await this.supabase.client
+        .from("service_requests")
+        .select("valor, valor_prestador")
+        .eq("id", id)
+        .single();
+      beforeValor = Number(beforeData?.valor ?? 0);
+      beforeValorPrestador = Number(beforeData?.valor_prestador ?? 0);
+    }
+
     const { data, error } = await this.supabase.client
       .from("service_requests")
       .update({
@@ -904,6 +920,24 @@ export class DataService {
     if (error) {
       this.notificationService.addNotification(
         "Error updating request values: " + error.message
+      );
+      return false;
+    }
+
+    const { error: historyError } = await this.supabase.client
+      .from("service_request_value_history")
+      .insert({
+        service_request_id: id,
+        changed_by_user_id: currentUser.id,
+        valor_before: beforeValor,
+        valor_after: values.valor,
+        valor_prestador_before: beforeValorPrestador,
+        valor_prestador_after: values.valor_prestador,
+      });
+
+    if (historyError) {
+      this.notificationService.addNotification(
+        "Error inserting value history: " + historyError.message
       );
       return false;
     }

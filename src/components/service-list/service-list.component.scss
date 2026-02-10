@@ -220,6 +220,22 @@
   justify-content: space-between;
   border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
 }
+
+.dark .service-list-pagination-bar {
+  background-color: #1f2937; /* gray-800 */
+  border-top-color: #374151; /* gray-700 */
+}
+
+.dark .service-list-pagination-bar p,
+.dark .service-list-pagination-bar span {
+  color: #ffffff !important;
+}
+
+.dark .service-list-pagination-bar select {
+  background-color: #111827; /* gray-900 */
+  color: #f9fafb; /* gray-50 */
+  border-color: #4b5563; /* gray-600 */
+}
 /* Botão secundário: chat */
 .service-list-action-secondary-chat {
   background-color: #f9fafb; /* bg-gray-50 */

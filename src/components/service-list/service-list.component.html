@@ -1258,7 +1258,7 @@
         <div class="service-list-pagination-bar">
           <!-- Items per page selector -->
           <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-700">{{ "itemsPerPage" | i18n }}:</span>
+            <span class="text-sm text-gray-700 dark:text-gray-100">{{ "itemsPerPage" | i18n }}:</span>
             <select
               [value]="itemsPerPage()"
               (change)="setItemsPerPage(+$event.target.value)"
@@ -1274,7 +1274,7 @@
           <!-- Pagination info -->
           <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p class="text-sm text-gray-700">
+              <p class="text-sm text-gray-700 dark:text-gray-100">
                 {{ "showing" | i18n }}
                 <span class="font-medium">{{
                   (currentPage() - 1) * itemsPerPage() + 1
@@ -1309,10 +1309,10 @@
               } @else {
                 <button
                   (click)="goToPage(page)"
-          [class]="
+                  [class]="
             page === currentPage()
-              ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-brand-primary-50 text-sm font-medium text-brand-primary-600'
-              : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'
+              ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-brand-primary-50 text-sm font-medium text-brand-primary-600 dark:border-gray-600 dark:bg-brand-primary-900 dark:text-brand-primary-100'
+              : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
           "
                   >
                   {{ page }}

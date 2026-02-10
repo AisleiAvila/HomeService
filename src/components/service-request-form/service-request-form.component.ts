@@ -279,7 +279,7 @@ export class ServiceRequestFormComponent implements OnInit {
     this.valor.set(Number.isNaN(num) ? null : num);
     this.validFields.update((fields) => ({
       ...fields,
-      valor: !Number.isNaN(num) && num > 0,
+      valor: !Number.isNaN(num) && num >= 0,
     }));
   }
 
@@ -288,7 +288,7 @@ export class ServiceRequestFormComponent implements OnInit {
     this.valor_prestador.set(Number.isNaN(num) ? null : num);
     this.validFields.update((fields) => ({
       ...fields,
-      valor_prestador: !Number.isNaN(num) && num > 0,
+      valor_prestador: !Number.isNaN(num) && num >= 0,
     }));
   }
 

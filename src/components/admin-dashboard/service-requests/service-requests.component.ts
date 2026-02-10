@@ -226,8 +226,14 @@ export class ServiceRequestsComponent implements OnInit {
     isSavingValues = signal(false);
 
     openEditValuesModal(req: ServiceRequest): void {
-        this.notificationService.showError('A ação Editar Valores foi descontinuada.');
-        return;
+        if (!this.canManageRequests()) {
+            return;
+        }
+
+        this.requestToEditValues.set(req);
+        this.editValorInput.set(this.formatValueInput(req.valor));
+        this.editValorPrestadorInput.set(this.formatValueInput(req.valor_prestador));
+        this.showEditValuesModal.set(true);
     }
 
     closeEditValuesModal(): void {
@@ -239,12 +245,69 @@ export class ServiceRequestsComponent implements OnInit {
     }
 
     async confirmEditValues(): Promise<void> {
-        this.notificationService.showError(
-            'A ação Editar Valores foi descontinuada.'
-        );
-        return;
+        const request = this.requestToEditValues();
+        if (!request || !this.canManageRequests()) {
+            return;
+        }
 
-        // Lógica descontinuada
+        const valor = this.parseValueInput(this.editValorInput());
+        if (valor === null) {
+            this.notificationService.showError(
+                this.i18n.translate("invalidTotalValue") || "Valor total inválido."
+            );
+            return;
+        }
+
+        const valorPrestador = this.parseValueInput(this.editValorPrestadorInput());
+        if (valorPrestador === null) {
+            this.notificationService.showError(
+                this.i18n.translate("invalidProviderValue") || "Valor do prestador inválido."
+            );
+            return;
+        }
+
+        this.isSavingValues.set(true);
+        try {
+            const success = await this.dataService.updateServiceRequestValues(request.id, {
+                valor,
+                valor_prestador: valorPrestador,
+            });
+
+            if (success) {
+                this.notificationService.showSuccess(
+                    this.i18n.translate("requestValuesUpdated") || "Valores atualizados com sucesso."
+                );
+                this.closeEditValuesModal();
+                await this.dataService.reloadServiceRequests();
+            } else {
+                this.notificationService.showError(
+                    this.i18n.translate("requestValuesUpdateError") || "Falha ao atualizar valores."
+                );
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar valores:", error);
+            this.notificationService.showError(
+                this.i18n.translate("requestValuesUpdateError") || "Falha ao atualizar valores."
+            );
+        } finally {
+            this.isSavingValues.set(false);
+        }
+    }
+
+    private formatValueInput(value: number | null | undefined): string {
+        if (value === null || value === undefined || Number.isNaN(value)) {
+            return "";
+        }
+        return value.toFixed(2);
+    }
+
+    private parseValueInput(raw: string): number | null {
+        const normalized = (raw ?? "").replace(",", ".").trim();
+        const parsed = normalized === "" ? 0 : Number(normalized);
+        if (!Number.isFinite(parsed) || parsed < 0) {
+            return null;
+        }
+        return Math.round(parsed * 100) / 100;
     }
     showDirectAssignmentModal = signal(false);
     requestToAssign = signal<ServiceRequest | null>(null);
