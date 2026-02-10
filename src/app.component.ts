@@ -171,7 +171,7 @@ export class AppComponent implements OnInit {
 
     const isAdmin = role === 'admin';
     const isProfessional = role === 'professional' || role === 'professional_almoxarife';
-    const canUseStock = role === 'almoxarife' || role === 'professional_almoxarife';
+    const canUseStock = role === 'almoxarife' || role === 'professional_almoxarife' || role === 'secretario';
     const isSecretary = role === 'secretario';
     
     const items: { id: Nav; labelKey: string; icon: string }[] = [];
@@ -203,6 +203,11 @@ export class AppComponent implements OnInit {
         id: 'agenda',
         labelKey: 'agenda',
         icon: 'fa-solid fa-calendar-days',
+      });
+      items.push({
+        id: 'requests',
+        labelKey: 'requests',
+        icon: 'fa-solid fa-list',
       });
     }
 
@@ -399,6 +404,8 @@ export class AppComponent implements OnInit {
       this.router.navigate(['/admin-create-service-request']);
     } else if (nav === 'agenda') {
       this.router.navigate(['/agenda']);
+    } else if (nav === 'requests' && user?.role === 'secretario') {
+      this.router.navigate(['/requests']);
     } else if (nav === 'stock-intake') {
       if (user?.role === 'admin') {
         this.router.navigate(['/admin/stock-intake']);

@@ -190,6 +190,9 @@ export class ServiceRequestsComponent implements OnInit {
     // Current user
     currentUser = this.authService.appUser;
 
+    readonly isSecretary = computed(() => this.currentUser()?.role === "secretario");
+    readonly canManageRequests = computed(() => this.currentUser()?.role === "admin");
+
     // Signals for filters
     filterStatus = signal<string>("");
     filterClient = signal<string>("");
@@ -219,6 +222,9 @@ export class ServiceRequestsComponent implements OnInit {
     isSavingValues = signal(false);
 
     openEditValuesModal(req: ServiceRequest): void {
+        if (!this.canManageRequests()) {
+            return;
+        }
         this.requestToEditValues.set(req);
         this.editValorInput.set(req?.valor !== null && req?.valor !== undefined ? String(req.valor) : "");
         this.editValorPrestadorInput.set(
@@ -238,6 +244,9 @@ export class ServiceRequestsComponent implements OnInit {
     }
 
     async confirmEditValues(): Promise<void> {
+        if (!this.canManageRequests()) {
+            return;
+        }
         const req = this.requestToEditValues();
         if (!req) {
             return;
@@ -562,6 +571,10 @@ viewDetails = output<ServiceRequest>();
         const request = this.requestToEdit();
         const user = this.currentUser();
         if (!request || !user) {
+            return;
+        }
+
+        if (!this.canManageRequests()) {
             return;
         }
 
@@ -1032,6 +1045,10 @@ viewDetails = output<ServiceRequest>();
         return !this.reassignmentBlockedStatuses.has(normalizedStatus);
     }
     shouldShowProviderValue(request: ServiceRequest): boolean {
+        // Secretário não deve visualizar valor do prestador
+        if (this.isSecretary()) {
+            return false;
+        }
         if (!request?.professional_id) {
             return false;
         }
@@ -1071,6 +1088,11 @@ viewDetails = output<ServiceRequest>();
             return false;
         }
 
+        // Apenas admin pode excluir
+        if (!this.canManageRequests()) {
+            return false;
+        }
+
         const normalizedStatus = (request.status || "").trim().toLowerCase();
         return this.deletableStatuses.has(normalizedStatus);
     }
@@ -1100,6 +1122,9 @@ viewDetails = output<ServiceRequest>();
         this.isDeletingRequest.set(false);
     }
     async confirmDeleteRequest(): Promise<void> {
+        if (!this.canManageRequests()) {
+            return;
+        }
         const request = this.requestToDelete();
         if (!request) {
             return;
@@ -1195,10 +1220,16 @@ viewDetails = output<ServiceRequest>();
         this.requestToEdit.set(null);
     }
     openEditRequestModal(req: ServiceRequest) {
+        if (!this.canManageRequests()) {
+            return;
+        }
         this.router.navigate([`/admin/service-request-edit/${req.id}`]);
     }
     
     async confirmDirectAssignment() {
+        if (!this.canManageRequests()) {
+            return;
+        }
         const request = this.requestToAssign();
         const professionalId = this.selectedProfessionalId();
         const executionDate = this.selectedExecutionDate();
@@ -1232,7 +1263,14 @@ viewDetails = output<ServiceRequest>();
         console.log('View', req); 
         this.viewDetails.emit(req);
         // Navegar para a página de detalhes
-        this.router.navigate(['/admin/request-details', req.id]);
+        const user = this.currentUser();
+        if (user?.role === 'admin') {
+            this.router.navigate(['/admin/request-details', req.id]);
+        } else if (user?.role === 'secretario') {
+            this.router.navigate(['/request-details', req.id]);
+        } else {
+            this.router.navigate(['/']);
+        }
     }
     handleOpenChat(req: ServiceRequest) { 
         console.log('Chat', req); 

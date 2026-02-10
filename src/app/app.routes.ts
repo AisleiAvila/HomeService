@@ -35,12 +35,15 @@ export const routes: Routes = [
   {
     path: 'create-service-request',
     component: CreateServiceRequestComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, rolesGuard],
+    // Secretário não pode criar solicitações
+    data: { roles: ['client', 'professional', 'professional_almoxarife', 'admin', 'almoxarife'] },
   },
   {
     path: 'admin-create-service-request',
     component: AdminCreateServiceRequestComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['admin'] },
   },
   {
     path: 'requests/:id/geolocation',
@@ -51,11 +54,31 @@ export const routes: Routes = [
       ),
   },
 
+  // Solicitações (Secretário - somente leitura)
+  {
+    path: 'requests',
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['secretario'] },
+    loadComponent: () =>
+      import('../components/admin-dashboard/service-requests/service-requests.component').then(
+        (m) => m.ServiceRequestsComponent
+      ),
+  },
+  {
+    path: 'request-details/:id',
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['secretario'] },
+    loadComponent: () =>
+      import('../components/service-request-details/service-request-details.component').then(
+        (m) => m.ServiceRequestDetailsComponent
+      ),
+  },
+
   // Estoque (Almoxarife e Profissional+Almoxarife)
   {
     path: 'stock',
     canActivate: [authGuard, rolesGuard],
-    data: { roles: ['almoxarife', 'professional_almoxarife'] },
+    data: { roles: ['almoxarife', 'professional_almoxarife', 'secretario'] },
     children: [
       { path: '', redirectTo: 'intake', pathMatch: 'full' },
       {

@@ -1,5 +1,5 @@
 <!-- Modal Editar Solicitação -->
-@if (showEditRequestModal()) {
+@if (showEditRequestModal() && canManageRequests()) {
 <div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
         <!-- Header -->
@@ -75,7 +75,7 @@
 }
 
 <!-- Modal Editar Valores (Admin) -->
-@if (showEditValuesModal()) {
+@if (showEditValuesModal() && canManageRequests()) {
 <div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
         <div class="flex items-center justify-between mb-4">
@@ -144,7 +144,7 @@
 }
 
 <!-- Modal Excluir Solicitação -->
-@if (showDeleteRequestModal()) {
+@if (showDeleteRequestModal() && canManageRequests()) {
 <div class="fixed inset-0 bg-gray-800/60 dark:bg-gray-900/80 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
         <div class="flex items-center justify-between mb-4">
@@ -457,7 +457,7 @@
                 </p>
             </div>
             <!-- Botão Criar Solicitação - Apenas para Admin e Cliente -->
-            @if (currentUser() && currentUser()!.role !== 'professional') {
+            @if (!isSecretary() && currentUser() && currentUser()!.role !== 'professional') {
             <button (click)="navigateToCreateRequest()"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
                 <i class="fas fa-plus"></i>
@@ -818,6 +818,7 @@
                             </div>
                         </button>
                     </th>
+                    @if (!isSecretary()) {
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 tracking-wider"
                         [attr.aria-sort]="sortBy() === 'value' ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
                         scope="col">
@@ -862,6 +863,7 @@
                             </div>
                         </button>
                     </th>
+                    }
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
                         {{ "actions" | i18n }}
                     </th>
@@ -965,6 +967,7 @@
                             {{ req.ispaid ? ('paymentDone' | i18n) : ('paymentPending' | i18n) }}
                         </span>
                     </td>
+                    @if (!isSecretary()) {
                     <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 text-right">
                         {{ req.valor ? "€" + (req.valor | number : "1.2-2") : "N/A" }}
                     </td>
@@ -977,6 +980,7 @@
                         <span class="text-gray-400">—</span>
                         }
                     </td>
+                    }
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="grid grid-cols-3 gap-2 justify-items-center">
                             <!-- Botão de pagamento: só admins, status 'Concluído' e pagamento pendente -->
@@ -1004,7 +1008,7 @@
                             </button>
                             }
                             <!-- Botão de Direcionamento Direto - Apenas para Admin e status Solicitado -->
-                            @if (currentUser() && currentUser()!.role !== 'professional' && req.status === 'Solicitado' && !req.professional_id) {
+                            @if (canManageRequests() && req.status === 'Solicitado' && !req.professional_id) {
                             <button (click)="openDirectAssignmentModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors"
                                 [title]="'directAssign' | i18n">
@@ -1013,7 +1017,7 @@
                             }
 
                             <!-- Trocar Profissional - Apenas Admin/gestores com profissional definido -->
-                            @if (currentUser() && currentUser()!.role !== 'professional' && canChangeProfessional(req)) {
+                            @if (canManageRequests() && canChangeProfessional(req)) {
                             <button (click)="openReassignmentModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors"
                                 title="Trocar profissional">
@@ -1051,21 +1055,21 @@
                                 }
                             </button>
                             }
-                            @if (currentUser() && currentUser()!.role === 'admin') {
+                            @if (canManageRequests()) {
                             <button (click)="openEditValuesModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
                                 [title]="'editRequestValues' | i18n" [attr.aria-label]="'editRequestValues' | i18n">
                                 <i class="fas fa-euro-sign"></i>
                             </button>
                             }
-                            @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
+                            @if (canManageRequests() && req.status !== 'Concluído' && req.status !== 'Finalizado') {
                             <button (click)="openEditRequestModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 rounded-md transition-colors"
                                 [title]="'editRequest' | i18n" [attr.aria-label]="'editRequest' | i18n">
                                 <i class="fas fa-edit"></i>
                             </button>
                             }
-                            @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
+                            @if (canManageRequests() && canDeleteRequest(req)) {
                             <button (click)="openDeleteRequestModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
                                 [title]="'deleteRequest' | i18n" [attr.aria-label]="'deleteRequest' | i18n">
@@ -1115,6 +1119,7 @@
                 </div>
             </div>
 
+            @if (!isSecretary()) {
             <!-- Value -->
             <div class="service-request-info-item">
                 <div class="flex items-center gap-2 sm:gap-3">
@@ -1161,6 +1166,7 @@
                     </div>
                 </div>
             </div>
+            }
 
             <!-- Service Request Details -->
             <div class="service-request-details space-y-2 sm:space-y-3 mb-3 sm:mb-4">
@@ -1474,7 +1480,7 @@
                     }
 
                     <!-- Botão de Finalização - Apenas Admin, status 'Em Progresso' -->
-                    @if (currentUser() && currentUser()!.role === 'admin' && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
+                    @if (canManageRequests() && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
                     <button (click)="handleFinalizeService(req)" title="{{ 'finalizeService' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'finalizeService' | i18n">
@@ -1483,7 +1489,7 @@
                     }
 
                     <!-- Botão de Direcionamento Direto - Apenas para Admin e status Solicitado -->
-                    @if (currentUser() && currentUser()!.role !== 'professional' && req.status === 'Solicitado' && !req.professional_id) {
+                    @if (canManageRequests() && req.status === 'Solicitado' && !req.professional_id) {
                     <button (click)="openDirectAssignmentModal(req)" title="{{ 'directAssign' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'directAssign' | i18n">
@@ -1492,7 +1498,7 @@
                     }
 
                     <!-- Trocar Profissional - Apenas Admin/gestores com profissional definido -->
-                    @if (currentUser() && currentUser()!.role !== 'professional' && canChangeProfessional(req)) {
+                    @if (canManageRequests() && canChangeProfessional(req)) {
                     <button (click)="openReassignmentModal(req)" title="Trocar profissional"
                         class="w-10 h-10 inline-flex items-center justify-center text-brand-primary-600 dark:text-brand-primary-400 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-md transition-colors duration-200"
                         aria-label="Trocar profissional">
@@ -1511,7 +1517,7 @@
                         [attr.aria-label]="'viewDetails' | i18n">
                         <i class="fas fa-eye"></i>
                     </button>
-                    @if (currentUser() && currentUser()!.role === 'admin') {
+                    @if (canManageRequests()) {
                     <button (click)="openMaterialsModal(req)" title="{{ 'associateMaterials' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'associateMaterials' | i18n">
@@ -1530,21 +1536,21 @@
                         }
                     </button>
                     }
-                    @if (currentUser() && currentUser()!.role === 'admin') {
+                    @if (canManageRequests()) {
                     <button (click)="openEditValuesModal(req)" title="{{ 'editRequestValues' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'editRequestValues' | i18n">
                         <i class="fas fa-euro-sign"></i>
                     </button>
                     }
-                        @if (req.status !== 'Concluído' && req.status !== 'Finalizado') {
+                        @if (canManageRequests() && req.status !== 'Concluído' && req.status !== 'Finalizado') {
                     <button (click)="openEditRequestModal(req)" title="{{ 'edit' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'edit' | i18n">
                         <i class="fas fa-edit"></i>
                     </button>
                     }
-                    @if (currentUser() && currentUser()!.role === 'admin' && canDeleteRequest(req)) {
+                    @if (canManageRequests() && canDeleteRequest(req)) {
                     <button (click)="openDeleteRequestModal(req)" title="{{ 'deleteRequest' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'deleteRequest' | i18n">

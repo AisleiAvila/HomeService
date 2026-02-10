@@ -31,7 +31,8 @@ export class ServiceRequestMaterialsService {
   > {
     const user = this.auth.appUser();
     if (!user) return { mode: "passthrough" };
-    if (user.role === "admin") return { mode: "unrestricted" };
+    // Admin e Secretário: acesso irrestrito a materiais/armazéns
+    if (user.role === "admin" || user.role === "secretario") return { mode: "unrestricted" };
     if (!this.isStockRole(user.role)) return { mode: "passthrough" };
 
     const ids = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);

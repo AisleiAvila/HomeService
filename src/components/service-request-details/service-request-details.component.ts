@@ -614,7 +614,7 @@ export class ServiceRequestDetailsComponent {
       if (foundRequest) {
         this.loadedRequest.set(foundRequest);
       } else {
-        this.router.navigate(["/admin/requests"]);
+        this.navigateToRequestsList();
       }
     }
   });
@@ -662,6 +662,9 @@ export class ServiceRequestDetailsComponent {
 
   shouldShowProviderValue = computed(() => {
     const user = this.currentUser();
+    if (user.role === "secretario") {
+      return false;
+    }
     if (user.role === "professional" && user.is_natan_employee === true) {
       return false;
     }
@@ -879,6 +882,16 @@ export class ServiceRequestDetailsComponent {
 
   logAndEmitCloseDetails() {
     this.closeDetails.emit();
+    this.navigateToRequestsList();
+  }
+
+  private navigateToRequestsList(): void {
+    const role = this.currentUser()?.role;
+    if (role === "secretario") {
+      this.router.navigate(["/requests"]);
+      return;
+    }
+
     this.router.navigate(["/admin/requests"]);
   }
 

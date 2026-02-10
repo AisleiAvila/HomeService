@@ -21,8 +21,8 @@ export class WarehouseService {
       return;
     }
 
-    // Admin can see all warehouses.
-    if (user.role === "admin") {
+    // Admin e Secretário podem ver todos os armazéns.
+    if (user.role === "admin" || user.role === "secretario") {
       const { data, error } = await this.supabase.client
         .from("warehouses")
         .select("*")

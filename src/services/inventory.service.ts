@@ -41,7 +41,8 @@ export class InventoryService {
   private async ensureWarehouseAllowed(warehouseId: number | null | undefined): Promise<boolean> {
     const user = this.auth.appUser();
     if (!user) return false;
-    if (user.role === "admin") return true;
+    // Admin e Secretário podem operar em qualquer armazém (sem restrição)
+    if (user.role === "admin" || user.role === "secretario") return true;
     if (!this.isStockRole(user.role)) return false;
 
     if (typeof warehouseId !== "number") return false;
@@ -60,7 +61,8 @@ export class InventoryService {
   > {
     const user = this.auth.appUser();
     if (!user) return { mode: "denied" };
-    if (user.role === "admin") return { mode: "unrestricted" };
+    // Admin e Secretário: acesso irrestrito a todos os armazéns
+    if (user.role === "admin" || user.role === "secretario") return { mode: "unrestricted" };
     if (!this.isStockRole(user.role)) return { mode: "denied" };
 
     const ids = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
