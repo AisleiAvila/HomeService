@@ -73,6 +73,7 @@
                 </select>
               </div>
             </div>
+            @if (!isSecretary()) {
             <!-- Valores -->
             <div class="flex gap-4 mb-4">
               <div class="w-1/2">
@@ -90,6 +91,7 @@
                 <input id="edit-valor-prestador" type="number" name="valor_prestador" [(ngModel)]="request.valor_prestador" min="0.01" step="0.01" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
               </div>
             </div>
+            }
             <!-- Informações do Solicitante -->
             <div class="flex items-center gap-2 mb-4">
               <i class="fas fa-user-circle text-brand-primary-600"></i>

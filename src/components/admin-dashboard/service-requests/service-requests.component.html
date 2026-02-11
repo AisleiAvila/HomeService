@@ -75,7 +75,7 @@
 }
 
 <!-- Modal Editar Valores -->
-@if (showEditValuesModal() && canManageRequests()) {
+@if (showEditValuesModal() && canEditValues()) {
 <div class="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
     <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
         <div class="flex items-center justify-between mb-4">
@@ -468,8 +468,8 @@
                     {{ "manageAllServiceRequests" | i18n }}
                 </p>
             </div>
-            <!-- Botão Criar Solicitação - Apenas para Admin e Cliente -->
-            @if (!isSecretary() && currentUser() && currentUser()!.role !== 'professional') {
+            <!-- Botão Criar Solicitação - Apenas para Admin e Secretário -->
+            @if (currentUser() && (currentUser()!.role === 'admin' || currentUser()!.role === 'secretario')) {
             <button (click)="navigateToCreateRequest()"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-primary-500 text-sm font-medium rounded-lg hover:bg-brand-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary-500 transition-all transform hover:scale-105 shadow-lg sm:w-auto w-full">
                 <i class="fas fa-plus"></i>
@@ -1012,7 +1012,7 @@
                             </button>
                             }
                             <!-- Botão de conclusão: só admins, status 'Em Progresso' -->
-                            @if (currentUser() && currentUser()!.role === 'admin' && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
+                            @if (canFinalizeRequests() && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
                             <button (click)="handleFinalizeService(req)"
                                 class="w-10 h-10 flex items-center justify-center text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
                                 [title]="'finalizeService' | i18n">
@@ -1048,7 +1048,7 @@
                                 [title]="'viewDetails' | i18n" [attr.aria-label]="'viewDetails' | i18n">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            @if (currentUser() && currentUser()!.role === 'admin') {
+                            @if (canManageMaterials()) {
                             <button (click)="openMaterialsModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-brand-primary-500 hover:text-brand-primary-600 hover:bg-brand-primary-50 rounded-md transition-colors"
                                 [title]="'associateMaterials' | i18n" [attr.aria-label]="'associateMaterials' | i18n">
@@ -1067,7 +1067,7 @@
                                 }
                             </button>
                             }
-                            @if (canManageRequests()) {
+                            @if (canEditValues()) {
                             <button (click)="openEditValuesModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
                                 [title]="'editRequestValues' | i18n" [attr.aria-label]="'editRequestValues' | i18n">
@@ -1492,7 +1492,7 @@
                     }
 
                     <!-- Botão de Finalização - Apenas Admin, status 'Em Progresso' -->
-                    @if (canManageRequests() && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
+                    @if (canFinalizeRequests() && (req.status === 'Em Progresso' || req.status === 'In Progress')) {
                     <button (click)="handleFinalizeService(req)" title="{{ 'finalizeService' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'finalizeService' | i18n">
@@ -1529,7 +1529,7 @@
                         [attr.aria-label]="'viewDetails' | i18n">
                         <i class="fas fa-eye"></i>
                     </button>
-                    @if (canManageRequests()) {
+                    @if (canManageMaterials()) {
                     <button (click)="openMaterialsModal(req)" title="{{ 'associateMaterials' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'associateMaterials' | i18n">
@@ -1548,7 +1548,7 @@
                         }
                     </button>
                     }
-                    @if (canManageRequests()) {
+                    @if (canEditValues()) {
                     <button (click)="openEditValuesModal(req)" title="{{ 'editRequestValues' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'editRequestValues' | i18n">

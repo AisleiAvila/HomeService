@@ -610,6 +610,7 @@ export class DataService {
       ? requestedDateTime
       : localDateTimeToUtcIso(requestedDateTime, serviceTimeZone);
 
+    const isSecretary = currentUser.role === "secretario";
     const newRequestData: any = {
       client_id: currentUser.id,
       // Dados do solicitante vindos do formulário (não do perfil do usuário)
@@ -637,8 +638,8 @@ export class DataService {
       service_time_zone: serviceTimeZone,
       requested_datetime: requestedDateTimeUtc, // Campo principal (UTC)
       priority: payload.priority || null,
-      valor: payload.valor,
-      valor_prestador: payload.valor_prestador,
+      valor: isSecretary ? 0 : payload.valor,
+      valor_prestador: isSecretary ? 0 : payload.valor_prestador,
       status: "Solicitado",
       payment_status: "Unpaid",
     };

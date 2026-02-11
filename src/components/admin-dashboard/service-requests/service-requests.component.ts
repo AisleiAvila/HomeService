@@ -191,7 +191,13 @@ export class ServiceRequestsComponent implements OnInit {
     currentUser = this.authService.appUser;
 
     readonly isSecretary = computed(() => this.currentUser()?.role === "secretario");
-    readonly canManageRequests = computed(() => this.currentUser()?.role === "admin");
+    readonly canManageRequests = computed(() => {
+        const role = this.currentUser()?.role;
+        return role === "admin" || role === "secretario";
+    });
+    readonly canEditValues = computed(() => this.currentUser()?.role === "admin");
+    readonly canManageMaterials = computed(() => this.currentUser()?.role === "admin");
+    readonly canFinalizeRequests = computed(() => this.currentUser()?.role === "admin");
     readonly canAssignProfessional = computed(() => {
         const role = this.currentUser()?.role;
         return role === "admin" || role === "secretario";
@@ -226,7 +232,7 @@ export class ServiceRequestsComponent implements OnInit {
     isSavingValues = signal(false);
 
     openEditValuesModal(req: ServiceRequest): void {
-        if (!this.canManageRequests()) {
+        if (!this.canEditValues()) {
             return;
         }
 
@@ -246,7 +252,7 @@ export class ServiceRequestsComponent implements OnInit {
 
     async confirmEditValues(): Promise<void> {
         const request = this.requestToEditValues();
-        if (!request || !this.canManageRequests()) {
+        if (!request || !this.canEditValues()) {
             return;
         }
 
@@ -430,7 +436,7 @@ export class ServiceRequestsComponent implements OnInit {
             return;
         }
 
-        if (this.currentUser()?.role !== 'admin') {
+        if (!this.canManageMaterials()) {
             this.notificationService.addNotification(
                 this.i18n.translate('accessDenied') || 'Acesso negado.'
             );
@@ -1106,7 +1112,7 @@ viewDetails = output<ServiceRequest>();
             return false;
         }
 
-        // Apenas admin pode excluir
+        // Admin e secretário podem excluir
         if (!this.canManageRequests()) {
             return false;
         }
@@ -1247,7 +1253,11 @@ viewDetails = output<ServiceRequest>();
         if (!this.canManageRequests()) {
             return;
         }
-        this.router.navigate([`/admin/service-request-edit/${req.id}`]);
+        const role = this.currentUser()?.role;
+        const target = role === 'secretario'
+            ? `/service-request-edit/${req.id}`
+            : `/admin/service-request-edit/${req.id}`;
+        this.router.navigate([target]);
     }
     
     async confirmDirectAssignment() {

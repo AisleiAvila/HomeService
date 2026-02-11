@@ -36,8 +36,7 @@ export const routes: Routes = [
     path: 'create-service-request',
     component: CreateServiceRequestComponent,
     canActivate: [authGuard, rolesGuard],
-    // Secretário não pode criar solicitações
-    data: { roles: ['client', 'professional', 'professional_almoxarife', 'admin', 'almoxarife'] },
+    data: { roles: ['client', 'professional', 'professional_almoxarife', 'admin', 'almoxarife', 'secretario'] },
   },
   {
     path: 'admin-create-service-request',
@@ -71,6 +70,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('../components/service-request-details/service-request-details.component').then(
         (m) => m.ServiceRequestDetailsComponent
+      ),
+  },
+  {
+    path: 'service-request-edit/:id',
+    canActivate: [authGuard, rolesGuard],
+    data: { roles: ['admin', 'secretario'] },
+    loadComponent: () =>
+      import('../components/service-request-edit/service-request-edit.component').then(
+        (m) => m.ServiceRequestEditComponent
       ),
   },
 

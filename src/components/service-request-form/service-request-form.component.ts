@@ -15,6 +15,7 @@ import { FormsModule } from "@angular/forms";
 import type { ServiceSubcategory } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: "app-service-request-form",
@@ -82,6 +83,10 @@ export class ServiceRequestFormComponent implements OnInit {
   private readonly dataService = inject(DataService);
   private readonly i18n = inject(I18nService);
   private readonly addressService = inject(PortugalAddressDatabaseService);
+  private readonly authService = inject(AuthService);
+
+  currentUser = this.authService.appUser;
+  isSecretary = computed(() => this.currentUser()?.role === "secretario");
 
   // Usar signals diretamente do DataService
   // Filtrar apenas categorias que têm subcategorias
@@ -121,6 +126,16 @@ export class ServiceRequestFormComponent implements OnInit {
   
   ngOnInit(): void {
     this.dataService.fetchOrigins();
+
+    if (this.isSecretary()) {
+      this.valor.set(0);
+      this.valor_prestador.set(0);
+      this.validFields.update((fields) => ({
+        ...fields,
+        valor: true,
+        valor_prestador: true,
+      }));
+    }
   }
 
   onCategoryChange(value: string) {
@@ -225,8 +240,8 @@ export class ServiceRequestFormComponent implements OnInit {
       fields.zip_code &&
       fields.client_name &&
       fields.client_phone &&
-      fields.valor &&
-      fields.valor_prestador &&
+      (this.isSecretary() || fields.valor) &&
+      (this.isSecretary() || fields.valor_prestador) &&
       fields.client_nif && // NIF sempre válido (opcional)
       fields.email_client // Email sempre válido (opcional)
     );
@@ -565,6 +580,7 @@ export class ServiceRequestFormComponent implements OnInit {
         concelho: this.county(),
         freguesia: undefined,
       };
+      const isSecretary = this.isSecretary();
       const payload = {
         title: this.title(),
         description: this.description(),
@@ -575,8 +591,8 @@ export class ServiceRequestFormComponent implements OnInit {
         address,
         requested_datetime: this.requestedDateTime(),
         priority: (this.priority() || undefined) as 'Normal' | 'Urgent' | undefined,
-        valor: this.valor(),
-        valor_prestador: this.valor_prestador(),
+        valor: isSecretary ? 0 : this.valor(),
+        valor_prestador: isSecretary ? 0 : this.valor_prestador(),
         latitude: this.latitude(),
         longitude: this.longitude(),
         street_manual: this.street_manual() || null,

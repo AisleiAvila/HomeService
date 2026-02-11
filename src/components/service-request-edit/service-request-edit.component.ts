@@ -41,6 +41,7 @@ export class ServiceRequestEditComponent implements OnInit {
   formError = signal<string>('');
   locality = signal<string>('');
   districtName = signal<string>('');
+  isSecretary = computed(() => this.authService.appUser()?.role === 'secretario');
 
   // Getter/Setter para formatar requested_datetime para datetime-local input
   get requestedDateTimeFormatted(): string {
@@ -267,7 +268,7 @@ export class ServiceRequestEditComponent implements OnInit {
     try {
       const tz = normalizeServiceTimeZone(this.serviceTimeZone());
 
-      const updates = {
+      const updates: Partial<ServiceRequest> = {
         street: this.request.street,
         street_number: this.request.street_number,
         street_manual: this.request.street_manual,
@@ -296,6 +297,11 @@ export class ServiceRequestEditComponent implements OnInit {
         valor: this.request.valor,
         valor_prestador: this.request.valor_prestador,
       };
+
+      if (this.isSecretary()) {
+        delete updates.valor;
+        delete updates.valor_prestador;
+      }
       
       console.log('Dados sendo salvos:', updates);
       console.log('ID da solicitação:', this.request.id);
@@ -321,7 +327,8 @@ export class ServiceRequestEditComponent implements OnInit {
       const updatedRequest = this.dataService.getServiceRequestById(this.request.id);
       console.log('Dados após reload:', updatedRequest);
       
-      this.router.navigate(['/admin/requests']);
+      const role = this.authService.appUser()?.role;
+      this.router.navigate([role === 'secretario' ? '/requests' : '/admin/requests']);
     } catch (e) {
       console.error('Erro ao salvar:', e);
       this.error = 'Erro ao salvar alterações';
@@ -333,7 +340,8 @@ export class ServiceRequestEditComponent implements OnInit {
   }
 
   cancel() {
-    this.router.navigate(['/admin/requests']);
+    const role = this.authService.appUser()?.role;
+    this.router.navigate([role === 'secretario' ? '/requests' : '/admin/requests']);
   }
 }
 
