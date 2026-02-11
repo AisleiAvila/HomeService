@@ -1020,7 +1020,7 @@
                             </button>
                             }
                             <!-- Botão de Direcionamento Direto - Admin e Secretário (associar profissional) -->
-                            @if (canAssignProfessional() && req.status === 'Solicitado' && !req.professional_id) {
+                            @if (canAssignProfessional() && req.status === 'Solicitado' && !req.professional_id && (req.valor ?? 0) > 0) {
                             <button (click)="openDirectAssignmentModal(req)"
                                 class="w-10 h-10 flex items-center justify-center text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-md transition-colors"
                                 [title]="'directAssign' | i18n">
@@ -1501,7 +1501,7 @@
                     }
 
                     <!-- Botão de Direcionamento Direto - Admin e Secretário (associar profissional) -->
-                    @if (canAssignProfessional() && req.status === 'Solicitado' && !req.professional_id) {
+                    @if (canAssignProfessional() && req.status === 'Solicitado' && !req.professional_id && (req.valor ?? 0) > 0) {
                     <button (click)="openDirectAssignmentModal(req)" title="{{ 'directAssign' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200"
                         [attr.aria-label]="'directAssign' | i18n">
