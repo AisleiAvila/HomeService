@@ -203,11 +203,18 @@ export class ServiceListComponent implements OnInit {
 
   canShowTechnicalReport(request: ServiceRequest): boolean {
     const user = this.currentUser();
-    if (user.role !== "professional") return false;
+    if (!this.isProfessionalUser()) return false;
 
     // Só permitir para status específicos
-    const allowedStatuses = ["Em Progresso", "Concluído", "Finalizado"];
-    if (!allowedStatuses.includes(request.status)) return false;
+    const normalizedStatus = this.normalizeStatusValue(request.status);
+    const allowedStatuses = new Set([
+      "em progresso",
+      "em andamento",
+      "in progress",
+      "concluido",
+      "finalizado",
+    ]);
+    if (!allowedStatuses.has(normalizedStatus)) return false;
 
     // Não exibir se já existe relatório técnico salvo para esta solicitação.
     if (request.has_technical_report) return false;
@@ -227,7 +234,7 @@ export class ServiceListComponent implements OnInit {
 
   canViewTechnicalReport(request: ServiceRequest): boolean {
     const user = this.currentUser();
-    const canByRole = user.role === "admin" || user.role === "professional";
+    const canByRole = user.role === "admin" || this.isProfessionalUser();
     if (!canByRole) return false;
     if (!request.has_technical_report) return false;
 
