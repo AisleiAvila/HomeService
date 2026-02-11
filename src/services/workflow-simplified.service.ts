@@ -63,8 +63,8 @@ export class WorkflowServiceSimplified {
     // Profissional decide → Aceita, Recusa ou Cancela
     "Aguardando Confirmação": ["Aceito", "Recusado", "Cancelado"],
     
-    // Se aceito → Profissional define data
-    "Aceito": ["Data Definida", "Cancelado"],
+    // Se aceito → Profissional define data ou inicia execução
+    "Aceito": ["Data Definida", "Em Progresso", "In Progress", "Cancelado"],
     
     // Se recusado → Estado final (admin pode reatribuir criando nova solicitação)
     "Recusado": [],
@@ -114,6 +114,8 @@ export class WorkflowServiceSimplified {
         "Aguardando Confirmação->Aceito",
         "Aguardando Confirmação->Recusado",
         "Aceito->Data Definida",
+        "Aceito->Em Progresso",
+        "Aceito->In Progress",
         "Data Definida->Em Progresso",
         "Data Definida->In Progress",
         "Em Progresso->Concluído",

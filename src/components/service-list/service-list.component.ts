@@ -128,6 +128,31 @@ export class ServiceListComponent implements OnInit {
     return getServiceTimeZoneForRequest(request as any);
   }
 
+  getScheduledDateTime(request: ServiceRequest): string | null {
+    return request.scheduled_start_datetime || request.requested_datetime || null;
+  }
+
+  private normalizeStatusValue(status: string | null | undefined): string {
+    return (status ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  isAwaitingProfessionalConfirmation(request: ServiceRequest): boolean {
+    const normalized = this.normalizeStatusValue(request.status);
+    return (
+      normalized === "aguardando confirmacao" ||
+      normalized === "aguardando confirmacao do profissional"
+    );
+  }
+
+  isProfessionalUser(): boolean {
+    const role = this.currentUser()?.role;
+    return role === "professional" || role === "professional_almoxarife";
+  }
+
   // Pagination state
   currentPage = signal(1);
   itemsPerPage = signal(10);

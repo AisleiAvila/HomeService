@@ -757,8 +757,8 @@ export class DataService {
     executionDate: string
   ): Promise<void> {
     const currentUser = this.authService.appUser();
-    if (currentUser?.role !== 'admin') {
-      throw new Error("Only administrators can directly assign service requests");
+    if (currentUser?.role !== 'admin' && currentUser?.role !== 'secretario') {
+      throw new Error("Only administrators or secretaries can directly assign service requests");
     }
 
     // Usar o workflow correto via WorkflowServiceSimplified

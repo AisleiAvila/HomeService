@@ -22,7 +22,8 @@
                 <i class="fas fa-clock text-red-500"></i>
                 <span class="flex flex-col text-left leading-tight">
                   <span>#{{ request.id }} · {{ request.title }}</span>
-                  @if (request.scheduled_start_datetime) {
+                  @let scheduledDateTime = getScheduledDateTime(request);
+                  @if (scheduledDateTime) {
                     <span class="text-[11px] text-red-500/80 dark:text-red-100/90">
                       {{ request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM HH:mm" }}
                     </span>
@@ -287,13 +288,14 @@
             <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-normal">
               <div class="flex flex-col gap-2">
                 @let tz = getServiceTimeZone(request);
-                @if (request.scheduled_start_datetime) {
+                @let scheduledDateTime = getScheduledDateTime(request);
+                @if (scheduledDateTime) {
                   <div class="flex flex-wrap items-center gap-2">
                     <span class="font-semibold text-gray-600 dark:text-gray-200">
                       {{ "scheduled" | i18n }}:
                     </span>
                     <span class="text-gray-500 dark:text-gray-300 whitespace-nowrap">
-                      {{ request.scheduled_start_datetime | tzDate : tz : "dd/MM/yyyy HH:mm" }}
+                      {{ scheduledDateTime | tzDate : tz : "dd/MM/yyyy HH:mm" }}
                     </span>
                     @if (shouldShowOverdueUi(request)) {
                       <span
@@ -307,7 +309,7 @@
 
                   @if (tz === 'Atlantic/Azores') {
                     <div class="ml-4 text-xs text-gray-400 dark:text-gray-400">
-                      {{ request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                      {{ scheduledDateTime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
                       <span class="ml-1">(Lisboa)</span>
                     </div>
                   }
@@ -393,7 +395,7 @@
             }
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex items-center gap-2 flex-wrap">
-                @if(currentUser().role === 'professional') {
+                @if(isProfessionalUser()) {
                   <button
                     (click)="viewGeolocation.emit(request)"
                     class="p-2 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md transition-colors"
@@ -443,7 +445,7 @@
                   <i class="fas fa-comments"></i>
                 </button>
 
-                @if(currentUser().role === 'professional' && request.status === 'Aguardando confirmação do profissional') {
+                @if(isProfessionalUser() && isAwaitingProfessionalConfirmation(request)) {
                   <button
                     (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
                     class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
@@ -464,7 +466,7 @@
                   </button>
                 }
 
-                @if(currentUser().role === 'professional' && (request.status === 'Data Definida' || request.status === 'Scheduled')) {
+                @if(isProfessionalUser() && (request.status === 'Data Definida' || request.status === 'Scheduled' || request.status === 'Aceito' || request.status === 'Accepted')) {
                   <button
                     (click)="!isLoading(request.id) && startService.emit(request)"
                     class="service-list-action-start-service"
@@ -476,7 +478,7 @@
                   </button>
                 }
 
-                @if(currentUser().role === 'professional' && (request.status === 'Em Progresso' || request.status === 'In Progress')) {
+                @if(isProfessionalUser() && (request.status === 'Em Progresso' || request.status === 'In Progress')) {
                   <button
                     (click)="!isLoading(request.id) && finishService.emit(request)"
                     class="service-list-action-finish-service"
@@ -1033,12 +1035,12 @@
                             <div class="ml-auto text-right">
                               <div class="text-green-600 font-medium wrap-break-word">
                                 {{
-                                request.scheduled_start_datetime | tzDate : tz : "dd/MM/yyyy HH:mm"
+                                scheduledDateTime | tzDate : tz : "dd/MM/yyyy HH:mm"
                                 }}
                               </div>
                               @if (tz === 'Atlantic/Azores') {
                                 <div class="mt-1 text-[11px] text-gray-500">
-                                  {{ request.scheduled_start_datetime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
+                                  {{ scheduledDateTime | tzDate : 'Europe/Lisbon' : "dd/MM/yyyy HH:mm" }}
                                   <span class="ml-1">(Lisboa)</span>
                                 </div>
                               }
@@ -1145,10 +1147,10 @@
                   <!-- Client role removed - no client-specific actions in mobile view -->
 
                   <!-- Professional actions (mobile): start/finish -->
-                  @if(currentUser().role === 'professional') {
+                  @if(isProfessionalUser()) {
                     <div class="service-list-actions mb-3 flex flex-wrap gap-2">
                       <!-- Confirmação/Recusa de Direcionamento -->
-                      @if(request.status === 'Aguardando confirmação do profissional') {
+                      @if(isAwaitingProfessionalConfirmation(request)) {
                         <button
                           (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
                           class="w-10 h-10 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center justify-center"
@@ -1169,7 +1171,7 @@
                         </button>
                       }
 
-                      @if(request.status === 'Data Definida' || request.status === 'Scheduled') {
+                      @if(request.status === 'Data Definida' || request.status === 'Scheduled' || request.status === 'Aceito' || request.status === 'Accepted') {
                         <button
                           (click)="!isLoading(request.id) && startService.emit(request)"
                           class="w-10 h-10 rounded-md bg-brand-primary-500 text-white hover:bg-brand-primary-600 transition-colors flex items-center justify-center"

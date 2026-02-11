@@ -241,6 +241,14 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     );
   }
 
+  updateRadioExtraServiceValue(index: number, value: string) {
+    const parsed = value === "" ? null : Number(value);
+    const nextValue = parsed !== null && Number.isFinite(parsed) ? parsed : null;
+    this.radioExtraServicesInstalled.update((items) =>
+      (items || []).map((it, i) => (i === index ? { ...it, value: nextValue } : it))
+    );
+  }
+
 
   // For stable focus in dynamic list
   trackByExtraServiceId(index: number, item: { id: string }): string {
@@ -603,6 +611,17 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
       }
     }
 
+    const extras = this.verdeExtraServicesInstalled();
+    for (let i = 0; i < extras.length; i++) {
+      const s = extras[i];
+      if (!s.description.trim()) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Descrição é obrigatória.` };
+      }
+      if (s.value === null || !Number.isFinite(s.value)) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Valor é obrigatório.` };
+      }
+    }
+
     return { ok: true };
   }
 
@@ -610,6 +629,18 @@ export class TechnicalReportModalComponent implements AfterViewChecked {
     if (!this.azulInvoiceNumber().trim()) return { ok: false, message: "Número da Fatura é obrigatório." };
     if (!this.azulServiceNumber().trim()) return { ok: false, message: "Número do Serviço é obrigatório." };
     if (!this.azulReportNotes().trim()) return { ok: false, message: "Relatório Técnico / Observações é obrigatório." };
+
+    const extras = this.azulExtraServicesInstalled();
+    for (let i = 0; i < extras.length; i++) {
+      const s = extras[i];
+      if (!s.description.trim()) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Descrição é obrigatória.` };
+      }
+      if (s.value === null || !Number.isFinite(s.value)) {
+        return { ok: false, message: `Serviço Extra #${i + 1}: Valor é obrigatório.` };
+      }
+    }
+
     return { ok: true };
   }
 
