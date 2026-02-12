@@ -808,6 +808,12 @@
                   <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'status' | i18n }}:</span>
                   <span class="text-sm text-gray-900 dark:text-gray-100">{{ selectedItem()!.status | i18n }}</span>
                 </div>
+                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'serviceRequestTitle' | i18n }}:</span>
+                  <span class="text-sm text-gray-900 dark:text-gray-100">
+                    {{ selectedItem()!.service_request?.title || '—' }}
+                  </span>
+                </div>
                 @if (selectedItem()!.notes) {
                   <div class="py-2 border-b border-gray-200 dark:border-gray-600">
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ 'notes' | i18n }}:</span>

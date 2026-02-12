@@ -41,6 +41,11 @@ export interface StockItem {
   supplier: string;
   received_at: string;
   status: StockItemStatus;
+  service_request_id?: number | null;
+  service_request?: {
+    id: number;
+    title: string;
+  } | null;
   notes?: string | null;
   created_by_admin_id?: number | null;
   created_at?: string;

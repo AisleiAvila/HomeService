@@ -13,6 +13,7 @@ import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   ServiceRequest,
+  ServiceRequestMaterial,
   User,
   ServiceStatus,
 } from "@/src/models/maintenance.models";
@@ -27,6 +28,7 @@ import { NotificationService } from "../../services/notification.service";
 import { DataService } from "../../services/data.service";
 import { AuthService } from "../../services/auth.service";
 import { WorkflowServiceSimplified } from "../../services/workflow-simplified.service";
+import { ServiceRequestMaterialsService } from "../../services/service-request-materials.service";
 
 type ActionType = "schedule" | "start" | "complete" | "pay" | "chat";
 type ActionClass = "primary" | "secondary" | "success" | "danger";
@@ -165,6 +167,37 @@ interface ServiceAction {
                 <p class="text-gray-900 dark:text-gray-100" [attr.aria-labelledby]="'subcategory-label'">
                   {{ request().subcategory?.name || "—" }}
                 </p>
+              </div>
+              }
+              @if (isWortenOrigin()) {
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" id="materials-label">
+                  {{ "materialsInRequest" | i18n }}
+                </label>
+                @if (materialsForRequest().length > 0) {
+                <div class="space-y-2" [attr.aria-labelledby]="'materials-label'">
+                  @for (material of materialsForRequest(); track material.id) {
+                  <div class="rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2">
+                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                      <span class="font-medium">{{ "warehouse" | i18n }}:</span>
+                      {{ material.stock_item?.warehouse?.name || "—" }}
+                    </div>
+                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                      <span class="font-medium">{{ "material" | i18n }}:</span>
+                      {{ material.stock_item?.product_name || ("materialWithoutName" | i18n) }}
+                    </div>
+                  </div>
+                  }
+                </div>
+                } @else {
+                <p class="text-sm text-gray-500 dark:text-gray-400" [attr.aria-labelledby]="'materials-label'">
+                  @if (isLoadingMaterials()) {
+                    {{ "loading" | i18n }}
+                  } @else {
+                    {{ "noMaterialsAssociated" | i18n }}
+                  }
+                </p>
+                }
               </div>
               }
               @if (currentUser().role === "admin") {
@@ -588,9 +621,12 @@ export class ServiceRequestDetailsComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly workflowService = inject(WorkflowServiceSimplified);
+  private readonly serviceRequestMaterialsService = inject(ServiceRequestMaterialsService);
 
   private readonly loadedRequest = signal<ServiceRequest | undefined>(undefined);
   private readonly loadedUser = signal<User | undefined>(undefined);
+  private readonly requestMaterials = signal<ServiceRequestMaterial[]>([]);
+  readonly isLoadingMaterials = signal(false);
 
   request = computed(() => {
     const inputReq = this.requestInput();
@@ -598,6 +634,15 @@ export class ServiceRequestDetailsComponent {
     return inputReq || loadedReq;
   });
   currentUser = computed(() => this.currentUserInput() || this.loadedUser() || this.authService.appUser());
+
+  isWortenOrigin = computed(() => {
+    const req = this.request();
+    const originId = req?.origin_id ?? null;
+    const originName = (req?.origin?.name || "").toLowerCase();
+    return originId === 2 || originName.includes("worten");
+  });
+
+  readonly materialsForRequest = computed(() => this.requestMaterials());
 
   private readonly requestEffect = effect(() => {
     const inputReq = this.requestInput();
@@ -617,6 +662,16 @@ export class ServiceRequestDetailsComponent {
         this.navigateToRequestsList();
       }
     }
+  });
+
+  private readonly materialsEffect = effect(() => {
+    const req = this.request();
+    if (!req || !this.isWortenOrigin()) {
+      this.requestMaterials.set([]);
+      return;
+    }
+
+    this.loadMaterialsForRequest(req.id);
   });
 
   private readonly userEffect = effect(() => {
@@ -670,6 +725,16 @@ export class ServiceRequestDetailsComponent {
     }
     return true;
   });
+
+  private async loadMaterialsForRequest(requestId: number): Promise<void> {
+    this.isLoadingMaterials.set(true);
+    try {
+      const materials = await this.serviceRequestMaterialsService.fetchByRequest(requestId);
+      this.requestMaterials.set(materials);
+    } finally {
+      this.isLoadingMaterials.set(false);
+    }
+  }
 
   @Output() closeDetails = new EventEmitter<void>();
   @Output() openChat = new EventEmitter<ServiceRequest>();

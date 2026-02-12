@@ -23,6 +23,8 @@ export interface StockItemUpdatePayload {
   received_at?: string;
   notes?: string | null;
   warehouse_id?: number | null;
+  status?: StockItemStatus;
+  service_request_id?: number | null;
 }
 
 @Injectable({
@@ -228,7 +230,8 @@ export class InventoryService {
       .select(`
         *,
         warehouse:warehouses(*),
-        created_by_admin:users!created_by_admin_id(name)
+        created_by_admin:users!created_by_admin_id(name),
+        service_request:service_requests(id,title)
       `)
       .order("received_at", { ascending: false })
       .limit(limit);
@@ -246,6 +249,106 @@ export class InventoryService {
     if (error) {
       this.notificationService.addNotification(
         "Erro ao carregar itens do estoque: " + error.message
+      );
+      return [];
+    }
+
+    return (data || []) as StockItem[];
+  }
+
+  async fetchAvailableStockItemsByWarehouse(warehouseId: number): Promise<StockItem[]> {
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      return [];
+    }
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0 || !allowed.ids.includes(warehouseId)) {
+        return [];
+      }
+    }
+
+    const { data, error } = await this.supabase.client
+      .from("stock_items")
+      .select("*")
+      .eq("warehouse_id", warehouseId)
+      .eq("status", "Recebido" satisfies StockItemStatus)
+      .is("service_request_id", null)
+      .order("received_at", { ascending: false });
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao carregar materiais do armazem: " + error.message
+      );
+      return [];
+    }
+
+    return (data || []) as StockItem[];
+  }
+
+  async fetchStockItemsByRequest(serviceRequestId: number): Promise<StockItem[]> {
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      return [];
+    }
+
+    let query = this.supabase.client
+      .from("stock_items")
+      .select("*")
+      .eq("service_request_id", serviceRequestId);
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0) {
+        return [];
+      }
+      query = query.in("warehouse_id", allowed.ids);
+    }
+
+    const { data, error } = await query.order("received_at", { ascending: false });
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao carregar materiais associados: " + error.message
+      );
+      return [];
+    }
+
+    return (data || []) as StockItem[];
+  }
+
+  async fetchReceivedStockItemsByWarehouseForEdit(
+    warehouseId: number,
+    requestId: number
+  ): Promise<StockItem[]> {
+    const allowed = await this.getAllowedWarehouseIdsForCurrentUser();
+    if (allowed.mode === "denied") {
+      return [];
+    }
+
+    if (allowed.mode === "restricted") {
+      if (allowed.ids.length === 0 || !allowed.ids.includes(warehouseId)) {
+        return [];
+      }
+    }
+
+    let query = this.supabase.client
+      .from("stock_items")
+      .select("*")
+      .eq("warehouse_id", warehouseId)
+      .or(
+        `and(status.eq.Recebido,service_request_id.is.null),service_request_id.eq.${requestId}`
+      )
+      .order("received_at", { ascending: false });
+
+    if (allowed.mode === "restricted") {
+      query = query.in("warehouse_id", allowed.ids);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      this.notificationService.addNotification(
+        "Erro ao carregar materiais recebidos: " + error.message
       );
       return [];
     }

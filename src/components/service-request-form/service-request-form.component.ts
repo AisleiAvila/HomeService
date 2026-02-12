@@ -12,10 +12,13 @@ import { I18nService } from "@/src/i18n.service";
 import { I18nPipe } from "@/src/pipes/i18n.pipe";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import type { ServiceSubcategory } from "../../models/maintenance.models";
+import type { ServiceSubcategory, StockItem } from "../../models/maintenance.models";
 import { DataService } from "../../services/data.service";
 import { PortugalAddressDatabaseService } from "../../services/portugal-address-database.service";
 import { AuthService } from "../../services/auth.service";
+import { WarehouseService } from "../../services/warehouse.service";
+import { InventoryService } from "../../services/inventory.service";
+import { ServiceRequestMaterialsService } from "../../services/service-request-materials.service";
 
 @Component({
   selector: "app-service-request-form",
@@ -84,9 +87,25 @@ export class ServiceRequestFormComponent implements OnInit {
   private readonly i18n = inject(I18nService);
   private readonly addressService = inject(PortugalAddressDatabaseService);
   private readonly authService = inject(AuthService);
+  readonly warehouseService = inject(WarehouseService);
+  private readonly inventoryService = inject(InventoryService);
+  private readonly serviceRequestMaterialsService = inject(ServiceRequestMaterialsService);
 
   currentUser = this.authService.appUser;
   isSecretary = computed(() => this.currentUser()?.role === "secretario");
+
+  selectedWarehouseId = signal<number | null>(null);
+  selectedStockItemId = signal<number | null>(null);
+  availableStockItems = signal<StockItem[]>([]);
+  isLoadingStockItems = signal<boolean>(false);
+
+  isWortenOrigin = computed(() => {
+    const originId = this.origin_id();
+    if (!originId) return false;
+    const selectedOrigin = this.origins().find((origin) => origin.id === originId);
+    const originName = (selectedOrigin?.name || "").toLowerCase();
+    return originId === 2 || originName.includes("worten");
+  });
 
   // Usar signals diretamente do DataService
   // Filtrar apenas categorias que têm subcategorias
@@ -126,6 +145,7 @@ export class ServiceRequestFormComponent implements OnInit {
   
   ngOnInit(): void {
     this.dataService.fetchOrigins();
+    this.warehouseService.fetchWarehouses();
 
     if (this.isSecretary()) {
       this.valor.set(0);
@@ -136,6 +156,50 @@ export class ServiceRequestFormComponent implements OnInit {
         valor_prestador: true,
       }));
     }
+  }
+
+  async onOriginChange(value: string) {
+    const originId = value ? Number(value) : 0;
+    this.origin_id.set(originId);
+
+    if (!this.isWortenOrigin()) {
+      this.resetStockSelection();
+    }
+  }
+
+  async onWarehouseChange(value: string) {
+    const warehouseId = value ? Number(value) : null;
+    this.selectedWarehouseId.set(warehouseId);
+    this.selectedStockItemId.set(null);
+
+    if (!warehouseId) {
+      this.availableStockItems.set([]);
+      return;
+    }
+
+    await this.loadAvailableStockItems(warehouseId);
+  }
+
+  onStockItemChange(value: string) {
+    const itemId = value ? Number(value) : null;
+    this.selectedStockItemId.set(itemId);
+  }
+
+  private async loadAvailableStockItems(warehouseId: number): Promise<void> {
+    this.isLoadingStockItems.set(true);
+    try {
+      const items = await this.inventoryService.fetchAvailableStockItemsByWarehouse(warehouseId);
+      this.availableStockItems.set(items);
+    } finally {
+      this.isLoadingStockItems.set(false);
+    }
+  }
+
+  private resetStockSelection(): void {
+    this.selectedWarehouseId.set(null);
+    this.selectedStockItemId.set(null);
+    this.availableStockItems.set([]);
+    this.isLoadingStockItems.set(false);
   }
 
   onCategoryChange(value: string) {
@@ -584,15 +648,15 @@ export class ServiceRequestFormComponent implements OnInit {
       const payload = {
         title: this.title(),
         description: this.description(),
-        category_id: this.category_id(),
-        subcategory_id: this.subcategory_id(),
+        category_id: this.category_id() ?? 0,
+        subcategory_id: this.subcategory_id() ?? 0,
         origin_id: this.origin_id(),
         os: this.os() || null,
         address,
         requested_datetime: this.requestedDateTime(),
         priority: (this.priority() || undefined) as 'Normal' | 'Urgent' | undefined,
-        valor: isSecretary ? 0 : this.valor(),
-        valor_prestador: isSecretary ? 0 : this.valor_prestador(),
+        valor: isSecretary ? 0 : (this.valor() ?? 0),
+        valor_prestador: isSecretary ? 0 : (this.valor_prestador() ?? 0),
         latitude: this.latitude(),
         longitude: this.longitude(),
         street_manual: this.street_manual() || null,
@@ -602,16 +666,27 @@ export class ServiceRequestFormComponent implements OnInit {
         client_nif: this.client_nif() || null,
         email_client: this.email_client(),
       };
-      await this.dataService.addServiceRequest(payload);
+      const newRequestId = await this.dataService.addServiceRequest(payload);
+
+      const stockItemId = this.selectedStockItemId();
+      if (newRequestId && stockItemId) {
+        await this.serviceRequestMaterialsService.upsert({
+          service_request_id: newRequestId,
+          stock_item_id: stockItemId,
+          quantity_used: 1,
+          created_by_admin_id: this.currentUser()?.id ?? null,
+        });
+      }
       this.showSuccessMessage(this.i18n.translate("formSuccessGeneric"));
       // Opcional: resetar campos ou fechar modal
       this.closeForm.emit();
       this.isSubmitting.set(false);
     } catch (error) {
       console.error("Erro ao enviar solicitação de serviço:", error);
+      const errorMessage = error instanceof Error ? error.message : "";
       this.formError.set(
         this.i18n.translate("formErrorGeneric") +
-          (error?.message ? ` (${error.message})` : "")
+          (errorMessage ? ` (${errorMessage})` : "")
       );
       this.isSubmitting.set(false);
     }

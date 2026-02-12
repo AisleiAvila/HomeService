@@ -58,7 +58,7 @@
             <i class="fas fa-building text-brand-primary-500 mr-2 text-xs"></i>
             {{ 'origin' | i18n }}
           </label>
-          <select id="origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" [value]="origin_id()" (change)="origin_id.set(+$event.target.value)" required>
+          <select id="origin_id" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" [value]="origin_id()" (change)="onOriginChange($any($event.target).value)" required>
             <option value="0" disabled selected>{{ 'selectOrigin' | i18n }}</option>
             @for (origin of origins(); track origin) {
               <option [value]="origin.id">{{ origin.name }}</option>
@@ -135,6 +135,59 @@
           }
         </div>
       </div>
+
+      @if (isWortenOrigin()) {
+        <div class="mb-4 rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900">
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="warehouse_id">
+                <i class="fas fa-warehouse text-brand-primary-500 mr-2 text-xs"></i>
+                {{ "warehouse" | i18n }}
+              </label>
+              <select
+                id="warehouse_id"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                [value]="selectedWarehouseId() || ''"
+                (change)="onWarehouseChange($any($event.target).value)"
+                >
+                <option value="" disabled selected>{{ "selectWarehouse" | i18n }}</option>
+                @for (wh of warehouseService.warehouses(); track wh.id) {
+                  <option [value]="wh.id">{{ wh.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2" for="stock_item_id">
+                <i class="fas fa-box text-brand-primary-500 mr-2 text-xs"></i>
+                {{ "material" | i18n }}
+              </label>
+              <select
+                id="stock_item_id"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                [value]="selectedStockItemId() || ''"
+                (change)="onStockItemChange($any($event.target).value)"
+                [disabled]="!selectedWarehouseId()"
+                >
+                <option value="" disabled selected>{{ "selectMaterial" | i18n }}</option>
+                @for (item of availableStockItems(); track item.id) {
+                  <option [value]="item.id">
+                    {{ item.product_name || ("materialWithoutName" | i18n) }}
+                    - {{ item.barcode }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+
+          @if (selectedWarehouseId() && !isLoadingStockItems() && availableStockItems().length === 0) {
+            <span class="text-xs text-gray-500 dark:text-gray-400 mt-2 block">
+              {{ "noMaterialsFound" | i18n }}
+            </span>
+          }
+        </div>
+      }
 
       @if (!isSecretary()) {
         <!-- Valor Total / Valor do Prestador -->

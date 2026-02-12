@@ -1167,6 +1167,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalFueling: "Total Fueling",
     totalMaterials: "Total Materials",
     materialsList: "Materials List",
+    material: "Material",
     productName: "Product Name",
     noMaterialsFound: "No materials found.",
     warehouse: "Warehouse",
@@ -1200,6 +1201,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidQuantity: "Invalid quantity",
     searchMaterialPlaceholder: "Search by name or barcode",
     editStockItem: "Edit Stock Item",
+    serviceRequestTitle: "Service request",
 
   },
   pt: {
@@ -2377,6 +2379,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     totalFueling: "Total Abastecido",
     totalMaterials: "Total de Materiais",
     materialsList: "Lista de Materiais",
+    material: "Material",
     productName: "Nome do Produto",
     noMaterialsFound: "Nenhum material encontrado.",
     warehouse: "Armazém",
@@ -2410,6 +2413,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
     invalidQuantity: "Quantidade inválida",
     searchMaterialPlaceholder: "Pesquisar por nome ou código de barras",
     editStockItem: "Editar Item do Estoque",
+    serviceRequestTitle: "Solicitação de serviço",
 
   },
 };

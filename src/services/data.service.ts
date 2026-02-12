@@ -592,7 +592,7 @@ export class DataService {
     }
   }
 
-  async addServiceRequest(payload: ServiceRequestPayload) {
+  async addServiceRequest(payload: ServiceRequestPayload): Promise<number | null> {
     const currentUser = this.authService.appUser();
     if (!currentUser) {
       throw new Error("User not authenticated");
@@ -663,8 +663,9 @@ export class DataService {
     console.log("✅ [addServiceRequest] Solicitação criada com sucesso!");
 
     // Registrar status inicial no histórico
+    let newRequestId: number | null = null;
     if (data && data.length > 0) {
-      const newRequestId = data[0].id;
+      newRequestId = data[0].id;
       await this.recordStatusChange(
         newRequestId,
         "Solicitado",
@@ -680,7 +681,7 @@ export class DataService {
     if (currentUser) {
       await this.fetchServiceRequests(currentUser);
     }
-    return true;
+    return newRequestId;
   }
 
   async addAdminServiceRequest(payload: AdminServiceRequestPayload) {

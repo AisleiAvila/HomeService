@@ -5,8 +5,11 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { DataService } from '../../services/data.service';
 import { SupabaseService } from '../../services/supabase.service';
-import { ServiceRequest } from '../../models/maintenance.models';
+import { ServiceRequest, StockItem, StockItemStatus } from '../../models/maintenance.models';
 import { PortugalAddressValidationService } from '../../services/portugal-address-validation.service';
+import { WarehouseService } from '../../services/warehouse.service';
+import { InventoryService } from '../../services/inventory.service';
+import { ServiceRequestMaterialsService } from '../../services/service-request-materials.service';
 import {
   localDateTimeToUtcIso,
   normalizeServiceTimeZone,
@@ -32,8 +35,15 @@ export class ServiceRequestEditComponent implements OnInit {
   private readonly supabaseService = inject(SupabaseService);
   private readonly authService = inject(DataService).authService;
   private readonly addressValidation = inject(PortugalAddressValidationService);
+  readonly warehouseService = inject(WarehouseService);
+  private readonly inventoryService = inject(InventoryService);
+  private readonly serviceRequestMaterialsService = inject(ServiceRequestMaterialsService);
 
   private readonly serviceTimeZone = signal<string>('Europe/Lisbon');
+  readonly selectedWarehouseId = signal<number | null>(null);
+  readonly selectedStockItemId = signal<number | null>(null);
+  readonly availableStockItems = signal<StockItem[]>([]);
+  readonly isLoadingStockItems = signal(false);
 
   request: ServiceRequest | null = null;
   loading = true;
@@ -86,6 +96,16 @@ export class ServiceRequestEditComponent implements OnInit {
     return selectedCategory?.subcategories || [];
   });
 
+  isWortenOrigin = computed(() => {
+    const originId = this.request?.origin_id ?? null;
+    if (!originId) return false;
+    if (originId === 2) return true;
+
+    const originName =
+      this.origins.find((origin) => origin.id === originId)?.name || "";
+    return originName.toLowerCase().includes("worten");
+  });
+
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
@@ -96,7 +116,8 @@ export class ServiceRequestEditComponent implements OnInit {
     // Carregar origens e categorias (métodos públicos)
     Promise.all([
       this.dataService.fetchOrigins?.(),
-      this.dataService.fetchCategories?.()
+      this.dataService.fetchCategories?.(),
+      this.warehouseService.fetchWarehouses(),
     ]).then(() => {
       this.request = this.dataService.getServiceRequestById(id) || null;
       console.log('Edit request loaded:', this.request);
@@ -115,6 +136,8 @@ export class ServiceRequestEditComponent implements OnInit {
         // Inicializar timezone do serviço (preferir valor persistido; fallback via lookup)
         this.serviceTimeZone.set(normalizeServiceTimeZone((this.request as any).service_time_zone));
         void this.refreshTimeZoneFromZip(this.request.zip_code);
+
+        void this.initializeStockSelection();
       }
       
       this.loading = false;
@@ -135,6 +158,91 @@ export class ServiceRequestEditComponent implements OnInit {
         this.cdr.markForCheck();
       }
     }, 5000);
+  }
+
+  private async initializeStockSelection(): Promise<void> {
+    if (!this.request || !this.isWortenOrigin()) {
+      this.resetStockSelection();
+      return;
+    }
+
+    const associated = await this.serviceRequestMaterialsService.fetchByRequest(this.request.id);
+    if (associated.length === 0) {
+      this.resetStockSelection();
+      return;
+    }
+
+    const current = associated[0];
+    const currentItem = current.stock_item ?? null;
+    const warehouseId =
+      currentItem?.warehouse_id ?? currentItem?.warehouse?.id ?? null;
+
+    if (!warehouseId) {
+      this.resetStockSelection();
+      return;
+    }
+
+    this.selectedWarehouseId.set(warehouseId);
+    this.selectedStockItemId.set(current.stock_item_id);
+
+    await this.loadEditableStockItems(warehouseId);
+    if (currentItem) {
+      const exists = this.availableStockItems().some((item) => item.id === currentItem.id);
+      if (!exists) {
+        this.availableStockItems.update((items) => [currentItem, ...items]);
+      }
+    }
+  }
+
+  onOriginChange(originId: number | null): void {
+    if (!this.request) return;
+    this.request.origin_id = originId ?? null;
+
+    if (!this.isWortenOrigin()) {
+      this.resetStockSelection();
+    }
+  }
+
+  async onWarehouseChange(warehouseId: string): Promise<void> {
+    const parsedId = warehouseId ? Number(warehouseId) : null;
+    this.selectedWarehouseId.set(parsedId);
+    this.selectedStockItemId.set(null);
+
+    if (!parsedId) {
+      this.availableStockItems.set([]);
+      return;
+    }
+
+    await this.loadEditableStockItems(parsedId);
+  }
+
+  onStockItemChange(stockItemId: string): void {
+    const parsedId = stockItemId ? Number(stockItemId) : null;
+    this.selectedStockItemId.set(parsedId);
+  }
+
+  private async loadEditableStockItems(warehouseId: number): Promise<void> {
+    this.isLoadingStockItems.set(true);
+    try {
+      if (!this.request) {
+        this.availableStockItems.set([]);
+        return;
+      }
+      const items = await this.inventoryService.fetchReceivedStockItemsByWarehouseForEdit(
+        warehouseId,
+        this.request.id
+      );
+      this.availableStockItems.set(items);
+    } finally {
+      this.isLoadingStockItems.set(false);
+    }
+  }
+
+  private resetStockSelection(): void {
+    this.selectedWarehouseId.set(null);
+    this.selectedStockItemId.set(null);
+    this.availableStockItems.set([]);
+    this.isLoadingStockItems.set(false);
   }
 
   private async refreshTimeZoneFromZip(zipCode: string) {
@@ -327,6 +435,8 @@ export class ServiceRequestEditComponent implements OnInit {
       const updatedRequest = this.dataService.getServiceRequestById(this.request.id);
       console.log('Dados após reload:', updatedRequest);
       
+      await this.handleWortenMaterialAssociation();
+
       const role = this.authService.appUser()?.role;
       this.router.navigate([role === 'secretario' ? '/requests' : '/admin/requests']);
     } catch (e) {
@@ -337,6 +447,72 @@ export class ServiceRequestEditComponent implements OnInit {
       this.loading = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private async handleWortenMaterialAssociation(): Promise<void> {
+    if (!this.request || !this.isWortenOrigin()) {
+      return;
+    }
+
+    const selectedId = this.selectedStockItemId();
+    const associated = await this.serviceRequestMaterialsService.fetchByRequest(this.request.id);
+    const associatedById = new Map(
+      associated.map((material) => [material.stock_item_id, material])
+    );
+
+    if (selectedId) {
+      for (const material of associated) {
+        if (material.stock_item_id !== selectedId) {
+          await this.serviceRequestMaterialsService.removeById(material.id);
+          if (material.stock_item) {
+            await this.updateStockItemAssociation(material.stock_item, null, "Recebido");
+          } else {
+            await this.inventoryService.updateStockItem(material.stock_item_id, {
+              service_request_id: null,
+              status: "Recebido",
+            });
+          }
+        }
+      }
+
+      if (!associatedById.has(selectedId)) {
+        await this.serviceRequestMaterialsService.upsert({
+          service_request_id: this.request.id,
+          stock_item_id: selectedId,
+          quantity_used: 1,
+          created_by_admin_id: this.authService.appUser()?.id ?? null,
+        });
+      }
+
+      return;
+    }
+
+    for (const material of associated) {
+      await this.serviceRequestMaterialsService.removeById(material.id);
+      if (material.stock_item) {
+        await this.updateStockItemAssociation(material.stock_item, null, "Recebido");
+      } else {
+        await this.inventoryService.updateStockItem(material.stock_item_id, {
+          service_request_id: null,
+          status: "Recebido",
+        });
+      }
+    }
+  }
+
+  private async updateStockItemAssociation(
+    item: StockItem,
+    serviceRequestId: number | null,
+    status: StockItemStatus
+  ): Promise<void> {
+    if (item.service_request_id === serviceRequestId && item.status === status) {
+      return;
+    }
+
+    await this.inventoryService.updateStockItem(item.id, {
+      service_request_id: serviceRequestId,
+      status,
+    });
   }
 
   cancel() {

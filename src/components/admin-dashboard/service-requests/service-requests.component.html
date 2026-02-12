@@ -1048,13 +1048,6 @@
                                 [title]="'viewDetails' | i18n" [attr.aria-label]="'viewDetails' | i18n">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            @if (canManageMaterials()) {
-                            <button (click)="openMaterialsModal(req)"
-                                class="w-10 h-10 flex items-center justify-center text-brand-primary-500 hover:text-brand-primary-600 hover:bg-brand-primary-50 rounded-md transition-colors"
-                                [title]="'associateMaterials' | i18n" [attr.aria-label]="'associateMaterials' | i18n">
-                                <i class="fas fa-box"></i>
-                            </button>
-                            }
                             @if (canViewTechnicalReport(req)) {
                             <button (click)="openExistingTechnicalReport(req)"
                                 class="w-10 h-10 flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
@@ -1529,13 +1522,6 @@
                         [attr.aria-label]="'viewDetails' | i18n">
                         <i class="fas fa-eye"></i>
                     </button>
-                    @if (canManageMaterials()) {
-                    <button (click)="openMaterialsModal(req)" title="{{ 'associateMaterials' | i18n }}"
-                        class="w-10 h-10 inline-flex items-center justify-center text-brand-primary-500 bg-brand-primary-50 hover:bg-brand-primary-100 rounded-md transition-colors duration-200"
-                        [attr.aria-label]="'associateMaterials' | i18n">
-                        <i class="fas fa-box"></i>
-                    </button>
-                    }
                     @if (canViewTechnicalReport(req)) {
                     <button (click)="openExistingTechnicalReport(req)" title="{{ 'viewTechnicalReport' | i18n }}"
                         class="w-10 h-10 inline-flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors duration-200"

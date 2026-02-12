@@ -142,13 +142,16 @@ export class ServiceRequestMaterialsService {
       return false;
     }
 
-    // Ao confirmar associação, se estiver como Recebido, mudar para Distribuído
-    if (currentStatus === "Recebido") {
+    // Ao confirmar associação, marcar o item como distribuído e vincular à solicitação
+    if (currentStatus === "Recebido" || currentStatus === "Distribuído") {
       let statusQuery = this.supabase.client
-          .from("stock_items")
-          .update({ status: "Distribuído" satisfies StockItemStatus })
-          .eq("id", payload.stock_item_id)
-          .in("status", ["Recebido"]);
+        .from("stock_items")
+        .update({
+          status: "Distribuído" satisfies StockItemStatus,
+          service_request_id: payload.service_request_id,
+        })
+        .eq("id", payload.stock_item_id)
+        .in("status", ["Recebido", "Distribuído"]);
 
       if (allowed.mode === "restricted") {
         if (allowed.ids.length === 0) {
