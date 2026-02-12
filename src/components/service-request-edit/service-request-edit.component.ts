@@ -203,8 +203,8 @@ export class ServiceRequestEditComponent implements OnInit {
     }
   }
 
-  async onWarehouseChange(warehouseId: string): Promise<void> {
-    const parsedId = warehouseId ? Number(warehouseId) : null;
+  async onWarehouseChange(warehouseId: number | null): Promise<void> {
+    const parsedId = typeof warehouseId === "number" ? warehouseId : null;
     this.selectedWarehouseId.set(parsedId);
     this.selectedStockItemId.set(null);
 
@@ -216,8 +216,8 @@ export class ServiceRequestEditComponent implements OnInit {
     await this.loadEditableStockItems(parsedId);
   }
 
-  onStockItemChange(stockItemId: string): void {
-    const parsedId = stockItemId ? Number(stockItemId) : null;
+  onStockItemChange(stockItemId: number | null): void {
+    const parsedId = typeof stockItemId === "number" ? stockItemId : null;
     this.selectedStockItemId.set(parsedId);
   }
 
