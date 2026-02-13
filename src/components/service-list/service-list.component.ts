@@ -153,6 +153,11 @@ export class ServiceListComponent implements OnInit {
     return role === "professional" || role === "professional_almoxarife";
   }
 
+  isServiceInProgress(request: ServiceRequest): boolean {
+    const normalized = this.normalizeStatusValue(request.status);
+    return normalized === "em progresso" || normalized === "in progress";
+  }
+
   // Pagination state
   currentPage = signal(1);
   itemsPerPage = signal(10);

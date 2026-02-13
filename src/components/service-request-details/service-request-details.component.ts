@@ -756,7 +756,7 @@ export class ServiceRequestDetailsComponent {
         condition:
           user.role === "professional" &&
           req.professional_id === user.id &&
-          req.status === "Aceito" &&
+          (req.status === "Aceito" || req.status === "Em Progresso") &&
           !req.scheduled_date,
       },
       {
