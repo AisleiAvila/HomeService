@@ -90,7 +90,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
       this.supplier.set(item.supplier);
       this.receivedAt.set(this.formatDateTimeLocal(new Date(item.received_at)));
       this.notes.set(item.notes || "");
-      this.warehouseId.set(item.warehouse_id);
+      this.warehouseId.set(item.warehouse_id ?? null);
     }
   }
 
@@ -117,7 +117,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
       if (item) {
         // Modo edição - permite manter o mesmo código de barras
         const updated = await this.inventoryService.updateStockItem(item.id, {
-          product_name: this.productName().trim() || null,
+          product_name: this.productName().trim(),
           quantity: this.quantity(),
           supplier: this.supplier().trim(),
           received_at: receivedAtIso,
@@ -137,7 +137,7 @@ export class StockIntakeFormComponent implements OnInit, OnDestroy {
 
         const saved = await this.inventoryService.addStockItem({
           barcode: barcodeValue,
-          product_name: this.productName().trim() || null,
+          product_name: this.productName().trim(),
           quantity: this.quantity() || 1,
           supplier: this.supplier().trim() || "Worten",
           notes: this.notes().trim() || null,

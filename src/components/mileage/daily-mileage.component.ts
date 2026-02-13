@@ -63,11 +63,13 @@ export class DailyMileageComponent implements OnInit {
   async saveEditedFueling() {
     const fueling = this.editingFueling();
     if (!fueling) return;
-    const value = this.editFuelingValue();
+    const value = this.editFuelingValue() ?? undefined;
     const licensePlate = this.editFuelingLicensePlate().trim();
     let receiptUrl = fueling.receipt_image_url;
-    if (this.editFuelingReceiptFile()) {
-      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.editFuelingReceiptFile());
+    const file = this.editFuelingReceiptFile();
+    if (file) {
+      const uploadedUrl = await this.dailyMileageService.uploadReceiptImage(file);
+      receiptUrl = uploadedUrl ?? undefined;
     }
     await this.dailyMileageService.updateFueling(fueling.id, {
       value,
@@ -508,8 +510,10 @@ export class DailyMileageComponent implements OnInit {
     }
 
     let receiptUrl: string | undefined;
-    if (this.fuelingReceiptFile()) {
-      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
+    const file = this.fuelingReceiptFile();
+    if (file) {
+      const uploadedUrl = await this.dailyMileageService.uploadReceiptImage(file);
+      receiptUrl = uploadedUrl ?? undefined;
     }
 
     await this.dailyMileageService.addFueling({
@@ -540,8 +544,10 @@ export class DailyMileageComponent implements OnInit {
     }
 
     let receiptUrl: string | undefined;
-    if (this.fuelingReceiptFile()) {
-      receiptUrl = await this.dailyMileageService.uploadReceiptImage(this.fuelingReceiptFile());
+    const file = this.fuelingReceiptFile();
+    if (file) {
+      const uploadedUrl = await this.dailyMileageService.uploadReceiptImage(file);
+      receiptUrl = uploadedUrl ?? undefined;
     }
 
     await this.dailyMileageService.addFueling({
@@ -603,7 +609,7 @@ export class DailyMileageComponent implements OnInit {
       date: selectedDate,
       license_plate: licensePlate,
       start_kilometers: startKm,
-      end_kilometers: endKm,
+      end_kilometers: endKm ?? undefined,
     });
 
     if (dailyMileage) {
@@ -702,7 +708,7 @@ export class DailyMileageComponent implements OnInit {
 
     const updates: Partial<DailyMileage> = {
       start_kilometers: startKm,
-      end_kilometers: endKm,
+      end_kilometers: endKm ?? undefined,
       license_plate: null,
     };
 

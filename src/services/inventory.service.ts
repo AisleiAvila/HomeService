@@ -7,7 +7,7 @@ import { UserWarehousesService } from "./user-warehouses.service";
 
 export interface StockItemCreatePayload {
   barcode: string;
-  product_name: string;
+  product_name: string | null;
   quantity: number;
   supplier: string;
   received_at: string;
