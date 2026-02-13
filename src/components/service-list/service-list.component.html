@@ -1030,6 +1030,7 @@
                         </svg>
                         <div class="text-sm min-w-0 flex-1">
                           @let tz = getServiceTimeZone(request);
+                          @let scheduledDateTime = getScheduledDateTime(request);
                           <div class="flex items-start justify-between gap-2">
                             <span class="font-medium text-gray-700">{{ "scheduled" | i18n }}:</span>
                             <div class="ml-auto text-right">
