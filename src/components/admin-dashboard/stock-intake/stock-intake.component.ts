@@ -168,6 +168,31 @@ export class StockIntakeComponent {
 	// Total materials
 	readonly totalMaterials = computed(() => this.filteredStockItems().length);
 
+	// Total distributed materials
+	readonly totalDistributedMaterials = computed(() =>
+		this.filteredStockItems().filter(item => item.status === 'Distribuído').length
+	);
+
+	// Total received materials
+	readonly totalReceivedMaterials = computed(() =>
+		this.filteredStockItems().filter(item => item.status === 'Recebido').length
+	);
+
+	// Total withdrawn materials
+	readonly totalWithdrawnMaterials = computed(() =>
+		this.filteredStockItems().filter(item => item.status === 'Retirado').length
+	);
+
+	// Total installed materials
+	readonly totalInstalledMaterials = computed(() =>
+		this.filteredStockItems().filter(item => item.status === 'Instalado').length
+	);
+
+	// Total returned materials
+	readonly totalReturnedMaterials = computed(() =>
+		this.filteredStockItems().filter(item => item.status === 'Devolvido').length
+	);
+
 	// Pagination helpers (mesmo padrão de Solicitações)
 	get pageNumbers(): number[] {
 		const total = this.totalPages();
