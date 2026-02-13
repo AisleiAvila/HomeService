@@ -443,10 +443,10 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    if (category) reqs = reqs.filter((r) => String(r.category_id) === category);
+    if (category) reqs = reqs.filter((r) => String(r.category_id) === String(category));
 
     if (origin) {
-      reqs = reqs.filter((r) => String(r.origin_id ?? r.origin?.id ?? "") === origin);
+      reqs = reqs.filter((r) => String(r.origin_id ?? r.origin?.id ?? "") === String(origin));
     }
 
     // Filtro por OS (comparação por substring)
