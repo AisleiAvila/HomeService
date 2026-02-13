@@ -45,6 +45,7 @@ export class StockIntakeComponent {
 	readonly filterStatus = signal('');
 	readonly filterDateStart = signal('');
 	readonly filterDateEnd = signal('');
+	readonly filterServiceRequest = signal('');
 
 	readonly statusOptions = ['Recebido', 'Distribuído', 'Retirado', 'Instalado', 'Devolvido'] as const;
 
@@ -79,6 +80,7 @@ export class StockIntakeComponent {
 				this.filterStatus.set(state.filterStatus || '');
 				this.filterDateStart.set(state.filterDateStart || '');
 				this.filterDateEnd.set(state.filterDateEnd || '');
+				this.filterServiceRequest.set(state.filterServiceRequest || '');
 				this.sortBy.set(state.sortBy || 'received_at');
 				this.sortOrder.set(state.sortOrder || 'desc');
 				this.currentPage.set(state.currentPage || 1);
@@ -103,6 +105,7 @@ export class StockIntakeComponent {
 			this.filterStatus();
 			this.filterDateStart();
 			this.filterDateEnd();
+			this.filterServiceRequest();
 			this.sortBy();
 			this.sortOrder();
 			this.itemsPerPage();
@@ -140,6 +143,12 @@ export class StockIntakeComponent {
 		}
 		if (this.filterStatus()) {
 			items = items.filter(i => (i.status ?? '') === this.filterStatus());
+		}
+		if (this.filterServiceRequest()) {
+			const serviceRequestId = this.filterServiceRequest().trim();
+			items = items.filter(i => 
+				String(i.service_request?.id || i.service_request_id || '').includes(serviceRequestId)
+			);
 		}
 		if (this.filterDateStart()) {
 			items = items.filter(i => i.received_at && i.received_at >= this.filterDateStart());
@@ -275,6 +284,8 @@ export class StockIntakeComponent {
 					return compareText(a.warehouse?.name ?? '', b.warehouse?.name ?? '') * multiplier;
 				case 'status':
 					return compareText(a.status ?? '', b.status ?? '') * multiplier;
+				case 'service_request':
+					return compareNullableNumber(a.service_request?.id ?? a.service_request_id, b.service_request?.id ?? b.service_request_id) * multiplier;
 				default:
 					return 0;
 			}
@@ -377,6 +388,7 @@ export class StockIntakeComponent {
 		this.filterSupplier.set('');
 		this.filterWarehouse.set('');
 		this.filterStatus.set('');
+		this.filterServiceRequest.set('');
 		this.filterDateStart.set('');
 		this.filterDateEnd.set('');
 	}
