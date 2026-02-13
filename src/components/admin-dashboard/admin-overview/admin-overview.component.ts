@@ -75,7 +75,7 @@ export class AdminOverviewComponent implements OnInit {
 
             filtered = filtered.filter(r => {
                 // Tentar requested_datetime primeiro, depois requested_date, depois scheduled_date
-                const dateToCheck = (r as any).requested_datetime || (r as any).requested_date || (r as any).scheduled_date;
+                const dateToCheck = r.requested_datetime || r.requested_date || r.scheduled_date;
                 
                 if (!dateToCheck) {
                     console.warn(`[filteredRequests] ID ${r.id}: sem data (requested_datetime/requested_date/scheduled_date)`);
@@ -172,8 +172,8 @@ export class AdminOverviewComponent implements OnInit {
                         if (Number.parseInt(pro, 10) !== r.professional_id) return false;
                     }
 
-                    const completed = new Date(r.completed_at);
-                    if (Number.isNaN(completed.getTime())) return false;
+                    const completed = r.completed_at ? new Date(r.completed_at) : null;
+                    if (!completed || Number.isNaN(completed.getTime())) return false;
 
                     const completedDateStr = completed.toISOString().split('T')[0];
                     return completedDateStr === dateStr;
@@ -219,8 +219,8 @@ export class AdminOverviewComponent implements OnInit {
             }
 
             requests = requests.filter(r => {
-                const completed = new Date(r.completed_at);
-                if (Number.isNaN(completed.getTime())) return false;
+                const completed = r.completed_at ? new Date(r.completed_at) : null;
+                if (!completed || Number.isNaN(completed.getTime())) return false;
                 if (startDate && completed < startDate) return false;
                 if (endDate && completed > endDate) return false;
                 return true;
@@ -282,21 +282,97 @@ export class AdminOverviewComponent implements OnInit {
         }
     }
 
+    // Método helper para calcular valor em um período específico
+    private calculateValueInPeriod(start: Date, end: Date, allRequests: any[], valueType: 'count' | 'revenue' | 'active' | 'completed' | 'finalized'): number {
+        const filtered = allRequests.filter(r => {
+            const dateToCheck = r.requested_datetime || r.requested_date || r.scheduled_date;
+            if (!dateToCheck) return false;
+            const requestDate = new Date(dateToCheck);
+            return requestDate >= start && requestDate <= end;
+        });
+
+        switch (valueType) {
+            case 'revenue':
+                return filtered.reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+            case 'count':
+                return filtered.length;
+            case 'active':
+                return filtered.filter(r => r.status === 'In Progress' || r.status === 'Em Progresso').length;
+            case 'completed':
+                return filtered.filter(r => r.status === 'Concluído').length;
+            case 'finalized':
+                return filtered.filter(r => r.status === 'Finalizado').length;
+            default:
+                return 0;
+        }
+    }
+
+    // Método para calcular tendência de um valor específico
+    private calculateTrend(currentValue: number, previousValue: number): string {
+        if (previousValue <= 0) return '+0%';
+        const percent = ((currentValue - previousValue) / previousValue) * 100;
+        return (percent >= 0 ? '+' : '') + percent.toFixed(1) + '%';
+    }
+
+    // Método para obter período anterior
+    private getPreviousPeriod(): { start: Date; end: Date } | null {
+        const currentStart = this.startDate() ? new Date(this.startDate()) : null;
+        const currentEnd = this.endDate() ? new Date(this.endDate()) : null;
+
+        if (!currentStart || !currentEnd) return null;
+
+        // Calcular diferença em dias
+        const diffTime = currentEnd.getTime() - currentStart.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Período anterior: mesmo número de dias, um mês atrás
+        const previousStart = new Date(currentStart);
+        previousStart.setMonth(previousStart.getMonth() - 1);
+        const previousEnd = new Date(previousStart);
+        previousEnd.setDate(previousEnd.getDate() + diffDays - 1);
+
+        return { start: previousStart, end: previousEnd };
+    }
+
+    // Método para calcular tendências
+    private calculateTrends(): { revenue: string; active: string; completed: string; finalized: string } {
+        const previousPeriod = this.getPreviousPeriod();
+        if (!previousPeriod) {
+            return { revenue: '+0%', active: '+0%', completed: '+0%', finalized: '+0%' };
+        }
+
+        const allRequests = this.dataService.serviceRequests();
+        const requests = this.filteredRequests();
+
+        const currentRevenue = requests.reduce((sum, r) => sum + this.validateCost(r.valor), 0);
+        const previousRevenue = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'revenue');
+
+        const currentActive = requests.filter(r => r.status === 'In Progress' || r.status === 'Em Progresso').length;
+        const previousActive = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'active');
+
+        const currentCompleted = requests.filter(r => r.status === 'Concluído').length;
+        const previousCompleted = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'completed');
+
+        const currentFinalized = requests.filter(r => r.status === 'Finalizado').length;
+        const previousFinalized = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'finalized');
+
+        return {
+            revenue: this.calculateTrend(currentRevenue, previousRevenue),
+            active: this.calculateTrend(currentActive, previousActive),
+            completed: this.calculateTrend(currentCompleted, previousCompleted),
+            finalized: this.calculateTrend(currentFinalized, previousFinalized)
+        };
+    }
+
     stats = computed(() => {
         // Cards principais: todos os dados vêm de filteredRequests
         const requests = this.filteredRequests();
         const activeServices = requests.filter(r => r.status === 'In Progress' || r.status === 'Em Progresso').length;
         const completedServices = requests.filter(r => r.status === 'Concluído').length;
         const finalizedServices = requests.filter(r => r.status === 'Finalizado').length;
-        // Tendências fixas (pode-se implementar lógica real depois)
-        const trends = {
-            revenue: '+0%',
-            approvals: '+0%',
-            active: '+0%',
-            completed: '+0%',
-            finalized: '+0%',
-            clients: '+0%'
-        };
+
+        // Calcular tendências
+        const trends = this.calculateTrends();
 
         // Montar lista de stats/cards
         const scheduledServices = requests.filter(r => r.status === 'Data Definida').length;
