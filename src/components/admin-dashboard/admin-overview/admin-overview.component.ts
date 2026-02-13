@@ -283,7 +283,7 @@ export class AdminOverviewComponent implements OnInit {
     }
 
     // Método helper para calcular valor em um período específico
-    private calculateValueInPeriod(start: Date, end: Date, allRequests: any[], valueType: 'count' | 'revenue' | 'active' | 'completed' | 'finalized'): number {
+    private calculateValueInPeriod(start: Date, end: Date, allRequests: any[], valueType: 'count' | 'revenue' | 'active' | 'completed' | 'finalized' | 'scheduled'): number {
         const filtered = allRequests.filter(r => {
             const dateToCheck = r.requested_datetime || r.requested_date || r.scheduled_date;
             if (!dateToCheck) return false;
@@ -302,6 +302,8 @@ export class AdminOverviewComponent implements OnInit {
                 return filtered.filter(r => r.status === 'Concluído').length;
             case 'finalized':
                 return filtered.filter(r => r.status === 'Finalizado').length;
+            case 'scheduled':
+                return filtered.filter(r => r.status === 'Data Definida').length;
             default:
                 return 0;
         }
@@ -335,10 +337,10 @@ export class AdminOverviewComponent implements OnInit {
     }
 
     // Método para calcular tendências
-    private calculateTrends(): { revenue: string; active: string; completed: string; finalized: string } {
+    private calculateTrends(): { revenue: string; active: string; completed: string; finalized: string; total: string; scheduled: string } {
         const previousPeriod = this.getPreviousPeriod();
         if (!previousPeriod) {
-            return { revenue: '+0%', active: '+0%', completed: '+0%', finalized: '+0%' };
+            return { revenue: '+0%', active: '+0%', completed: '+0%', finalized: '+0%', total: '+0%', scheduled: '+0%' };
         }
 
         const allRequests = this.dataService.serviceRequests();
@@ -356,11 +358,19 @@ export class AdminOverviewComponent implements OnInit {
         const currentFinalized = requests.filter(r => r.status === 'Finalizado').length;
         const previousFinalized = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'finalized');
 
+        const currentTotal = requests.length;
+        const previousTotal = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'count');
+
+        const currentScheduled = requests.filter(r => r.status === 'Data Definida').length;
+        const previousScheduled = this.calculateValueInPeriod(previousPeriod.start, previousPeriod.end, allRequests, 'scheduled');
+
         return {
             revenue: this.calculateTrend(currentRevenue, previousRevenue),
             active: this.calculateTrend(currentActive, previousActive),
             completed: this.calculateTrend(currentCompleted, previousCompleted),
-            finalized: this.calculateTrend(currentFinalized, previousFinalized)
+            finalized: this.calculateTrend(currentFinalized, previousFinalized),
+            total: this.calculateTrend(currentTotal, previousTotal),
+            scheduled: this.calculateTrend(currentScheduled, previousScheduled)
         };
     }
 
@@ -396,8 +406,8 @@ export class AdminOverviewComponent implements OnInit {
                 rawValue: requests.length,
                 icon: "fas fa-list-alt",
                 bgColor: "bg-linear-to-br from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-600 text-white dark:text-white",
-                trend: '+0%',
-                trendColor: "text-green-600",
+                trend: trends.total,
+                trendColor: trends.total.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
             },
@@ -408,8 +418,8 @@ export class AdminOverviewComponent implements OnInit {
                 rawValue: scheduledServices,
                 icon: "fas fa-calendar-alt",
                 bgColor: "bg-linear-to-br from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 text-white dark:text-white",
-                trend: '+0%',
-                trendColor: "text-green-600",
+                trend: trends.scheduled,
+                trendColor: trends.scheduled.includes("+") ? "text-green-600" : "text-red-600",
                 badge: null,
                 sparklineData: [],
             },
