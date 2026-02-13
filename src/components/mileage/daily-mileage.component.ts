@@ -368,6 +368,16 @@ export class DailyMileageComponent implements OnInit {
     this.filterLicensePlate.set(value);
   }
 
+  onFilterProfessionalChange(value: string | number) {
+    if (value === '' || value === null || value === undefined) {
+      this.filterProfessionalId.set(null);
+      return;
+    }
+
+    const parsed = typeof value === 'number' ? value : Number(value);
+    this.filterProfessionalId.set(Number.isNaN(parsed) ? null : parsed);
+  }
+
   getProfessionalName(professionalId: number): string {
     const professional = this.professionals().find(p => p.id === professionalId);
     return professional?.name || 'Desconhecido';
