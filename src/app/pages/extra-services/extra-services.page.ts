@@ -336,4 +336,168 @@ export class ExtraServicesPage implements OnInit {
     await this.extraServicesService.confirmReimbursement(service.id);
     this.closeReimbursementConfirmModal();
   }
+
+  // Gerar relatório PDF usando os filtros atuais
+  async generateReport(): Promise<void> {
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
+    const doc = new jsPDF();
+
+    const autoTable: any =
+      (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
+
+    // Configurações da página
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    let yPosition = margin;
+
+    // Função auxiliar para adicionar texto com quebra de linha
+    const addText = (text: string, x: number, y: number, options: any = {}) => {
+      doc.text(text, x, y, options);
+      return y + 7; // Altura aproximada da linha
+    };
+
+    // Header - Logotipo
+    try {
+      // Tentar carregar o logotipo como base64
+      const response = await fetch('assets/logo-new.png');
+      const blob = await response.blob();
+      const reader = new FileReader();
+      await new Promise((resolve, reject) => {
+        reader.onload = resolve;
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const logoData = reader.result as string;
+      doc.addImage(logoData, 'PNG', margin, yPosition, 50, 20);
+      yPosition += 25;
+    } catch (error) {
+      console.warn('Erro ao carregar logotipo:', error);
+      yPosition += 10;
+    }
+
+    // Título do relatório
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    yPosition = addText('Relatório de Serviços Extras Realizados', pageWidth / 2, yPosition, { align: 'center' });
+
+    // Nome do usuário
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText(`Emitido por: ${this.currentUser()?.name || 'Usuário'}`, pageWidth / 2, yPosition, { align: 'center' });
+
+    yPosition += 10;
+
+    // Linha separadora
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Filtros aplicados
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    yPosition = addText('Filtros Aplicados:', margin, yPosition);
+
+    doc.setFont('helvetica', 'normal');
+    if (this.filterService()) {
+      yPosition = addText(`Serviço: ${this.filterService()}`, margin + 10, yPosition);
+    }
+    if (this.filterExtraService()) {
+      yPosition = addText(`Serviço Extra: ${this.filterExtraService()}`, margin + 10, yPosition);
+    }
+    if (this.filterProfessional()) {
+      const professional = this.professionalOptions().find(p => p.id === this.filterProfessional());
+      yPosition = addText(`Profissional: ${professional?.name || 'N/A'}`, margin + 10, yPosition);
+    }
+    if (this.filterStatus()) {
+      const statusText = this.filterStatus() === 'done' ? 'Realizado' : this.filterStatus() === 'pending' ? 'Pendente' : 'Todos';
+      yPosition = addText(`Status: ${statusText}`, margin + 10, yPosition);
+    }
+    if (this.filterPerformedDate()) {
+      yPosition = addText(`Data Realizada: ${this.formatDate(this.filterPerformedDate())}`, margin + 10, yPosition);
+    }
+
+    yPosition += 10;
+
+    // Dados filtrados
+    const filteredData = this.filteredExtraServicesView();
+
+    // Tabela de dados
+    const tableData = filteredData.map(service => {
+      const professional = this.professionalOptions().find(p => p.id === service.professional_id);
+      const status = service.has_reimbursement ? 'Realizado' : 'Pendente';
+      const realizedDate = service.requestEndDate ? this.formatDate(service.requestEndDate) : '';
+
+      return [
+        service.requestTitle,
+        service.description,
+        professional?.name || 'N/A',
+        `€${service.value.toFixed(2)}`,
+        service.reimbursement_value ? `€${service.reimbursement_value.toFixed(2)}` : '€0.00',
+        status,
+        realizedDate
+      ];
+    });
+
+    // Calcular totais
+    const totalValue = filteredData.reduce((sum, s) => sum + s.value, 0);
+    const totalReimbursement = filteredData.reduce((sum, s) => sum + (s.reimbursement_value || 0), 0);
+
+    // Adicionar linha de totais
+    if (tableData.length > 0) {
+      tableData.push([
+        'TOTAL',
+        '',
+        '',
+        `€${totalValue.toFixed(2)}`,
+        `€${totalReimbursement.toFixed(2)}`,
+        '',
+        ''
+      ]);
+    }
+
+    // Configurar autoTable
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Serviço', 'Serviço Extra', 'Profissional', 'Valor', 'Reembolso', 'Status', 'Realizado']],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [41, 128, 185], // Cor azul
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: 10 },
+      didDrawPage: (data: any) => {
+        // Rodapé
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        const currentPage = data.pageNumber;
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Página ${currentPage} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+        doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-PT')}`, margin, pageHeight - 10);
+      }
+    });
+
+    // Salvar o PDF
+    const fileName = `relatorio-servicos-extras-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+  }
+
+  private formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-PT');
+  }
 }
