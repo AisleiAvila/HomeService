@@ -118,14 +118,20 @@ export class NotificationsComponent implements OnInit {
     switch (type) {
       case 'service_assigned':
         return '👷';
-      case 'service_accepted':
+      case 'execution_date_approved':
         return '✅';
-      case 'service_scheduled':
+      case 'execution_date_proposal':
         return '📅';
-      case 'service_completed':
-        return '🎉';
-      case 'payment_received':
+      case 'execution_date_rejected':
+        return '❌';
+      case 'payment_due':
+        return '💳';
+      case 'payment_completed':
         return '💰';
+      case 'deadline_warning':
+        return '⏰';
+      case 'overdue_alert':
+        return '⚠️';
       default:
         return '🔔';
     }

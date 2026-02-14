@@ -1,7 +1,9 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
-import { EnhancedNotification } from "../models/maintenance.models";
+import { EnhancedNotification, NotificationType } from "../models/maintenance.models";
+
+type NotificationPriority = "low" | "medium" | "high";
 
 /**
  * Serviço para gerenciamento de notificações in-app
@@ -15,6 +17,8 @@ export class InAppNotificationService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
 
+  private notificationsChannel: any = null;
+
   // Signal com todas as notificações do usuário atual
   readonly notifications = signal<EnhancedNotification[]>([]);
   
@@ -26,7 +30,7 @@ export class InAppNotificationService {
    */
   async createNotification(
     userId: number,
-    type: string,
+    type: NotificationType,
     title: string,
     message: string,
     link?: string,
@@ -34,29 +38,63 @@ export class InAppNotificationService {
     priority: "low" | "medium" | "high" = "medium",
     actionRequired: boolean = false
   ): Promise<EnhancedNotification | null> {
+    return this.createEnhancedNotification(userId, type, title, message, {
+      priority,
+      actionRequired,
+      serviceRequestId: metadata?.serviceRequestId,
+    });
+  }
+
+  /**
+   * Criar notificação aprimorada (contrato padrão)
+   */
+  async createEnhancedNotification(
+    userId: number,
+    type: NotificationType,
+    title: string,
+    message: string,
+    options?: {
+      serviceRequestId?: number;
+      actionRequired?: boolean;
+      priority?: NotificationPriority;
+      expiresInHours?: number;
+    }
+  ): Promise<EnhancedNotification | null> {
     try {
-      const notification = {
+      const dailyDedupeTypes = new Set<NotificationType>([
+        "deadline_warning",
+        "overdue_alert",
+      ]);
+      const dedupeDate = dailyDedupeTypes.has(type)
+        ? new Date().toISOString().split("T")[0]
+        : undefined;
+      const notification: Partial<EnhancedNotification> = {
         user_id: userId,
         type,
         title,
         message,
+        service_request_id: options?.serviceRequestId,
+        action_required: options?.actionRequired || false,
+        priority: options?.priority || "medium",
         read: false,
-        created_at: new Date(),
-        priority,
-        action_required: actionRequired,
+        dedupe_date: dedupeDate,
+        expires_at: options?.expiresInHours
+          ? new Date(Date.now() + options.expiresInHours * 60 * 60 * 1000)
+          : undefined,
       };
 
       const { data, error } = await this.supabase.client
         .from("enhanced_notifications")
-        .insert([notification])
+        .insert(notification)
         .select()
         .single();
 
       if (error) {
         const anyErr = error as any;
         const code = anyErr?.code;
-        const msg = String(anyErr?.message || '');
-        const isUniqueViolation = code === '23505' || msg.toLowerCase().includes('duplicate key');
+        const msg = String(anyErr?.message || "");
+        const isUniqueViolation =
+          code === "23505" || msg.toLowerCase().includes("duplicate key");
         if (isUniqueViolation) {
           return null;
         }
@@ -65,17 +103,102 @@ export class InAppNotificationService {
       }
 
       console.log(`✅ Notificação criada para usuário ${userId}:`, title);
-      
-      // Se for para o usuário atual, atualizar a lista
+
       const currentUser = this.authService.appUser();
       if (currentUser?.id === userId) {
         await this.loadNotifications();
       }
 
-      return data;
+      return data as EnhancedNotification;
     } catch (error) {
       console.error("Erro ao criar notificação:", error);
       return null;
+    }
+  }
+
+  /**
+   * Notificar múltiplos usuários por papel
+   */
+  async notifyByRole(
+    roles: string[],
+    type: NotificationType,
+    title: string,
+    message: string,
+    options?: {
+      serviceRequestId?: number;
+      actionRequired?: boolean;
+      priority?: NotificationPriority;
+      expiresInHours?: number;
+    }
+  ): Promise<void> {
+    const { data: users, error } = await this.supabase.client
+      .from("users")
+      .select("id")
+      .in("role", roles)
+      .eq("status", "Active");
+
+    if (error || !users) {
+      console.error("Error fetching users by role:", error);
+      return;
+    }
+
+    for (const user of users) {
+      await this.createEnhancedNotification(user.id, type, title, message, options);
+    }
+  }
+
+  /**
+   * Notificar stakeholders de um pedido específico
+   */
+  async notifyServiceRequestStakeholders(
+    serviceRequestId: number,
+    type: NotificationType,
+    title: string,
+    message: string,
+    stakeholders: ("client" | "professional" | "admin")[],
+    options?: {
+      actionRequired?: boolean;
+      priority?: NotificationPriority;
+      expiresInHours?: number;
+    }
+  ): Promise<void> {
+    const { data: request, error } = await this.supabase.client
+      .from("service_requests")
+      .select("client_id, professional_id")
+      .is("deleted_at", null)
+      .eq("id", serviceRequestId)
+      .single();
+
+    if (error || !request) {
+      console.error("Error fetching service request:", error);
+      return;
+    }
+
+    const userIds: number[] = [];
+
+    if (stakeholders.includes("client") && request.client_id) {
+      userIds.push(request.client_id);
+    }
+    if (stakeholders.includes("professional") && request.professional_id) {
+      userIds.push(request.professional_id);
+    }
+    if (stakeholders.includes("admin")) {
+      const { data: admins } = await this.supabase.client
+        .from("users")
+        .select("id")
+        .eq("role", "admin")
+        .eq("status", "Active");
+
+      if (admins) {
+        userIds.push(...admins.map((admin) => admin.id));
+      }
+    }
+
+    for (const userId of userIds) {
+      await this.createEnhancedNotification(userId, type, title, message, {
+        serviceRequestId,
+        ...options,
+      });
     }
   }
 
@@ -271,11 +394,16 @@ export class InAppNotificationService {
     const currentUser = this.authService.appUser();
     if (!currentUser) return;
 
+    if (this.notificationsChannel) {
+      this.supabase.client.removeChannel(this.notificationsChannel);
+      this.notificationsChannel = null;
+    }
+
     // Carregar notificações iniciais
     await this.loadNotifications();
 
     // Subscrever a mudanças
-    this.supabase.client
+    this.notificationsChannel = this.supabase.client
       .channel(`notifications:${currentUser.id}`)
       .on(
         "postgres_changes",
@@ -293,5 +421,11 @@ export class InAppNotificationService {
       .subscribe();
 
     console.log(`🔔 Subscrição ativa para notificações do usuário ${currentUser.id}`);
+  }
+
+  unsubscribeFromNotifications(): void {
+    if (!this.notificationsChannel) return;
+    this.supabase.client.removeChannel(this.notificationsChannel);
+    this.notificationsChannel = null;
   }
 }

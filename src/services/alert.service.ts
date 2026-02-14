@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
-import { NotificationService } from "./notification.service";
+import { InAppNotificationService } from "./in-app-notification.service";
 import { AuthService } from "./auth.service";
 import { ServiceRequest, ServiceStatus } from "../models/maintenance.models";
 
@@ -9,7 +9,7 @@ import { ServiceRequest, ServiceStatus } from "../models/maintenance.models";
 })
 export class AlertService {
   private readonly supabase = inject(SupabaseService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly notificationService = inject(InAppNotificationService);
   private readonly authService = inject(AuthService);
 
   // Configurações de prazos (em horas)

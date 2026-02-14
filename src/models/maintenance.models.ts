@@ -130,6 +130,7 @@ export type NotificationType =
   | "execution_date_proposal"
   | "execution_date_approved"
   | "execution_date_rejected"
+  | "service_assigned"
   | "professional_assigned"
   | "professional_accepted"
   | "professional_rejected"
@@ -448,6 +449,7 @@ export interface EnhancedNotification extends Notification {
   priority: "low" | "medium" | "high";
   user_id: number;
   expires_at?: Date;
+  dedupe_date?: string;
 }
 
 // Interface para contratos

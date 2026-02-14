@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { Payment } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
-import { NotificationService } from "./notification.service";
+import { InAppNotificationService } from "./in-app-notification.service";
 import { SupabaseService } from "./supabase.service";
 
 @Injectable({
@@ -10,7 +10,7 @@ import { SupabaseService } from "./supabase.service";
 export class PaymentService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly notificationService = inject(InAppNotificationService);
 
   // Taxa da plataforma (7%)
   private readonly PLATFORM_FEE_RATE = 0.07;

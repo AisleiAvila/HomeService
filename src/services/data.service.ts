@@ -18,6 +18,7 @@ import {
 } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
+import { InAppNotificationService } from "./in-app-notification.service";
 import { ServiceImageService } from "./service-image.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
@@ -200,6 +201,7 @@ export class DataService {
     }
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(NotificationService);
+  private readonly inAppNotificationService = inject(InAppNotificationService);
   public readonly authService = inject(AuthService);
   private readonly i18n = inject(I18nService);
   private readonly addressDatabase = inject(PortugalAddressDatabaseService);
@@ -1019,7 +1021,7 @@ export class DataService {
       })
     );
     if (request.client_id) {
-      await this.notificationService.createEnhancedNotification(
+      await this.inAppNotificationService.createEnhancedNotification(
         request.client_id,
         "execution_date_proposal",
         this.i18n.translate("newExecutionDateProposed"),
@@ -1155,7 +1157,7 @@ export class DataService {
     const adminUsers = this.users().filter((u) => u.role === "admin");
     
     for (const admin of adminUsers) {
-      await this.notificationService.createEnhancedNotification(
+      await this.inAppNotificationService.createEnhancedNotification(
         admin.id,
         config.type,
         this.i18n.translate(config.titleKey),
@@ -1180,7 +1182,7 @@ export class DataService {
   ): Promise<void> {
     if (!request.professional_id) return;
 
-    await this.notificationService.createEnhancedNotification(
+    await this.inAppNotificationService.createEnhancedNotification(
       request.professional_id,
       config.type,
       this.i18n.translate(config.titleKey),

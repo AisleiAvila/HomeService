@@ -199,16 +199,18 @@ export class AppComponent implements OnInit {
 
     // Items for secretary
     if (isSecretary) {
-      items.push({
-        id: 'agenda',
-        labelKey: 'agenda',
-        icon: 'fa-solid fa-calendar-days',
-      });
-      items.push({
-        id: 'requests',
-        labelKey: 'requests',
-        icon: 'fa-solid fa-list',
-      });
+      items.push(
+        {
+          id: 'agenda',
+          labelKey: 'agenda',
+          icon: 'fa-solid fa-calendar-days',
+        },
+        {
+          id: 'requests',
+          labelKey: 'requests',
+          icon: 'fa-solid fa-list',
+        }
+      );
     }
 
     // Items for stock roles
@@ -716,6 +718,7 @@ export class AppComponent implements OnInit {
 
   handleLogout() {
     try {
+      this.inAppNotificationService.unsubscribeFromNotifications();
       this.authService.logout();
       this.currentUser.set(null);
       this.dataService.clearData();
