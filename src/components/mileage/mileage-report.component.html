@@ -1,0 +1,88 @@
+<div class="space-y-4 sm:space-y-6 min-w-0 overflow-hidden px-2 sm:px-0">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+    <!-- Título da Seção -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-linear-to-r from-brand-primary-500 to-brand-primary-600">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="min-w-0">
+          <h2 class="text-2xl font-bold text-white flex items-center">
+            <i class="fas fa-file-pdf mr-3"></i>
+            Relatório de Quilometragem
+          </h2>
+          <p class="text-white text-sm mt-1">Gere relatórios em PDF da quilometragem diária</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Data Inicial
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="startDate"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Data Final
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="endDate"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Profissional
+          </label>
+          <select
+            [(ngModel)]="selectedProfessional"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary-500"
+          >
+            <option [value]="null">Todos os Profissionais</option>
+            <option *ngFor="let professional of professionals()" [value]="professional.id">
+              {{ professional.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botão Gerar Relatório -->
+      <div class="flex justify-end">
+        <button
+          (click)="generateReport()"
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary-500 text-white text-sm font-medium rounded-lg hover:bg-brand-primary-600 focus:outline-none focus:ring-2 focus:ring-brand-primary-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-lg"
+        >
+          <i class="fas fa-file-pdf"></i>
+          <span>Gerar Relatório PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Resumo dos Dados Filtrados -->
+    <div class="px-6 pb-6">
+      <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Resumo dos Dados</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-brand-primary-600">{{ filteredMileages().length }}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">Registros Encontrados</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">{{ totalKilometers() }} km</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">Quilometragem Total</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600">€{{ totalFueling().toFixed(2) }}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">Abastecimento Total</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -6,6 +6,7 @@ import { DailyMileage, Fueling } from '../../models/maintenance.models';
 import { I18nPipe } from '../../pipes/i18n.pipe';
 import { AuthService } from '../../services/auth.service';
 import { DailyMileageService } from '../../services/daily-mileage.service';
+import jsPDF from 'jspdf';
 
 @Component({
   selector: 'app-daily-mileage',
@@ -814,5 +815,179 @@ export class DailyMileageComponent implements OnInit {
   setItemsPerPage(items: number) { 
     this.itemsPerPage.set(items); 
     this.currentPage.set(1); 
+  }
+
+  // Gerar relatório PDF com os filtros aplicados
+  async generatePDFReport() {
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const autoTable: any =
+      (autoTableModule as any).default ?? (autoTableModule as any).autoTable;
+
+    // Configurações da página
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    let yPosition = margin;
+
+    // Função auxiliar para adicionar texto com quebra de linha
+    const addText = (text: string, x: number, y: number, options: any = {}) => {
+      doc.text(text, x, y, options);
+      return y + 7; // Altura aproximada da linha
+    };
+
+    // Header - Logotipo
+    try {
+      // Tentar carregar o logotipo como base64
+      const response = await fetch('assets/logo-new.png');
+      const blob = await response.blob();
+      const reader = new FileReader();
+      await new Promise((resolve, reject) => {
+        reader.onload = resolve;
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      const logoData = reader.result as string;
+      doc.addImage(logoData, 'PNG', margin, yPosition, 50, 20);
+      yPosition += 25;
+    } catch (error) {
+      console.warn('Erro ao carregar logotipo:', error);
+      yPosition += 10;
+    }
+
+    // Título do relatório
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    yPosition = addText('Relatório de Quilometragem Diária', pageWidth / 2, yPosition, { align: 'center' });
+
+    // Nome do usuário
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    yPosition = addText(`Emitido por: ${this.currentUser()?.name || 'Usuário'}`, pageWidth / 2, yPosition, { align: 'center' });
+
+    yPosition += 10;
+
+    // Linha separadora
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 10;
+
+    // Filtros aplicados
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    yPosition = addText('Filtros Aplicados:', margin, yPosition);
+
+    doc.setFont('helvetica', 'normal');
+    if (this.filterStartDate()) {
+      yPosition = addText(`Data Inicial: ${this.formatDate(this.filterStartDate())}`, margin + 10, yPosition);
+    }
+    if (this.filterEndDate()) {
+      yPosition = addText(`Data Final: ${this.formatDate(this.filterEndDate())}`, margin + 10, yPosition);
+    }
+    if (this.filterMinDriven() !== null) {
+      yPosition = addText(`Quilometragem Mínima: ${this.filterMinDriven()} km`, margin + 10, yPosition);
+    }
+    if (this.filterMaxDriven() !== null) {
+      yPosition = addText(`Quilometragem Máxima: ${this.filterMaxDriven()} km`, margin + 10, yPosition);
+    }
+    if (this.filterMinFueling() !== null) {
+      yPosition = addText(`Abastecimento Mínimo: €${this.filterMinFueling()}`, margin + 10, yPosition);
+    }
+    if (this.filterMaxFueling() !== null) {
+      yPosition = addText(`Abastecimento Máximo: €${this.filterMaxFueling()}`, margin + 10, yPosition);
+    }
+    if (this.filterLicensePlate().trim()) {
+      yPosition = addText(`Matrícula: ${this.filterLicensePlate()}`, margin + 10, yPosition);
+    }
+    if (this.filterProfessionalId() !== null) {
+      const professional = this.professionals().find(p => p.id === this.filterProfessionalId());
+      yPosition = addText(`Profissional: ${professional?.name || 'N/A'}`, margin + 10, yPosition);
+    }
+
+    yPosition += 10;
+
+    // Tabela de dados
+    const tableData = this.filteredMileages().map(mileage => {
+      const professional = this.professionals().find(p => p.id === mileage.professional_id);
+      const kilometersDriven = this.getKilometersDriven(mileage);
+      const totalFueling = this.getTotalFueling(mileage);
+
+      return [
+        this.formatDate(mileage.date),
+        this.isAdmin() ? (professional?.name || 'N/A') : '',
+        this.getLicensePlateForMileage(mileage),
+        mileage.start_kilometers.toString(),
+        mileage.end_kilometers?.toString() || '',
+        kilometersDriven.toString(),
+        `€${totalFueling.toFixed(2)}`
+      ];
+    });
+
+    // Adicionar linha de totais
+    if (tableData.length > 0) {
+      tableData.push([
+        'TOTAL',
+        '',
+        '',
+        '',
+        '',
+        this.totalDriven().toString(),
+        `€${this.totalFueling().toFixed(2)}`
+      ]);
+    }
+
+    // Configurar colunas baseado no papel do usuário
+    const head = this.isAdmin()
+      ? [['Data', 'Profissional', 'Matrícula', 'Inicial', 'Final', 'Quilometragem', 'Abastecimento']]
+      : [['Data', 'Matrícula', 'Inicial', 'Final', 'Quilometragem', 'Abastecimento']];
+
+    // Configurar autoTable
+    autoTable(doc, {
+      startY: yPosition,
+      head: head,
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [41, 128, 185], // Cor azul
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: 10 },
+      didDrawPage: (data: any) => {
+        // Rodapé
+        const pageCount = (doc as any).internal.getNumberOfPages();
+        const currentPage = data.pageNumber;
+
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Página ${currentPage} de ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+        doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-PT')}`, margin, pageHeight - 10);
+      }
+    });
+
+    // Salvar o PDF
+    const fileName = `relatorio-quilometragem-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+  }
+
+  private formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-PT');
   }
 }

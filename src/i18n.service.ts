@@ -1109,6 +1109,7 @@ const allTranslations: Record<Language, Record<string, string>> = {
 
     // Daily Mileage
     dailyMileage: "Daily Mileage",
+    mileageReport: "Mileage Report",
     dailyMileageSubtitle: "Track your daily mileage and fuel expenses",
     todayStatus: "Today's Status",
     startKilometers: "Start Kilometers",

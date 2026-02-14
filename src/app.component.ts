@@ -65,6 +65,7 @@ type Nav =
   | "agenda"
   | "profile"
   | "daily-mileage"
+  | "mileage-report"
   | "details"
   | "create-service-request"
   | "admin-create-service-request"
