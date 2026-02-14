@@ -511,13 +511,13 @@
                       @if (canConfirmReimbursement(service)) {
                         <button
                           type="button"
-                          class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors shadow-sm"
+                          class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors shadow-sm md:px-3 md:py-2"
                           [title]="'confirmReimbursement' | i18n"
                           [attr.aria-label]="'confirmReimbursement' | i18n"
                           (click)="openReimbursementConfirmModal(service)"
                           >
-                          <i class="fas fa-check mr-1"></i>
-                          {{ 'confirm' | i18n }}
+                          <i class="fas fa-check md:mr-1"></i>
+                          <span class="hidden md:inline">{{ 'confirm' | i18n }}</span>
                         </button>
                       }
                     </div>
