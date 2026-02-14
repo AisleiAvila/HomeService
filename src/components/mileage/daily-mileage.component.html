@@ -541,14 +541,30 @@
                 </button>
               </th>
               @if (isAdmin()) {
-                <th class="px-4 py-2 text-left">{{ 'professional' | i18n }}</th>
+                <th class="px-4 py-2 text-left">
+                  <button (click)="sortByColumn('professional')" class="hover:text-blue-600 font-semibold">
+                    {{ 'professional' | i18n }} {{ sortBy() === 'professional' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                  </button>
+                </th>
               }
-              <th class="px-4 py-2 text-left">{{ 'licensePlate' | i18n }}</th>
-              <th class="px-4 py-2 text-right">{{ 'initial' | i18n }}</th>
-              <th class="px-4 py-2 text-right">{{ 'final' | i18n }}</th>
+              <th class="px-4 py-2 text-left">
+                <button (click)="sortByColumn('licensePlate')" class="hover:text-blue-600 font-semibold">
+                  {{ 'licensePlate' | i18n }} {{ sortBy() === 'licensePlate' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
               <th class="px-4 py-2 text-right">
-                <button (click)="sortByColumn('driven')" class="hover:text-blue-600 font-semibold">
-                  {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'driven' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                <button (click)="sortByColumn('initial')" class="hover:text-blue-600 font-semibold">
+                  {{ 'initial' | i18n }} {{ sortBy() === 'initial' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-right">
+                <button (click)="sortByColumn('final')" class="hover:text-blue-600 font-semibold">
+                  {{ 'final' | i18n }} {{ sortBy() === 'final' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-right">
+                <button (click)="sortByColumn('kilometers')" class="hover:text-blue-600 font-semibold">
+                  {{ 'kilometersDriven' | i18n }} {{ sortBy() === 'kilometers' ? (sortOrder() === 'asc' ? '↑' : '↓') : '' }}
                 </button>
               </th>
               <th class="px-4 py-2 text-right">

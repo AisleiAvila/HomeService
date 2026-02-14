@@ -138,7 +138,7 @@ export class DailyMileageComponent implements OnInit {
   filterProfessionalId = signal<number | null>(null);
 
   // Sorting states
-  sortBy = signal<'date' | 'driven' | 'fueling'>('date');
+  sortBy = signal<'date' | 'driven' | 'fueling' | 'professional' | 'licensePlate' | 'initial' | 'final' | 'kilometers'>('date');
   sortOrder = signal<'asc' | 'desc'>('desc');
 
   // Pagination states
@@ -213,7 +213,23 @@ export class DailyMileageComponent implements OnInit {
           aValue = a.date;
           bValue = b.date;
           break;
-        case 'driven':
+        case 'professional':
+          aValue = this.getProfessionalName(a.professional_id);
+          bValue = this.getProfessionalName(b.professional_id);
+          break;
+        case 'licensePlate':
+          aValue = this.getLicensePlateForMileage(a);
+          bValue = this.getLicensePlateForMileage(b);
+          break;
+        case 'initial':
+          aValue = a.start_kilometers;
+          bValue = b.start_kilometers;
+          break;
+        case 'final':
+          aValue = a.end_kilometers || 0;
+          bValue = b.end_kilometers || 0;
+          break;
+        case 'kilometers':
           aValue = this.getKilometersDriven(a);
           bValue = this.getKilometersDriven(b);
           break;
@@ -768,7 +784,7 @@ export class DailyMileageComponent implements OnInit {
     this.showFilters.set(!this.showFilters());
   }
 
-  sortByColumn(column: 'date' | 'driven' | 'fueling') {
+  sortByColumn(column: 'date' | 'driven' | 'fueling' | 'professional' | 'licensePlate' | 'initial' | 'final' | 'kilometers') {
     if (this.sortBy() === column) {
       this.sortOrder.set(this.sortOrder() === 'asc' ? 'desc' : 'asc');
     } else {
