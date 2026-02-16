@@ -1,5 +1,6 @@
 
 import { Component, ChangeDetectionStrategy, output } from '@angular/core';
+import { APP_VERSION } from '../../version';
 
 import { I18nPipe } from '../../pipes/i18n.pipe';
 
@@ -13,6 +14,7 @@ import { I18nPipe } from '../../pipes/i18n.pipe';
 export class LandingComponent {
   signIn = output<void>();
   createAccount = output<void>();
+  public appVersion = APP_VERSION;
   currentYear = new Date().getFullYear();
   imgError = false;
   // Placeholder SVG (data URI) exibido se a imagem principal não estiver disponível

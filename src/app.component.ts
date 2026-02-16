@@ -1,4 +1,5 @@
 import { CommonModule } from "@angular/common";
+import { APP_VERSION } from "./version";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,7 +8,7 @@ import {
   inject,
   OnInit,
   signal,
-  ViewChild,
+  ViewChild
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 
@@ -27,7 +28,7 @@ import { AlertService } from "./services/alert.service";
 import {
   ServiceRequest,
   User,
-  UserRole,
+  UserRole
 } from "./models/maintenance.models";
 
 // Components
@@ -109,6 +110,9 @@ type Nav =
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
+  // Expor versão para template
+  public appVersion = APP_VERSION;
+
   // Spinner global para transições (ex: login ou dashboard loading)
   private readonly _isAppLoading = signal(false);
   // Computed: mostra spinner se login ou dashboard/data está carregando
