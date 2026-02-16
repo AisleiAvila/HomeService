@@ -396,6 +396,106 @@ Desenvolvido para Natan Construtora - Plataforma Natan General Service
 
 ---
 
+## 🛠️ Como Buildar e Executar a Aplicação
+
+## 🏷️ Versionamento da Aplicação
+
+Esta aplicação utiliza versionamento SemVer (major.minor.patch).
+
+### Como atualizar a versão
+
+1. Edite o campo `version` em [package.json](../../../../package.json).
+2. Edite o valor exportado em [src/version.ts](../../version.ts).
+3. Para automatizar o incremento de versão, execute um dos comandos abaixo no terminal:
+
+````bash
+```bash
+# Para atualização de correção (bugfix)
+npm version patch
+
+# Para nova funcionalidade sem quebrar compatibilidade
+npm version minor
+
+# Para mudanças incompatíveis
+npm version major
+````
+
+O npm irá:
+
+- Atualizar o campo version no package.json.
+- Criar um commit automático (se o projeto estiver versionado com Git).
+- Criar uma tag de versão no Git.
+
+**Importante:** Após atualizar a versão com npm version, lembre-se de atualizar o valor em [src/version.ts](../../version.ts) para manter a versão centralizada.
+
+### Exemplo de exibição da versão
+
+```typescript
+import { APP_VERSION } from "@/version";
+console.log("Versão da aplicação:", APP_VERSION);
+```
+
+---
+
+### 1. Build do Frontend (Angular)
+
+Execute o comando abaixo para gerar o build de produção do frontend Angular:
+
+```bash
+ng build --configuration production
+```
+
+O build será gerado na pasta `dist/`.
+
+### 2. Execução Local da Aplicação
+
+Para rodar a aplicação localmente em modo de desenvolvimento:
+
+```bash
+ng serve
+```
+
+Acesse em: [http://localhost:4200](http://localhost:4200)
+
+### 3. Atualizar Builds Nativos (Android/iOS)
+
+Se estiver usando Capacitor para apps mobile, após gerar o build web, copie os arquivos para as plataformas nativas:
+
+```bash
+npx cap copy
+```
+
+Esse comando garante que as versões Android e iOS usem o frontend mais recente.
+
+#### Passos completos para atualizar e rodar no dispositivo:
+
+1. Gere o build web:
+
+```bash
+ng build --configuration production
+```
+
+2. Copie para as plataformas nativas:
+
+```bash
+npx cap copy
+```
+
+3. (Opcional) Abra o projeto na IDE nativa:
+
+- Android: `npx cap open android`
+- iOS: `npx cap open ios`
+
+4. Compile e execute na IDE ou via linha de comando.
+
+### 4. Observações
+
+- Sempre execute `npx cap copy` após alterações no frontend antes de rodar no app nativo.
+- Para builds de debug, use `ng build --configuration development`.
+- Consulte a documentação do Capacitor para detalhes avançados.
+
+---
+
 ## 📞 Suporte
 
 Para dúvidas ou problemas:
