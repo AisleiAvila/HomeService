@@ -66,6 +66,8 @@
     "vite": "^7.3.1"
   },
   "scripts": {
+    "sync-version": "node ./scripts/sync-version.cjs",
+    "version": "node ./scripts/sync-version.cjs",
     "dev": "ng serve",
     "dev:full": "npm run start",
     "build": "ng build",

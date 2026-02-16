@@ -402,13 +402,12 @@ Desenvolvido para Natan Construtora - Plataforma Natan General Service
 
 Esta aplicação utiliza versionamento SemVer (major.minor.patch).
 
+**Fonte única da versão:** [package.json](../../../../package.json). O arquivo [src/version.ts](../../version.ts) é gerado automaticamente para a UI consumir.
+
 ### Como atualizar a versão
 
-1. Edite o campo `version` em [package.json](../../../../package.json).
-2. Edite o valor exportado em [src/version.ts](../../version.ts).
-3. Para automatizar o incremento de versão, execute um dos comandos abaixo no terminal:
+Para atualizar a versão, use um dos comandos abaixo no terminal (eles atualizam o `package.json` e sincronizam automaticamente o [src/version.ts](../../version.ts)):
 
-````bash
 ```bash
 # Para atualização de correção (bugfix)
 npm version patch
@@ -418,7 +417,7 @@ npm version minor
 
 # Para mudanças incompatíveis
 npm version major
-````
+```
 
 O npm irá:
 
@@ -426,7 +425,7 @@ O npm irá:
 - Criar um commit automático (se o projeto estiver versionado com Git).
 - Criar uma tag de versão no Git.
 
-**Importante:** Após atualizar a versão com npm version, lembre-se de atualizar o valor em [src/version.ts](../../version.ts) para manter a versão centralizada.
+**Importante:** `npm version ...` exige o Git limpo (sem alterações pendentes). Se aparecer "Git working directory not clean", faça commit/stash antes.
 
 ### Exemplo de exibição da versão
 
