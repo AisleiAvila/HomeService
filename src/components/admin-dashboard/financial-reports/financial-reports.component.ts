@@ -1,10 +1,13 @@
 
 import { CommonModule } from "@angular/common";
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from "@angular/core";
+import { NgApexchartsModule, ApexAxisChartSeries, ApexChart, ApexDataLabels, ApexPlotOptions, ApexXAxis, ApexYAxis, ApexFill, ApexTooltip } from "ng-apexcharts";
 import { I18nService } from "../../../i18n.service";
 import { I18nPipe } from "../../../pipes/i18n.pipe";
 import { DataService } from "../../../services/data.service";
-import { ServiceRequest, User, ServiceCategory, ServiceSubcategory } from "../../../models/maintenance.models";
+import { DailyMileageService } from "../../../services/daily-mileage.service";
+import { ExtraServicesService } from "../../../app/services/extra-services.service";
+import { DailyMileage, ExtraService, Fueling, ServiceRequest, User, ServiceCategory, ServiceSubcategory } from "../../../models/maintenance.models";
 import { NotificationService } from "../../../services/notification.service";
 
 type ProfessionalFilterValue = number | "unassigned" | null;
@@ -67,17 +70,27 @@ type SummarizedRowAccumulator = SummarizedFinancialRow & {
     subcategoryAccumulator: Map<string, SubcategoryBreakdownItem>;
 };
 
+type FinancialSummary = {
+    totalServiceValue: number;
+    extraReimbursements: number;
+    fuelingsTotal: number;
+    netValue: number;
+    totalServices: number;
+};
+
 @Component({
     selector: "app-financial-reports",
     standalone: true,
-    imports: [CommonModule, I18nPipe],
+    imports: [CommonModule, I18nPipe, NgApexchartsModule],
     templateUrl: "./financial-reports.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly dataService = inject(DataService);
+    private readonly dailyMileageService = inject(DailyMileageService);
     private readonly i18n = inject(I18nService);
     private readonly notificationService = inject(NotificationService);
+    private readonly extraServicesService = inject(ExtraServicesService);
 
     private readonly usersById = computed(() => {
         const map = new Map<number, User>();
@@ -88,6 +101,26 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                     map.set(user.id, user);
                 }
             });
+        return map;
+    });
+
+    private readonly requestsById = computed(() => {
+        const map = new Map<number, ServiceRequest>();
+        this.dataService.serviceRequests().forEach((request) => {
+            if (request?.id !== undefined && request?.id !== null) {
+                map.set(request.id, request);
+            }
+        });
+        return map;
+    });
+
+    private readonly dailyMileageById = computed(() => {
+        const map = new Map<number, DailyMileage>();
+        this.dailyMileageService.dailyMileages().forEach((mileage) => {
+            if (mileage?.id !== undefined && mileage?.id !== null) {
+                map.set(mileage.id, mileage);
+            }
+        });
         return map;
     });
 
@@ -143,12 +176,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         paidProviders: { className: "bg-emerald-500", color: "#10b981" },
         unpaidProviders: { className: "bg-orange-500", color: "#f97316" },
     };
+    private readonly waterfallColors: Record<"total" | "reimbursement" | "fuelings" | "net", string> = {
+        total: "#64748b",
+        reimbursement: "#16a34a",
+        fuelings: "#dc2626",
+        net: "#64748b",
+    };
     private readonly statusColorStyles: Record<string, string> = {
         Solicitado: "#ef4444",
         Requested: "#ef4444",
-        "Atribuído": "#f97316",
+        "Atribu+�do": "#f97316",
         Assigned: "#f97316",
-        "Aguardando Confirmação": "#8b5cf6",
+        "Aguardando Confirma+�+�o": "#8b5cf6",
         "Waiting Confirmation": "#8b5cf6",
         Aceito: "#0ea5e9",
         Accepted: "#0ea5e9",
@@ -158,18 +197,69 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         Scheduled: "#0ea5e9",
         "Em Progresso": "#9333ea",
         "In Progress": "#9333ea",
-        "Concluído": "#14b8a6",
+        "Conclu+�do": "#14b8a6",
         "Finalizado": "#14b8a6",
         "Cancelado": "#dc2626",
         Cancelled: "#dc2626",
         Unknown: "#94a3b8",
     };
     private hasInitializedFinancialChart = false;
+    private hasInitializedWaterfallChart = false;
     private hasInitializedServiceStatusChart = false;
     private hasInitializedOriginChart = false;
     private hasInitializedServiceOriginChart = false;
+
+    financialWaterfallChartSeries = signal<ApexAxisChartSeries>([]);
+    financialWaterfallChartOptions = signal<{
+        chart: ApexChart;
+        plotOptions: ApexPlotOptions;
+        dataLabels: ApexDataLabels;
+        xaxis: ApexXAxis;
+        yaxis: ApexYAxis;
+        fill: ApexFill;
+        tooltip: ApexTooltip;
+        colors: string[];
+        grid: { borderColor: string };
+        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; plotOptions?: ApexPlotOptions } }>;
+    }>({
+        chart: { type: "bar", height: 320, toolbar: { show: false } },
+        plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: [] },
+        yaxis: { labels: { formatter: (value: number) => this.formatCost(value) } },
+        fill: { opacity: 1 },
+        tooltip: { y: { formatter: (value: number) => this.formatCost(value) } },
+        colors: [],
+        grid: { borderColor: "#e5e7eb" },
+        responsive: [],
+    });
+
+    financialTotalsChartSeries = signal<ApexAxisChartSeries>([]);
+    financialTotalsChartOptions = signal<{
+        chart: ApexChart;
+        plotOptions: ApexPlotOptions;
+        dataLabels: ApexDataLabels;
+        xaxis: ApexXAxis;
+        yaxis: ApexYAxis;
+        fill: ApexFill;
+        tooltip: ApexTooltip;
+        colors: string[];
+        grid: { borderColor: string };
+        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; plotOptions?: ApexPlotOptions } }>;
+    }>({
+        chart: { type: "bar", height: 280, toolbar: { show: false } },
+        plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: [] },
+        yaxis: { labels: { formatter: (value: number) => this.formatCost(value) } },
+        fill: { opacity: 1 },
+        tooltip: { y: { formatter: (value: number) => this.formatCost(value) } },
+        colors: [],
+        grid: { borderColor: "#e5e7eb" },
+        responsive: [],
+    });
     private readonly handleResize = () => {
-        this.scheduleFinancialTotalsRender();
+        this.setupApexCharts();
         this.scheduleServiceStatusRender();
         this.scheduleOriginValuesRender();
         this.scheduleServiceOriginRender();
@@ -178,16 +268,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         }
     };
 
-    @ViewChild("financialTotalsCanvas") private readonly financialTotalsCanvas?: ElementRef<HTMLCanvasElement>;
     @ViewChild("serviceStatusCanvas") private readonly serviceStatusCanvas?: ElementRef<HTMLCanvasElement>;
     @ViewChild("originValuesCanvas") private readonly originValuesCanvas?: ElementRef<HTMLCanvasElement>;
     @ViewChild("serviceOriginCanvas") private readonly serviceOriginCanvas?: ElementRef<HTMLCanvasElement>;
 
     ngOnInit() {
-        console.log('[FinancialReportsComponent] Inicializando - recarregando dados de solicitações');
+        console.log('[FinancialReportsComponent] Inicializando - recarregando dados de solicita+�+�es');
         this.dataService.reloadServiceRequests();
+        void this.extraServicesService.loadExtraServices();
+        void this.dailyMileageService.loadAllDailyMileages();
+        void this.dailyMileageService.loadAllFuelings();
         
-        // Inicializa filtros de data: primeiro dia do mês corrente até dia corrente
+        // Inicializa filtros de data: primeiro dia do m+�s corrente at+� dia corrente
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         
@@ -208,11 +300,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     ngAfterViewInit(): void {
-        this.hasInitializedFinancialChart = true;
+        this.hasInitializedWaterfallChart = true;
         this.hasInitializedServiceStatusChart = true;
         this.hasInitializedOriginChart = true;
         this.hasInitializedServiceOriginChart = true;
-        this.scheduleFinancialTotalsRender();
+        this.setupApexCharts();
         this.scheduleServiceStatusRender();
         this.scheduleOriginValuesRender();
         this.scheduleServiceOriginRender();
@@ -250,7 +342,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     private isCompletedStatus(status: unknown): boolean {
         const normalized = this.normalizeStatus(status);
         return (
-            normalized === "concluído" ||
+            normalized === "conclu+�do" ||
             normalized === "concluido" ||
             normalized === "finalizado" ||
             normalized === "completed" ||
@@ -261,7 +353,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     private toLocalDateString(value: string): string | null {
         const trimmed = value.trim();
 
-        // Evita o comportamento do JS onde new Date('YYYY-MM-DD') é interpretado como UTC
+        // Evita o comportamento do JS onde new Date('YYYY-MM-DD') +� interpretado como UTC
         // (o que pode deslocar o dia em timezones negativos).
         const ymdMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
         const parsed = ymdMatch
@@ -310,6 +402,132 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             this.matchesEmploymentFilter(request, employmentFilter) &&
             this.matchesDateFilter(request, startDate, endDate)
         );
+    });
+
+    filteredExtraServices = computed(() => {
+        const categoryId = this.categoryFilter();
+        const professionalFilterValue = this.professionalFilter();
+        const employmentFilter = this.employmentFilter();
+        const startDate = this.startDateFilter();
+        const endDate = this.endDateFilter();
+
+        return this.extraServicesService.extraServices().filter((service: ExtraService) => {
+            if (!this.matchesProfessionalIdFilter(service.professional_id, professionalFilterValue)) {
+                return false;
+            }
+            if (!this.matchesEmploymentFilterForProfessionalId(service.professional_id, employmentFilter)) {
+                return false;
+            }
+            if (categoryId !== null && this.requestsById().get(service.service_request_id)?.category_id !== categoryId) {
+                return false;
+            }
+            const referenceDate = service.reimbursement_date || service.created_at;
+            return this.matchesDateRange(referenceDate, startDate, endDate);
+        });
+    });
+
+    filteredFuelings = computed(() => {
+        const professionalFilterValue = this.professionalFilter();
+        const employmentFilter = this.employmentFilter();
+        const startDate = this.startDateFilter();
+        const endDate = this.endDateFilter();
+
+        return this.dailyMileageService.fuelings().filter((fueling: Fueling) => {
+            const mileage = this.dailyMileageById().get(fueling.daily_mileage_id);
+            if (!mileage) {
+                return false;
+            }
+            if (!this.matchesProfessionalIdFilter(mileage.professional_id, professionalFilterValue)) {
+                return false;
+            }
+            if (!this.matchesEmploymentFilterForProfessionalId(mileage.professional_id, employmentFilter)) {
+                return false;
+            }
+            return this.matchesDateRange(mileage.date, startDate, endDate);
+        });
+    });
+
+    readonly financialWaterfallSummary = computed<FinancialSummary>(() => {
+        const requests = this.filteredRequests();
+        const totalServiceValue = this.roundCurrency(requests.reduce((sum, request) => sum + this.getServiceValue(request), 0));
+        const extraReimbursements = this.roundCurrency(this.filteredExtraServices().reduce((sum, service) => {
+            if (typeof service.reimbursement_value !== "number") {
+                return sum;
+            }
+            return sum + service.reimbursement_value;
+        }, 0));
+        const fuelingsTotal = this.roundCurrency(this.filteredFuelings().reduce((sum, fueling) => sum + (fueling.value || 0), 0));
+        const netValue = this.roundCurrency(totalServiceValue + extraReimbursements - fuelingsTotal);
+
+        return {
+            totalServiceValue,
+            extraReimbursements,
+            fuelingsTotal,
+            netValue,
+            totalServices: requests.length,
+        };
+    });
+
+    readonly hasFinancialWaterfallData = computed(() => {
+        const summary = this.financialWaterfallSummary();
+        return (
+            summary.totalServices > 0 ||
+            summary.totalServiceValue > 0 ||
+            summary.extraReimbursements > 0 ||
+            summary.fuelingsTotal > 0
+        );
+    });
+
+    readonly previousPeriodRange = computed(() => {
+        const startDate = this.startDateFilter();
+        const endDate = this.endDateFilter();
+        if (!startDate || !endDate) {
+            return null;
+        }
+
+        const start = this.parseInputDate(startDate);
+        const end = this.parseInputDate(endDate);
+        if (!start || !end || end < start) {
+            return null;
+        }
+
+        const dayMs = 24 * 60 * 60 * 1000;
+        const periodDays = Math.floor((end.getTime() - start.getTime()) / dayMs) + 1;
+        if (periodDays <= 0) {
+            return null;
+        }
+
+        const previousEnd = new Date(start.getTime() - dayMs);
+        const previousStart = new Date(previousEnd.getTime() - (periodDays - 1) * dayMs);
+
+        return {
+            startDate: this.toInputDate(previousStart),
+            endDate: this.toInputDate(previousEnd),
+        };
+    });
+
+    readonly financialWaterfallComparison = computed(() => {
+        const period = this.previousPeriodRange();
+        if (!period) {
+            return null;
+        }
+
+        const previousSummary = this.calculateFinancialSummaryForRange(period.startDate, period.endDate);
+        const currentNet = this.financialWaterfallSummary().netValue;
+        const delta = this.roundCurrency(currentNet - previousSummary.netValue);
+        const deltaPercentage = previousSummary.netValue === 0
+            ? null
+            : this.roundCurrency((delta / Math.abs(previousSummary.netValue)) * 100);
+
+        return {
+            currentNet,
+            previousNet: previousSummary.netValue,
+            delta,
+            deltaPercentage,
+            isPositive: delta >= 0,
+            previousStartDate: period.startDate,
+            previousEndDate: period.endDate,
+        };
     });
 
     financialStats = computed(() => {
@@ -425,10 +643,13 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             totals.unpaidProviders += pendingAmount;
         });
 
-        // Total deve ser igual à soma de Pago + Não pago
-        totals.serviceValue = totals.paidProviders + totals.unpaidProviders;
+        totals.paidProviders = this.roundCurrency(totals.paidProviders);
+        totals.unpaidProviders = this.roundCurrency(totals.unpaidProviders);
 
-        console.log('💰 [FinancialBreakdown] Pago:', totals.paidProviders, 'Não pago:', totals.unpaidProviders, 'Total calculado:', totals.serviceValue);
+        // Total deve ser igual +� soma de Pago + N+�o pago
+        totals.serviceValue = this.roundCurrency(totals.paidProviders + totals.unpaidProviders);
+
+        console.log('��Ʀ [FinancialBreakdown] Pago:', totals.paidProviders, 'N+�o pago:', totals.unpaidProviders, 'Total calculado:', totals.serviceValue);
 
         const maxValue = Math.max(totals.serviceValue, totals.paidProviders, totals.unpaidProviders, 1);
 
@@ -452,91 +673,6 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
     });
 
-    private scheduleFinancialTotalsRender(): void {
-        if (!this.hasInitializedFinancialChart) {
-            return;
-        }
-        requestAnimationFrame(() => this.renderFinancialTotalsChart());
-    }
-
-    private renderFinancialTotalsChart(): void {
-        const canvas = this.financialTotalsCanvas?.nativeElement;
-        if (!canvas) {
-            return;
-        }
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-            return;
-        }
-
-        const cssWidth = canvas.clientWidth || 640;
-        const cssHeight = canvas.clientHeight || 280;
-        const dpr = globalThis.window.devicePixelRatio || 1;
-
-        canvas.width = cssWidth * dpr;
-        canvas.height = cssHeight * dpr;
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(dpr, dpr);
-
-        const data = this.financialBreakdown();
-        const hasPositiveValues = data.some((item) => item.value > 0);
-        const count = data.length;
-        if (count === 0) {
-            return;
-        }
-
-        const topPadding = 24;
-        const bottomPadding = 48;
-        const leftPadding = 48;
-        const rightPadding = 48;
-        const chartHeight = Math.max(0, cssHeight - topPadding - bottomPadding);
-        const maxValue = Math.max(...data.map((item) => item.value), 1);
-        const baselineY = cssHeight - bottomPadding;
-        const maxAvailableWidth = cssWidth - leftPadding - rightPadding;
-        const gap = Math.max(28, Math.min(48, maxAvailableWidth * 0.08));
-        const computedBarWidth = (maxAvailableWidth - gap * (count - 1)) / count;
-        const barWidth = Math.max(36, Math.min(96, computedBarWidth));
-        const totalBarSpan = barWidth * count + gap * (count - 1);
-        const startX = leftPadding + Math.max(0, (maxAvailableWidth - totalBarSpan) / 2);
-
-        const isDarkMode = document.documentElement.classList.contains("dark");
-        const axisColor = isDarkMode ? "#6B7280" : "#9CA3AF";
-        const valueColor = isDarkMode ? "#F3F4F6" : "#111827";
-
-        ctx.strokeStyle = axisColor;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(leftPadding - 8, baselineY + 0.5);
-        ctx.lineTo(cssWidth - rightPadding + 8, baselineY + 0.5);
-        ctx.stroke();
-
-        if (!hasPositiveValues) {
-            ctx.fillStyle = axisColor;
-            ctx.font = "600 16px 'Inter','Segoe UI',sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(this.i18n.translate("noDataAvailable") || "No data", cssWidth / 2, cssHeight / 2);
-            return;
-        }
-
-        data.forEach((item, index) => {
-            const normalizedHeight = maxValue === 0 ? 0 : (item.value / maxValue) * chartHeight;
-            const renderedHeight = Math.max(normalizedHeight, item.value > 0 ? 6 : 0);
-            const x = startX + index * (barWidth + gap);
-            const y = baselineY - renderedHeight;
-
-            ctx.fillStyle = item.color;
-            ctx.fillRect(x, y, barWidth, renderedHeight);
-
-            if (item.value > 0) {
-                ctx.fillStyle = valueColor;
-                ctx.font = "600 12px 'Inter','Segoe UI',sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(this.formatCost(item.value), x + barWidth / 2, Math.max(topPadding + 12, y - 8));
-            }
-        });
-    }
 
     private scheduleServiceStatusRender(): void {
         if (!this.hasInitializedServiceStatusChart) {
@@ -799,11 +935,18 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     formatCost(cost: number | undefined): string {
-        if (cost === undefined || cost === null) return "€0.00";
-        return new Intl.NumberFormat("pt-PT", {
-            style: "currency",
-            currency: "EUR",
-        }).format(cost);
+        if (cost === undefined || cost === null) return "0,00 €";
+
+        const roundedValue = this.roundCurrency(cost);
+        const absoluteValue = Math.abs(roundedValue);
+        const formattedNumber = new Intl.NumberFormat("pt-PT", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            useGrouping: true,
+        }).format(absoluteValue);
+
+        const sign = roundedValue < 0 ? "-" : "";
+        return `${sign}${formattedNumber} €`;
     }
 
     formatAmountValue(amount: number | undefined): string {
@@ -818,7 +961,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         const summaries = this.sortedSummaries();
         if (!summaries.length) {
             this.notificationService.addNotification(
-                this.i18n.translate("noDataAvailable") || "Sem dados disponíveis para exportação"
+                this.i18n.translate("noDataAvailable") || "Sem dados dispon+�veis para exporta+�+�o"
             );
             return;
         }
@@ -834,7 +977,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         } catch (error) {
             console.error("Erro ao exportar CSV:", error);
             this.notificationService.addNotification(
-                this.i18n.translate("exportError") || "Erro ao exportar relatório"
+                this.i18n.translate("exportError") || "Erro ao exportar relat+�rio"
             );
         }
     }
@@ -842,17 +985,17 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     private buildCsvContent(summaries: SummarizedFinancialRow[]): string {
         const categoryHeader = this.translateOrFallback("category", "Categoria");
         const subcategoryHeader = this.translateOrFallback("subcategory", "Subcategoria");
-        const serviceHeader = this.translateAnyOrFallback(["serviceRequest", "service"], "Solicitação");
+        const serviceHeader = this.translateAnyOrFallback(["serviceRequest", "service"], "Solicita+�+�o");
         const headerLabels = [
             this.translateOrFallback("professional", "Profissional"),
             categoryHeader,
             subcategoryHeader,
             serviceHeader,
-            this.translateOrFallback("employmentBond", "Vínculo"),
-            this.translateOrFallback("serviceValueColumn", "Valor Serviço (€)"),
-            this.translateOrFallback("paidAmount", "Valor Pago (€)"),
-            this.translateOrFallback("pendingAmount", "Valor em aberto (€)"),
-            this.translateOrFallback("finalAmount", "Valor final (€)"),
+            this.translateOrFallback("employmentBond", "V+�nculo"),
+            this.translateOrFallback("serviceValueColumn", "Valor Servi+�o (��)"),
+            this.translateOrFallback("paidAmount", "Valor Pago (��)"),
+            this.translateOrFallback("pendingAmount", "Valor em aberto (��)"),
+            this.translateOrFallback("finalAmount", "Valor final (��)"),
         ];
         const rows: string[] = [this.toCsvRow(headerLabels)];
         const unassignedLabel = this.translateOrFallback("unassigned", "N/A");
@@ -1002,7 +1145,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
             item.services.push({
                 id: request.id ?? `${key}-${item.services.length}`,
-                title: request.title || this.i18n.translate("service") || "Serviço",
+                title: request.title || this.i18n.translate("service") || "Servi+�o",
                 originName,
                 os: request.os ?? null,
                 serviceStartAt,
@@ -1144,8 +1287,9 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
 
         effect(() => {
+            this.financialWaterfallSummary();
             this.financialBreakdown();
-            this.scheduleFinancialTotalsRender();
+            this.setupApexCharts();
         });
 
         effect(() => {
@@ -1195,6 +1339,206 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         });
     }
 
+    private setupApexCharts(): void {
+        const isMobile = globalThis.window !== undefined && globalThis.window.innerWidth < 768;
+        const summary = this.financialWaterfallSummary();
+        const totalServiceValue = this.roundCurrency(summary.totalServiceValue);
+        const extraReimbursements = this.roundCurrency(summary.extraReimbursements);
+        const fuelingsImpact = this.roundCurrency(-summary.fuelingsTotal);
+        const afterExtras = this.roundCurrency(totalServiceValue + extraReimbursements);
+        const netValue = this.roundCurrency(afterExtras + fuelingsImpact);
+
+        const waterfallItems = [
+            {
+                label: isMobile ? "Total" : "Valor Total",
+                start: 0,
+                end: totalServiceValue,
+                displayValue: totalServiceValue,
+                color: this.waterfallColors.total,
+            },
+            {
+                label: isMobile ? "Extras" : "Reembolso Extras",
+                start: totalServiceValue,
+                end: afterExtras,
+                displayValue: extraReimbursements,
+                color: this.waterfallColors.reimbursement,
+            },
+            {
+                label: isMobile ? "Abast." : "Abastecimentos",
+                start: afterExtras,
+                end: netValue,
+                displayValue: fuelingsImpact,
+                color: this.waterfallColors.fuelings,
+            },
+            {
+                label: isMobile ? "Líquido" : "Valor Líquido",
+                start: 0,
+                end: netValue,
+                displayValue: netValue,
+                color: this.waterfallColors.net,
+            },
+        ];
+
+        this.financialWaterfallChartSeries.set([
+            {
+                name: "Resumo Financeiro",
+                data: waterfallItems.map((item) => ({ x: item.label, y: [item.start, item.end], fillColor: item.color })),
+            },
+        ]);
+        this.financialWaterfallChartOptions.set({
+            chart: { type: "rangeBar", height: isMobile ? 260 : 320, toolbar: { show: false } },
+            plotOptions: { bar: { horizontal: false, columnWidth: "46%", borderRadius: 6, dataLabels: { position: "top" } } },
+            dataLabels: {
+                enabled: !isMobile,
+                formatter: (_val: number, opt?: { dataPointIndex?: number }) => {
+                    const index = opt?.dataPointIndex ?? -1;
+                    return this.formatCost(waterfallItems[index]?.displayValue ?? 0);
+                },
+                offsetY: -16,
+                style: { fontSize: "13px", fontWeight: 600 },
+            },
+            xaxis: { categories: waterfallItems.map((item) => item.label), labels: { style: { fontWeight: 500 } } },
+            yaxis: { labels: { formatter: (val: number) => this.formatCost(val) } },
+            fill: { opacity: 1 },
+            tooltip: {
+                y: {
+                    formatter: (_val: number, opt?: { dataPointIndex?: number }) => {
+                        const index = opt?.dataPointIndex ?? -1;
+                        return this.formatCost(waterfallItems[index]?.displayValue ?? 0);
+                    },
+                },
+            },
+            colors: waterfallItems.map((item) => item.color),
+            grid: { borderColor: "#e5e7eb" },
+            responsive: [{
+                breakpoint: 768,
+                options: {
+                    chart: { height: 260 },
+                    dataLabels: { enabled: false },
+                    plotOptions: { bar: { columnWidth: "58%", borderRadius: 4 } },
+                    xaxis: { labels: { rotate: 0, trim: true, style: { fontSize: "10px", fontWeight: 500 } } },
+                },
+            }],
+        });
+
+        const breakdown = this.financialBreakdown();
+        this.financialTotalsChartSeries.set([
+            {
+                name: "Totais",
+                data: breakdown.map((item) => ({ x: item.label, y: item.value, fillColor: item.color })),
+            },
+        ]);
+        this.financialTotalsChartOptions.set({
+            chart: { type: "bar", height: isMobile ? 250 : 280, toolbar: { show: false } },
+            plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
+            dataLabels: {
+                enabled: !isMobile,
+                formatter: (val: number) => this.formatCost(val),
+                offsetY: -16,
+                style: { fontSize: "13px", fontWeight: 600 },
+            },
+            xaxis: { categories: breakdown.map((item) => item.label), labels: { style: { fontWeight: 500 } } },
+            yaxis: { labels: { formatter: (val: number) => this.formatCost(val) } },
+            fill: { opacity: 1 },
+            tooltip: { y: { formatter: (val: number) => this.formatCost(val) } },
+            colors: breakdown.map((item) => item.color),
+            grid: { borderColor: "#e5e7eb" },
+            responsive: [{
+                breakpoint: 768,
+                options: {
+                    chart: { height: 250 },
+                    dataLabels: { enabled: false },
+                    plotOptions: { bar: { columnWidth: "52%", borderRadius: 4 } },
+                    xaxis: { labels: { rotate: 0, trim: true, style: { fontSize: "10px", fontWeight: 500 } } },
+                },
+            }],
+        });
+    }
+
+    private roundCurrency(value: number): number {
+        return Math.round((value + Number.EPSILON) * 100) / 100;
+    }
+
+    private parseInputDate(value: string): Date | null {
+        const [yearStr, monthStr, dayStr] = value.split("-");
+        const year = Number(yearStr);
+        const month = Number(monthStr);
+        const day = Number(dayStr);
+        if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+            return null;
+        }
+        const parsed = new Date(year, month - 1, day);
+        if (Number.isNaN(parsed.getTime())) {
+            return null;
+        }
+        return parsed;
+    }
+
+    private toInputDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+
+    private calculateFinancialSummaryForRange(startDate: string, endDate: string): FinancialSummary {
+        const categoryId = this.categoryFilter();
+        const professionalFilterValue = this.professionalFilter();
+        const employmentFilter = this.employmentFilter();
+
+        const requests = this.activeRequests().filter((request) =>
+            this.matchesCategoryFilter(request, categoryId) &&
+            this.matchesProfessionalFilter(request, professionalFilterValue) &&
+            this.matchesEmploymentFilter(request, employmentFilter) &&
+            this.matchesDateFilter(request, startDate, endDate)
+        );
+
+        const totalServiceValue = this.roundCurrency(requests.reduce((sum, request) => sum + this.getServiceValue(request), 0));
+
+        const extraReimbursements = this.roundCurrency(this.extraServicesService.extraServices().reduce((sum, service) => {
+            if (!this.matchesProfessionalIdFilter(service.professional_id, professionalFilterValue)) {
+                return sum;
+            }
+            if (!this.matchesEmploymentFilterForProfessionalId(service.professional_id, employmentFilter)) {
+                return sum;
+            }
+            if (categoryId !== null && this.requestsById().get(service.service_request_id)?.category_id !== categoryId) {
+                return sum;
+            }
+            const referenceDate = service.reimbursement_date || service.created_at;
+            if (!this.matchesDateRange(referenceDate, startDate, endDate)) {
+                return sum;
+            }
+            return sum + (service.reimbursement_value || 0);
+        }, 0));
+
+        const fuelingsTotal = this.roundCurrency(this.dailyMileageService.fuelings().reduce((sum, fueling) => {
+            const mileage = this.dailyMileageById().get(fueling.daily_mileage_id);
+            if (!mileage) {
+                return sum;
+            }
+            if (!this.matchesProfessionalIdFilter(mileage.professional_id, professionalFilterValue)) {
+                return sum;
+            }
+            if (!this.matchesEmploymentFilterForProfessionalId(mileage.professional_id, employmentFilter)) {
+                return sum;
+            }
+            if (!this.matchesDateRange(mileage.date, startDate, endDate)) {
+                return sum;
+            }
+            return sum + (fueling.value || 0);
+        }, 0));
+
+        const netValue = this.roundCurrency(totalServiceValue + extraReimbursements - fuelingsTotal);
+        return {
+            totalServiceValue,
+            extraReimbursements,
+            fuelingsTotal,
+            netValue,
+            totalServices: requests.length,
+        };
+    }
+
     private getProfessional(professionalId: number | null | undefined): User | null {
         if (!professionalId) {
             return null;
@@ -1207,7 +1551,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     getEmploymentLabel(request: ServiceRequest): string {
-        return this.hasEmploymentBond(request) ? "Sim" : "Não";
+        return this.hasEmploymentBond(request) ? "Sim" : "N+�o";
     }
 
     getServiceValue(request: ServiceRequest): number {
@@ -1238,7 +1582,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         this.chartsExpanded.set(next);
         if (next) {
             setTimeout(() => {
-                this.scheduleFinancialTotalsRender();
+                this.setupApexCharts();
                 this.scheduleServiceStatusRender();
                 this.scheduleOriginValuesRender();
                 this.scheduleServiceOriginRender();
@@ -1289,29 +1633,37 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             if (wasCollapsed) {
                 this.chartsExpanded.set(true);
                 await new Promise((resolve) => setTimeout(resolve, 200));
-                this.scheduleFinancialTotalsRender();
+                this.setupApexCharts();
                 this.scheduleServiceStatusRender();
                 this.scheduleOriginValuesRender();
                 this.scheduleServiceOriginRender();
                 await new Promise((resolve) => setTimeout(resolve, 200));
             }
 
-            this.scheduleFinancialTotalsRender();
+            this.setupApexCharts();
             this.scheduleServiceStatusRender();
             this.scheduleOriginValuesRender();
             this.scheduleServiceOriginRender();
             await new Promise((resolve) => setTimeout(resolve, 150));
 
-            const financialCanvas = this.financialTotalsCanvas?.nativeElement;
+            const getApexChartDataURI = async (chartId: string): Promise<string | null> => {
+                const apexCharts = (globalThis as any).ApexCharts;
+                const chartObj = apexCharts?.getChartByID?.(chartId);
+                const dataUriResult = chartObj ? await chartObj.dataURI() : null;
+                return dataUriResult?.imgURI ?? null;
+            };
+
+            const financialWaterfallChartImage = await getApexChartDataURI("financialWaterfallApex");
+            const financialChartImage = await getApexChartDataURI("financialTotalsApex");
             const statusCanvas = this.serviceStatusCanvas?.nativeElement;
             const originValuesCanvas = this.originValuesCanvas?.nativeElement;
             const serviceOriginCanvas = this.serviceOriginCanvas?.nativeElement;
-            const financialChartImage = financialCanvas?.toDataURL("image/png", 1) ?? null;
             const statusChartImage = statusCanvas?.toDataURL("image/png", 1) ?? null;
             const originValuesChartImage = originValuesCanvas?.toDataURL("image/png", 1) ?? null;
             const serviceOriginChartImage = serviceOriginCanvas?.toDataURL("image/png", 1) ?? null;
 
             const summaries = this.sortedSummaries();
+            const financialWaterfallSummary = this.financialWaterfallSummary();
             const financialLegendItems = this.financialBreakdown();
             const serviceLegendItems = this.serviceStatusSummary();
             const originValuesLegendItems = this.originValuesSummary();
@@ -1347,22 +1699,23 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                     .replaceAll('"', "&quot;")
                     .replaceAll("'", "&#39;");
 
-            const financialTitle = this.i18n.translate("financialTotalsChartTitle") ?? "Valores dos Serviços";
-            const statusTitle = this.i18n.translate("servicesByStatus") ?? "Serviços por status";
+            const financialSummaryTitle = "Resumo Financeiro";
+            const financialTitle = this.i18n.translate("financialTotalsChartTitle") ?? "Valores dos Servi+�os";
+            const statusTitle = this.i18n.translate("servicesByStatus") ?? "Servi+�os por status";
             const professionalLabel = this.i18n.translate("professional") ?? "Profissional";
             const categoryLabel = this.i18n.translate("category") ?? "Categoria";
             const subcategoryLabel = this.i18n.translate("subcategory") ?? "Subcategoria";
-            const serviceLabel = this.i18n.translate("service") ?? "Serviço";
+            const serviceLabel = this.i18n.translate("service") ?? "Servi+�o";
             const originLabel = this.i18n.translate("origin") ?? "Origem";
-            const osLabel = this.i18n.translate("osOptional") ?? "Ordem de Serviço";
+            const osLabel = this.i18n.translate("osOptional") ?? "Ordem de Servi+�o";
             const statusLabel = this.i18n.translate("status") ?? "Status";
-            const serviceStartLabel = "Início Atendimento";
+            const serviceStartLabel = "In+�cio Atendimento";
             const serviceEndLabel = "Fim Atendimento";
             const notApplicableLabel = this.i18n.translate("notApplicable") ?? "-";
             const unassignedLabel = this.i18n.translate("unassigned") ?? "N/A";
             const noDataLabel = this.i18n.translate("noDataAvailable") ?? "Sem dados";
             const appName = this.i18n.translate("appNameFull") ?? this.i18n.translate("appName") ?? "NatanGeneralService";
-            const financialReportsLabel = this.i18n.translate("financialReports") ?? "Relatórios Financeiros";
+            const financialReportsLabel = this.i18n.translate("financialReports") ?? "Relat+�rios Financeiros";
             const legendLabel = this.i18n.translate("legend") ?? "Legenda";
             const quantityLabel = this.i18n.translate("quantity") ?? "Qtde";
             // NOTE: This project publishes assets under `src/assets` (see build output: dist/src/assets).
@@ -1394,7 +1747,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 <head>
   <meta charset="utf-8" />
     <base href="${encodedBaseHref}" />
-  <title>Relatório Financeiro - ${new Date().toLocaleDateString("pt-PT")}</title>
+  <title>Relat+�rio Financeiro - ${new Date().toLocaleDateString("pt-PT")}</title>
     <style>
     body { font-family: Arial, sans-serif; color: #111827; margin: 0; padding: 24px; background: #f7f7fb; }
     h1 { color: #ec4899; margin-bottom: 8px; }
@@ -1437,7 +1790,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             <p class="brand-tagline">${encodedFinancialReportsLabel}</p>
         </div>
     </div>
-  <h1>📊 Relatório Financeiro</h1>
+  <h1>���� Relat+�rio Financeiro</h1>
   <p><strong>Data:</strong> ${new Date().toLocaleDateString("pt-PT", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>`;
 
             // Adicionar filtros aplicados
@@ -1461,14 +1814,14 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             }
 
             if (employmentFilter === "employee") {
-                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Vínculo:</span><span class="filter-value">Funcionário</span></div>`);
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">V+�nculo:</span><span class="filter-value">Funcion+�rio</span></div>`);
             } else if (employmentFilter === "independent") {
-                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Vínculo:</span><span class="filter-value">Prestador</span></div>`);
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">V+�nculo:</span><span class="filter-value">Prestador</span></div>`);
             }
 
             if (startDate) {
                 const formattedDate = new Date(startDate).toLocaleDateString("pt-PT");
-                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Data Início:</span><span class="filter-value">${encodeHtml(formattedDate)}</span></div>`);
+                appliedFilters.push(`<div class="filter-item"><span class="filter-label">Data In+�cio:</span><span class="filter-value">${encodeHtml(formattedDate)}</span></div>`);
             }
 
             if (endDate) {
@@ -1487,8 +1840,56 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             }
 
             html += `
-  <h2>Gráficos</h2>
+  <h2>Gr+�ficos</h2>
   <div class="charts">`;
+
+            if (financialWaterfallChartImage) {
+                html += `
+    <div class="chart-card">
+      <h3>${encodeHtml(financialSummaryTitle)}</h3>
+      <img src="${financialWaterfallChartImage}" alt="${encodeHtml(financialSummaryTitle)}" />
+            <div class="chart-legend-wrapper">
+                <p class="legend-title">${encodedLegendLabel}</p>
+                <ul class="chart-legend">
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.waterfallColors.total)};"></span>
+                            <span>Valor Total</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(formatCurrency(financialWaterfallSummary.totalServiceValue))}</span>
+                    </li>
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.waterfallColors.reimbursement)};"></span>
+                            <span>Reembolso Extras</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(formatCurrency(financialWaterfallSummary.extraReimbursements))}</span>
+                    </li>
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.waterfallColors.fuelings)};"></span>
+                            <span>Abastecimentos</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(formatCurrency(financialWaterfallSummary.fuelingsTotal))}</span>
+                    </li>
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.waterfallColors.net)};"></span>
+                            <span>Valor L+�quido</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(formatCurrency(financialWaterfallSummary.netValue))}</span>
+                    </li>
+                    <li class="chart-legend-item">
+                        <div class="chart-legend-info">
+                            <span class="legend-dot" style="background-color:${encodeHtml(this.waterfallColors.net)};"></span>
+                            <span>Total de Servi+�os</span>
+                        </div>
+                        <span class="chart-legend-meta">${encodeHtml(String(financialWaterfallSummary.totalServices))}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>`;
+            }
 
             if (financialChartImage) {
                 html += `
@@ -1537,7 +1938,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                             <span class="legend-dot" style="background-color:${encodeHtml(this.getStatusColor(item.status))};"></span>
                             <span>${encodeHtml(item.status)}</span>
                         </div>
-                        <span class="chart-legend-meta">${encodedQuantityLabel}: ${encodeHtml(String(item.count))} • ${encodeHtml(
+                        <span class="chart-legend-meta">${encodedQuantityLabel}: ${encodeHtml(String(item.count))} ��� ${encodeHtml(
                                             formatPercentage(item.percentage)
                                     )}</span>
                     </li>`
@@ -1582,8 +1983,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             if (serviceOriginChartImage) {
                 html += `
     <div class="chart-card">
-      <h3>Serviços por Origem</h3>
-      <img src="${serviceOriginChartImage}" alt="Serviços por Origem" />
+      <h3>Servi+�os por Origem</h3>
+      <img src="${serviceOriginChartImage}" alt="Servi+�os por Origem" />
             ${
                     serviceOriginLegendItems.length
                             ? `<div class="chart-legend-wrapper">
@@ -1597,7 +1998,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                             <span class="legend-dot" style="background-color:${encodeHtml(this.getOriginColor(item.origin))};"></span>
                             <span>${encodeHtml(item.origin)}</span>
                         </div>
-                        <span class="chart-legend-meta">${encodedQuantityLabel}: ${encodeHtml(String(item.count))} • ${encodeHtml(
+                        <span class="chart-legend-meta">${encodedQuantityLabel}: ${encodeHtml(String(item.count))} ��� ${encodeHtml(
                                             formatPercentage(item.percentage)
                                     )}</span>
                     </li>`
@@ -1612,16 +2013,16 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
             html += `
   </div>
-  <h2>Detalhes dos Serviços</h2>
+  <h2>Detalhes dos Servi+�os</h2>
   <table>
     <thead>
       <tr>
         <th>${encodeHtml(professionalLabel)}</th>
         <th>${encodeHtml(categoryLabel)}</th>
-        <th>Valor Serviço (€)</th>
-        <th>Valor a pagar (€)</th>
-        <th>Valor Pago (€)</th>
-        <th>Valor final (€)</th>
+        <th>Valor Servi+�o (��)</th>
+        <th>Valor a pagar (��)</th>
+        <th>Valor Pago (��)</th>
+        <th>Valor final (��)</th>
       </tr>
     </thead>
     <tbody>`;
@@ -1703,8 +2104,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     </tbody>
   </table>
   <div class="footer">
-    <p>Relatório gerado automaticamente pelo Natan General Service</p>
-    <p>© ${new Date().getFullYear()} Natan General Service</p>
+    <p>Relat+�rio gerado automaticamente pelo Natan General Service</p>
+    <p>-� ${new Date().getFullYear()} Natan General Service</p>
   </div>
 </body>
 </html>`;
@@ -1713,7 +2114,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             if (!printWindow) {
                 this.notificationService.addNotification(
                     this.i18n.translate("popupBlocked") ||
-                        "Não foi possível abrir a janela do relatório. Verifique o bloqueador de pop-ups."
+                        "N+�o foi poss+�vel abrir a janela do relat+�rio. Verifique o bloqueador de pop-ups."
                 );
                 return;
             }
@@ -1728,12 +2129,12 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             printWindow.focus();
             printWindow.print();
             this.notificationService.addNotification(
-                this.i18n.translate("exportSuccessPDF") || "Relatório PDF aberto para impressão!"
+                this.i18n.translate("exportSuccessPDF") || "Relat+�rio PDF aberto para impress+�o!"
             );
         } catch (error) {
             console.error("Erro ao exportar PDF:", error);
             this.notificationService.addNotification(
-                this.i18n.translate("exportError") || "Erro ao exportar relatório"
+                this.i18n.translate("exportError") || "Erro ao exportar relat+�rio"
             );
         } finally {
             if (wasCollapsed) {
@@ -1750,7 +2151,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 return null;
             }
             const blob = await response.blob();
-            return await new Promise<string>((resolve, reject) => {
+            return await new Promise<string | null>((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
                 reader.onerror = () => reject(reader.error);
@@ -1819,7 +2220,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     getCompletionDate(request: ServiceRequest): string | null {
-        // Para consistência com a Visão Geral do profissional, filtra apenas por scheduled_start_datetime
+        // Para consist+�ncia com a Vis+�o Geral do profissional, filtra apenas por scheduled_start_datetime
         return request.scheduled_start_datetime || null;
     }
 
@@ -1854,7 +2255,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
 
     onStartDateChange(value: string): void {
         this.startDateFilter.set(value || null);
-        // As strings de input date estão em YYYY-MM-DD (ordenável lexicograficamente)
+        // As strings de input date est+�o em YYYY-MM-DD (orden+�vel lexicograficamente)
         const endDate = this.endDateFilter();
         if (endDate && value && endDate < value) {
             this.endDateFilter.set(null);
@@ -1972,6 +2373,27 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         return request.professional_id === professionalFilterValue;
     }
 
+    private matchesProfessionalIdFilter(professionalId: number | null | undefined, professionalFilterValue: ProfessionalFilterValue): boolean {
+        if (professionalFilterValue === "unassigned") {
+            return professionalId === null || professionalId === undefined;
+        }
+        if (professionalFilterValue === null || professionalFilterValue === undefined) {
+            return true;
+        }
+        return professionalId === professionalFilterValue;
+    }
+
+    private matchesEmploymentFilterForProfessionalId(
+        professionalId: number | null | undefined,
+        employmentFilter: EmploymentFilterValue
+    ): boolean {
+        if (employmentFilter === "all") {
+            return true;
+        }
+        const hasBond = this.getProfessional(professionalId)?.is_natan_employee === true;
+        return employmentFilter === "employee" ? hasBond : !hasBond;
+    }
+
     private matchesEmploymentFilter(request: ServiceRequest, employmentFilter: EmploymentFilterValue): boolean {
         if (employmentFilter === "all") {
             return true;
@@ -1991,11 +2413,28 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             return !startDate && !endDate;
         }
 
-        // Comparação por dia (YYYY-MM-DD) é inclusiva e evita problemas de hora/timezone.
+        // Compara+�+�o por dia (YYYY-MM-DD) +� inclusiva e evita problemas de hora/timezone.
         if (startDate && completionDateStr < startDate) {
             return false;
         }
         if (endDate && completionDateStr > endDate) {
+            return false;
+        }
+        return true;
+    }
+
+    private matchesDateRange(dateValue: string | null | undefined, startDate: string | null, endDate: string | null): boolean {
+        if (!dateValue) {
+            return !startDate && !endDate;
+        }
+        const dateStr = this.toLocalDateString(dateValue);
+        if (!dateStr) {
+            return !startDate && !endDate;
+        }
+        if (startDate && dateStr < startDate) {
+            return false;
+        }
+        if (endDate && dateStr > endDate) {
             return false;
         }
         return true;

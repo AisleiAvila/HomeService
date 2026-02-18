@@ -40,7 +40,12 @@
               "@supabase/node-fetch",
               "@supabase/supabase-js",
               "buffer",
-              "cross-fetch"
+              "cross-fetch",
+              "canvg",
+              "html2canvas",
+              "raf",
+              "rgbcolor",
+              "core-js"
             ]
           },
           "configurations": {

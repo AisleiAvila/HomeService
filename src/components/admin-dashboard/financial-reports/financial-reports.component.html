@@ -97,7 +97,7 @@
     </div>
     }
 </div>
-@if(filteredRequests().length > 0 || serviceStatusSummary().length > 0) {
+@if(filteredRequests().length > 0 || serviceStatusSummary().length > 0 || hasFinancialWaterfallData()) {
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
     <button type="button"
         class="w-full flex items-center justify-between gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700 text-left"
@@ -114,6 +114,82 @@
     @if(chartsExpanded()) {
     <div id="financialChartsGroup" class="p-4">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            @if(hasFinancialWaterfallData()) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full min-h-96 flex flex-col lg:col-span-2">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-brand-primary-500 dark:text-brand-primary-400"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        Resumo Financeiro
+                    </h3>
+                </div>
+                <div class="p-4 flex-1 flex flex-col gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                        <div class="rounded-lg border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/20 dark:to-gray-900/10 px-3 py-2">
+                            <div class="text-[0.65rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor Total</div>
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {{ formatCost(financialWaterfallSummary().totalServiceValue) }}
+                            </div>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/20 dark:to-gray-900/10 px-3 py-2">
+                            <div class="text-[0.65rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reembolso Extras</div>
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {{ formatCost(financialWaterfallSummary().extraReimbursements) }}
+                            </div>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-rose-50 to-white dark:from-rose-900/20 dark:to-gray-900/10 px-3 py-2">
+                            <div class="text-[0.65rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Abastecimentos</div>
+                            <div class="text-sm font-semibold text-rose-600 dark:text-rose-400">
+                                {{ formatCost(-financialWaterfallSummary().fuelingsTotal) }}
+                            </div>
+                        </div>
+                        <div class="rounded-lg border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/20 dark:to-gray-900/10 px-3 py-2">
+                            <div class="text-[0.65rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Valor Liquido</div>
+                            <div class="text-sm font-semibold" [ngClass]="financialWaterfallSummary().netValue >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                                {{ formatCost(financialWaterfallSummary().netValue) }}
+                            </div>
+                            @if(financialWaterfallComparison(); as comparison) {
+                            <div class="mt-1 text-[0.65rem] font-medium"
+                                [ngClass]="comparison.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                                {{ comparison.isPositive ? '+' : '' }}{{ formatCost(comparison.delta) }}
+                                @if(comparison.deltaPercentage !== null) {
+                                <span class="text-gray-500 dark:text-gray-400">
+                                    ({{ comparison.isPositive ? '+' : '' }}{{ formatAmountValue(comparison.deltaPercentage) }}%)
+                                </span>
+                                }
+                            </div>
+                            <div class="text-[0.6rem] text-gray-500 dark:text-gray-400">
+                                vs período anterior
+                            </div>
+                            }
+                        </div>
+                        <div class="rounded-lg border border-gray-100 dark:border-gray-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/20 dark:to-gray-900/10 px-3 py-2">
+                            <div class="text-[0.65rem] uppercase tracking-wide text-gray-500 dark:text-gray-400">Total de Servicos</div>
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                {{ financialWaterfallSummary().totalServices }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full overflow-x-auto pb-1">
+                        <apx-chart
+                            id="financialWaterfallApex"
+                            [series]="financialWaterfallChartSeries()"
+                            [chart]="financialWaterfallChartOptions().chart"
+                            [plotOptions]="financialWaterfallChartOptions().plotOptions"
+                            [dataLabels]="financialWaterfallChartOptions().dataLabels"
+                            [xaxis]="financialWaterfallChartOptions().xaxis"
+                            [yaxis]="financialWaterfallChartOptions().yaxis"
+                            [fill]="financialWaterfallChartOptions().fill"
+                            [tooltip]="financialWaterfallChartOptions().tooltip"
+                            [colors]="financialWaterfallChartOptions().colors"
+                            [grid]="financialWaterfallChartOptions().grid"
+                            [responsive]="financialWaterfallChartOptions().responsive"
+                            class="w-full h-60 sm:h-64 md:h-72"
+                            aria-label="Resumo Financeiro">
+                        </apx-chart>
+                    </div>
+                </div>
+            </div>
+            }
             @if(filteredRequests().length > 0) {
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden h-full min-h-96 flex flex-col">
                 <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
@@ -124,7 +200,22 @@
                 </div>
                 <div class="p-4 flex-1 flex flex-col gap-3">
                     <div class="w-full overflow-x-auto pb-1">
-                        <canvas #financialTotalsCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="{{ 'financialTotalsChartTitle' | i18n }}"></canvas>
+                        <apx-chart
+                            id="financialTotalsApex"
+                            [series]="financialTotalsChartSeries()"
+                            [chart]="financialTotalsChartOptions().chart"
+                            [plotOptions]="financialTotalsChartOptions().plotOptions"
+                            [dataLabels]="financialTotalsChartOptions().dataLabels"
+                            [xaxis]="financialTotalsChartOptions().xaxis"
+                            [yaxis]="financialTotalsChartOptions().yaxis"
+                            [fill]="financialTotalsChartOptions().fill"
+                            [tooltip]="financialTotalsChartOptions().tooltip"
+                            [colors]="financialTotalsChartOptions().colors"
+                            [grid]="financialTotalsChartOptions().grid"
+                            [responsive]="financialTotalsChartOptions().responsive"
+                            class="w-full h-56 sm:h-60 md:h-64 lg:h-72"
+                            aria-label="{{ 'financialTotalsChartTitle' | i18n }}">
+                        </apx-chart>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
                         @for(item of financialBreakdown(); track item.key) {
