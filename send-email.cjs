@@ -1,13 +1,12 @@
-// ...existing code...
-
-// ...existing code...
 // send-email.cjs
-// Endpoint Node.js/Express para envio de e-mail via SendGrid
-// Instale as dependências: npm install express @sendgrid/mail cors
+// Endpoint Node.js/Express para envio de e-mail via Brevo
+// Instale as dependências: npm install express sib-api-v3-sdk cors
+
+console.log('[DEBUG] Iniciando send-email.cjs');
 
 const express = require('express');
 const cors = require('cors');
-const sgMail = require('@sendgrid/mail');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -15,8 +14,7 @@ const PORT = process.env.PORT || 4001;
 // Carrega variáveis de ambiente (sem logar valores sensíveis)
 require('dotenv').config({ path: './.env', quiet: true });
 
-
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL;
 
 const DEBUG_EMAIL_SERVER = process.env.DEBUG_EMAIL_SERVER === 'true';
@@ -30,18 +28,22 @@ const maskSecret = (value) => {
 };
 
 if (DEBUG_EMAIL_SERVER) {
-  console.log('[email] SENDGRID_API_KEY:', maskSecret(SENDGRID_API_KEY));
+  console.log('[email] BREVO_API_KEY:', maskSecret(BREVO_API_KEY));
   console.log('[email] FROM_EMAIL:', FROM_EMAIL ? '(definido)' : '(não definido)');
 }
 
-if (!SENDGRID_API_KEY) {
-  console.error('[email] ERRO: SENDGRID_API_KEY não definida!');
+if (!BREVO_API_KEY) {
+  console.error('[email] ERRO: BREVO_API_KEY não definida!');
 }
 if (!FROM_EMAIL) {
   console.error('[email] ERRO: FROM_EMAIL não definida!');
 }
 
-sgMail.setApiKey(SENDGRID_API_KEY);
+// Inicializar Brevo
+let defaultClient = SibApiV3Sdk.ApiClient.instance;
+let apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = BREVO_API_KEY;
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // CORS explícito para frontend Angular local e Vercel (função para múltiplos domínios)
 const allowedOrigins = new Set([
@@ -65,6 +67,7 @@ app.use(cors({
 app.use(express.json());
 
 app.post('/api/send-email', async (req, res) => {
+  console.log('[email] Requisição recebida:', req.method, req.url);
   const { to, subject, html, token, tempPassword } = req.body;
 
   console.log('[email] /api/send-email', {
@@ -82,12 +85,12 @@ app.post('/api/send-email', async (req, res) => {
       tokenMasked: maskSecret(token),
     });
   }
-  
+
   // Validação mínima - permitir envio sem token para reset de senha
   if (!to || !subject || !html) {
     return res.status(400).json({ error: 'Parâmetros obrigatórios ausentes (to, subject, html).' });
   }
-  
+
   try {
     // Se houver token, é um email de confirmação de cadastro
     if (token) {
@@ -103,28 +106,38 @@ app.post('/api/send-email', async (req, res) => {
         <p>Por favor, confirme seu e-mail clicando no botão abaixo:</p><br>
         <a href='${confirmLink}' style='display:inline-block;padding:12px 24px;background:#22c55e;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;'>Confirmar cadastro</a><br><br>
         Ou copie e cole este link no navegador:<br><span style='word-break:break-all;'>${confirmLink}</span>`;
-      
-      await sgMail.send({
-        to,
-        from: FROM_EMAIL,
-        subject,
-        html: htmlWithLink,
-      });
+
+      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.htmlContent = htmlWithLink;
+      sendSmtpEmail.sender = { name: "Natan General Service", email: FROM_EMAIL };
+      sendSmtpEmail.to = [{ email: to }];
+
+      await apiInstance.sendTransacEmail(sendSmtpEmail);
     } else {
       // Email genérico (reset de senha, etc) - usar HTML direto do body
-      await sgMail.send({
-        to,
-        from: FROM_EMAIL,
-        subject,
-        html,
-      });
+      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.htmlContent = html;
+      sendSmtpEmail.sender = { name: "Natan General Service", email: FROM_EMAIL };
+      sendSmtpEmail.to = [{ email: to }];
+
+      await apiInstance.sendTransacEmail(sendSmtpEmail);
     }
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Erro ao enviar e-mail:', error);
-    if (error.response && error.response.body) {
-      console.error('Detalhe do erro:', error.response.body);
+    console.error('Tipo do erro:', error.constructor.name);
+    console.error('Mensagem do erro:', error.message);
+    if (error.response) {
+      console.error('Resposta do erro:', error.response);
+      if (error.response.body) {
+        console.error('Corpo da resposta:', error.response.body);
+      }
+    }
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
     }
     res.status(500).json({ error: 'Erro ao enviar e-mail.' });
   }

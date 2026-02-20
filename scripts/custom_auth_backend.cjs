@@ -3,7 +3,7 @@ const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('node:crypto');
 require('dotenv').config();
-const sgMail = require('@sendgrid/mail');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
 const app = express();
 const PORT = process.env.AUTH_SERVER_PORT || 4002;
@@ -43,9 +43,13 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
 
-// SendGrid (OTP e notificações)
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Brevo (OTP e notificações)
+let apiInstance = null;
+if (process.env.BREVO_API_KEY) {
+  let defaultClient = SibApiV3Sdk.ApiClient.instance;
+  let apiKey = defaultClient.authentications['api-key'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
+  apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 }
 
 const FROM_EMAIL = process.env.FROM_EMAIL;
@@ -64,19 +68,20 @@ function generateOtp6() {
 }
 
 async function sendOtpEmail(to, otp, context) {
-  if (!process.env.SENDGRID_API_KEY || !FROM_EMAIL) {
-    throw new Error('Servidor sem configuração de e-mail (SENDGRID_API_KEY/FROM_EMAIL)');
+  if (!process.env.BREVO_API_KEY || !FROM_EMAIL || !apiInstance) {
+    throw new Error('Servidor sem configuração de e-mail (BREVO_API_KEY/FROM_EMAIL)');
   }
 
   const subject = 'Código de assinatura do Relatório Técnico';
   const text = `Seu código (OTP) para assinar o Relatório Técnico é: ${otp}.\n\nExpira em 10 minutos.\n\n${context || ''}`;
 
-  await sgMail.send({
-    to,
-    from: FROM_EMAIL,
-    subject,
-    text,
-  });
+  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.textContent = text;
+  sendSmtpEmail.sender = { name: "Natan General Service", email: FROM_EMAIL };
+  sendSmtpEmail.to = [{ email: to }];
+
+  await apiInstance.sendTransacEmail(sendSmtpEmail);
 }
 
 async function requireValidSession(req) {

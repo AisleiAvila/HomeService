@@ -78,6 +78,12 @@ type FinancialSummary = {
     totalServices: number;
 };
 
+type MobileBarChartItem = {
+    label: string;
+    value: number;
+    color: string;
+};
+
 @Component({
     selector: "app-financial-reports",
     standalone: true,
@@ -203,7 +209,6 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         Cancelled: "#dc2626",
         Unknown: "#94a3b8",
     };
-    private hasInitializedFinancialChart = false;
     private hasInitializedWaterfallChart = false;
     private hasInitializedServiceStatusChart = false;
     private hasInitializedOriginChart = false;
@@ -220,7 +225,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         tooltip: ApexTooltip;
         colors: string[];
         grid: { borderColor: string };
-        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; plotOptions?: ApexPlotOptions } }>;
+        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; yaxis?: ApexYAxis; plotOptions?: ApexPlotOptions } }>;
     }>({
         chart: { type: "bar", height: 320, toolbar: { show: false } },
         plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
@@ -245,7 +250,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         tooltip: ApexTooltip;
         colors: string[];
         grid: { borderColor: string };
-        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; plotOptions?: ApexPlotOptions } }>;
+        responsive?: Array<{ breakpoint: number; options: { chart?: Partial<ApexChart>; dataLabels?: ApexDataLabels; xaxis?: ApexXAxis; yaxis?: ApexYAxis; plotOptions?: ApexPlotOptions } }>;
     }>({
         chart: { type: "bar", height: 280, toolbar: { show: false } },
         plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
@@ -692,6 +697,19 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             return;
         }
 
+        if (this.isMobileViewport()) {
+            this.renderMobileHorizontalBarChart(
+                canvas,
+                ctx,
+                this.serviceStatusSummary().map((item) => ({ label: item.status, value: item.count, color: this.getStatusColor(item.status) })),
+                this.i18n.translate("noDataAvailable") || "Sem dados",
+                (value) => String(Math.round(value))
+            );
+            return;
+        }
+
+        canvas.style.height = "";
+
         const cssWidth = canvas.clientWidth || 640;
         const cssHeight = canvas.clientHeight || 280;
         const dpr = window.devicePixelRatio || 1;
@@ -777,6 +795,19 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         if (!ctx) {
             return;
         }
+
+        if (this.isMobileViewport()) {
+            this.renderMobileHorizontalBarChart(
+                canvas,
+                ctx,
+                this.originValuesSummary().map((item) => ({ label: item.origin, value: item.value, color: this.getOriginColor(item.origin) })),
+                this.i18n.translate("noDataAvailable") || "Sem dados",
+                (value) => this.formatCost(value)
+            );
+            return;
+        }
+
+        canvas.style.height = "";
 
         const cssWidth = canvas.clientWidth || 640;
         const cssHeight = canvas.clientHeight || 280;
@@ -864,6 +895,19 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         if (!ctx) {
             return;
         }
+
+        if (this.isMobileViewport()) {
+            this.renderMobileHorizontalBarChart(
+                canvas,
+                ctx,
+                this.serviceOriginSummary().map((item) => ({ label: item.origin, value: item.count, color: this.getOriginColor(item.origin) })),
+                this.i18n.translate("noDataAvailable") || "Sem dados",
+                (value) => String(Math.round(value))
+            );
+            return;
+        }
+
+        canvas.style.height = "";
 
         const cssWidth = canvas.clientWidth || 640;
         const cssHeight = canvas.clientHeight || 280;
@@ -1386,8 +1430,8 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             },
         ]);
         this.financialWaterfallChartOptions.set({
-            chart: { type: "rangeBar", height: isMobile ? 260 : 320, toolbar: { show: false } },
-            plotOptions: { bar: { horizontal: false, columnWidth: "46%", borderRadius: 6, dataLabels: { position: "top" } } },
+            chart: { type: "rangeBar", height: isMobile ? 300 : 320, toolbar: { show: false } },
+            plotOptions: { bar: { horizontal: false, columnWidth: isMobile ? "58%" : "46%", borderRadius: 6, dataLabels: { position: "top" } } },
             dataLabels: {
                 enabled: !isMobile,
                 formatter: (_val: number, opt?: { dataPointIndex?: number }) => {
@@ -1397,8 +1441,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
                 offsetY: -16,
                 style: { fontSize: "13px", fontWeight: 600 },
             },
-            xaxis: { categories: waterfallItems.map((item) => item.label), labels: { style: { fontWeight: 500 } } },
-            yaxis: { labels: { formatter: (val: number) => this.formatCost(val) } },
+            xaxis: {
+                categories: waterfallItems.map((item) => item.label),
+                labels: { rotate: 0, trim: true, style: { fontWeight: 500, fontSize: isMobile ? "10px" : "12px" } },
+            },
+            yaxis: { labels: { formatter: (val: number) => this.formatCost(val), show: !isMobile } },
             fill: { opacity: 1 },
             tooltip: {
                 y: {
@@ -1413,10 +1460,11 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             responsive: [{
                 breakpoint: 768,
                 options: {
-                    chart: { height: 260 },
+                    chart: { height: 300 },
                     dataLabels: { enabled: false },
-                    plotOptions: { bar: { columnWidth: "58%", borderRadius: 4 } },
+                    plotOptions: { bar: { columnWidth: "62%", borderRadius: 4 } },
                     xaxis: { labels: { rotate: 0, trim: true, style: { fontSize: "10px", fontWeight: 500 } } },
+                    yaxis: { labels: { show: false } },
                 },
             }],
         });
@@ -1425,20 +1473,23 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
         this.financialTotalsChartSeries.set([
             {
                 name: "Totais",
-                data: breakdown.map((item) => ({ x: item.label, y: item.value, fillColor: item.color })),
+                data: breakdown.map((item) => ({ x: this.getFinancialBreakdownChartLabel(item, isMobile), y: item.value, fillColor: item.color })),
             },
         ]);
         this.financialTotalsChartOptions.set({
-            chart: { type: "bar", height: isMobile ? 250 : 280, toolbar: { show: false } },
-            plotOptions: { bar: { horizontal: false, columnWidth: "40%", borderRadius: 6, dataLabels: { position: "top" } } },
+            chart: { type: "bar", height: isMobile ? 290 : 280, toolbar: { show: false } },
+            plotOptions: { bar: { horizontal: false, columnWidth: isMobile ? "58%" : "40%", borderRadius: 6, dataLabels: { position: "top" } } },
             dataLabels: {
                 enabled: !isMobile,
                 formatter: (val: number) => this.formatCost(val),
                 offsetY: -16,
                 style: { fontSize: "13px", fontWeight: 600 },
             },
-            xaxis: { categories: breakdown.map((item) => item.label), labels: { style: { fontWeight: 500 } } },
-            yaxis: { labels: { formatter: (val: number) => this.formatCost(val) } },
+            xaxis: {
+                categories: breakdown.map((item) => this.getFinancialBreakdownChartLabel(item, isMobile)),
+                labels: { rotate: 0, trim: true, style: { fontWeight: 500, fontSize: isMobile ? "10px" : "12px" } },
+            },
+            yaxis: { labels: { formatter: (val: number) => this.formatCost(val), show: !isMobile } },
             fill: { opacity: 1 },
             tooltip: { y: { formatter: (val: number) => this.formatCost(val) } },
             colors: breakdown.map((item) => item.color),
@@ -1446,12 +1497,134 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
             responsive: [{
                 breakpoint: 768,
                 options: {
-                    chart: { height: 250 },
+                    chart: { height: 290 },
                     dataLabels: { enabled: false },
-                    plotOptions: { bar: { columnWidth: "52%", borderRadius: 4 } },
+                    plotOptions: { bar: { columnWidth: "62%", borderRadius: 4 } },
                     xaxis: { labels: { rotate: 0, trim: true, style: { fontSize: "10px", fontWeight: 500 } } },
+                    yaxis: { labels: { show: false } },
                 },
             }],
+        });
+    }
+
+    private getFinancialBreakdownChartLabel(item: FinancialBreakdownItem, isMobile: boolean): string {
+        if (!isMobile) {
+            return item.label;
+        }
+
+        const mobileLabels: Record<FinancialBreakdownKey, string> = {
+            serviceValue: "Total",
+            paidProviders: "Pago",
+            unpaidProviders: "Aberto",
+        };
+
+        return mobileLabels[item.key];
+    }
+
+    private isMobileViewport(): boolean {
+        return globalThis.window !== undefined && globalThis.window.innerWidth < 768;
+    }
+
+    private truncateCanvasLabel(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+        if (ctx.measureText(text).width <= maxWidth) {
+            return text;
+        }
+
+        const ellipsis = "…";
+        let output = text;
+        while (output.length > 0 && ctx.measureText(output + ellipsis).width > maxWidth) {
+            output = output.slice(0, -1);
+        }
+        return output ? output + ellipsis : ellipsis;
+    }
+
+    private renderMobileHorizontalBarChart(
+        canvas: HTMLCanvasElement,
+        ctx: CanvasRenderingContext2D,
+        items: MobileBarChartItem[],
+        noDataLabel: string,
+        valueFormatter: (value: number) => string
+    ): void {
+        const activeItems = items
+            .filter((item) => item.value > 0)
+            .sort((a, b) => b.value - a.value);
+
+        const maxItems = 6;
+        const visibleItems = activeItems.slice(0, maxItems);
+        const remainingItems = activeItems.slice(maxItems);
+
+        if (remainingItems.length > 0) {
+            const aggregatedValue = remainingItems.reduce((sum, item) => sum + item.value, 0);
+            visibleItems.push({
+                label: "Outros",
+                value: aggregatedValue,
+                color: "#94a3b8",
+            });
+        }
+
+        const rowHeight = 34;
+        const chartPaddingTop = 14;
+        const chartPaddingBottom = 14;
+        const minHeight = 240;
+        const targetHeight = Math.max(minHeight, chartPaddingTop + chartPaddingBottom + Math.max(1, visibleItems.length) * rowHeight);
+
+        canvas.style.height = `${targetHeight}px`;
+
+        const cssWidth = canvas.clientWidth || 640;
+        const cssHeight = targetHeight;
+        const dpr = globalThis.window.devicePixelRatio || 1;
+
+        canvas.width = cssWidth * dpr;
+        canvas.height = cssHeight * dpr;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(dpr, dpr);
+
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        const trackColor = isDarkMode ? "#374151" : "#e5e7eb";
+        const labelColor = isDarkMode ? "#e5e7eb" : "#111827";
+        const valueColor = isDarkMode ? "#f9fafb" : "#111827";
+        const mutedColor = isDarkMode ? "#9ca3af" : "#6b7280";
+
+        if (!visibleItems.length) {
+            ctx.fillStyle = mutedColor;
+            ctx.font = "600 14px 'Inter','Segoe UI',sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(noDataLabel, cssWidth / 2, cssHeight / 2);
+            return;
+        }
+
+        const maxValue = Math.max(...visibleItems.map((item) => item.value), 1);
+        const leftPadding = 10;
+        const labelWidth = Math.max(84, Math.min(120, cssWidth * 0.34));
+        const valueWidth = Math.max(64, Math.min(90, cssWidth * 0.26));
+        const gap = 8;
+        const barX = leftPadding + labelWidth + gap;
+        const barWidth = Math.max(60, cssWidth - barX - valueWidth - gap - 8);
+
+        visibleItems.forEach((item, index) => {
+            const rowTop = chartPaddingTop + index * rowHeight;
+            const barY = rowTop + 9;
+            const barHeight = 14;
+            const normalizedWidth = (item.value / maxValue) * barWidth;
+            const fillWidth = Math.max(4, normalizedWidth);
+
+            ctx.fillStyle = labelColor;
+            ctx.font = "600 11px 'Inter','Segoe UI',sans-serif";
+            ctx.textAlign = "left";
+            const clippedLabel = this.truncateCanvasLabel(ctx, item.label, labelWidth - 2);
+            ctx.fillText(clippedLabel, leftPadding, rowTop + 19);
+
+            ctx.fillStyle = trackColor;
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            ctx.fillStyle = item.color;
+            ctx.fillRect(barX, barY, fillWidth, barHeight);
+
+            ctx.fillStyle = valueColor;
+            ctx.font = "600 11px 'Inter','Segoe UI',sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(valueFormatter(item.value), barX + barWidth + valueWidth, rowTop + 19);
         });
     }
 

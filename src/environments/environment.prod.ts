@@ -8,6 +8,11 @@ export const environment = {
   sessionApiUrl: "/api/session",
   confirmEmailApiUrl: "/api/confirm-email",
   emailServiceUrl: "/api/send-email", // Em produção, usar endpoint Vercel
+
+  // Configurações de e-mail - Brevo (substitui MailerSend)
+  emailProvider: "brevo",
+  brevoApiKey: "", // Será definido via variável de ambiente
+  fromEmail: "", // Será definido via variável de ambiente
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular

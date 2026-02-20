@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import sgMail from '@sendgrid/mail';
+import SibApiV3Sdk from 'sib-api-v3-sdk';
 import crypto from 'node:crypto';
 
 const DEFAULT_SUPABASE_URL = 'https://uqrvenlkquheajuveggv.supabase.co';
@@ -113,25 +113,29 @@ async function resolveSignerEmail({ supabase, signerType, report }) {
 
 async function sendOtpEmail(to, otp, context) {
   const from = process.env.FROM_EMAIL;
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey || !from) {
-    const err = new Error('Servidor sem configuração de e-mail (SENDGRID_API_KEY/FROM_EMAIL)');
+    const err = new Error('Servidor sem configuração de e-mail (BREVO_API_KEY/FROM_EMAIL)');
     err.statusCode = 500;
     throw err;
   }
 
-  sgMail.setApiKey(apiKey);
+  let defaultClient = SibApiV3Sdk.ApiClient.instance;
+  let apiKeyAuth = defaultClient.authentications['api-key'];
+  apiKeyAuth.apiKey = apiKey;
+  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
   const subject = 'Código de assinatura do Relatório Técnico';
   const text = `Seu código (OTP) para assinar o Relatório Técnico é: ${otp}.\n\nExpira em 10 minutos.\n\n${context || ''}`;
 
-  await sgMail.send({
-    to,
-    from,
-    subject,
-    text,
-  });
+  const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+  sendSmtpEmail.subject = subject;
+  sendSmtpEmail.textContent = text;
+  sendSmtpEmail.sender = { name: "Natan General Service", email: from };
+  sendSmtpEmail.to = [{ email: to }];
+
+  await apiInstance.sendTransacEmail(sendSmtpEmail);
 }
 
 function parseJsonBody(req) {

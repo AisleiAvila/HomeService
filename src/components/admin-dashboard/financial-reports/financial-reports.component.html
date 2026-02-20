@@ -183,7 +183,7 @@
                             [colors]="financialWaterfallChartOptions().colors"
                             [grid]="financialWaterfallChartOptions().grid"
                             [responsive]="financialWaterfallChartOptions().responsive"
-                            class="w-full h-60 sm:h-64 md:h-72"
+                            class="w-full h-72 sm:h-64 md:h-72"
                             aria-label="Resumo Financeiro">
                         </apx-chart>
                     </div>
@@ -213,7 +213,7 @@
                             [colors]="financialTotalsChartOptions().colors"
                             [grid]="financialTotalsChartOptions().grid"
                             [responsive]="financialTotalsChartOptions().responsive"
-                            class="w-full h-56 sm:h-60 md:h-64 lg:h-72"
+                            class="w-full h-72 sm:h-60 md:h-64 lg:h-72"
                             aria-label="{{ 'financialTotalsChartTitle' | i18n }}">
                         </apx-chart>
                     </div>
@@ -245,9 +245,9 @@
                 </div>
                 <div class="p-4 flex-1 flex flex-col gap-3">
                     <div class="w-full overflow-x-auto pb-1">
-                        <canvas #serviceStatusCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="{{ 'servicesByStatus' | i18n }}"></canvas>
+                        <canvas #serviceStatusCanvas class="w-full h-72 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="{{ 'servicesByStatus' | i18n }}"></canvas>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="hidden sm:grid sm:grid-cols-2 gap-2">
                         @for(item of serviceStatusSummary(); track item.status) {
                         <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/40 rounded-lg px-3 py-1.5 border border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-2">
@@ -275,9 +275,9 @@
                 </div>
                 <div class="p-4 flex-1 flex flex-col gap-3">
                     <div class="w-full overflow-x-auto pb-1">
-                        <canvas #originValuesCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="Valores por Origem"></canvas>
+                        <canvas #originValuesCanvas class="w-full h-72 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="Valores por Origem"></canvas>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="hidden sm:grid sm:grid-cols-2 gap-2">
                         @for(item of originValuesSummary(); track item.origin) {
                         <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/40 rounded-lg px-3 py-1.5 border border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-2">
@@ -305,9 +305,9 @@
                 </div>
                 <div class="p-4 flex-1 flex flex-col gap-3">
                     <div class="w-full overflow-x-auto pb-1">
-                        <canvas #serviceOriginCanvas class="w-full h-56 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="Serviços por Origem"></canvas>
+                        <canvas #serviceOriginCanvas class="w-full h-72 sm:h-60 md:h-64 lg:h-72" width="640" height="300" aria-label="Serviços por Origem"></canvas>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="hidden sm:grid sm:grid-cols-2 gap-2">
                         @for(item of serviceOriginSummary(); track item.origin) {
                         <div class="flex items-center justify-between gap-2 bg-gray-50 dark:bg-gray-900/40 rounded-lg px-3 py-1.5 border border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-2">

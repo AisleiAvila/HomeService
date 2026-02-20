@@ -8,6 +8,11 @@ export const environment = {
   sessionApiUrl: "http://localhost:4002/api/session",
   confirmEmailApiUrl: "http://localhost:4001/api/confirm-email",
   emailServiceUrl: "http://localhost:4001/api/send-email", // Servidor de e-mail local
+
+  // Configurações de e-mail - Brevo (substitui MailerSend)
+  emailProvider: "brevo",
+  brevoApiKey: "", // Será definido via variável de ambiente
+  fromEmail: "", // Será definido via variável de ambiente
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular

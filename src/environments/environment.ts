@@ -1,5 +1,5 @@
 export const environment = {
-  production: true,
+  production: false,
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxcnZlbmxrcXVoZWFqdXZlZ2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzg4NDgsImV4cCI6MjA3MjY1NDg0OH0.ZdgBkvjC5irHh7E9fagqX_Pu797anPfE8jO91iNDRIc",
   supabaseUrl: "https://uqrvenlkquheajuveggv.supabase.co",
   apiUrl: "https://your-backend-url.com",
@@ -8,6 +8,11 @@ export const environment = {
   sessionApiUrl: "/api/session",
   confirmEmailApiUrl: "/api/confirm-email",
   emailServiceUrl: "http://localhost:4001/api/send-email", // URL do servidor de e-mail
+
+  // Configurações de e-mail - Brevo (substitui MailerSend)
+  emailProvider: "brevo",
+  brevoApiKey: "", // Será definido via variável de ambiente
+  fromEmail: "", // Será definido via variável de ambiente
 };
 
 // Adiciona exportação de tipo para compatibilidade Angular

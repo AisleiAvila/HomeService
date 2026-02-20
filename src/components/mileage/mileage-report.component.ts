@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DailyMileage, Fueling, User } from '../../models/maintenance.models';
-import { DailyMileageService } from '../../services/daily-mileage.service';
-import { AuthService } from '../../services/auth.service';
-import { I18nService } from '../../i18n.service';
-import { DataService } from '../../services/data.service';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { I18nService } from '../../i18n.service';
+import { AuthService } from '../../services/auth.service';
+import { DailyMileageService } from '../../services/daily-mileage.service';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-mileage-report',
