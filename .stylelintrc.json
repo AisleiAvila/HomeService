@@ -16,15 +16,6 @@
       "rules": {
         "color-no-hex": null
       }
-    },
-    {
-      "files": [
-        "src/styles/overrides/fullcalendar.css",
-        "src/styles/overrides/print.css"
-      ],
-      "rules": {
-        "declaration-no-important": null
-      }
     }
   ]
 }
