@@ -42,13 +42,13 @@
       <thead class="bg-gray-50 dark:bg-gray-800">
         <tr>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('category') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('category')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('service' | i18n)"
@@ -64,13 +64,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('origin') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('origin')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('origin' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('origin' | i18n)"
@@ -86,13 +86,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('locality') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('locality')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('locality' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('locality' | i18n)"
@@ -108,13 +108,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('client') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('client')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('client' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('client' | i18n)"
@@ -130,13 +130,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('phone') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('phone')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('phone' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('phone' | i18n)"
@@ -152,13 +152,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('execution') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('execution')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('executionTimeline' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('executionTimeline' | i18n)"
@@ -174,13 +174,13 @@
             </button>
           </th>
           <th
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+            class="service-list-table-header-cell"
             [attr.aria-sort]="isSortedBy('status') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
             scope="col"
             >
             <button
               type="button"
-              class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+              class="service-list-sort-button"
               (click)="handleSortColumn('status')"
               [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
               [attr.title]="('clickToSort' | i18n) + ': ' + ('status' | i18n)"
@@ -197,13 +197,13 @@
           </th>
           @if (shouldShowValueColumn()) {
             <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider"
+              class="service-list-table-header-cell"
               [attr.aria-sort]="isSortedBy('value') ? (sortOrder() === 'asc' ? 'ascending' : 'descending') : 'none'"
               scope="col"
               >
               <button
                 type="button"
-                class="w-full text-left cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary-500 rounded px-2 -mx-2"
+                class="service-list-sort-button"
                 (click)="handleSortColumn('value')"
                 [attr.aria-label]="('clickToSort' | i18n) + ': ' + ('value' | i18n)"
                 [attr.title]="('clickToSort' | i18n) + ': ' + ('value' | i18n)"
@@ -219,13 +219,13 @@
               </button>
             </th>
           }
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 tracking-wider">
+          <th class="service-list-table-header-cell">
             {{ "actions" | i18n }}
           </th>
         </tr>
       </thead>
       <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-        @if (displayedRequests().length === 0) {
+        @if ((displayedRequests()?.length ?? 0) === 0) {
           <tr>
             <td
               class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300"
@@ -398,7 +398,7 @@
                 @if(isProfessionalUser()) {
                   <button
                     (click)="viewGeolocation.emit(request)"
-                    class="p-2 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md transition-colors"
+                    class="service-list-action-icon service-list-action-icon-geolocation"
                     [title]="'geolocation' | i18n"
                     [attr.aria-label]="'geolocation' | i18n"
                     >
@@ -407,7 +407,7 @@
                 }
                 <button
                   (click)="logAndEmitViewDetails(request)"
-                  class="p-2 text-brand-primary-500 hover:text-brand-primary-600 hover:bg-brand-primary-50 rounded-md transition-colors"
+                  class="service-list-action-icon service-list-action-icon-details"
                   [title]="'viewRequestDetails' | i18n"
                   [attr.aria-label]="'viewRequestDetails' | i18n"
                   >
@@ -416,7 +416,7 @@
                 @if (canShowTechnicalReport(request)) {
                   <button
                     (click)="openTechnicalReport(request)"
-                    class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                    class="service-list-action-icon service-list-action-icon-report"
                     [title]="'technicalReport' | i18n"
                     [attr.aria-label]="'technicalReport' | i18n"
                     >
@@ -427,7 +427,7 @@
                 @if (canViewTechnicalReport(request)) {
                   <button
                     (click)="openExistingTechnicalReport(request)"
-                    class="p-2 text-blue-700 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                    class="service-list-action-icon service-list-action-icon-report-view"
                     [title]="'viewTechnicalReport' | i18n"
                     [attr.aria-label]="'viewTechnicalReport' | i18n"
                     [disabled]="isViewingSavedTechnicalReport(request.id)"
@@ -438,7 +438,7 @@
 
                 <button
                   (click)="openChat.emit(request)"
-                  class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                  class="service-list-action-icon service-list-action-icon-chat"
                   [title]="'chat' | i18n"
                   [attr.aria-label]="'chat' | i18n"
                   >
@@ -448,7 +448,7 @@
                 @if(isProfessionalUser() && isAwaitingProfessionalConfirmation(request)) {
                   <button
                     (click)="!isLoading(request.id) && confirmAssignment.emit(request)"
-                    class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                    class="service-list-action-icon service-list-action-icon-confirm"
                     [title]="'confirmAssignment' | i18n"
                     [attr.aria-label]="'confirmAssignment' | i18n"
                     [disabled]="isLoading(request.id)"
@@ -457,7 +457,7 @@
                   </button>
                   <button
                     (click)="!isLoading(request.id) && rejectAssignment.emit(request)"
-                    class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                    class="service-list-action-icon service-list-action-icon-reject"
                     [title]="'rejectAssignment' | i18n"
                     [attr.aria-label]="'rejectAssignment' | i18n"
                     [disabled]="isLoading(request.id)"
@@ -529,7 +529,7 @@
         </div>
       </div>
 
-      @if (displayedRequests().length === 0) {
+      @if ((displayedRequests()?.length ?? 0) === 0) {
         <div class="p-4 sm:p-6 text-center text-gray-500">
           {{ "noServiceRequestsFound" | i18n }}
         </div>

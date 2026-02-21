@@ -405,6 +405,116 @@
   letter-spacing: 0.05em;
 }
 
+.service-list-table-header-cell {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: var(--ds-font-medium);
+  color: var(--ds-ui-text-soft);
+  letter-spacing: 0.05em;
+}
+
+.dark .service-list-table-header-cell {
+  color: var(--ds-ui-text-inverse-soft);
+}
+
+.service-list-sort-button {
+  width: 100%;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  padding: 0 0.5rem;
+  border-radius: 0.25rem;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 200ms ease;
+}
+
+.service-list-sort-button:hover {
+  background-color: var(--ds-ui-bg-hover);
+}
+
+.service-list-sort-button:focus {
+  outline: none;
+}
+
+.service-list-sort-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--ds-color-brand-primary-500);
+}
+
+.dark .service-list-sort-button:hover {
+  background-color: var(--ds-ui-dark-border);
+}
+
+.service-list-action-icon {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: color 200ms ease, background-color 200ms ease;
+}
+
+.service-list-action-icon-geolocation {
+  color: color-mix(in srgb, var(--ds-color-semantic-info) 70%, var(--ds-color-semantic-success) 30%);
+}
+
+.service-list-action-icon-geolocation:hover {
+  color: color-mix(in srgb, var(--ds-color-semantic-info-dark) 65%, var(--ds-color-semantic-success-dark) 35%);
+  background-color: color-mix(in srgb, var(--ds-color-semantic-info-light) 8%, var(--ds-color-semantic-success-light) 12%, var(--ds-ui-white));
+}
+
+.service-list-action-icon-details {
+  color: var(--ds-color-brand-primary-500);
+}
+
+.service-list-action-icon-details:hover {
+  color: var(--ds-color-brand-primary-600);
+  background-color: var(--ds-color-brand-primary-50);
+}
+
+.service-list-action-icon-report {
+  color: var(--ds-ui-text-muted);
+}
+
+.service-list-action-icon-report:hover {
+  color: var(--ds-ui-text-default);
+  background-color: var(--ds-ui-bg-hover);
+}
+
+.service-list-action-icon-report-view {
+  color: var(--ds-color-info-700);
+}
+
+.service-list-action-icon-report-view:hover {
+  color: var(--ds-color-info-800);
+  background-color: var(--ds-color-info-50);
+}
+
+.service-list-action-icon-chat {
+  color: var(--ds-ui-text-soft);
+}
+
+.service-list-action-icon-chat:hover {
+  color: var(--ds-ui-text-muted);
+  background-color: var(--ds-ui-bg-hover);
+}
+
+.service-list-action-icon-confirm {
+  color: var(--ds-color-semantic-success);
+}
+
+.service-list-action-icon-confirm:hover {
+  color: var(--ds-color-semantic-success-dark);
+  background-color: color-mix(in srgb, var(--ds-color-semantic-success) 10%, var(--ds-ui-white));
+}
+
+.service-list-action-icon-reject {
+  color: var(--ds-color-semantic-error);
+}
+
+.service-list-action-icon-reject:hover {
+  color: var(--ds-color-semantic-error-dark);
+  background-color: var(--ds-color-brand-primary-50);
+}
+
 // Bloco de orçamento/custo destacado no card mobile
 .service-list-quote-info {
   background-color: color-mix(in srgb, var(--ds-color-semantic-success) 10%, var(--ds-ui-white)); // bg-green-50

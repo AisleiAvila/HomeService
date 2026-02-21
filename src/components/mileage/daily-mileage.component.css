@@ -1,1 +1,224 @@
 /* Daily Mileage Component Styles */
+
+.dm-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--ds-ui-border-default);
+  border-radius: 0.25rem;
+  background-color: var(--ds-ui-white);
+  color: var(--ds-ui-text-default);
+}
+
+.dark .dm-input {
+  background-color: var(--ds-color-neutral-700);
+  border-color: var(--ds-color-neutral-600);
+}
+
+.dm-filter-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--ds-ui-border-default);
+  border-radius: 0.5rem;
+  background-color: var(--ds-ui-white);
+  color: var(--ds-ui-text-default);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.dm-filter-control:focus {
+  border-color: var(--ds-color-brand-primary-500);
+  box-shadow: 0 0 0 2px var(--ds-color-brand-primary-500);
+  outline: none;
+}
+
+.dark .dm-filter-control {
+  border-color: var(--ds-ui-dark-border-soft);
+  background-color: var(--ds-ui-dark-bg);
+  color: var(--ds-ui-text-inverse);
+}
+
+.dm-btn-primary {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  background-color: var(--ds-color-semantic-info-dark);
+  color: var(--ds-ui-white);
+}
+
+.dm-btn-primary:hover {
+  background-color: var(--ds-color-info-700);
+}
+
+.dm-btn-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  background-color: var(--ds-ui-text-muted);
+  color: var(--ds-ui-white);
+}
+
+.dm-btn-secondary:hover {
+  background-color: var(--ds-ui-dark-border);
+}
+
+.dm-action-link {
+  color: var(--ds-color-semantic-info-dark);
+}
+
+.dm-action-link:hover {
+  color: var(--ds-color-info-700);
+}
+
+.dark .dm-action-link {
+  color: var(--ds-color-info-300);
+}
+
+.dm-action-link-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dm-action-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  background-color: var(--ds-ui-bg-hover);
+  color: var(--ds-color-semantic-info-dark);
+  transition:
+    color var(--ds-transition-fast),
+    background-color var(--ds-transition-fast);
+}
+
+.dm-action-icon-btn:hover {
+  color: var(--ds-color-info-700);
+}
+
+.dark .dm-action-icon-btn {
+  background-color: var(--ds-color-neutral-700);
+  color: var(--ds-color-info-300);
+}
+
+.dm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.25rem;
+}
+
+.dm-icon-btn-add {
+  background-color: var(--ds-color-semantic-success);
+  color: var(--ds-ui-white);
+}
+
+.dm-icon-btn-add:hover {
+  background-color: var(--ds-color-semantic-success-dark);
+}
+
+.dm-icon-btn-close {
+  background-color: var(--ds-ui-border-subtle);
+  color: var(--ds-ui-text-default);
+}
+
+.dm-icon-btn-close:hover {
+  background-color: var(--ds-ui-border-default);
+}
+
+.dark .dm-icon-btn-close {
+  background-color: var(--ds-color-neutral-700);
+  color: var(--ds-color-neutral-100);
+}
+
+.dark .dm-icon-btn-close:hover {
+  background-color: var(--ds-color-neutral-600);
+}
+
+.dm-icon-btn-shrink {
+  flex-shrink: 0;
+}
+
+.dm-pagination-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ds-ui-border-default);
+  background-color: var(--ds-ui-white);
+  font-size: 0.875rem;
+  font-weight: var(--ds-font-medium);
+  color: var(--ds-ui-text-muted);
+}
+
+.dm-pagination-btn:hover {
+  background-color: var(--ds-ui-bg-hover);
+}
+
+.dm-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dark .dm-pagination-btn {
+  border-color: var(--ds-ui-dark-border-soft);
+  background-color: var(--ds-ui-dark-bg);
+  color: var(--ds-ui-text-inverse-soft);
+}
+
+.dark .dm-pagination-btn:hover {
+  background-color: var(--ds-ui-dark-border);
+}
+
+.dm-pagination-prev,
+.dm-pagination-next {
+  padding: 0.5rem;
+}
+
+.dm-pagination-prev {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
+.dm-pagination-next {
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+.dm-pagination-page {
+  padding: 0.5rem 1rem;
+  color: var(--ds-ui-text-muted);
+}
+
+.dm-pagination-page-active {
+  background-color: var(--ds-color-brand-primary-50);
+  color: var(--ds-color-brand-primary-500);
+}
+
+.dark .dm-pagination-page-active {
+  background-color: var(--ds-color-brand-primary-900);
+  color: var(--ds-color-brand-primary-300);
+}
+
+.dm-pagination-page-inactive:hover {
+  background-color: var(--ds-ui-bg-hover);
+}
+
+.dark .dm-pagination-page-inactive {
+  color: var(--ds-ui-text-inverse-soft);
+}
+
+.dark .dm-pagination-page-inactive:hover {
+  background-color: var(--ds-ui-dark-border);
+}
+
+.dm-pagination-indicator {
+  padding: 0.5rem 1rem;
+  color: var(--ds-ui-text-muted);
+}
+
+.dark .dm-pagination-indicator {
+  color: var(--ds-ui-text-inverse-soft);
+}

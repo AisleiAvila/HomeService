@@ -58,7 +58,7 @@
             [ngModel]="startDate()"
             (ngModelChange)="startDate.set($event)"
             name="startDate"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             required>
         </div>
           <div>
@@ -69,7 +69,7 @@
               [ngModel]="startLicensePlate()"
               (ngModelChange)="onStartLicensePlateChange($event)"
               name="startLicensePlate"
-              class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+              class="dm-input"
               placeholder="AA-00-BB"
               required>
           </div>
@@ -81,16 +81,16 @@
             [ngModel]="startKilometers()"
             (input)="onStartKilometersChange($event)"
             name="startKilometers"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="0"
             min="0"
             required>
         </div>
         <div class="flex gap-2">
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button type="submit" class="dm-btn-primary">
             {{ 'save' | i18n }}
           </button>
-          <button type="button" (click)="showStartForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <button type="button" (click)="showStartForm.set(false)" class="dm-btn-secondary">
             {{ 'cancel' | i18n }}
           </button>
         </div>
@@ -111,16 +111,16 @@
             [ngModel]="endKilometers()"
             (ngModelChange)="onEndKilometersChange($event)"
             name="endKilometers"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             [placeholder]="todayMileage()?.start_kilometers.toString()"
             [min]="todayMileage()?.start_kilometers"
             required>
         </div>
         <div class="flex gap-2">
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button type="submit" class="dm-btn-primary">
             {{ 'save' | i18n }}
           </button>
-          <button type="button" (click)="showEndForm.set(false)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <button type="button" (click)="showEndForm.set(false)" class="dm-btn-secondary">
             {{ 'cancel' | i18n }}
           </button>
         </div>
@@ -141,7 +141,7 @@
             [ngModel]="adminRegisterDate()"
             (ngModelChange)="adminRegisterDate.set($event)"
             name="adminRegisterDate"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             required>
         </div>
         <div>
@@ -151,7 +151,7 @@
             [ngModel]="adminRegisterProfessionalId()"
             (change)="onAdminProfessionalChange($event)"
             name="adminRegisterProfessional"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             required>
             <option value="">{{ 'selectProfessional' | i18n }}</option>
             @for (professional of professionals(); track professional) {
@@ -169,7 +169,7 @@
             [ngModel]="adminRegisterLicensePlate()"
             (ngModelChange)="adminRegisterLicensePlate.set($event)"
             name="adminRegisterLicensePlate"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="AA-00-BB"
             required>
         </div>
@@ -181,7 +181,7 @@
             [ngModel]="adminRegisterStartKilometers()"
             (input)="onAdminRegisterStartKilometersChange($event)"
             name="adminRegisterStartKilometers"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="0"
             min="0"
             required>
@@ -194,7 +194,7 @@
             [ngModel]="adminRegisterEndKilometers()"
             (input)="onAdminRegisterEndKilometersChange($event)"
             name="adminRegisterEndKilometers"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="0"
             min="0">
         </div>
@@ -202,7 +202,7 @@
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             {{ 'save' | i18n }}
           </button>
-          <button type="button" (click)="showAdminRegisterForm.set(false); adminRegisterProfessionalId.set(null); adminRegisterLicensePlate.set(''); adminRegisterStartKilometers.set(null); adminRegisterEndKilometers.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <button type="button" (click)="showAdminRegisterForm.set(false); adminRegisterProfessionalId.set(null); adminRegisterLicensePlate.set(''); adminRegisterStartKilometers.set(null); adminRegisterEndKilometers.set(null)" class="dm-btn-secondary">
             {{ 'cancel' | i18n }}
           </button>
         </div>
@@ -245,7 +245,7 @@
             [ngModel]="fuelingValue()"
             (ngModelChange)="onFuelingValueChange($event)"
             name="fuelingValue"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="0.00"
             min="0"
             required>
@@ -258,7 +258,7 @@
             [ngModel]="fuelingLicensePlate()"
             (ngModelChange)="fuelingLicensePlate.set($event)"
             name="fuelingLicensePlate"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+            class="dm-input"
             placeholder="AA-00-BB"
             required>
         </div>
@@ -269,13 +269,13 @@
             type="file"
             accept="image/*"
             (change)="onFileSelected($event)"
-            class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
+            class="dm-input">
         </div>
         <div class="flex gap-2">
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             {{ 'save' | i18n }}
           </button>
-          <button type="button" (click)="showFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <button type="button" (click)="showFuelingForm.set(false); fuelingValue.set(null); fuelingLicensePlate.set(''); fuelingReceiptFile.set(null)" class="dm-btn-secondary">
             {{ 'cancel' | i18n }}
           </button>
         </div>
@@ -346,7 +346,7 @@
               [ngModel]="filterStartDate()"
               (ngModelChange)="filterStartDate.set($event)"
               name="filterStartDate"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+              class="dm-filter-control">
           </div>
           <div class="flex flex-col gap-1">
             <label for="filterEndDate" class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -359,7 +359,7 @@
               [ngModel]="filterEndDate()"
               (ngModelChange)="filterEndDate.set($event)"
               name="filterEndDate"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+              class="dm-filter-control">
           </div>
           <div class="flex flex-col gap-1">
             <label for="filterMinDriven" class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -372,7 +372,7 @@
               [ngModel]="filterMinDriven()"
               (ngModelChange)="onFilterMinDrivenChange($event)"
               name="filterMinDriven"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="dm-filter-control"
               [placeholder]="'placeholderMinDriven' | i18n"
               min="0">
           </div>
@@ -387,7 +387,7 @@
               [ngModel]="filterMaxDriven()"
               (ngModelChange)="onFilterMaxDrivenChange($event)"
               name="filterMaxDriven"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="dm-filter-control"
               [placeholder]="'placeholderMaxDriven' | i18n"
               min="0">
           </div>
@@ -403,7 +403,7 @@
               [ngModel]="filterMinFueling()"
               (ngModelChange)="onFilterMinFuelingChange($event)"
               name="filterMinFueling"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="dm-filter-control"
               [placeholder]="'placeholderMinFueling' | i18n"
               min="0">
           </div>
@@ -419,7 +419,7 @@
               [ngModel]="filterMaxFueling()"
               (ngModelChange)="onFilterMaxFuelingChange($event)"
               name="filterMaxFueling"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="dm-filter-control"
               [placeholder]="'placeholderMaxFueling' | i18n"
               min="0">
           </div>
@@ -434,7 +434,7 @@
               [ngModel]="filterLicensePlate()"
               (ngModelChange)="onFilterLicensePlateChange($event)"
               name="filterLicensePlate"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all"
+              class="dm-filter-control"
               [placeholder]="'placeholderLicensePlate' | i18n">
           </div>
           @if (isAdmin()) {
@@ -448,7 +448,7 @@
                 [ngModel]="filterProfessionalId()"
                 (ngModelChange)="onFilterProfessionalChange($event)"
                 name="filterProfessional"
-                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all">
+                class="dm-filter-control">
                 <option value="">{{ 'all' | i18n }}</option>
                 @for (professional of professionals(); track professional) {
                   <option [value]="professional.id">
@@ -514,14 +514,14 @@
               <button
                 type="button"
                 (click)="openEditDailyMileage(mileage)"
-                class="w-10 h-10 flex items-center justify-center text-blue-600 hover:text-blue-800 dark:text-blue-400 bg-gray-100 dark:bg-neutral-700 rounded-md transition-colors"
+                class="dm-action-icon-btn"
                 [attr.aria-label]="'editDailyMileage' | i18n">
                 <i class="fas fa-pen" aria-hidden="true"></i>
               </button>
               <button
                 type="button"
                 (click)="viewFuelings(mileage)"
-                class="w-10 h-10 flex items-center justify-center text-blue-600 hover:text-blue-800 dark:text-blue-400 bg-gray-100 dark:bg-neutral-700 rounded-md transition-colors"
+                class="dm-action-icon-btn"
                 [attr.aria-label]="'viewFuelings' | i18n">
                 <i class="fas fa-eye" aria-hidden="true"></i>
               </button>
@@ -634,7 +634,7 @@
                     <button
                       type="button"
                       (click)="openEditDailyMileage(mileage)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                      class="dm-action-link"
                       [attr.aria-label]="'editDailyMileage' | i18n"
                       [title]="'editDailyMileage' | i18n">
                       <i class="fas fa-pen" aria-hidden="true"></i>
@@ -642,7 +642,7 @@
                     <button
                       type="button"
                       (click)="viewFuelings(mileage)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                      class="dm-action-link"
                       [attr.aria-label]="'viewFuelings' | i18n"
                       [title]="'viewFuelings' | i18n">
                       <i class="fas fa-eye" aria-hidden="true"></i>
@@ -667,14 +667,14 @@
                     <button
                       type="button"
                       (click)="openEditDailyMileage(mileage)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2"
+                      class="dm-action-link dm-action-link-inline"
                       [attr.aria-label]="'editDailyMileage' | i18n">
                       <i class="fas fa-pen" aria-hidden="true"></i>
                     </button>
                     <button
                       type="button"
                       (click)="viewFuelings(mileage)"
-                      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-2"
+                      class="dm-action-link dm-action-link-inline"
                       [attr.aria-label]="'viewFuelings' | i18n">
                       <i class="fas fa-eye" aria-hidden="true"></i>
                     </button>
@@ -725,7 +725,7 @@
             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <!-- Previous button -->
                 <button (click)="previousPage()" [disabled]="currentPage() === 1"
-                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="dm-pagination-btn dm-pagination-prev">
                     <i class="fas fa-chevron-left"></i>
                     <span class="sr-only">Previous</span>
                 </button>
@@ -735,14 +735,14 @@
                     @for(page of pageNumbers; track page) { @if(page === -1) {
                     <!-- Ellipsis -->
                     <span
-                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        class="dm-pagination-btn dm-pagination-page">
                         ...
                     </span>
                     } @else {
                     <button (click)="goToPage(page)" [class]="
               page === currentPage()
-                ? 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-brand-primary-50 dark:bg-brand-primary-900 text-sm font-medium text-brand-primary-500 dark:text-brand-primary-400'
-                : 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                ? 'dm-pagination-btn dm-pagination-page dm-pagination-page-active'
+                : 'dm-pagination-btn dm-pagination-page dm-pagination-page-inactive'
             ">
                         {{ page }}
                     </button>
@@ -751,13 +751,13 @@
 
                 <!-- Mobile page indicator -->
                 <div
-                    class="sm:hidden relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    class="sm:hidden dm-pagination-btn dm-pagination-indicator">
                     {{ currentPage() }} / {{ totalPages() }}
                 </div>
 
                 <!-- Next button -->
                 <button (click)="nextPage()" [disabled]="currentPage() === totalPages()"
-                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="dm-pagination-btn dm-pagination-next">
                     <i class="fas fa-chevron-right"></i>
                     <span class="sr-only">Next</span>
                 </button>
@@ -779,7 +779,7 @@
             @if (isAdmin()) {
               <button
                 (click)="showModalFuelingForm.set(true)"
-                class="inline-flex items-center justify-center w-9 h-9 rounded bg-green-600 text-white hover:bg-green-700"
+                class="dm-icon-btn dm-icon-btn-add"
                 [attr.aria-label]="'addFueling' | i18n"
                 [title]="'addFueling' | i18n">
                 <i class="fas fa-plus" aria-hidden="true"></i>
@@ -788,7 +788,7 @@
             <button
               type="button"
               (click)="selectedDailyMileage.set(null)"
-              class="inline-flex items-center justify-center w-9 h-9 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600"
+              class="dm-icon-btn dm-icon-btn-close"
               [attr.aria-label]="'close' | i18n"
               [title]="'close' | i18n">
               <i class="fas fa-times" aria-hidden="true"></i>
@@ -879,7 +879,7 @@
               <button
                 type="button"
                 (click)="closeEditFueling()"
-                class="inline-flex items-center justify-center w-9 h-9 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600 shrink-0"
+                class="dm-icon-btn dm-icon-btn-close dm-icon-btn-shrink"
                 [attr.aria-label]="'close' | i18n"
                 [title]="'close' | i18n">
                 <i class="fas fa-times" aria-hidden="true"></i>
@@ -895,7 +895,7 @@
                   [ngModel]="editFuelingValue()"
                   (ngModelChange)="editFuelingValue.set($event)"
                   name="editFuelingValue"
-                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                  class="dm-input"
                   min="0"
                   required>
               </div>
@@ -907,7 +907,7 @@
                   [ngModel]="editFuelingLicensePlate()"
                   (ngModelChange)="editFuelingLicensePlate.set($event)"
                   name="editFuelingLicensePlate"
-                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                  class="dm-input"
                   placeholder="AA-00-BB"
                   required>
               </div>
@@ -918,13 +918,13 @@
                   type="file"
                   accept="image/*"
                   (change)="editFuelingReceiptFile.set($event.target.files[0])"
-                  class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600">
+                  class="dm-input">
               </div>
               <div class="flex gap-2">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button type="submit" class="dm-btn-primary">
                   {{ 'save' | i18n }}
                 </button>
-                <button type="button" (click)="closeEditFueling()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                <button type="button" (click)="closeEditFueling()" class="dm-btn-secondary">
                   {{ 'cancel' | i18n }}
                 </button>
               </div>
@@ -939,7 +939,7 @@
           <button
             type="button"
             (click)="closeEditDailyMileage()"
-            class="inline-flex items-center justify-center w-9 h-9 rounded bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600 shrink-0"
+            class="dm-icon-btn dm-icon-btn-close dm-icon-btn-shrink"
             [attr.aria-label]="'close' | i18n"
             [title]="'close' | i18n">
             <i class="fas fa-times" aria-hidden="true"></i>
@@ -959,7 +959,7 @@
               [ngModel]="editLicensePlate()"
               (ngModelChange)="editLicensePlate.set($event)"
               name="editLicensePlate"
-              class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+              class="dm-input"
               placeholder="AA-00-BB">
           </div>
 
@@ -971,7 +971,7 @@
               [ngModel]="editStartKilometers()"
               (ngModelChange)="onEditStartKilometersChange($event)"
               name="editStartKilometers"
-              class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+              class="dm-input"
               min="0"
               required>
           </div>
@@ -984,15 +984,15 @@
               [ngModel]="editEndKilometers()"
               (ngModelChange)="onEditEndKilometersChange($event)"
               name="editEndKilometers"
-              class="w-full p-2 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+              class="dm-input"
               min="0">
           </div>
 
           <div class="flex gap-2">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <button type="submit" class="dm-btn-primary">
               {{ 'save' | i18n }}
             </button>
-            <button type="button" (click)="closeEditDailyMileage()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <button type="button" (click)="closeEditDailyMileage()" class="dm-btn-secondary">
               {{ 'cancel' | i18n }}
             </button>
           </div>
