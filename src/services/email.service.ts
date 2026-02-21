@@ -68,7 +68,7 @@ export class EmailService {
   private getEmailServiceUrl(): string {
     // Em desenvolvimento: servidor local
     // Em produção: endpoint Vercel
-    const isProduction = window.location.hostname.includes('vercel.app');
+    const isProduction = globalThis.location.hostname.includes('vercel.app');
     return isProduction ? '/api/send-email' : 'http://localhost:4001/api/send-email';
   }
 

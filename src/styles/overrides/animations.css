@@ -1,0 +1,230 @@
+/* ==========================================
+   ANIMAÇÕES E TRANSIÇÕES
+   ========================================== */
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes bounce-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Classes de Animação Utilitárias */
+.animate-slide-in-top {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 0.6s ease-in-out infinite;
+}
+
+/* Transições Suaves */
+.transition-smooth {
+  transition: all var(--transition-base);
+}
+
+.transition-fast {
+  transition: all var(--transition-fast);
+}
+
+.transition-slow {
+  transition: all var(--transition-slow);
+}
+
+/* Efeitos de Hover */
+.hover-scale {
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-lift {
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ds-shadow-brand-hover);
+}
+
+.hover-glow {
+  transition:
+    box-shadow var(--transition-base),
+    color var(--transition-base);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--ds-shadow-brand-glow);
+}
+
+/* Efeitos de Transição para Modais */
+.modal-enter {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.modal-exit {
+  animation: scaleIn 0.3s ease-out reverse;
+}
+
+.modal-backdrop-enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-backdrop-exit {
+  animation: fadeIn 0.3s ease-out reverse;
+}
+
+/* Efeitos para Notificações */
+.notification-enter {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.notification-exit {
+  animation: slideInFromRight 0.3s ease-out reverse;
+}
+
+/* Transições para Formulários */
+.form-field-focus {
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.form-field-error {
+  animation: pulse-soft 0.5s ease-out;
+}
+
+/* Transições para Botões */
+.btn-transition {
+  transition: all var(--transition-base);
+}
+
+.btn-transition:active {
+  transform: scale(0.98);
+}
+
+/* Efeitos Loading */
+.loading-pulse {
+  animation: pulse-soft 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,159 @@
+.fc .fc-toolbar.fc-header-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
+
+.fc .fc-toolbar-chunk {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+}
+
+@media (max-width: 640px) {
+  .fc .fc-button-group .fc-button {
+    display: block !important;
+    width: 100% !important;
+    min-width: 120px !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+}
+
+.fc .fc-button-group .fc-button {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.fc .fc-button {
+  margin-bottom: 0.5rem !important;
+}
+
+@media (max-width: 640px) {
+  .fc .fc-button-group {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: stretch !important;
+  }
+
+  .fc .fc-button {
+    width: 100% !important;
+    min-width: 120px !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+}
+
+.fc .fc-button-group {
+  display: flex !important;
+  gap: 0.75rem !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 0.5rem !important;
+}
+
+@media (max-width: 640px) {
+  .fc .fc-button-group {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: stretch !important;
+  }
+
+  .fc .fc-button {
+    width: 100% !important;
+    min-width: 120px !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 1rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+}
+
+.fc .fc-button:hover {
+  background: var(--ds-color-indigo-50) !important;
+  color: var(--ds-color-indigo-800) !important;
+}
+
+.fc .fc-button.fc-button-active,
+.fc .fc-button:active,
+.fc .fc-button:focus {
+  background: var(--ds-color-indigo-600) !important;
+  color: var(--ds-ui-white) !important;
+  border-color: var(--ds-color-indigo-600) !important;
+  box-shadow: var(--ds-shadow-indigo-soft) !important;
+}
+
+.fc .fc-button:focus-visible {
+  outline: 2px solid var(--ds-color-indigo-500) !important;
+  outline-offset: 2px !important;
+}
+
+.mobile-calendar {
+  font-size: 14px;
+}
+
+@media (max-width: 767px) {
+  .fc {
+    font-size: 12px !important;
+  }
+
+  .fc-toolbar {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .fc-toolbar-chunk {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .fc-button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 12px !important;
+  }
+
+  .fc-button-group {
+    gap: 0.25rem !important;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.1rem !important;
+    text-align: center !important;
+  }
+
+  .fc-daygrid-day-number {
+    font-size: 14px !important;
+    padding: 2px !important;
+  }
+
+  .fc-event {
+    font-size: 11px !important;
+    padding: 1px 2px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .fc-event-title {
+    font-weight: 500 !important;
+  }
+
+  .schedule-container {
+    padding: 0.5rem !important;
+  }
+
+  .fc-popover {
+    max-width: 90vw !important;
+    font-size: 13px !important;
+  }
+
+  .fc-popover-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+}

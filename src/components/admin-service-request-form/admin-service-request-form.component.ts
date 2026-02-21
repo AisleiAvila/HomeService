@@ -43,13 +43,13 @@ export interface AdminServiceRequestPayload {
   standalone: true,
   imports: [FormsModule, I18nPipe],
   templateUrl: "./admin-service-request-form.component.html",
+  styleUrl: "./admin-service-request-form.component.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminServiceRequestFormComponent {
   closeModal = output<void>();
 
-  logAndEmit() {
-    console.log('Cancelar clicado (filho)');
+  cancel(): void {
     this.closeModal.emit();
   }
 
@@ -58,26 +58,13 @@ export class AdminServiceRequestFormComponent {
   private readonly notificationService = inject(NotificationService);
   private readonly addressService = inject(PortugalAddressValidationService);
 
-  // Filtrar apenas categorias que têm subcategorias
   categories = computed(() => {
-    const allCats = this.dataService.categories();
-    console.log('========================================');
-    console.log('🔍 [AdminServiceRequestForm] INICIO DO FILTRO');
-    console.log('🔍 Total de categorias:', allCats.length);
-    
-    const filtered = allCats.filter(cat => {
-      // Verificar se subcategories existe E não é um array vazio
-      const hasSubcats = Array.isArray(cat.subcategories) && cat.subcategories.length > 0;
-      console.log(`   📋 ${cat.name}:`);
-      console.log(`      - Subcategorias: ${JSON.stringify(cat.subcategories)}`);
-      console.log(`      - Length: ${cat.subcategories?.length || 0}`);
-      console.log(`      - ${hasSubcats ? '✅ EXIBIR' : '❌ OCULTAR'}`);
-      return hasSubcats;
-    });
-    
-    console.log('✅ Categorias que SERÃO EXIBIDAS:', filtered.map(c => c.name));
-    console.log('========================================');
-    return filtered;
+    const allCategories = this.dataService.categories();
+    return allCategories.filter(
+      (category) =>
+        Array.isArray(category.subcategories) &&
+        category.subcategories.length > 0,
+    );
   });
   subcategories = signal<ServiceSubcategory[]>([]);
   urgencyLevels: Urgency[] = ["low", "medium", "high", "critical"];
@@ -119,12 +106,7 @@ export class AdminServiceRequestFormComponent {
     const categoryId = +(event.target as HTMLSelectElement).value;
     this.newRequest.update(req => ({ ...req, category_id: categoryId }));
     const selectedCategory = this.categories().find(c => c.id === categoryId);
-    console.log('=== onCategoryChange (admin) ===');
-    console.log('Category ID:', categoryId);
-    console.log('Selected category:', selectedCategory);
-    console.log('Subcategories from category:', selectedCategory?.subcategories);
     this.subcategories.set(selectedCategory?.subcategories || []);
-    console.log('Subcategories signal set to:', this.subcategories().length, 'items');
     this.newRequest.update(req => ({ ...req, subcategory_id: 0 }));
   }
 

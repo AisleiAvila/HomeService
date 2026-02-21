@@ -1,0 +1,215 @@
+:root {
+  --ds-color-brand-primary-50: #fef2f2;
+  --ds-color-brand-primary-100: #fee2e2;
+  --ds-color-brand-primary-200: #fecaca;
+  --ds-color-brand-primary-300: #fca5a5;
+  --ds-color-brand-primary-400: #f87171;
+  --ds-color-brand-primary-500: #ea5455;
+  --ds-color-brand-primary-600: #dc2626;
+  --ds-color-brand-primary-700: #b91c1c;
+  --ds-color-brand-primary-800: #991b1b;
+  --ds-color-brand-primary-900: #7f1d1d;
+  --ds-color-brand-primary-950: #450a0a;
+
+  --ds-color-brand-secondary-50: #fafafa;
+  --ds-color-brand-secondary-100: #f5f5f5;
+  --ds-color-brand-secondary-200: #e5e5e5;
+  --ds-color-brand-secondary-300: #d4d4d4;
+  --ds-color-brand-secondary-400: #a3a3a3;
+  --ds-color-brand-secondary-500: #333333;
+  --ds-color-brand-secondary-600: #2b2b2b;
+  --ds-color-brand-secondary-700: #262626;
+  --ds-color-brand-secondary-800: #1f1f1f;
+  --ds-color-brand-secondary-900: #171717;
+  --ds-color-brand-secondary-950: #0a0a0a;
+
+  --ds-color-brand-accent-50: #fafafa;
+  --ds-color-brand-accent-100: #f5f5f5;
+  --ds-color-brand-accent-200: #eeeeee;
+  --ds-color-brand-accent-300: #e0e0e0;
+  --ds-color-brand-accent-400: #bdbdbd;
+  --ds-color-brand-accent-500: #9e9e9e;
+  --ds-color-brand-accent-600: #757575;
+  --ds-color-brand-accent-700: #616161;
+  --ds-color-brand-accent-800: #424242;
+  --ds-color-brand-accent-900: #212121;
+  --ds-color-brand-accent-950: #0a0a0a;
+
+  --ds-color-semantic-success-light: #10b981;
+  --ds-color-semantic-success: #059669;
+  --ds-color-semantic-success-dark: #047857;
+
+  --ds-color-semantic-warning-light: #fbbf24;
+  --ds-color-semantic-warning: #f59e0b;
+  --ds-color-semantic-warning-dark: #d97706;
+
+  --ds-color-semantic-error-light: #f87171;
+  --ds-color-semantic-error: #dc2626;
+  --ds-color-semantic-error-dark: #b91c1c;
+
+  --ds-color-semantic-info-light: #60a5fa;
+  --ds-color-semantic-info: #3b82f6;
+  --ds-color-semantic-info-dark: #2563eb;
+
+  --ds-color-neutral-50: #fafafa;
+  --ds-color-neutral-100: #f5f5f5;
+  --ds-color-neutral-200: #e5e5e5;
+  --ds-color-neutral-300: #d4d4d4;
+  --ds-color-neutral-400: #a3a3a3;
+  --ds-color-neutral-500: #737373;
+  --ds-color-neutral-600: #525252;
+  --ds-color-neutral-700: #404040;
+  --ds-color-neutral-800: #262626;
+  --ds-color-neutral-900: #171717;
+  --ds-color-neutral-950: #0a0a0a;
+
+  --ds-ui-white: #ffffff;
+  --ds-ui-border-subtle: #e5e7eb;
+  --ds-ui-border-default: #d1d5db;
+  --ds-ui-border-strong: #9ca3af;
+  --ds-ui-text-default: #1f2937;
+  --ds-ui-text-muted: #4b5563;
+  --ds-ui-text-soft: #6b7280;
+  --ds-ui-text-inverse-soft: #d1d5db;
+  --ds-ui-text-inverse: #f3f4f6;
+  --ds-ui-bg-subtle: #fafafa;
+  --ds-ui-bg-soft: #f9fafb;
+  --ds-ui-bg-hover: #f3f4f6;
+  --ds-ui-dark-bg: #1f2937;
+  --ds-ui-dark-bg-strong: #111827;
+  --ds-ui-dark-border: #374151;
+  --ds-ui-dark-border-soft: #4b5563;
+  --ds-ui-dark-border-hover: #6b7280;
+  --ds-ui-dark-scrollbar-thumb: #4a5568;
+  --ds-ui-dark-scrollbar-thumb-hover: #718096;
+  --ds-ui-scrollbar-thumb: #cbd5e0;
+  --ds-ui-scrollbar-thumb-hover: #a0aec0;
+  --ds-ui-scrollbar-track: #f1f1f1;
+  --ds-ui-scrollbar-thumb-soft: #c1c1c1;
+  --ds-ui-scrollbar-thumb-soft-hover: #a8a8a8;
+
+  --ds-ui-caption: rgba(0, 0, 0, 0.6);
+  --ds-ui-caption-dark: rgba(255, 255, 255, 0.6);
+
+  --ds-color-info-50: #eff6ff;
+  --ds-color-info-100: #dbeafe;
+  --ds-color-info-200: #bfdbfe;
+  --ds-color-info-300: #93c5fd;
+  --ds-color-info-700: #1d4ed8;
+  --ds-color-info-800: #1e40af;
+  --ds-color-info-900: #1e3a8a;
+  --ds-color-indigo-400: #818cf8;
+  --ds-color-indigo-500: #6366f1;
+  --ds-color-indigo-600: #4f46e5;
+  --ds-color-indigo-800: #3730a3;
+  --ds-color-indigo-50: #eef2ff;
+  --ds-shadow-indigo-soft: 0 4px 12px 0 rgb(79 70 229 / 0.15);
+
+  --ds-shadow-info-soft: 0 2px 4px rgba(37, 99, 235, 0.15);
+  --ds-shadow-brand-hover: 0 12px 24px rgba(0, 0, 0, 0.15);
+  --ds-shadow-brand-glow: 0 0 20px rgba(234, 84, 85, 0.4);
+  --ds-shadow-neutral-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --ds-shadow-neutral-sm-strong: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --ds-shadow-neutral-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  --ds-shadow-table-mobile:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+  --ds-color-calendar-button-hover: #5a6a7f;
+
+  --ds-color-brand-primary-rgb: 234 84 85;
+  --ds-color-brand-secondary-rgb: 51 51 51;
+  --ds-color-brand-accent-rgb: 158 158 158;
+
+  --ds-color-success-rgb: 5 150 105;
+  --ds-color-warning-rgb: 245 158 11;
+  --ds-color-error-rgb: 220 38 38;
+  --ds-color-info-rgb: 59 130 246;
+
+  --ds-shadow-brand: 0 4px 14px 0 rgba(234, 84, 85, 0.15);
+  --ds-shadow-brand-lg: 0 10px 40px 0 rgba(234, 84, 85, 0.2);
+  --ds-shadow-card: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  --ds-shadow-card-hover: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+
+  --ds-radius-brand: 0.75rem;
+
+  --ds-transition-fast: 150ms ease-in-out;
+  --ds-transition-base: 250ms ease-in-out;
+  --ds-transition-slow: 350ms ease-in-out;
+
+  --ds-font-family-base:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
+  --ds-font-family-mono:
+    "Monaco", "Menlo", "Consolas", "Courier New", monospace;
+
+  --ds-text-xs: 0.75rem;
+  --ds-text-sm: 0.875rem;
+  --ds-text-base: 1rem;
+  --ds-text-lg: 1.125rem;
+  --ds-text-xl: 1.25rem;
+  --ds-text-2xl: 1.5rem;
+  --ds-text-3xl: 1.875rem;
+  --ds-text-4xl: 2.25rem;
+  --ds-text-5xl: 3rem;
+
+  --ds-font-light: 300;
+  --ds-font-normal: 400;
+  --ds-font-medium: 500;
+  --ds-font-semibold: 600;
+  --ds-font-bold: 700;
+  --ds-font-extrabold: 800;
+
+  --ds-leading-tight: 1.25;
+  --ds-leading-snug: 1.375;
+  --ds-leading-normal: 1.5;
+  --ds-leading-relaxed: 1.625;
+  --ds-leading-loose: 2;
+
+  --color-brand-primary: var(--ds-color-brand-primary-rgb);
+  --color-brand-secondary: var(--ds-color-brand-secondary-rgb);
+  --color-brand-accent: var(--ds-color-brand-accent-rgb);
+
+  --color-success: var(--ds-color-success-rgb);
+  --color-warning: var(--ds-color-warning-rgb);
+  --color-error: var(--ds-color-error-rgb);
+  --color-info: var(--ds-color-info-rgb);
+
+  --spacing-unit: 0.25rem;
+
+  --transition-fast: var(--ds-transition-fast);
+  --transition-base: var(--ds-transition-base);
+  --transition-slow: var(--ds-transition-slow);
+
+  --font-family-base: var(--ds-font-family-base);
+  --font-family-mono: var(--ds-font-family-mono);
+
+  --text-xs: var(--ds-text-xs);
+  --text-sm: var(--ds-text-sm);
+  --text-base: var(--ds-text-base);
+  --text-lg: var(--ds-text-lg);
+  --text-xl: var(--ds-text-xl);
+  --text-2xl: var(--ds-text-2xl);
+  --text-3xl: var(--ds-text-3xl);
+  --text-4xl: var(--ds-text-4xl);
+  --text-5xl: var(--ds-text-5xl);
+
+  --font-light: var(--ds-font-light);
+  --font-normal: var(--ds-font-normal);
+  --font-medium: var(--ds-font-medium);
+  --font-semibold: var(--ds-font-semibold);
+  --font-bold: var(--ds-font-bold);
+  --font-extrabold: var(--ds-font-extrabold);
+
+  --leading-tight: var(--ds-leading-tight);
+  --leading-snug: var(--ds-leading-snug);
+  --leading-normal: var(--ds-leading-normal);
+  --leading-relaxed: var(--ds-leading-relaxed);
+  --leading-loose: var(--ds-leading-loose);
+}
+
+.dark {
+  --ds-color-brand-primary-rgb: 255 200 200;
+  --ds-color-brand-secondary-rgb: 200 200 200;
+  --ds-color-brand-accent-rgb: 220 220 220;
+}
