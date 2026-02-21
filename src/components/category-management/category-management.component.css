@@ -4,5 +4,5 @@
 }
 .category-list li {
   padding: 0.75rem 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--ds-ui-border-subtle);
 }

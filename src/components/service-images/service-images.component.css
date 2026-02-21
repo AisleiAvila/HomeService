@@ -29,7 +29,8 @@
 }
 
 .transition-all {
-  transition-property: all;
+  transition-property:
+    color, background-color, border-color, opacity, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
@@ -45,23 +46,23 @@
 
 /* Estilo para área de drop (futura implementação de drag & drop) */
 label[for*="file-input"]:hover {
-  border-color: #3b82f6;
-  background-color: #eff6ff;
+  border-color: var(--ds-color-semantic-info);
+  background-color: var(--ds-color-info-50);
+}
 
-  /* Delete confirmation dialog (native top-layer modal) */
-  .delete-confirm-dialog {
-    border: none;
-    padding: 0;
-    background: transparent;
-    width: calc(100% - 1.5rem);
-    max-width: 24rem;
-    margin: auto;
-  }
+/* Delete confirmation dialog (native top-layer modal) */
+.delete-confirm-dialog {
+  border: none;
+  padding: 0;
+  background: transparent;
+  width: calc(100% - 1.5rem);
+  max-width: 24rem;
+  margin: auto;
+}
 
-  .delete-confirm-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(6px);
-  }
+.delete-confirm-dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(6px);
 }
 
 /* Responsividade para imagens */

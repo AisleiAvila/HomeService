@@ -1,0 +1,30 @@
+{
+  "customSyntax": "postcss-scss",
+  "rules": {
+    "at-rule-no-unknown": null,
+    "selector-pseudo-element-disallowed-list": ["ng-deep"],
+    "declaration-no-important": true,
+    "color-no-hex": true,
+    "declaration-property-value-disallowed-list": {
+      "/^transition$/": ["/\\ball\\b/"],
+      "/^transition-property$/": ["/\\ball\\b/"]
+    }
+  },
+  "overrides": [
+    {
+      "files": ["src/styles/design-tokens.css"],
+      "rules": {
+        "color-no-hex": null
+      }
+    },
+    {
+      "files": [
+        "src/styles/overrides/fullcalendar.css",
+        "src/styles/overrides/print.css"
+      ],
+      "rules": {
+        "declaration-no-important": null
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   display: block;
 }
 
-:host ::ng-deep app-leaflet-map-viewer,
-:host ::ng-deep app-leaflet-route-map {
+:host app-leaflet-map-viewer,
+:host app-leaflet-route-map {
   min-height: 320px;
 }

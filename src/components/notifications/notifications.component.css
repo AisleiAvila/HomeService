@@ -28,48 +28,48 @@
 }
 
 /* Smooth scrolling for notification list */
-.overflow-y-auto {
+.notifications-container .overflow-y-auto {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
 /* Custom scrollbar for notification list */
-.overflow-y-auto::-webkit-scrollbar {
+.notifications-container .overflow-y-auto::-webkit-scrollbar {
   width: 4px;
 }
 
 @media (min-width: 640px) {
-  .overflow-y-auto::-webkit-scrollbar {
+  .notifications-container .overflow-y-auto::-webkit-scrollbar {
     width: 6px;
   }
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
+.notifications-container .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
+.notifications-container .overflow-y-auto::-webkit-scrollbar-thumb {
   background: var(--ds-ui-scrollbar-thumb);
   border-radius: 3px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+.notifications-container .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: var(--ds-ui-scrollbar-thumb-hover);
 }
 
 /* Dark mode scrollbar */
-.dark .overflow-y-auto::-webkit-scrollbar-thumb {
+.dark .notifications-container .overflow-y-auto::-webkit-scrollbar-thumb {
   background: var(--ds-ui-dark-scrollbar-thumb);
 }
 
-.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+.dark .notifications-container .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: var(--ds-ui-dark-scrollbar-thumb-hover);
 }
 
 /* Mobile specific improvements */
 @media (max-width: 639px) {
   /* Better touch targets on mobile */
-  button {
+  .notifications-container button {
     -webkit-tap-highlight-color: transparent;
   }
 }
@@ -115,7 +115,12 @@
   background-color: var(--ds-ui-white);
   border: 1px solid var(--ds-ui-border-default);
   border-radius: 0.375rem;
-  transition: all 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
   white-space: nowrap;
   cursor: pointer;
   min-height: 44px;
@@ -192,7 +197,12 @@
   background-color: var(--ds-color-info-50);
   border: 1px solid var(--ds-color-info-200);
   border-radius: 0.375rem;
-  transition: all 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   cursor: pointer;
 }
 

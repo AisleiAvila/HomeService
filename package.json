@@ -39,13 +39,13 @@
     "jspdf-autotable": "^5.0.7",
     "lodash": "^4.17.23",
     "ng-apexcharts": "^2.0.4",
-    "sib-api-v3-sdk": "^8.5.0",
     "node-fetch": "^3.3.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.624",
     "pg": "^8.18.0",
     "rxjs": "^7.8.2",
     "shell-quote": "^1.8.3",
+    "sib-api-v3-sdk": "^8.5.0",
     "spawn-command": "^1.0.0",
     "supports-color": "^10.2.2",
     "tippy.js": "^6.3.7",
@@ -63,6 +63,10 @@
     "nodemon": "^3.1.11",
     "postcss": "^8.5.3",
     "postcss-nesting": "^14.0.0",
+    "postcss-scss": "^4.0.9",
+    "stylelint": "^17.3.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "stylelint-scss": "^7.0.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
@@ -79,6 +83,8 @@
     "auth:server": "node ./scripts/custom_auth_backend.cjs",
     "sms:server": "node send-sms.cjs",
     "sms:test": "node test-sms.cjs",
-    "email:server": "node send-email.cjs"
+    "email:server": "node send-email.cjs",
+    "lint:styles": "stylelint \"src/**/*.{css,scss}\"",
+    "lint:styles:fix": "stylelint \"src/**/*.{css,scss}\" --fix"
   }
 }
