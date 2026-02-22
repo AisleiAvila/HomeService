@@ -8,6 +8,7 @@ import { StatusAuditService } from "./status-audit.service";
 import { ServiceImageService } from "./service-image.service";
 import { InAppNotificationService } from "./in-app-notification.service";
 import { UserWarehousesService } from "./user-warehouses.service";
+import { TenantContextService } from "./tenant-context.service";
 import {
   ServiceRequest,
   ServiceStatus,
@@ -40,6 +41,19 @@ export class WorkflowServiceSimplified {
   private readonly imageService = inject(ServiceImageService);
   private readonly inAppNotificationService = inject(InAppNotificationService);
   private readonly userWarehousesService = inject(UserWarehousesService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   private isProfessionalLikeRole(role: UserRole): boolean {
     return role === "professional" || role === "professional_almoxarife";
@@ -149,6 +163,7 @@ export class WorkflowServiceSimplified {
 
       const newRequest: Partial<ServiceRequest> = {
         ...requestData,
+        tenant_id: this.getCurrentTenantId() as any,
         created_by_admin_id: adminId,
         status: "Solicitado",
         created_at: new Date().toISOString(),
@@ -156,11 +171,11 @@ export class WorkflowServiceSimplified {
         // professional_id será definido na atribuição
       };
 
-      const { data, error } = await this.supabase.client
+      const { data, error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .insert([newRequest])
         .select("*")
-        .single();
+        .single());
 
       if (error) throw error;
 
@@ -248,13 +263,13 @@ export class WorkflowServiceSimplified {
         return true;
       }
 
-      const { error: updateError } = await this.supabase.client
+      const { error: updateError } = await this.withTenantFilter(this.supabase.client
         .from('service_requests')
         .update({
           professional_id: newProfessionalId,
           assigned_by_admin_id: adminId,
         })
-        .eq('id', requestId);
+        .eq('id', requestId));
 
       if (updateError) throw updateError;
 
@@ -318,13 +333,13 @@ export class WorkflowServiceSimplified {
       }
 
       // Atualizar professional_id e assigned_by_admin_id (sem mudar status ainda)
-      const { error: updateError } = await this.supabase.client
+      const { error: updateError } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           professional_id: professionalId,
           assigned_by_admin_id: adminId,
         })
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (updateError) throw updateError;
       console.log('✅ [assignProfessional] Profissional e admin atribuídos');
@@ -399,14 +414,14 @@ export class WorkflowServiceSimplified {
         throw new Error("Usuário não tem permissão para esta transição");
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           status: newStatus,
           admin_notes: notes ? `Resposta do profissional: ${notes}` : undefined,
         })
         .eq("id", requestId)
-        .eq("professional_id", professionalId);
+        .eq("professional_id", professionalId));
 
       if (error) throw error;
 
@@ -494,7 +509,7 @@ export class WorkflowServiceSimplified {
         throw new Error("A data agendada não pode ser no passado");
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           scheduled_start_datetime: scheduledDate,
@@ -502,7 +517,7 @@ export class WorkflowServiceSimplified {
           status: "Data Definida",
         })
         .eq("id", requestId)
-        .eq("professional_id", professionalId);
+        .eq("professional_id", professionalId));
 
       if (error) throw error;
 
@@ -597,7 +612,7 @@ export class WorkflowServiceSimplified {
       // quando o profissional inicia a execução antes do horário agendado.
       const safeScheduledStartIso = shouldAdjustScheduledStart ? nowIso : undefined;
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           status: "Em Progresso",
@@ -606,7 +621,7 @@ export class WorkflowServiceSimplified {
           ...(safeScheduledStartIso ? { scheduled_start_datetime: safeScheduledStartIso } : {}),
         })
         .eq("id", requestId)
-        .eq("professional_id", professionalId);
+        .eq("professional_id", professionalId));
 
       if (error) throw error;
 
@@ -727,7 +742,7 @@ export class WorkflowServiceSimplified {
   }
 
   private async updateCompletionStatus(requestId: number, professionalId: number, notes?: string): Promise<void> {
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .update({
         status: "Concluído",
@@ -736,7 +751,7 @@ export class WorkflowServiceSimplified {
         admin_notes: notes ? `Notas de conclusão: ${notes}` : undefined,
       })
       .eq("id", requestId)
-      .eq("professional_id", professionalId);
+      .eq("professional_id", professionalId));
 
     if (error) throw error;
   }
@@ -800,7 +815,7 @@ export class WorkflowServiceSimplified {
         throw new Error("Apenas administradores podem registrar pagamentos");
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           payment_date: new Date().toISOString(),
@@ -811,7 +826,7 @@ export class WorkflowServiceSimplified {
           ispaid: true,
           payment_status: "Paid",
         })
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (error) throw error;
 
@@ -920,10 +935,10 @@ export class WorkflowServiceSimplified {
   ): Promise<void> {
     const currentUser = await this.getCurrentUser();
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_request_materials")
       .select("stock_item_id")
-      .eq("service_request_id", requestId);
+      .eq("service_request_id", requestId));
 
     if (error) throw error;
 
@@ -940,6 +955,8 @@ export class WorkflowServiceSimplified {
       .update({ status: "Instalado" })
       .in("id", ids)
       .in("status", ["Recebido", "Distribuído", "Retirado"]);
+
+    updateQuery = this.withTenantFilter(updateQuery);
 
     // Restrição extra: se quem está concluindo também tem perfil de estoque,
     // limita a atualização aos armazéns associados.
@@ -985,7 +1002,7 @@ export class WorkflowServiceSimplified {
         throw new Error(`Não é possível marcar como finalizado a partir do status ${previousStatus}`);
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           status: "Finalizado",
@@ -993,7 +1010,7 @@ export class WorkflowServiceSimplified {
           finalized_by_admin_id: adminId,
           admin_notes: adminNotes ?? request.admin_notes ?? null,
         })
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (error) throw error;
 
@@ -1050,7 +1067,7 @@ export class WorkflowServiceSimplified {
     adminId: number,
     adminNotes?: string
   ): Promise<void> {
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .update({
         finalized_at: new Date().toISOString(),
@@ -1059,7 +1076,7 @@ export class WorkflowServiceSimplified {
         status: "Concluído",
         completed_at: new Date().toISOString(),
       })
-      .eq("id", requestId);
+      .eq("id", requestId));
 
     if (error) throw error;
   }
@@ -1124,13 +1141,13 @@ export class WorkflowServiceSimplified {
         throw new Error("É obrigatório fornecer um motivo para cancelamento");
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({
           status: "Cancelado",
           admin_notes: `Cancelado: ${reason}`,
         })
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (error) throw error;
 
@@ -1174,10 +1191,10 @@ export class WorkflowServiceSimplified {
       console.log('[updateStatus] 🔄 INICIANDO - requestId:', requestId, 'newStatus:', newStatus, 'userId:', userId);
 
       // Atualiza o status atual na tabela principal
-      const { error: updateError } = await this.supabase.client
+      const { error: updateError } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({ status: newStatus })
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (updateError) {
         console.error('[updateStatus] ❌ Erro ao atualizar status principal:', updateError);
@@ -1188,6 +1205,7 @@ export class WorkflowServiceSimplified {
 
       // Registra a mudança no histórico (INSERT sempre, nunca UPDATE)
       const statusEntry = {
+        tenant_id: this.getCurrentTenantId(),
         service_request_id: requestId,
         status: newStatus,
         changed_by: userId,
@@ -1197,10 +1215,10 @@ export class WorkflowServiceSimplified {
 
       console.log('[updateStatus] 📝 Inserindo histórico:', statusEntry);
 
-      const { data, error: historyError } = await this.supabase.client
+      const { data, error: historyError } = await this.withTenantFilter(this.supabase.client
         .from("service_requests_status")
         .insert([statusEntry])
-        .select();
+        .select());
 
       if (historyError) {
         console.error('[updateStatus] ❌ ERRO ao inserir histórico:', historyError);
@@ -1215,12 +1233,12 @@ export class WorkflowServiceSimplified {
   }
 
   private async getRequest(requestId: number): Promise<ServiceRequest | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
       .eq("id", requestId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Erro ao buscar solicitação:", error);
@@ -1240,11 +1258,11 @@ export class WorkflowServiceSimplified {
     message: string
   ): Promise<void> {
     // Buscar dados do profissional
-    const { data: professional, error } = await this.supabase.client
+    const { data: professional, error } = await this.withTenantFilter(this.supabase.client
       .from("users")
       .select("id, name, phone, receive_sms_notifications")
       .eq("id", professionalId)
-      .single();
+      .single());
 
     if (error || !professional) {
       console.error("Erro ao buscar profissional para SMS:", error);
@@ -1373,10 +1391,10 @@ export class WorkflowServiceSimplified {
           throw new Error("Nenhum campo editável informado");
         }
 
-        const { error } = await this.supabase.client
+        const { error } = await this.withTenantFilter(this.supabase.client
           .from("service_requests")
           .update(filteredUpdates)
-          .eq("id", requestId);
+          .eq("id", requestId));
 
         if (error) throw error;
 

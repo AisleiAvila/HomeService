@@ -4,6 +4,7 @@ import { NotificationService } from "./notification.service";
 import { StockItem, StockItemStatus, UserRole } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { UserWarehousesService } from "./user-warehouses.service";
+import { TenantContextService } from "./tenant-context.service";
 
 export interface StockItemCreatePayload {
   barcode: string;
@@ -35,6 +36,19 @@ export class InventoryService {
   private readonly notificationService = inject(NotificationService);
   private readonly auth = inject(AuthService);
   private readonly userWarehouses = inject(UserWarehousesService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.auth.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   private isStockRole(role: UserRole): boolean {
     return role === "almoxarife" || role === "professional_almoxarife";
@@ -78,14 +92,15 @@ export class InventoryService {
       return null;
     }
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .insert({
         ...payload,
+        tenant_id: this.getCurrentTenantId(),
         status: "Recebido" satisfies StockItemStatus,
       })
       .select("*")
-      .single();
+      .single());
 
     if (error) {
       this.notificationService.addNotification(
@@ -110,10 +125,10 @@ export class InventoryService {
       return null;
     }
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .update({ status: toStatus })
-      .eq("id", id);
+      .eq("id", id));
 
     if (allowed.mode === "restricted") {
       if (allowed.ids.length === 0) {
@@ -154,10 +169,10 @@ export class InventoryService {
       return null;
     }
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .select("*")
-      .eq("barcode", barcode);
+      .eq("barcode", barcode));
 
     if (allowed.mode === "restricted") {
       if (allowed.ids.length === 0) return null;
@@ -194,10 +209,10 @@ export class InventoryService {
       return null;
     }
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .update(payload)
-      .eq("id", id);
+      .eq("id", id));
 
     if (allowed.mode === "restricted") {
       if (allowed.ids.length === 0) {
@@ -225,7 +240,7 @@ export class InventoryService {
     const user = this.auth.appUser();
     if (!user) return [];
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .select(`
         *,
@@ -234,7 +249,7 @@ export class InventoryService {
         service_request:service_requests(id,title)
       `)
       .order("received_at", { ascending: false })
-      .limit(limit);
+      .limit(limit));
 
     if (user.role !== "admin" && this.isStockRole(user.role)) {
       const allowedIds = await this.userWarehouses.fetchWarehouseIdsForUser(user.id);
@@ -268,13 +283,13 @@ export class InventoryService {
       }
     }
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .select("*")
       .eq("warehouse_id", warehouseId)
       .eq("status", "Recebido" satisfies StockItemStatus)
       .is("service_request_id", null)
-      .order("received_at", { ascending: false });
+      .order("received_at", { ascending: false }));
 
     if (error) {
       this.notificationService.addNotification(
@@ -292,10 +307,10 @@ export class InventoryService {
       return [];
     }
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .select("*")
-      .eq("service_request_id", serviceRequestId);
+      .eq("service_request_id", serviceRequestId));
 
     if (allowed.mode === "restricted") {
       if (allowed.ids.length === 0) {
@@ -331,14 +346,14 @@ export class InventoryService {
       }
     }
 
-    let query = this.supabase.client
+    let query = this.withTenantFilter(this.supabase.client
       .from("stock_items")
       .select("*")
       .eq("warehouse_id", warehouseId)
       .or(
         `and(status.eq.Recebido,service_request_id.is.null),service_request_id.eq.${requestId}`
       )
-      .order("received_at", { ascending: false });
+      .order("received_at", { ascending: false }));
 
     if (allowed.mode === "restricted") {
       query = query.in("warehouse_id", allowed.ids);

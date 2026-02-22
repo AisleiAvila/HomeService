@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
+import { TenantContextService } from "./tenant-context.service";
 import { EnhancedNotification, NotificationType } from "../models/maintenance.models";
 
 type NotificationPriority = "low" | "medium" | "high";
@@ -16,6 +17,11 @@ type NotificationPriority = "low" | "medium" | "high";
 export class InAppNotificationService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
 
   private notificationsChannel: any = null;
 
@@ -68,7 +74,8 @@ export class InAppNotificationService {
       const dedupeDate = dailyDedupeTypes.has(type)
         ? new Date().toISOString().split("T")[0]
         : undefined;
-      const notification: Partial<EnhancedNotification> = {
+      const tenantId = this.getCurrentTenantId();
+      const notification: any = {
         user_id: userId,
         type,
         title,
@@ -82,6 +89,10 @@ export class InAppNotificationService {
           ? new Date(Date.now() + options.expiresInHours * 60 * 60 * 1000)
           : undefined,
       };
+
+      if (tenantId) {
+        notification.tenant_id = tenantId;
+      }
 
       const { data, error } = await this.supabase.client
         .from("enhanced_notifications")
@@ -131,11 +142,18 @@ export class InAppNotificationService {
       expiresInHours?: number;
     }
   ): Promise<void> {
-    const { data: users, error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let usersQuery = this.supabase.client
       .from("users")
       .select("id")
       .in("role", roles)
       .eq("status", "Active");
+
+    if (tenantId) {
+      usersQuery = usersQuery.eq("tenant_id", tenantId);
+    }
+
+    const { data: users, error } = await usersQuery;
 
     if (error || !users) {
       console.error("Error fetching users by role:", error);
@@ -162,12 +180,18 @@ export class InAppNotificationService {
       expiresInHours?: number;
     }
   ): Promise<void> {
-    const { data: request, error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let requestQuery = this.supabase.client
       .from("service_requests")
       .select("client_id, professional_id")
       .is("deleted_at", null)
-      .eq("id", serviceRequestId)
-      .single();
+      .eq("id", serviceRequestId);
+
+    if (tenantId) {
+      requestQuery = requestQuery.eq("tenant_id", tenantId);
+    }
+
+    const { data: request, error } = await requestQuery.single();
 
     if (error || !request) {
       console.error("Error fetching service request:", error);
@@ -183,11 +207,17 @@ export class InAppNotificationService {
       userIds.push(request.professional_id);
     }
     if (stakeholders.includes("admin")) {
-      const { data: admins } = await this.supabase.client
+      let adminsQuery = this.supabase.client
         .from("users")
         .select("id")
         .eq("role", "admin")
         .eq("status", "Active");
+
+      if (tenantId) {
+        adminsQuery = adminsQuery.eq("tenant_id", tenantId);
+      }
+
+      const { data: admins } = await adminsQuery;
 
       if (admins) {
         userIds.push(...admins.map((admin) => admin.id));
@@ -216,14 +246,21 @@ export class InAppNotificationService {
       }
 
       console.log('📬 [loadNotifications] Consultando banco de dados...');
+      const tenantId = this.getCurrentTenantId();
       
       // Carregar as 50 notificações mais recentes para exibição
-      const { data, error } = await this.supabase.client
+      let notificationsQuery = this.supabase.client
         .from("enhanced_notifications")
         .select("*")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false })
         .limit(50); // Limitar a 50 notificações mais recentes para exibição
+
+      if (tenantId) {
+        notificationsQuery = notificationsQuery.eq("tenant_id", tenantId);
+      }
+
+      const { data, error } = await notificationsQuery;
 
       if (error) {
         console.error("📬 [loadNotifications] Erro ao carregar notificações:", error);
@@ -235,11 +272,17 @@ export class InAppNotificationService {
       this.notifications.set(data || []);
       
       // Contar TODAS as notificações não lidas (sem limite)
-      const { count: unreadCount, error: countError } = await this.supabase.client
+      let countQuery = this.supabase.client
         .from("enhanced_notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", currentUser.id)
         .eq("read", false);
+
+      if (tenantId) {
+        countQuery = countQuery.eq("tenant_id", tenantId);
+      }
+
+      const { count: unreadCount, error: countError } = await countQuery;
 
       if (countError) {
         console.error("📬 [loadNotifications] Erro ao contar notificações não lidas:", countError);
@@ -263,11 +306,18 @@ export class InAppNotificationService {
   async markAsRead(notificationId: number): Promise<boolean> {
     try {
       console.log('📨 [markAsRead] Marcando notificação como lida:', notificationId);
+      const tenantId = this.getCurrentTenantId();
       
-      const { error } = await this.supabase.client
+      let query = this.supabase.client
         .from("enhanced_notifications")
         .update({ read: true })
         .eq("id", notificationId);
+
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Erro ao marcar notificação como lida:", error);
@@ -293,14 +343,21 @@ export class InAppNotificationService {
     try {
       const currentUser = this.authService.appUser();
       if (!currentUser) return false;
+      const tenantId = this.getCurrentTenantId();
 
       console.log('📨 [markAllAsRead] Marcando todas as notificações como lidas para usuário:', currentUser.id);
 
-      const { error } = await this.supabase.client
+      let query = this.supabase.client
         .from("enhanced_notifications")
         .update({ read: true })
         .eq("user_id", currentUser.id)
         .eq("read", false);
+
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Erro ao marcar todas como lidas:", error);
@@ -324,10 +381,17 @@ export class InAppNotificationService {
    */
   async deleteNotification(notificationId: number): Promise<boolean> {
     try {
-      const { error } = await this.supabase.client
+      const tenantId = this.getCurrentTenantId();
+      let query = this.supabase.client
         .from("enhanced_notifications")
         .delete()
         .eq("id", notificationId);
+
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Erro ao deletar notificação:", error);
@@ -351,12 +415,19 @@ export class InAppNotificationService {
     try {
       const currentUser = this.authService.appUser();
       if (!currentUser) return false;
+      const tenantId = this.getCurrentTenantId();
 
-      const { error } = await this.supabase.client
+      let query = this.supabase.client
         .from("enhanced_notifications")
         .delete()
         .eq("user_id", currentUser.id)
         .eq("read", true);
+
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+
+      const { error } = await query;
 
       if (error) {
         console.error("Erro ao deletar notificações lidas:", error);

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { assertUserTenant, resolveTenantByRequest } from '../_tenant.js';
 
 const DEFAULT_SUPABASE_URL = 'https://uqrvenlkquheajuveggv.supabase.co';
 
@@ -68,6 +69,14 @@ export default async function handler(req, res) {
       });
     }
 
+    let resolvedTenant = null;
+    try {
+      const tenantResult = await resolveTenantByRequest(req, supabase);
+      resolvedTenant = tenantResult.tenant;
+    } catch (tenantError) {
+      console.warn('[TECH-REPORT] Falha ao resolver tenant por subdomínio:', tenantError?.message || tenantError);
+    }
+
     const reportId = Number(req.query.reportId);
     if (!Number.isFinite(reportId)) {
       return res.status(400).json({ success: false, error: 'reportId inválido' });
@@ -78,13 +87,17 @@ export default async function handler(req, res) {
     const { data: report, error: reportError } = await supabase
       .from('technical_reports')
       .select(
-        'id,service_request_id,generated_by,client_sign_token,storage_bucket,storage_path,file_url,file_name,latest_file_url,latest_storage_path,status,professional_signed_at,client_signed_at'
+        'id,service_request_id,generated_by,client_sign_token,storage_bucket,storage_path,file_url,file_name,latest_file_url,latest_storage_path,status,professional_signed_at,client_signed_at,tenant_id'
       )
       .eq('id', reportId)
       .single();
 
     if (reportError || !report) {
       return res.status(404).json({ success: false, error: 'Relatório não encontrado' });
+    }
+
+    if (!assertUserTenant(report.tenant_id, resolvedTenant)) {
+      return res.status(403).json({ success: false, error: 'Relatório não pertence ao tenant deste subdomínio' });
     }
 
     if (clientToken) {

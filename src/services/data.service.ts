@@ -23,6 +23,7 @@ import { ServiceImageService } from "./service-image.service";
 import { SupabaseService } from "./supabase.service";
 import { PortugalAddressDatabaseService } from "./portugal-address-database.service";
 import { PortugalAddressValidationService } from "./portugal-address-validation.service";
+import { TenantContextService } from "./tenant-context.service";
 import { WorkflowServiceSimplified } from "./workflow-simplified.service";
 
 import {
@@ -206,8 +207,13 @@ export class DataService {
   private readonly i18n = inject(I18nService);
   private readonly addressDatabase = inject(PortugalAddressDatabaseService);
   private readonly addressValidation = inject(PortugalAddressValidationService);
+  private readonly tenantContext = inject(TenantContextService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly serviceImageService = inject(ServiceImageService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
 
   readonly users = signal<User[]>([]);
   readonly serviceRequests = signal<ServiceRequest[]>([]);
@@ -216,10 +222,15 @@ export class DataService {
   readonly subcategories = signal<ServiceSubcategoryExtended[]>([]);
 
   async updateUserStatus(userId: number, status: UserStatus): Promise<boolean> {
-    const { error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let query = this.supabase.client
       .from("users")
       .update({ status })
       .eq("id", userId);
+    if (tenantId) {
+      query = query.eq("tenant_id", tenantId);
+    }
+    const { error } = await query;
 
     if (error) {
       this.notificationService.addNotification(
@@ -277,6 +288,7 @@ export class DataService {
   }
 
   private createServiceRequestsQuery(currentUser: User) {
+    const tenantId = this.getCurrentTenantId();
     let query = this.supabase.client
       .from("service_requests")
       .select(`*,
@@ -296,6 +308,10 @@ export class DataService {
 
     // Não listar solicitações apagadas logicamente
     query = query.is("deleted_at", null);
+
+    if (tenantId) {
+      query = query.eq("tenant_id", tenantId);
+    }
 
     if (currentUser.role === "professional" || currentUser.role === "professional_almoxarife") {
       query = query.eq("professional_id", currentUser.id);
@@ -330,14 +346,21 @@ export class DataService {
     if (!Array.isArray(requestIds) || requestIds.length === 0) return idsWithReport;
 
     try {
+      const tenantId = this.getCurrentTenantId();
       // Supabase tem limite de valores no IN; usamos paginação simples por chunks.
       const chunkSize = 200;
       for (let i = 0; i < requestIds.length; i += chunkSize) {
         const chunk = requestIds.slice(i, i + chunkSize);
-        const { data: reportRows, error: reportError } = await this.supabase.client
+        let query = this.supabase.client
           .from("technical_reports")
           .select("service_request_id")
           .in("service_request_id", chunk);
+
+        if (tenantId) {
+          query = query.eq("tenant_id", tenantId);
+        }
+
+        const { data: reportRows, error: reportError } = await query;
 
         if (reportError) {
           console.warn("[DataService] Erro ao buscar technical_reports:", reportError);
@@ -360,13 +383,19 @@ export class DataService {
   async getLatestTechnicalReportByServiceRequestId(serviceRequestId: number): Promise<TechnicalReportRecord | null> {
     if (!serviceRequestId || !Number.isFinite(serviceRequestId)) return null;
 
-    const { data, error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let query = this.supabase.client
       .from("technical_reports")
       .select("*")
       .eq("service_request_id", serviceRequestId)
       .order("generated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
+
+    if (tenantId) {
+      query = query.eq("tenant_id", tenantId);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.warn("[DataService] Erro ao buscar relatório técnico:", error);
@@ -614,6 +643,7 @@ export class DataService {
 
     const isSecretary = currentUser.role === "secretario";
     const newRequestData: any = {
+      tenant_id: this.getCurrentTenantId(),
       client_id: currentUser.id,
       // Dados do solicitante vindos do formulário (não do perfil do usuário)
       client_name: payload.client_name || currentUser.name,
@@ -699,6 +729,7 @@ export class DataService {
 
     // Mapeamento completo do payload para o objeto do banco de dados
     const newRequestData = {
+      tenant_id: this.getCurrentTenantId(),
       title: payload.title,
       description: payload.description,
       category_id: payload.category_id,
@@ -1211,10 +1242,15 @@ export class DataService {
   }
 
   async updateUser(userId: number, updates: Partial<User>) {
-    const { error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let query = this.supabase.client
       .from("users")
       .update(updates)
       .eq("id", userId);
+    if (tenantId) {
+      query = query.eq("tenant_id", tenantId);
+    }
+    const { error } = await query;
 
     if (error) {
       this.notificationService.addNotification(
@@ -1248,11 +1284,18 @@ export class DataService {
   }
 
   async fetchChatMessages(requestId: number) {
-    const { data, error } = await this.supabase.client
+    const tenantId = this.getCurrentTenantId();
+    let query = this.supabase.client
       .from("chat_messages")
       .select("*")
       .eq("request_id", requestId)
       .order("timestamp", { ascending: true });
+
+    if (tenantId) {
+      query = query.eq("tenant_id", tenantId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       this.notificationService.addNotification(
@@ -1269,6 +1312,7 @@ export class DataService {
 
     const newMessage = {
       id: Math.floor(Math.random() * 1e9), // id temporário para UI
+      tenant_id: this.getCurrentTenantId(),
       request_id: requestId,
       sender_id: senderId,
       text: text,
@@ -1284,6 +1328,7 @@ export class DataService {
     const { error } = await this.supabase.client
       .from("chat_messages")
       .insert({
+        tenant_id: this.getCurrentTenantId(),
         request_id: requestId,
         sender_id: senderId,
         text: text,
@@ -1300,11 +1345,13 @@ export class DataService {
   }
 
   private listenToServiceRequestChanges() {
+    const tenantId = this.getCurrentTenantId();
+    const filter = tenantId ? `tenant_id=eq.${tenantId}` : undefined;
     this.supabase.client
       .channel("public:service_requests")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "service_requests" },
+        { event: "*", schema: "public", table: "service_requests", filter },
         () => {
           const user = this.authService.appUser();
           if (user) {
@@ -1316,11 +1363,13 @@ export class DataService {
   }
 
   private listenToUserChanges() {
+    const tenantId = this.getCurrentTenantId();
+    const filter = tenantId ? `tenant_id=eq.${tenantId}` : undefined;
     this.supabase.client
       .channel("public:users")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "users" },
+        { event: "*", schema: "public", table: "users", filter },
         () => {
           this.fetchUsers();
         }
@@ -1846,11 +1895,18 @@ export class DataService {
   }
 
   async fetchUsers() {
+    const tenantId = this.getCurrentTenantId();
     // Buscar todos os campos exceto 'specialties' que pode conter dados corrompidos
-    const { data, error } = await this.supabase.client
+    let usersQuery = this.supabase.client
       .from("users")
       .select("*")
       .order("name");
+
+    if (tenantId) {
+      usersQuery = usersQuery.eq("tenant_id", tenantId);
+    }
+
+    const { data, error } = await usersQuery;
 
     if (error) {
       this.notificationService.addNotification(
@@ -1862,9 +1918,15 @@ export class DataService {
     console.log("🔍 [DataService] Sample user data from DB:", data?.[0]);
 
     // Carregar especialidades de todos os usuários profissionais
-    const { data: specialtiesData, error: specialtiesError } = await this.supabase.client
+    let specialtiesQuery = this.supabase.client
       .from("user_specialties")
       .select("user_id, category_id");
+
+    if (tenantId) {
+      specialtiesQuery = specialtiesQuery.eq("tenant_id", tenantId);
+    }
+
+    const { data: specialtiesData, error: specialtiesError } = await specialtiesQuery;
 
     if (specialtiesError) {
       console.error("Error fetching user specialties:", specialtiesError);

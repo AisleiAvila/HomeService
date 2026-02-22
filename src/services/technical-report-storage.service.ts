@@ -3,10 +3,23 @@ import type { ServiceRequest, TechnicalReportRecord } from "../models/maintenanc
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
+import { TenantContextService } from "./tenant-context.service";
 import { TechnicalReportPdfService, type TechnicalReportData, type TechnicalReportPdfOptions } from "./technical-report-pdf.service";
 
 @Injectable({ providedIn: "root" })
 export class TechnicalReportStorageService {
+    private getCurrentTenantId(): string | null {
+      return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+    }
+
+    private withTenantFilter(query: any): any {
+      const tenantId = this.getCurrentTenantId();
+      if (!tenantId || !query || typeof query.eq !== "function") {
+        return query;
+      }
+      return query.eq("tenant_id", tenantId);
+    }
+
     /**
      * Salva cada serviço extra da Radio Popular na tabela extra_service_items, aplicando regras de reembolso.
      */
@@ -26,6 +39,7 @@ export class TechnicalReportStorageService {
           reimbursementValue = item.value ? Number((item.value * 0.5).toFixed(2)) : 0;
         }
         return {
+          tenant_id: this.getCurrentTenantId(),
           service_request_id: request.id,
           professional_id: professionalId,
           description: item.description,
@@ -35,9 +49,9 @@ export class TechnicalReportStorageService {
           reimbursement_date: null, // Preenchido quando houver reembolso
         };
       });
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("extra_service_items")
-        .insert(itemsToInsert);
+        .insert(itemsToInsert));
       if (error) {
         this.notificationService.showError("Erro ao salvar serviços extras: " + error.message);
         throw new Error("Erro ao salvar serviços extras: " + error.message);
@@ -47,6 +61,7 @@ export class TechnicalReportStorageService {
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
   private readonly pdfService = inject(TechnicalReportPdfService);
+  private readonly tenantContext = inject(TenantContextService);
 
   private readonly BUCKET_NAME = "technical-reports";
   private readonly MIME_TYPE = "application/pdf";
@@ -77,11 +92,11 @@ export class TechnicalReportStorageService {
       // Buscar se o profissional é funcionário da Natan
       let isNatanEmployee = false;
       if (request.professional_id) {
-        const { data: profData } = await this.supabase.client
+        const { data: profData } = await this.withTenantFilter(this.supabase.client
           .from("users")
           .select("is_natan_employee")
           .eq("id", request.professional_id)
-          .single();
+          .single());
         isNatanEmployee = !!profData?.is_natan_employee;
       }
       // Para Worten Azul, o campo extraServicesInstalled pode não existir, então garantir fallback
@@ -107,7 +122,8 @@ export class TechnicalReportStorageService {
     const dd = String(issuedAt.getDate()).padStart(2, "0");
 
     const uniquePrefix = String(Date.now());
-    const storagePath = `request_${request.id}/${yyyy}${mm}${dd}/${uniquePrefix}_${fileName}`;
+    const tenantPrefix = this.getCurrentTenantId() ? `tenant_${this.getCurrentTenantId()}` : "tenant_global";
+    const storagePath = `${tenantPrefix}/request_${request.id}/${yyyy}${mm}${dd}/${uniquePrefix}_${fileName}`;
 
     const { error: uploadError } = await this.supabase.client.storage
       .from(this.BUCKET_NAME)
@@ -129,6 +145,7 @@ export class TechnicalReportStorageService {
 
     // Persist record in DB
     const insertPayload = {
+      tenant_id: this.getCurrentTenantId(),
       service_request_id: request.id,
       origin_id: request.origin_id ?? null,
       origin_key: payload.origin,
@@ -142,11 +159,11 @@ export class TechnicalReportStorageService {
       mime_type: pdfFile.type,
     };
 
-    const { data, error: insertError } = await this.supabase.client
+    const { data, error: insertError } = await this.withTenantFilter(this.supabase.client
       .from("technical_reports")
       .insert([insertPayload])
       .select()
-      .single();
+      .single());
 
     if (insertError || !data) {
       // Cleanup uploaded file if DB insert fails

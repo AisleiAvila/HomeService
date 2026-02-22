@@ -3,6 +3,7 @@ import { Payment } from "../models/maintenance.models";
 import { AuthService } from "./auth.service";
 import { InAppNotificationService } from "./in-app-notification.service";
 import { SupabaseService } from "./supabase.service";
+import { TenantContextService } from "./tenant-context.service";
 
 @Injectable({
   providedIn: "root",
@@ -11,6 +12,19 @@ export class PaymentService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(InAppNotificationService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   // Taxa da plataforma (7%)
   private readonly PLATFORM_FEE_RATE = 0.07;
@@ -42,6 +56,7 @@ export class PaymentService {
     const professionalAmount = this.calculateProfessionalPayment(amount);
 
     const paymentData = {
+      tenant_id: this.getCurrentTenantId(),
       service_request_id: serviceRequestId,
       amount,
       platform_fee: platformFee,
@@ -51,11 +66,11 @@ export class PaymentService {
       processed_at: new Date().toISOString(),
     };
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("payments")
       .insert(paymentData)
       .select()
-      .single();
+      .single());
 
     if (error) {
       console.error("Error creating payment record:", error);
@@ -133,13 +148,13 @@ export class PaymentService {
     await this.releaseFundsToGateway(payment);
 
     // Atualizar status
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("payments")
       .update({
         status: "released",
         released_at: new Date().toISOString(),
       })
-      .eq("id", paymentId);
+      .eq("id", paymentId));
 
     if (error) {
       console.error("Error releasing funds:", error);
@@ -172,6 +187,8 @@ export class PaymentService {
       )
       .order("processed_at", { ascending: false });
 
+    query = this.withTenantFilter(query);
+
     if (serviceRequestId) {
       query = query.eq("service_request_id", serviceRequestId);
     }
@@ -203,9 +220,9 @@ export class PaymentService {
     completed_payments: number;
     disputed_payments: number;
   }> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("payments")
-      .select("amount, platform_fee, professional_amount, status");
+      .select("amount, platform_fee, professional_amount, status"));
 
     if (error) {
       console.error("Error fetching financial stats:", error);
@@ -268,7 +285,8 @@ export class PaymentService {
     await this.processRefundWithGateway(payment, refundAmount, reason);
 
     // Registrar reembolso
-    await this.supabase.client.from("payment_refunds").insert({
+    await this.withTenantFilter(this.supabase.client.from("payment_refunds")).insert({
+      tenant_id: this.getCurrentTenantId(),
       payment_id: paymentId,
       amount: refundAmount,
       reason,
@@ -301,7 +319,8 @@ export class PaymentService {
     // Criar registro de disputa
     const payment = await this.getPaymentById(paymentId);
     if (payment) {
-      await this.supabase.client.from("disputes").insert({
+      await this.withTenantFilter(this.supabase.client.from("disputes")).insert({
+        tenant_id: this.getCurrentTenantId(),
         service_request_id: payment.service_request_id,
         opened_by: currentUser.id,
         reason: `Disputa de pagamento: ${reason}`,
@@ -327,11 +346,11 @@ export class PaymentService {
    * Métodos privados
    */
   private async getPaymentById(paymentId: number): Promise<Payment | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("payments")
       .select("*")
       .eq("id", paymentId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching payment:", error);
@@ -345,12 +364,12 @@ export class PaymentService {
     paymentId: number,
     status: Payment["status"]
   ): Promise<Payment> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("payments")
       .update({ status })
       .eq("id", paymentId)
       .select()
-      .single();
+      .single());
 
     if (error) {
       console.error("Error updating payment status:", error);
@@ -364,7 +383,7 @@ export class PaymentService {
     serviceRequestId: number,
     payment: Payment
   ): Promise<void> {
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .update({
         payment_status: "Paid",
@@ -373,7 +392,7 @@ export class PaymentService {
         professional_payment: payment.professional_amount,
       })
       .is("deleted_at", null)
-      .eq("id", serviceRequestId);
+      .eq("id", serviceRequestId));
 
     if (error) {
       console.error("Error updating service request payment:", error);

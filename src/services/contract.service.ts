@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
+import { TenantContextService } from "./tenant-context.service";
 import { ServiceRequest, Contract, User } from "../models/maintenance.models";
 
 @Injectable({
@@ -9,6 +10,19 @@ import { ServiceRequest, Contract, User } from "../models/maintenance.models";
 export class ContractService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   /**
    * Gerar contrato digital para um pedido de serviço
@@ -17,15 +31,16 @@ export class ContractService {
     const contractData = await this.buildContractData(serviceRequest);
 
     // Salvar contrato no banco
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("contracts")
       .insert({
+        tenant_id: this.getCurrentTenantId(),
         service_request_id: serviceRequest.id,
         contract_data: contractData,
         generated_at: new Date().toISOString(),
       })
       .select()
-      .single();
+      .single());
 
     if (error) {
       console.error("Error generating contract:", error);
@@ -34,14 +49,14 @@ export class ContractService {
 
     // Atualizar service_request com URL do contrato
     const contractUrl = this.generateContractUrl(data.id);
-    await this.supabase.client
+    await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .update({
         contract_url: contractUrl,
         contract_generated_at: new Date().toISOString(),
       })
       .is("deleted_at", null)
-      .eq("id", serviceRequest.id);
+      .eq("id", serviceRequest.id));
 
     return contractUrl;
   }
@@ -50,11 +65,11 @@ export class ContractService {
    * Obter contrato por ID do service request
    */
   async getContract(serviceRequestId: number): Promise<Contract | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("contracts")
       .select("*")
       .eq("service_request_id", serviceRequestId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching contract:", error);
@@ -73,10 +88,10 @@ export class ContractService {
       throw new Error("Only professional can sign contract");
     }
 
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("contracts")
       .update({ signed_by_professional_at: new Date().toISOString() })
-      .eq("id", contractId);
+      .eq("id", contractId));
 
     if (error) {
       console.error("Error signing contract by professional:", error);
@@ -153,11 +168,11 @@ export class ContractService {
   }
 
   private async getUserById(userId: number): Promise<User | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("users")
       .select("*")
       .eq("id", userId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching user:", error);
@@ -168,11 +183,11 @@ export class ContractService {
   }
 
   private async getContractById(contractId: number): Promise<Contract | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("contracts")
       .select("*")
       .eq("id", contractId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching contract:", error);

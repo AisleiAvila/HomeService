@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { InAppNotificationService } from "./in-app-notification.service";
 import { AuthService } from "./auth.service";
+import { TenantContextService } from "./tenant-context.service";
 import { ServiceRequest, ServiceStatus } from "../models/maintenance.models";
 
 @Injectable({
@@ -11,6 +12,19 @@ export class AlertService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificationService = inject(InAppNotificationService);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   // Configurações de prazos (em horas)
   private readonly DEADLINES = {
@@ -30,11 +44,11 @@ export class AlertService {
    * Verificar todos os pedidos em atraso
    */
   async checkOverdueRequests(): Promise<void> {
-    const { data: requests, error } = await this.supabase.client
+    const { data: requests, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
-      .not("status", "in", '("Concluído","Finalizado","Cancelado")');
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")'));
 
     if (error) {
       console.error("Error fetching requests for overdue check:", error);
@@ -50,11 +64,11 @@ export class AlertService {
    * Enviar alertas de prazo
    */
   async sendDeadlineWarnings(): Promise<void> {
-    const { data: requests, error } = await this.supabase.client
+    const { data: requests, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
-      .not("status", "in", '("Concluído","Finalizado","Cancelado")');
+      .not("status", "in", '("Concluído","Finalizado","Cancelado")'));
 
     if (error) {
       console.error("Error fetching requests for deadline warnings:", error);
@@ -88,11 +102,11 @@ export class AlertService {
     stats.quote_responses_needed = 0;
 
     // Confirmações de profissional
-    const { count: professionalConfirmations } = await this.supabase.client
+    const { count: professionalConfirmations } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
-      .eq("status", "Profissional selecionado");
+      .eq("status", "Profissional selecionado"));
 
     stats.professional_confirmations_needed = professionalConfirmations || 0;
 
@@ -102,22 +116,22 @@ export class AlertService {
       paymentDeadline.getHours() - this.DEADLINES.payment
     );
 
-    const { count: paymentsOverdue } = await this.supabase.client
+    const { count: paymentsOverdue } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
       .eq("status", "Aprovado")
-      .lt("approval_at", paymentDeadline.toISOString());
+      .lt("approval_at", paymentDeadline.toISOString()));
 
     stats.payments_overdue = paymentsOverdue || 0;
 
     // Avaliações pendentes
-    const { count: evaluationsPending } = await this.supabase.client
+    const { count: evaluationsPending } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
       .eq("status", "Pago")
-      .eq("mutual_evaluation_completed", false);
+      .eq("mutual_evaluation_completed", false));
 
     stats.evaluations_pending = evaluationsPending || 0;
 
@@ -125,13 +139,13 @@ export class AlertService {
     const workDeadline = new Date();
     workDeadline.setHours(workDeadline.getHours() - this.DEADLINES.work_start);
 
-    const { count: workOverdue } = await this.supabase.client
+    const { count: workOverdue } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
       .eq("status", "Data Definida")
       .lt("scheduled_start_datetime", workDeadline.toISOString())
-      .is("actual_start_datetime", null);
+      .is("actual_start_datetime", null));
 
     stats.work_overdue = workOverdue || 0;
 
@@ -265,12 +279,12 @@ export class AlertService {
   private async getServiceRequest(
     requestId: number
   ): Promise<ServiceRequest | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
       .eq("id", requestId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching service request:", error);
@@ -472,13 +486,13 @@ export class AlertService {
   }
 
   private async getOverdueRequests(): Promise<ServiceRequest[]> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
       .eq("overdue", true)
       .not("status", "in", '("Concluído","Finalizado","Cancelado")')
-      .order("updated_at", { ascending: true });
+      .order("updated_at", { ascending: true }));
 
     if (error) {
       console.error("Error fetching overdue requests:", error);
@@ -490,13 +504,13 @@ export class AlertService {
 
   private async getRequestsNearDeadline(): Promise<ServiceRequest[]> {
     // Implementação simplificada - em produção, usar query mais complexa
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
       .not("status", "in", '("Concluído","Finalizado","Cancelado")')
       .order("updated_at", { ascending: true })
-      .limit(20);
+      .limit(20));
 
     if (error) {
       console.error("Error fetching requests near deadline:", error);
@@ -518,11 +532,11 @@ export class AlertService {
   }
 
   private async markRequestOverdue(requestId: number): Promise<void> {
-    const { error } = await this.supabase.client
+    const { error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .update({ overdue: true })
       .is("deleted_at", null)
-      .eq("id", requestId);
+      .eq("id", requestId));
 
     if (error) {
       console.error("Error marking request as overdue:", error);
@@ -543,11 +557,11 @@ export class AlertService {
     if (!currentAlerts.includes(alertKey)) {
       const updatedAlerts = [...currentAlerts, alertKey];
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .update({ deadline_alerts_sent: updatedAlerts })
         .is("deleted_at", null)
-        .eq("id", requestId);
+        .eq("id", requestId));
 
       if (error) {
         console.error("Error marking alert as sent:", error);

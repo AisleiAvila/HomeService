@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import SibApiV3Sdk from 'sib-api-v3-sdk';
 import crypto from 'node:crypto';
+import { assertUserTenant, resolveTenantByRequest } from '../../_tenant.js';
 
 const DEFAULT_SUPABASE_URL = 'https://uqrvenlkquheajuveggv.supabase.co';
 
@@ -161,6 +162,14 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: 'Servidor não configurado (SUPABASE_SERVICE_ROLE_KEY)' });
     }
 
+    let resolvedTenant = null;
+    try {
+      const tenantResult = await resolveTenantByRequest(req, supabase);
+      resolvedTenant = tenantResult.tenant;
+    } catch (tenantError) {
+      console.warn('[TECH-REPORT request-otp] Falha ao resolver tenant por subdomínio:', tenantError?.message || tenantError);
+    }
+
     const reportId = Number(req.query.reportId);
     if (!Number.isFinite(reportId)) {
       return res.status(400).json({ success: false, error: 'reportId inválido' });
@@ -176,12 +185,16 @@ export default async function handler(req, res) {
 
     const { data: report, error: reportError } = await supabase
       .from('technical_reports')
-      .select('id,service_request_id,generated_by,client_sign_token')
+      .select('id,service_request_id,generated_by,client_sign_token,tenant_id')
       .eq('id', reportId)
       .single();
 
     if (reportError || !report) {
       return res.status(404).json({ success: false, error: 'Relatório não encontrado' });
+    }
+
+    if (!assertUserTenant(report.tenant_id, resolvedTenant)) {
+      return res.status(403).json({ success: false, error: 'Relatório não pertence ao tenant deste subdomínio' });
     }
 
     if (signerType === 'professional') {

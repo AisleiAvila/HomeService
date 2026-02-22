@@ -3,6 +3,7 @@ import { SupabaseService } from "./supabase.service";
 import { NotificationService } from "./notification.service";
 import { I18nService } from "../i18n.service";
 import { AuthService } from "./auth.service";
+import { TenantContextService } from "./tenant-context.service";
 import {
   ServiceRequestImage,
   ServiceRequestImageUpload,
@@ -20,6 +21,7 @@ export class ServiceImageService {
   private readonly notificationService = inject(NotificationService);
   private readonly i18n = inject(I18nService);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
 
   private readonly BUCKET_NAME = "service-images";
   private readonly MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
@@ -29,6 +31,18 @@ export class ServiceImageService {
     "image/png",
     "image/webp",
   ];
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   /**
    * Faz upload de uma imagem para o Supabase Storage
@@ -103,12 +117,12 @@ export class ServiceImageService {
     uploadData: ServiceRequestImageUpload,
     userId: number
   ): Promise<void> {
-    const { data: request, error } = await this.supabase.client
+    const { data: request, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("professional_id, status")
       .is("deleted_at", null)
       .eq("id", uploadData.service_request_id)
-      .single();
+      .single());
 
     if (error || !request) {
       throw new Error("Solicitação de serviço não encontrada");
@@ -158,7 +172,8 @@ export class ServiceImageService {
   ): string {
     const timestamp = Date.now();
     const extension = originalName.split(".").pop();
-    return `request_${requestId}/${imageType}_${timestamp}.${extension}`;
+    const tenantPath = this.getCurrentTenantId() ? `tenant_${this.getCurrentTenantId()}` : "tenant_global";
+    return `${tenantPath}/request_${requestId}/${imageType}_${timestamp}.${extension}`;
   }
 
   /**
@@ -197,6 +212,7 @@ export class ServiceImageService {
     file: File
   ): Promise<ServiceRequestImage> {
     const imageRecord = {
+      tenant_id: this.getCurrentTenantId(),
       service_request_id: uploadData.service_request_id,
       uploaded_by: userId,
       image_url: imageUrl,
@@ -207,11 +223,11 @@ export class ServiceImageService {
       mime_type: file.type,
     };
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_request_images")
       .insert([imageRecord])
       .select()
-      .single();
+      .single());
 
     if (error) {
       // Se falhar ao salvar no DB, tentar deletar do storage
@@ -236,6 +252,8 @@ export class ServiceImageService {
         .eq("service_request_id", requestId)
         .order("uploaded_at", { ascending: true });
 
+      query = this.withTenantFilter(query);
+
       if (imageType) {
         query = query.eq("image_type", imageType);
       }
@@ -257,11 +275,11 @@ export class ServiceImageService {
   async deleteImage(imageId: number, userId: number): Promise<boolean> {
     try {
       // Buscar a imagem
-      const { data: image, error: fetchError } = await this.supabase.client
+      const { data: image, error: fetchError } = await this.withTenantFilter(this.supabase.client
         .from("service_request_images")
         .select("*")
         .eq("id", imageId)
-        .single();
+        .single());
 
       if (fetchError || !image) {
         console.error("Erro ao buscar imagem:", fetchError);
@@ -269,12 +287,12 @@ export class ServiceImageService {
       }
 
       // Buscar informações do pedido de serviço
-      const { data: serviceRequest, error: requestError } = await this.supabase.client
+      const { data: serviceRequest, error: requestError } = await this.withTenantFilter(this.supabase.client
         .from("service_requests")
         .select("client_id, professional_id")
         .is("deleted_at", null)
         .eq("id", image.service_request_id)
-        .single();
+        .single());
 
       if (requestError) {
         console.error("Erro ao buscar pedido de serviço:", requestError);
@@ -306,10 +324,10 @@ export class ServiceImageService {
       await this.deleteFromStorage(image.image_url);
 
       // Deletar do banco de dados
-      const { error: deleteError } = await this.supabase.client
+      const { error: deleteError } = await this.withTenantFilter(this.supabase.client
         .from("service_request_images")
         .delete()
-        .eq("id", imageId);
+        .eq("id", imageId));
 
       if (deleteError) throw deleteError;
 
@@ -358,11 +376,11 @@ export class ServiceImageService {
   ): Promise<boolean> {
     try {
       // Verificar se é o dono da imagem
-      const { data: image, error: fetchError } = await this.supabase.client
+      const { data: image, error: fetchError } = await this.withTenantFilter(this.supabase.client
         .from("service_request_images")
         .select("uploaded_by")
         .eq("id", imageId)
-        .single();
+        .single());
 
       if (fetchError || !image) {
         throw new Error("Imagem não encontrada");
@@ -377,10 +395,10 @@ export class ServiceImageService {
         }
       }
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("service_request_images")
         .update({ description })
-        .eq("id", imageId);
+        .eq("id", imageId));
 
       if (error) throw error;
 
@@ -407,10 +425,10 @@ export class ServiceImageService {
     requestId: number
   ): Promise<{ before: number; after: number; total: number }> {
     try {
-      const { data, error } = await this.supabase.client
+      const { data, error } = await this.withTenantFilter(this.supabase.client
         .from("service_request_images")
         .select("image_type")
-        .eq("service_request_id", requestId);
+        .eq("service_request_id", requestId));
 
       if (error) throw error;
 

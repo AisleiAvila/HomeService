@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
 import { NotificationService } from "./notification.service";
+import { TenantContextService } from "./tenant-context.service";
 import { Evaluation, ServiceRequest } from "../models/maintenance.models";
 
 @Injectable({
@@ -11,6 +12,19 @@ export class EvaluationService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   /**
    * Obter avaliação média de um usuário
@@ -20,10 +34,10 @@ export class EvaluationService {
     count: number;
     distribution: Record<number, number>;
   }> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
       .select("rating")
-      .eq("evaluated_id", userId);
+      .eq("evaluated_id", userId));
 
     if (error) {
       console.error("Error fetching average rating:", error);
@@ -60,7 +74,7 @@ export class EvaluationService {
   ): Promise<Evaluation[]> {
     const column = asEvaluator ? "evaluator_id" : "evaluated_id";
 
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
       .select(
         `
@@ -71,7 +85,7 @@ export class EvaluationService {
       `
       )
       .eq(column, userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false }));
 
     if (error) {
       console.error("Error fetching evaluation history:", error);
@@ -87,7 +101,7 @@ export class EvaluationService {
   async getServiceRequestEvaluations(
     serviceRequestId: number
   ): Promise<Evaluation[]> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
       .select(
         `
@@ -97,7 +111,7 @@ export class EvaluationService {
       `
       )
       .eq("service_request_id", serviceRequestId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false }));
 
     if (error) {
       console.error("Error fetching service request evaluations:", error);
@@ -117,14 +131,14 @@ export class EvaluationService {
     recent_evaluations: Evaluation[];
   }> {
     // Total de avaliações
-    const { count: totalEvaluations } = await this.supabase.client
+    const { count: totalEvaluations } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
-      .select("*", { count: "exact", head: true });
+      .select("*", { count: "exact", head: true }));
 
     // Média geral
-    const { data: ratingsData } = await this.supabase.client
+    const { data: ratingsData } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
-      .select("rating");
+      .select("rating"));
 
     const averageRating =
       ratingsData && ratingsData.length > 0
@@ -132,15 +146,15 @@ export class EvaluationService {
         : 0;
 
     // Avaliações pendentes (serviços concluídos sem avaliação mútua)
-    const { count: pendingEvaluations } = await this.supabase.client
+    const { count: pendingEvaluations } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null)
       .in("status", ["Concluído", "Finalizado"])
-      .eq("mutual_evaluation_completed", false);
+      .eq("mutual_evaluation_completed", false));
 
     // Avaliações recentes
-    const { data: recentEvaluations } = await this.supabase.client
+    const { data: recentEvaluations } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
       .select(
         `
@@ -151,7 +165,7 @@ export class EvaluationService {
       `
       )
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(10));
 
     return {
       total_evaluations: totalEvaluations || 0,
@@ -167,12 +181,12 @@ export class EvaluationService {
   private async getServiceRequest(
     serviceRequestId: number
   ): Promise<ServiceRequest | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("service_requests")
       .select("*")
       .is("deleted_at", null)
       .eq("id", serviceRequestId)
-      .single();
+      .single());
 
     if (error) {
       console.error("Error fetching service request:", error);
@@ -187,13 +201,13 @@ export class EvaluationService {
     evaluatorId: number,
     evaluatedId: number
   ): Promise<Evaluation | null> {
-    const { data, error } = await this.supabase.client
+    const { data, error } = await this.withTenantFilter(this.supabase.client
       .from("evaluations")
       .select("*")
       .eq("service_request_id", serviceRequestId)
       .eq("evaluator_id", evaluatorId)
       .eq("evaluated_id", evaluatedId)
-      .single();
+      .single());
 
     if (error && error.code !== "PGRST116") {
       // PGRST116 = no rows returned

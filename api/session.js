@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { assertUserTenant, resolveTenantByRequest } from './_tenant.js';
 
 function parseJsonBody(req) {
   const body = req.body;
@@ -39,7 +40,7 @@ function getSupabaseClient() {
 async function getPublicUserById(supabase, userId) {
   const { data, error } = await supabase
     .from('users')
-    .select('id,email,name,role,status,phone,specialty,avatar_url')
+    .select('id,email,name,role,status,phone,specialty,avatar_url,tenant_id')
     .eq('id', userId)
     .single();
 
@@ -79,6 +80,14 @@ export default async function handler(req, res) {
   const tokenHash = hashToken(token);
 
   try {
+    let resolvedTenant = null;
+    try {
+      const tenantResult = await resolveTenantByRequest(req, supabase);
+      resolvedTenant = tenantResult.tenant;
+    } catch (tenantError) {
+      console.warn('[SESSION] Falha ao resolver tenant por subdomínio:', tenantError?.message || tenantError);
+    }
+
     if (action === 'revoke') {
       await supabase
         .from('user_sessions')
@@ -137,10 +146,19 @@ export default async function handler(req, res) {
 
     const user = await getPublicUserById(supabase, session.user_id);
 
+    if (!assertUserTenant(user?.tenant_id, resolvedTenant)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Sessão não pertence ao tenant deste subdomínio',
+        serverNow: nowIso
+      });
+    }
+
     return res.status(200).json({
       success: true,
       user,
       session: { expiresAt: session.expires_at },
+      tenant: resolvedTenant,
       serverNow: nowIso
     });
   } catch (e) {

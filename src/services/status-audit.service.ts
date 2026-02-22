@@ -1,12 +1,14 @@
 import { Injectable, inject } from "@angular/core";
 import { SupabaseService } from "./supabase.service";
 import { AuthService } from "./auth.service";
+import { TenantContextService } from "./tenant-context.service";
 import { ServiceStatus, UserRole } from "../models/maintenance.models";
 
 /**
  * Interface para entrada de auditoria
  */
 export interface StatusAuditEntry {
+  tenant_id?: string | null;
   request_id: number;
   previous_status: ServiceStatus | null;
   new_status: ServiceStatus;
@@ -40,6 +42,19 @@ export interface StatusHistoryQuery {
 export class StatusAuditService {
   private readonly supabase = inject(SupabaseService);
   private readonly authService = inject(AuthService);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private getCurrentTenantId(): string | null {
+    return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
+  }
+
+  private withTenantFilter(query: any): any {
+    const tenantId = this.getCurrentTenantId();
+    if (!tenantId || !query || typeof query.eq !== "function") {
+      return query;
+    }
+    return query.eq("tenant_id", tenantId);
+  }
 
   /**
    * Registra uma mudança de status
@@ -59,6 +74,7 @@ export class StatusAuditService {
       }
 
       const auditEntry: Partial<StatusAuditEntry> = {
+        tenant_id: this.getCurrentTenantId(),
         request_id: requestId,
         previous_status: previousStatus,
         new_status: newStatus,
@@ -69,9 +85,9 @@ export class StatusAuditService {
         timestamp: new Date().toISOString(),
       };
 
-      const { error } = await this.supabase.client
+      const { error } = await this.withTenantFilter(this.supabase.client
         .from("status_audit_log")
-        .insert([auditEntry]);
+        .insert([auditEntry]));
 
       if (error) {
         console.error("[StatusAudit] Erro ao registrar auditoria:", error);
@@ -94,11 +110,11 @@ export class StatusAuditService {
    */
   async getRequestHistory(requestId: number): Promise<StatusAuditEntry[]> {
     try {
-      const { data, error } = await this.supabase.client
+      const { data, error } = await this.withTenantFilter(this.supabase.client
         .from("status_audit_log")
         .select("*")
         .eq("request_id", requestId)
-        .order("timestamp", { ascending: true });
+        .order("timestamp", { ascending: true }));
 
       if (error) {
         console.error("[StatusAudit] Erro ao buscar histórico:", error);
@@ -120,6 +136,8 @@ export class StatusAuditService {
       let dbQuery = this.supabase.client
         .from("status_audit_log")
         .select("*");
+
+      dbQuery = this.withTenantFilter(dbQuery);
 
       if (query.requestId) {
         dbQuery = dbQuery.eq("request_id", query.requestId);
@@ -169,6 +187,8 @@ export class StatusAuditService {
         .from("status_audit_log")
         .select("new_status");
 
+      dbQuery = this.withTenantFilter(dbQuery);
+
       if (startDate) {
         dbQuery = dbQuery.gte("timestamp", startDate.toISOString());
       }
@@ -203,13 +223,13 @@ export class StatusAuditService {
    */
   async getLastStatusChange(requestId: number): Promise<StatusAuditEntry | null> {
     try {
-      const { data, error } = await this.supabase.client
+      const { data, error } = await this.withTenantFilter(this.supabase.client
         .from("status_audit_log")
         .select("*")
         .eq("request_id", requestId)
         .order("timestamp", { ascending: false })
         .limit(1)
-        .single();
+        .single());
 
       if (error) {
         console.error("[StatusAudit] Erro ao buscar última mudança:", error);
@@ -232,13 +252,13 @@ export class StatusAuditService {
     toStatus: ServiceStatus
   ): Promise<boolean> {
     try {
-      const { data, error } = await this.supabase.client
+      const { data, error } = await this.withTenantFilter(this.supabase.client
         .from("status_audit_log")
         .select("id")
         .eq("request_id", requestId)
         .eq("previous_status", fromStatus)
         .eq("new_status", toStatus)
-        .limit(1);
+        .limit(1));
 
       if (error) {
         console.error("[StatusAudit] Erro ao verificar transição:", error);

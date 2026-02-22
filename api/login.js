@@ -1,6 +1,7 @@
 // Vercel Function para autenticação customizada
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { assertUserTenant, resolveTenantByRequest } from './_tenant.js';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -47,11 +48,26 @@ export default async function handler(req, res) {
       .eq('email', email)
       .single();
 
+    let resolvedTenant = null;
+    try {
+      const tenantResult = await resolveTenantByRequest(req, supabase);
+      resolvedTenant = tenantResult.tenant;
+    } catch (tenantError) {
+      console.warn('[LOGIN] Falha ao resolver tenant por subdomínio:', tenantError?.message || tenantError);
+    }
+
     console.log('[LOGIN] Resultado busca usuário:', { user, error });
 
     if (error || !user) {
       console.log('[LOGIN] Usuário não encontrado ou erro:', { error });
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
+    }
+
+    if (!assertUserTenant(user.tenant_id, resolvedTenant)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Usuário não pertence ao tenant deste subdomínio'
+      });
     }
 
     // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
@@ -93,12 +109,29 @@ export default async function handler(req, res) {
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
 
-    const { error: insertError } = await supabase.from('user_sessions').insert({
+    const sessionInsertPayload = {
       user_id: user.id,
       token_hash: tokenHash,
       expires_at: expiresAt,
       user_agent: req.headers['user-agent'] || null,
-    });
+      tenant_id: resolvedTenant?.id || user.tenant_id || null,
+    };
+
+    let insertError = null;
+    {
+      const insertResult = await supabase.from('user_sessions').insert(sessionInsertPayload);
+      insertError = insertResult.error;
+    }
+
+    if (insertError && String(insertError.message || '').toLowerCase().includes('tenant_id')) {
+      const fallbackInsert = await supabase.from('user_sessions').insert({
+        user_id: user.id,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        user_agent: req.headers['user-agent'] || null,
+      });
+      insertError = fallbackInsert.error;
+    }
 
     if (insertError) {
       console.error('[LOGIN] Erro ao criar sessão:', insertError);
@@ -118,7 +151,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       user: safeUser,
-      session: { token, expiresAt }
+      session: { token, expiresAt },
+      tenant: resolvedTenant
     });
   } catch (e) {
     console.error('[LOGIN] Unhandled error:', e);

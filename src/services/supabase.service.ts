@@ -1,5 +1,5 @@
 // supabase.service.ts
-import { Injectable, signal } from "@angular/core";
+import { Injectable, inject, signal } from "@angular/core";
 import {
   AuthError,
   createClient,
@@ -7,6 +7,7 @@ import {
   User,
 } from "@supabase/supabase-js";
 import { environment } from "../environments/environment";
+import { TenantContextService } from "./tenant-context.service";
 
 @Injectable({
   providedIn: "root",
@@ -14,11 +15,66 @@ import { environment } from "../environments/environment";
 export class SupabaseService {
   private readonly supabase: SupabaseClient;
   private readonly _currentUser = signal<User | null>(null);
+  private readonly tenantContext = inject(TenantContextService);
+
+  private detectSubdomainFromHost(): string | null {
+    if (globalThis.window === undefined) {
+      return null;
+    }
+
+    const host = (globalThis.window.location.hostname || "").toLowerCase();
+    if (!host || host === "localhost") {
+      return null;
+    }
+
+    if (host.endsWith(".localhost")) {
+      return host.split(".")[0] || null;
+    }
+
+    const parts = host.split(".");
+    return parts.length >= 3 ? parts[0] || null : null;
+  }
+
+  private createTenantAwareFetch(): typeof fetch {
+    return async (input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(init?.headers || {});
+
+      const tenant = this.tenantContext.tenant();
+      const host = this.tenantContext.host();
+      const subdomain = tenant?.subdomain || this.tenantContext.subdomain() || this.detectSubdomainFromHost();
+
+      if (tenant?.id) {
+        headers.set("x-tenant-id", String(tenant.id));
+      }
+
+      if (tenant?.slug) {
+        headers.set("x-tenant-slug", String(tenant.slug));
+      }
+
+      if (subdomain) {
+        headers.set("x-tenant-subdomain", String(subdomain));
+      }
+
+      if (host) {
+        headers.set("x-tenant-host", String(host));
+      }
+
+      return fetch(input, {
+        ...init,
+        headers,
+      });
+    };
+  }
 
   constructor() {
     this.supabase = createClient(
       environment.supabaseUrl.toString().trim(),
-      environment.supabaseAnonKey
+      environment.supabaseAnonKey,
+      {
+        global: {
+          fetch: this.createTenantAwareFetch(),
+        },
+      }
     );
 
     // Listen for auth changes

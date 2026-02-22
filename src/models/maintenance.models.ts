@@ -213,6 +213,7 @@ export interface Address {
 
 export interface User {
   id: number;
+  tenant_id?: string | null;
   name: string;
   email: string;
   role: UserRole;
@@ -234,6 +235,7 @@ export interface User {
 
 export interface ServiceRequest {
   id: number;
+  tenant_id?: string | null;
   
   // DADOS DO CLIENTE (informativo, não mais FK para users)
   client_id: number | null; // DEPRECATED - manter por compatibilidade

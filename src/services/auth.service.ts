@@ -3,6 +3,7 @@ import { User, UserRole } from "../models/maintenance.models";
 import { NotificationService } from "./notification.service";
 import { SupabaseService } from "./supabase.service";
 import { AuthError, AuthResponse } from "@supabase/supabase-js";
+import { TenantContextService } from "./tenant-context.service";
 
 import { environment } from "../environments/environment";
 
@@ -12,6 +13,7 @@ import { environment } from "../environments/environment";
 export class AuthService {
       private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
+      private readonly tenantContext = inject(TenantContextService);
     private readonly supabaseUser = this.supabase.currentUser;
     readonly appUser = signal<User | null>(null);
     readonly pendingEmailConfirmation = signal<string | null>(null);
@@ -215,7 +217,15 @@ export class AuthService {
         if (!json?.success || !json?.user) return;
 
         const user = json.user as User;
+        const tenant = json.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
         const expiresAt = json.session?.expiresAt || stored.expiresAt;
+
+        this.tenantContext.setResolvedTenant(tenant);
+        if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+          await this.logout();
+          return;
+        }
+
         this.appUser.set(user);
         this.writeStoredSession({ token: stored.token, expiresAt, user });
         this.scheduleAutoLogout(expiresAt);
@@ -247,7 +257,14 @@ export class AuthService {
       // Aceita apenas autenticação via backend próprio
       const user = result.user as User | undefined;
       const session = result.session as { token: string; expiresAt: string } | undefined;
+      const tenant = result.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
       if (res.ok && result.success && user && session?.token && session?.expiresAt) {
+        this.tenantContext.setResolvedTenant(tenant);
+
+        if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+          throw new Error('Usuário não pertence ao tenant deste subdomínio');
+        }
+
         this.appUser.set(user);
         this.writeStoredSession({ token: session.token, expiresAt: session.expiresAt, user });
         this.scheduleAutoLogout(session.expiresAt);
@@ -324,7 +341,15 @@ export class AuthService {
         const validateJson = await validateRes.json().catch(() => ({}));
         if (validateRes.ok && validateJson.success && validateJson.user) {
           user = validateJson.user as User;
+          const tenant = validateJson.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
           expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
+
+          this.tenantContext.setResolvedTenant(tenant);
+          if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+            this.clearStoredSession();
+            this.appUser.set(null);
+            return;
+          }
         }
       } catch {
         // Transient failure: keep local session.

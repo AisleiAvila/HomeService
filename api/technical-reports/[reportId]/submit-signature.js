@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import { PDFDocument } from 'pdf-lib';
+import { assertUserTenant, resolveTenantByRequest } from '../../_tenant.js';
 
 const DEFAULT_SUPABASE_URL = 'https://uqrvenlkquheajuveggv.supabase.co';
 
@@ -271,7 +272,7 @@ async function loadAndValidateReport(supabase, reportId) {
   const { data: report, error: reportError } = await supabase
     .from('technical_reports')
     .select(
-      'id,service_request_id,generated_by,client_sign_token,storage_bucket,storage_path,file_url,file_name,latest_file_url,latest_storage_path,status,professional_signed_at,client_signed_at'
+      'id,service_request_id,generated_by,client_sign_token,storage_bucket,storage_path,file_url,file_name,latest_file_url,latest_storage_path,status,professional_signed_at,client_signed_at,tenant_id'
     )
     .eq('id', reportId)
     .single();
@@ -415,7 +416,22 @@ async function processSignature(supabase, report, reportId, signerType, otp, sig
 }
 
 async function executeSignatureWorkflow(supabase, req, reportId, signerType, clientToken, otp, signatureDataUrl) {
+  let resolvedTenant = null;
+  try {
+    const tenantResult = await resolveTenantByRequest(req, supabase);
+    resolvedTenant = tenantResult.tenant;
+  } catch (tenantError) {
+    console.warn('[TECH-REPORT submit-signature] Falha ao resolver tenant por subdomínio:', tenantError?.message || tenantError);
+  }
+
   const report = await loadAndValidateReport(supabase, reportId);
+
+  if (!assertUserTenant(report.tenant_id, resolvedTenant)) {
+    const err = new Error('Relatório não pertence ao tenant deste subdomínio');
+    err.statusCode = 403;
+    throw err;
+  }
+
   await validateSignerAuthorization(supabase, req, report, signerType, clientToken);
 
   const { signedPath, publicUrl, signedAt } = await processSignature(
