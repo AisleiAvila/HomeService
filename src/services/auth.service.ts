@@ -7,6 +7,36 @@ import { TenantContextService } from "./tenant-context.service";
 
 import { environment } from "../environments/environment";
 
+export interface AccessibleTenant {
+  id: string;
+  slug: string;
+  subdomain?: string | null;
+  status?: string;
+  name?: string;
+}
+
+export interface SuperUserAccount {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  status: string;
+  tenant_id?: string | null;
+}
+
+export interface SuperUserAuditEntry {
+  id: string;
+  created_at: string;
+  actor_user_id?: number | null;
+  actor_role?: string | null;
+  action: string;
+  target_tenant_id?: string | null;
+  target_resource?: string | null;
+  target_resource_id?: string | null;
+  reason?: string | null;
+  success?: boolean | null;
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -221,7 +251,7 @@ export class AuthService {
         const expiresAt = json.session?.expiresAt || stored.expiresAt;
 
         this.tenantContext.setResolvedTenant(tenant);
-        if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+        if (!this.tenantContext.isTenantCompatible(user.tenant_id, user.role)) {
           await this.logout();
           return;
         }
@@ -261,7 +291,7 @@ export class AuthService {
       if (res.ok && result.success && user && session?.token && session?.expiresAt) {
         this.tenantContext.setResolvedTenant(tenant);
 
-        if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+        if (!this.tenantContext.isTenantCompatible(user.tenant_id, user.role)) {
           throw new Error('Usuário não pertence ao tenant deste subdomínio');
         }
 
@@ -345,7 +375,7 @@ export class AuthService {
           expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
 
           this.tenantContext.setResolvedTenant(tenant);
-          if (!this.tenantContext.isTenantCompatible(user.tenant_id)) {
+          if (!this.tenantContext.isTenantCompatible(user.tenant_id, user.role)) {
             this.clearStoredSession();
             this.appUser.set(null);
             return;
@@ -1157,6 +1187,210 @@ export class AuthService {
    */
   onAuthStateChange(callback: (event: string, session: any) => void) {
     return this.supabase.client.auth.onAuthStateChange(callback);
+  }
+
+  async listAccessibleTenants(): Promise<AccessibleTenant[]> {
+    if (this.appUser()?.role !== "super_user") {
+      return [];
+    }
+
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return [];
+    }
+
+    const response = await fetch(environment.sessionApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({ action: "list_tenants" }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.tenants)) {
+      return [];
+    }
+
+    return payload.tenants as AccessibleTenant[];
+  }
+
+  async switchActiveTenant(tenantId: string, reason?: string): Promise<boolean> {
+    if (this.appUser()?.role !== "super_user") {
+      return false;
+    }
+
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return false;
+    }
+
+    const response = await fetch(environment.sessionApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: "switch_tenant",
+        tenantId,
+        reason: reason || "Troca de tenant pelo super usuário",
+      }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success) {
+      return false;
+    }
+
+    const tenant = payload.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
+    this.tenantContext.setResolvedTenant(tenant);
+
+    const currentStored = this.readStoredSession();
+    const currentUser = this.appUser();
+    if (currentStored?.token && currentStored?.expiresAt && currentUser) {
+      this.writeStoredSession({ token: currentStored.token, expiresAt: currentStored.expiresAt, user: currentUser });
+      this.scheduleAutoLogout(currentStored.expiresAt);
+    }
+
+    return true;
+  }
+
+  async listSuperUsers(): Promise<SuperUserAccount[]> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return [];
+    }
+
+    const response = await fetch(environment.superUserAccessApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({ action: "list_users" }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.users)) {
+      return [];
+    }
+
+    return payload.users as SuperUserAccount[];
+  }
+
+  async getSuperUserTenantAccess(userId: number): Promise<string[]> {
+    const stored = this.readStoredSession();
+    if (!stored?.token || !Number.isFinite(userId)) {
+      return [];
+    }
+
+    const response = await fetch(environment.superUserAccessApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({ action: "get_user_tenants", userId }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.mappings)) {
+      return [];
+    }
+
+    return payload.mappings
+      .filter((mapping: any) => mapping?.tenant_id && mapping?.is_active !== false)
+      .map((mapping: any) => String(mapping.tenant_id));
+  }
+
+  async listSuperUserAudit(userId?: number, limit = 30): Promise<SuperUserAuditEntry[]> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return [];
+    }
+
+    const response = await fetch(environment.superUserAccessApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: "list_audit",
+        userId: Number.isFinite(userId ?? Number.NaN) ? userId : undefined,
+        limit,
+      }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.logs)) {
+      return [];
+    }
+
+    return payload.logs as SuperUserAuditEntry[];
+  }
+
+  async grantSuperUserTenantAccess(userId: number, tenantId: string, reason?: string): Promise<boolean> {
+    return this.applySuperUserTenantAccessAction("grant_access", userId, tenantId, reason);
+  }
+
+  async revokeSuperUserTenantAccess(userId: number, tenantId: string, reason?: string): Promise<boolean> {
+    return this.applySuperUserTenantAccessAction("revoke_access", userId, tenantId, reason);
+  }
+
+  private async applySuperUserTenantAccessAction(
+    action: "grant_access" | "revoke_access",
+    userId: number,
+    tenantId: string,
+    reason?: string
+  ): Promise<boolean> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return false;
+    }
+
+    const response = await fetch(environment.superUserAccessApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action,
+        userId,
+        tenantId,
+        reason: reason || null,
+      }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    return Boolean(payload?.success);
   }
 
   async logout(): Promise<void> {

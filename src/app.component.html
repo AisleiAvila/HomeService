@@ -110,6 +110,18 @@
             <span class="hidden md:inline font-semibold dark:text-neutral-50">Natan General Service</span>
           </div>
           <div class="flex items-center gap-2">
+            @if (currentUser()?.role === 'super_user') {
+              <select
+                class="h-9 max-w-[220px] rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm dark:text-neutral-50"
+                [value]="selectedTenantId()"
+                [disabled]="isSwitchingTenant() || accessibleTenants().length === 0"
+                (change)="onSuperUserTenantChange($event)">
+                <option value="" disabled>Selecionar tenant</option>
+                @for (tenant of accessibleTenants(); track tenant.id) {
+                  <option [value]="tenant.id">{{ tenant.name || tenant.slug }}</option>
+                }
+              </select>
+            }
             <app-notifications />
             <app-theme-toggle />
             <app-language-switcher [theme]="'dark'" />
@@ -223,6 +235,47 @@
       }
     </div>
     <!-- Modals Layer (somente no modo app) -->
+    @if (shouldShowSuperUserTenantModal()) {
+      <div class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md rounded-lg bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-xl p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-2">
+            Selecione o tenant de acesso
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-neutral-300 mb-4">
+            Para continuar como super usuário, escolha o tenant que deseja acessar nesta sessão.
+          </p>
+
+          @if (accessibleTenants().length === 0) {
+            <p class="text-sm text-gray-500 dark:text-neutral-400 mb-4">
+              Nenhum tenant acessível foi encontrado para este usuário.
+            </p>
+          } @else {
+            <select
+              class="w-full h-10 rounded-md border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-3 text-sm text-gray-900 dark:text-neutral-100 mb-4"
+              [value]="superUserTenantChoice()"
+              [disabled]="isSwitchingTenant()"
+              (change)="superUserTenantChoice.set($any($event.target).value)">
+              <option value="" disabled>Selecione um tenant</option>
+              @for (tenant of accessibleTenants(); track tenant.id) {
+                <option [value]="tenant.id">{{ tenant.name || tenant.slug || tenant.id }}</option>
+              }
+            </select>
+          }
+
+          <button
+            type="button"
+            class="w-full h-10 rounded-md bg-brand-primary-600 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="isSwitchingTenant() || !superUserTenantChoice()"
+            (click)="confirmInitialSuperUserTenantSelection()">
+            @if (isSwitchingTenant()) {
+              <i class="fas fa-spinner fa-spin mr-2"></i>
+            }
+            Confirmar tenant
+          </button>
+        </div>
+      </div>
+    }
+
     @if (isChatOpen() && selectedRequest()) {
       <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"
         aria-label="Fechar modal de chat">

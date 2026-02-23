@@ -37,6 +37,10 @@ export function getRequestHost(req) {
   return normalizeHost(forwardedHost || hostHeader);
 }
 
+export function isSuperUserRole(role) {
+  return String(role || '').toLowerCase() === 'super_user';
+}
+
 export async function resolveTenantByRequest(req, supabase) {
   const host = getRequestHost(req);
   const subdomain = getRequestSubdomain(req);
@@ -95,5 +99,10 @@ export async function resolveTenantByRequest(req, supabase) {
 
 export function assertUserTenant(userTenantId, tenant) {
   if (!tenant) return true;
+  return String(userTenantId || '') === String(tenant.id || '');
+}
+
+export function assertStrictUserTenant(userTenantId, tenant) {
+  if (!tenant?.id) return false;
   return String(userTenantId || '') === String(tenant.id || '');
 }

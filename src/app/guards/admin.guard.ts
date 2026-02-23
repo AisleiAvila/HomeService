@@ -21,9 +21,9 @@ export const adminGuard: CanActivateFn = (route, state) => {
     return false;
   }
   
-  // Verifica se o usuário tem role de admin
-  if (currentUser.role !== 'admin') {
-    console.warn('[AdminGuard] Usuário não é admin. Role:', currentUser.role, '. Redirecionando para dashboard.');
+  // Verifica se o usuário tem role de admin (ou super usuário)
+  if (currentUser.role !== 'admin' && currentUser.role !== 'super_user') {
+    console.warn('[AdminGuard] Usuário não é admin/super_user. Role:', currentUser.role, '. Redirecionando para dashboard.');
     router.navigate(['/']);
     return false;
   }

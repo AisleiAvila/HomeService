@@ -7,6 +7,7 @@ import { DataService } from "../../../services/data.service";
 import { I18nService } from "../../../i18n.service";
 import { NotificationService } from "../../../services/notification.service";
 import { SupabaseService } from "../../../services/supabase.service";
+import { AccessibleTenant, AuthService, SuperUserAccount, SuperUserAuditEntry } from "../../../services/auth.service";
 import { WarehouseService } from "../../../services/warehouse.service";
 import { UserWarehousesService } from "../../../services/user-warehouses.service";
 
@@ -22,6 +23,7 @@ export class UsersManagementComponent implements OnInit {
     private readonly i18n = inject(I18nService);
     private readonly notificationService = inject(NotificationService);
     private readonly supabase = inject(SupabaseService);
+    private readonly authService = inject(AuthService);
     private readonly warehouseService = inject(WarehouseService);
     private readonly userWarehousesService = inject(UserWarehousesService);
 
@@ -72,7 +74,8 @@ export class UsersManagementComponent implements OnInit {
                 u.role === "professional_almoxarife" ||
                 u.role === "almoxarife" ||
                 u.role === "secretario" ||
-                u.role === "admin"
+                u.role === "admin" ||
+                u.role === "super_user"
             );
 
         // Aplicar busca
@@ -184,6 +187,14 @@ export class UsersManagementComponent implements OnInit {
             // Reseta para a primeira página
             this.currentPage.set(1);
         });
+
+        effect(() => {
+            if (this.canManageSuperUserAccess()) {
+                void this.loadSuperUserAccessData();
+            } else {
+                this.resetSuperUserAccessState();
+            }
+        });
     }
 
     // Available roles for user management (only professional and admin - client role removed)
@@ -193,6 +204,7 @@ export class UsersManagementComponent implements OnInit {
         "secretario",
         "professional_almoxarife",
         "admin",
+        "super_user",
     ];
 
     readonly warehouses = computed(() => this.warehouseService.warehouses());
@@ -233,8 +245,165 @@ export class UsersManagementComponent implements OnInit {
     // Reactivate Client
     reactivatingClient = signal<User | null>(null);
 
+    // Super User Tenant Access Management
+    superUsers = signal<SuperUserAccount[]>([]);
+    availableTenants = signal<AccessibleTenant[]>([]);
+    selectedSuperUserId = signal<number | null>(null);
+    selectedSuperUserTenantIds = signal<string[]>([]);
+    superUserAuditEntries = signal<SuperUserAuditEntry[]>([]);
+    superUserAccessReason = signal("");
+    superUserLoading = signal(false);
+    superUserActionBusy = signal(false);
+    superUserAuditLoading = signal(false);
+
+    canManageSuperUserAccess = computed(() => this.authService.appUser()?.role === "super_user");
+    selectedSuperUser = computed(() => {
+        const selectedId = this.selectedSuperUserId();
+        if (!selectedId) {
+            return null;
+        }
+        return this.superUsers().find((user) => Number(user.id) === selectedId) ?? null;
+    });
+
     toggleAddClientForm() {
         this.showAddClientForm.update((v) => !v);
+    }
+
+    private resetSuperUserAccessState() {
+        this.superUsers.set([]);
+        this.availableTenants.set([]);
+        this.selectedSuperUserId.set(null);
+        this.selectedSuperUserTenantIds.set([]);
+        this.superUserAuditEntries.set([]);
+        this.superUserAccessReason.set("");
+        this.superUserLoading.set(false);
+        this.superUserActionBusy.set(false);
+        this.superUserAuditLoading.set(false);
+    }
+
+    async loadSuperUserAccessData() {
+        this.superUserLoading.set(true);
+        try {
+            const [users, tenants] = await Promise.all([
+                this.authService.listSuperUsers(),
+                this.authService.listAccessibleTenants(),
+            ]);
+
+            this.superUsers.set(users);
+            this.availableTenants.set(tenants);
+
+            const selectedId = this.selectedSuperUserId();
+            const hasSelected = selectedId ? users.some((user) => Number(user.id) === selectedId) : false;
+            if (!hasSelected) {
+                const firstId = users.length > 0 ? Number(users[0].id) : null;
+                this.selectedSuperUserId.set(firstId);
+            }
+
+            if (this.selectedSuperUserId()) {
+                await Promise.all([
+                    this.loadSelectedSuperUserTenantAccess(),
+                    this.loadSelectedSuperUserAudit(),
+                ]);
+            } else {
+                this.selectedSuperUserTenantIds.set([]);
+                this.superUserAuditEntries.set([]);
+            }
+        } catch (error) {
+            console.error("[UsersManagementComponent] Error loading super user access data:", error);
+            this.notificationService.addNotification("Falha ao carregar dados de acesso de super usuários");
+        } finally {
+            this.superUserLoading.set(false);
+        }
+    }
+
+    async onSuperUserSelectionChange(rawValue: string | number) {
+        const userId = Number(rawValue);
+        if (!Number.isFinite(userId)) {
+            this.selectedSuperUserId.set(null);
+            this.selectedSuperUserTenantIds.set([]);
+            return;
+        }
+
+        this.selectedSuperUserId.set(userId);
+        await Promise.all([
+            this.loadSelectedSuperUserTenantAccess(),
+            this.loadSelectedSuperUserAudit(),
+        ]);
+    }
+
+    async loadSelectedSuperUserTenantAccess() {
+        const selectedId = this.selectedSuperUserId();
+        if (!selectedId) {
+            this.selectedSuperUserTenantIds.set([]);
+            return;
+        }
+
+        try {
+            const tenantIds = await this.authService.getSuperUserTenantAccess(selectedId);
+            this.selectedSuperUserTenantIds.set(tenantIds);
+        } catch (error) {
+            console.error("[UsersManagementComponent] Error loading selected super user tenants:", error);
+            this.notificationService.addNotification("Falha ao carregar tenants atribuídos ao super usuário");
+            this.selectedSuperUserTenantIds.set([]);
+        }
+    }
+
+    async loadSelectedSuperUserAudit() {
+        const selectedId = this.selectedSuperUserId();
+        if (!selectedId) {
+            this.superUserAuditEntries.set([]);
+            return;
+        }
+
+        this.superUserAuditLoading.set(true);
+        try {
+            const logs = await this.authService.listSuperUserAudit(selectedId, 30);
+            this.superUserAuditEntries.set(logs);
+        } catch (error) {
+            console.error("[UsersManagementComponent] Error loading super user audit:", error);
+            this.superUserAuditEntries.set([]);
+        } finally {
+            this.superUserAuditLoading.set(false);
+        }
+    }
+
+    isSuperUserTenantGranted(tenantId: string): boolean {
+        return this.selectedSuperUserTenantIds().includes(tenantId);
+    }
+
+    async onSuperUserTenantToggle(tenantId: string, event: Event) {
+        const selectedId = this.selectedSuperUserId();
+        if (!selectedId) {
+            this.notificationService.addNotification("Selecione um super usuário antes de alterar acessos");
+            return;
+        }
+
+        const isChecked = (event.target as HTMLInputElement).checked;
+        this.superUserActionBusy.set(true);
+        try {
+            const reason = this.superUserAccessReason().trim() || undefined;
+            const success = isChecked
+                ? await this.authService.grantSuperUserTenantAccess(selectedId, tenantId, reason)
+                : await this.authService.revokeSuperUserTenantAccess(selectedId, tenantId, reason);
+
+            if (!success) {
+                this.notificationService.addNotification("Não foi possível atualizar o acesso do super usuário");
+            }
+
+            await Promise.all([
+                this.loadSelectedSuperUserTenantAccess(),
+                this.loadSelectedSuperUserAudit(),
+            ]);
+        } catch (error) {
+            console.error("[UsersManagementComponent] Error changing super user tenant access:", error);
+            this.notificationService.addNotification("Erro ao atualizar acesso de tenant");
+            await Promise.all([
+                this.loadSelectedSuperUserTenantAccess(),
+                this.loadSelectedSuperUserAudit(),
+            ]);
+        } finally {
+            this.superUserActionBusy.set(false);
+        }
     }
 
     resetNewClientForm() {
@@ -413,6 +582,75 @@ export class UsersManagementComponent implements OnInit {
         }
     }
 
+    private async updateClientBasicData(clientId: number, name: string, email: string, role: UserRole): Promise<void> {
+        const updateData: any = { name, email, role };
+        if (this.isProfessionalLikeRole(role)) {
+            updateData.is_natan_employee = this.editingClientIsNatanEmployee();
+        }
+
+        const { error } = await this.supabase.client
+            .from("users")
+            .update(updateData)
+            .eq("id", clientId);
+
+        if (error) {
+            throw error;
+        }
+    }
+
+    private async clearClientSpecialties(clientId: number, throwOnError: boolean): Promise<void> {
+        const { error: deleteError } = await this.supabase.client
+            .from("user_specialties")
+            .delete()
+            .eq("user_id", clientId);
+
+        if (deleteError) {
+            console.error("Error deleting specialties:", deleteError);
+            if (throwOnError) {
+                throw deleteError;
+            }
+        }
+    }
+
+    private async insertClientSpecialties(clientId: number): Promise<void> {
+        const specialtiesToInsert = this.editingClientSpecialties().map(category => ({
+            user_id: clientId,
+            category_id: category.id
+        }));
+
+        if (specialtiesToInsert.length === 0) {
+            return;
+        }
+
+        const { error: insertError } = await this.supabase.client
+            .from("user_specialties")
+            .insert(specialtiesToInsert);
+
+        if (insertError) {
+            console.error("Error inserting specialties:", insertError);
+            throw insertError;
+        }
+    }
+
+    private async syncClientSpecialties(clientId: number, role: UserRole): Promise<void> {
+        if (this.isProfessionalLikeRole(role)) {
+            await this.clearClientSpecialties(clientId, true);
+            await this.insertClientSpecialties(clientId);
+            return;
+        }
+
+        await this.clearClientSpecialties(clientId, false);
+    }
+
+    private async syncClientWarehouses(clientId: number, role: UserRole): Promise<void> {
+        if (this.isStockRole(role)) {
+            await this.userWarehousesService.setWarehousesForUser(clientId, this.editingClientWarehouseIds());
+            return;
+        }
+
+        await this.userWarehousesService.setWarehousesForUser(clientId, []);
+    }
+
     async saveClientEdit() {
         const client = this.editingClient();
         if (!client) return;
@@ -429,67 +667,9 @@ export class UsersManagementComponent implements OnInit {
         }
 
         try {
-            // Atualizar dados básicos do usuário
-            const updateData: any = { name, email, role };
-            if (this.isProfessionalLikeRole(role)) {
-                updateData.is_natan_employee = this.editingClientIsNatanEmployee();
-            }
-            const { error } = await this.supabase.client
-                .from("users")
-                .update(updateData)
-                .eq("id", client.id);
-
-            if (error) {
-                throw error;
-            }
-
-            // Especialidades: manter apenas para perfis profissionais (inclui profissional+almoxarife)
-            if (this.isProfessionalLikeRole(role)) {
-                // 1. Remover todas as especialidades existentes
-                const { error: deleteError } = await this.supabase.client
-                    .from("user_specialties")
-                    .delete()
-                    .eq("user_id", client.id);
-
-                if (deleteError) {
-                    console.error("Error deleting specialties:", deleteError);
-                    throw deleteError;
-                }
-
-                // 2. Adicionar novas especialidades
-                const specialtiesToInsert = this.editingClientSpecialties().map(cat => ({
-                    user_id: client.id,
-                    category_id: cat.id
-                }));
-
-                if (specialtiesToInsert.length > 0) {
-                    const { error: insertError } = await this.supabase.client
-                        .from("user_specialties")
-                        .insert(specialtiesToInsert);
-
-                    if (insertError) {
-                        console.error("Error inserting specialties:", insertError);
-                        throw insertError;
-                    }
-                }
-            } else {
-                // Se deixou de ser profissional, limpamos especialidades antigas (para evitar dados/permissões "sobrando")
-                const { error: deleteError } = await this.supabase.client
-                    .from("user_specialties")
-                    .delete()
-                    .eq("user_id", client.id);
-                if (deleteError) {
-                    console.error("Error deleting specialties (non-professional):", deleteError);
-                }
-            }
-
-            // Armazéns: manter apenas para perfis de estoque
-            if (this.isStockRole(role)) {
-                await this.userWarehousesService.setWarehousesForUser(client.id, this.editingClientWarehouseIds());
-            } else {
-                // Se deixou de ser perfil de estoque, limpamos associações antigas
-                await this.userWarehousesService.setWarehousesForUser(client.id, []);
-            }
+            await this.updateClientBasicData(client.id, name, email, role);
+            await this.syncClientSpecialties(client.id, role);
+            await this.syncClientWarehouses(client.id, role);
 
             this.notificationService.addNotification(
                 this.i18n.translate("professionalUpdated", { name })

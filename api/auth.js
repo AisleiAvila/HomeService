@@ -31,6 +31,7 @@ const ALLOWED_ROLES = new Set([
   'client',
   'professional',
   'admin',
+  'super_user',
   'almoxarife',
   'secretario',
   'professional_almoxarife',

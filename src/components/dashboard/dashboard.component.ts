@@ -83,7 +83,7 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const isAdmin = this.user()?.role === "admin";
+    const isAdmin = this.user()?.role === "admin" || this.user()?.role === "super_user";
     const target = isAdmin
       ? ["/admin", "requests", request.id, "geolocation"]
       : ["/requests", request.id, "geolocation"];
@@ -349,7 +349,7 @@ export class DashboardComponent implements OnInit {
       filtered = allRequests.filter(
         (r) => r.professional_id === currentUser.id
       );
-    } else if (currentUser.role === "admin") {
+    } else if (currentUser.role === "admin" || currentUser.role === "super_user") {
       filtered = allRequests;
     }
 
@@ -855,7 +855,7 @@ export class DashboardComponent implements OnInit {
     
     const isActive = (status: string) => activeStatuses.has(status as ServiceStatus);
 
-    if (currentUser.role === "admin") {
+    if (currentUser.role === "admin" || currentUser.role === "super_user") {
       return [
         {
           label: this.i18n.translate("activeRequests"),

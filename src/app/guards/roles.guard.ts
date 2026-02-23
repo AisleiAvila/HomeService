@@ -30,7 +30,11 @@ export const rolesGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  const userRole = currentUser.role as AllowedRole;
+  const userRole = currentUser.role;
+  if (userRole === "super_user") {
+    return true;
+  }
+
   if (allowedRoles.includes(userRole)) {
     return true;
   }

@@ -6,6 +6,7 @@ export const environment = {
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
   loginApiUrl: "http://localhost:4002/api/login",
   sessionApiUrl: "http://localhost:4002/api/session",
+  superUserAccessApiUrl: "http://localhost:4002/api/super-user-access",
   confirmEmailApiUrl: "http://localhost:4001/api/confirm-email",
   emailServiceUrl: "http://localhost:4001/api/send-email", // Servidor de e-mail local
 

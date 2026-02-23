@@ -32,7 +32,11 @@ export class TenantContextService {
     });
   }
 
-  isTenantCompatible(userTenantId?: string | null): boolean {
+  isTenantCompatible(userTenantId?: string | null, userRole?: string | null): boolean {
+    if (String(userRole || "").toLowerCase() === "super_user") {
+      return true;
+    }
+
     const tenant = this._tenant();
     if (!tenant || !userTenantId) return true;
     return String(userTenantId) === String(tenant.id);

@@ -1,7 +1,7 @@
 // Vercel Function para autenticação customizada
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { assertUserTenant, resolveTenantByRequest } from './_tenant.js';
+import { assertStrictUserTenant, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       }
     }
     const { email, password } = body || {};
-    console.log('[LOGIN] Tentativa de login:', { email, passwordRecebida: password });
+    console.log('[LOGIN] Tentativa de login:', { email });
 
     // Buscar usuário na tabela users
     const { data: user, error } = await supabase
@@ -63,26 +63,52 @@ export default async function handler(req, res) {
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }
 
-    if (!assertUserTenant(user.tenant_id, resolvedTenant)) {
+    const isSuperUser = isSuperUserRole(user?.role);
+
+    if (!resolvedTenant && !isSuperUser) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tenant não resolvido para este host/subdomínio'
+      });
+    }
+
+    if (resolvedTenant && !isSuperUser && !assertStrictUserTenant(user.tenant_id, resolvedTenant)) {
       return res.status(403).json({
         success: false,
         error: 'Usuário não pertence ao tenant deste subdomínio'
       });
     }
 
+    if (resolvedTenant && isSuperUser) {
+      const { data: canAccessTenant, error: accessError } = await supabase.rpc('user_can_access_tenant', {
+        p_user_id: user.id,
+        p_tenant_id: resolvedTenant.id,
+      });
+
+      if (accessError) {
+        console.error('[LOGIN] Erro ao validar acesso do super usuário ao tenant:', accessError);
+        return res.status(500).json({ success: false, error: 'Erro ao validar acesso ao tenant' });
+      }
+
+      if (!canAccessTenant) {
+        return res.status(403).json({
+          success: false,
+          error: 'Super usuário sem acesso ao tenant solicitado'
+        });
+      }
+    }
+
     // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
     if (user.password_hash) {
       // Calcular hash SHA-256 da senha recebida
       const hash = crypto.createHash('sha256').update(password).digest('hex');
-      console.log('[LOGIN] Comparando password_hash:', { password_hash: user.password_hash, passwordRecebida: password, hashCalculado: hash });
       if (user.password_hash !== hash) {
-        console.log('[LOGIN] Senha inválida para usuário:', { email, password_hash: user.password_hash, passwordRecebida: password, hashCalculado: hash });
+        console.log('[LOGIN] Senha inválida para usuário:', { email });
         return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
       }
     } else if (user.password) {
-      console.log('[LOGIN] Comparando password:', { password: user.password, passwordRecebida: password });
       if (user.password !== password) {
-        console.log('[LOGIN] Senha inválida para usuário:', { email, password: user.password, passwordRecebida: password });
+        console.log('[LOGIN] Senha inválida para usuário:', { email });
         return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
       }
     }
@@ -115,6 +141,7 @@ export default async function handler(req, res) {
       expires_at: expiresAt,
       user_agent: req.headers['user-agent'] || null,
       tenant_id: resolvedTenant?.id || user.tenant_id || null,
+      active_tenant_id: resolvedTenant?.id || user.tenant_id || null,
     };
 
     let insertError = null;
@@ -152,7 +179,7 @@ export default async function handler(req, res) {
       success: true,
       user: safeUser,
       session: { token, expiresAt },
-      tenant: resolvedTenant
+      tenant: resolvedTenant || null
     });
   } catch (e) {
     console.error('[LOGIN] Unhandled error:', e);

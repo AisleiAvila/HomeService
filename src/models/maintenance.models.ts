@@ -73,6 +73,7 @@ export type UserRole =
   | "client"
   | "professional"
   | "admin"
+  | "super_user"
   | "almoxarife"
   | "secretario"
   | "professional_almoxarife";

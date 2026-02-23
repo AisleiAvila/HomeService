@@ -350,6 +350,78 @@ function sanitizeUserRow(row) {
   return safe;
 }
 
+function isSuperUserRole(role) {
+  return String(role || '').toLowerCase() === 'super_user';
+}
+
+async function getTenantById(tenantId) {
+  if (!tenantId) return null;
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('id,slug,subdomain,status,name')
+    .eq('id', tenantId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || 'Erro ao carregar tenant');
+  }
+
+  return data || null;
+}
+
+async function listAccessibleTenantsForUser(user) {
+  if (isSuperUserRole(user?.role)) {
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('id,slug,subdomain,status,name')
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+
+    if (error) {
+      throw new Error(error.message || 'Erro ao listar tenants');
+    }
+
+    return data || [];
+  }
+
+  const tenantIds = new Set();
+  if (user?.tenant_id) {
+    tenantIds.add(String(user.tenant_id));
+  }
+
+  const { data: mappedTenants, error: mappedError } = await supabase
+    .from('user_tenant_access')
+    .select('tenant_id,is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  if (mappedError) {
+    throw new Error(mappedError.message || 'Erro ao listar acessos de tenant');
+  }
+
+  for (const row of mappedTenants || []) {
+    if (row?.tenant_id) {
+      tenantIds.add(String(row.tenant_id));
+    }
+  }
+
+  if (tenantIds.size === 0) return [];
+
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('id,slug,subdomain,status,name')
+    .in('id', Array.from(tenantIds))
+    .eq('status', 'active')
+    .order('name', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message || 'Erro ao listar tenants');
+  }
+
+  return data || [];
+}
+
 /**
  * POST /api/login
  * Autentica o utilizador comparando senha com hash SHA256
@@ -407,12 +479,52 @@ app.post('/api/login', async (req, res) => {
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000).toISOString();
 
-    await supabase.from('user_sessions').insert({
+    const sessionBasePayload = {
       user_id: data.id,
       token_hash: tokenHash,
       expires_at: expiresAt,
       user_agent: req.headers['user-agent'] || null,
-    });
+      tenant_id: data.tenant_id || null,
+      active_tenant_id: data.tenant_id || null,
+    };
+
+    let { error: sessionInsertError } = await supabase
+      .from('user_sessions')
+      .insert(sessionBasePayload);
+
+    if (sessionInsertError && /active_tenant_id/i.test(sessionInsertError.message || '')) {
+      const fallbackPayload = {
+        user_id: data.id,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        user_agent: req.headers['user-agent'] || null,
+        tenant_id: data.tenant_id || null,
+      };
+      const fallbackResult = await supabase
+        .from('user_sessions')
+        .insert(fallbackPayload);
+      sessionInsertError = fallbackResult.error || null;
+    }
+
+    if (sessionInsertError && /tenant_id/i.test(sessionInsertError.message || '')) {
+      const minimalPayload = {
+        user_id: data.id,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        user_agent: req.headers['user-agent'] || null,
+      };
+      const fallbackResult = await supabase
+        .from('user_sessions')
+        .insert(minimalPayload);
+      sessionInsertError = fallbackResult.error || null;
+    }
+
+    if (sessionInsertError) {
+      return res.status(500).json({
+        success: false,
+        error: `Falha ao criar sessão: ${sessionInsertError.message || sessionInsertError}`,
+      });
+    }
 
     res.json({
       success: true,
@@ -425,6 +537,7 @@ app.post('/api/login', async (req, res) => {
         phone: data.phone,
         specialty: data.specialty,
         avatar_url: data.avatar_url,
+        tenant_id: data.tenant_id || null,
       }),
       session: { token, expiresAt }
     });
@@ -439,7 +552,7 @@ app.post('/api/login', async (req, res) => {
 
 /**
  * POST /api/session
- * Body: { action: 'validate' | 'revoke', token?: string, reason?: string }
+ * Body: { action: 'validate' | 'revoke' | 'list_tenants' | 'switch_tenant', token?: string, reason?: string }
  * Também aceita Authorization: Bearer <token>
  */
 app.post('/api/session', async (req, res) => {
@@ -456,7 +569,7 @@ app.post('/api/session', async (req, res) => {
     const bearerMatch = typeof auth === 'string' ? auth.match(/^Bearer\s+(.+)$/i) : null;
     const token = req.body?.token || (bearerMatch ? bearerMatch[1] : null);
 
-    if (!action || (action !== 'validate' && action !== 'revoke')) {
+    if (!action || (action !== 'validate' && action !== 'revoke' && action !== 'list_tenants' && action !== 'switch_tenant')) {
       return res.status(400).json({ success: false, error: 'Ação inválida' });
     }
     if (!token) {
@@ -477,7 +590,7 @@ app.post('/api/session', async (req, res) => {
 
     const { data: session, error: sessionError } = await supabase
       .from('user_sessions')
-      .select('id,user_id,expires_at,revoked_at')
+      .select('id,user_id,expires_at,revoked_at,tenant_id,active_tenant_id')
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
@@ -496,7 +609,7 @@ app.post('/api/session', async (req, res) => {
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id,email,name,role,status,phone,specialty,avatar_url')
+      .select('id,email,name,role,status,phone,specialty,avatar_url,tenant_id')
       .eq('id', session.user_id)
       .single();
 
@@ -504,10 +617,429 @@ app.post('/api/session', async (req, res) => {
       return res.status(500).json({ success: false, error: userError.message });
     }
 
+    if (isSuperUserRole(user?.role) && action === 'list_tenants') {
+      const tenants = await listAccessibleTenantsForUser(user);
+      return res.json({
+        success: true,
+        user: sanitizeUserRow(user),
+        tenants,
+        activeTenantId: session.active_tenant_id || null,
+        session: { expiresAt: session.expires_at },
+      });
+    }
+
+    if (isSuperUserRole(user?.role) && action === 'switch_tenant') {
+      const tenantId = String(req.body?.tenantId || '').trim();
+      if (!tenantId) {
+        return res.status(400).json({ success: false, error: 'tenantId é obrigatório' });
+      }
+
+      const { data: canAccessTenant, error: accessError } = await supabase.rpc('user_can_access_tenant', {
+        p_user_id: user.id,
+        p_tenant_id: tenantId,
+      });
+
+      if (accessError) {
+        return res.status(500).json({ success: false, error: accessError.message || 'Erro ao validar acesso ao tenant' });
+      }
+
+      if (!canAccessTenant) {
+        return res.status(403).json({ success: false, error: 'Sem acesso ao tenant solicitado' });
+      }
+
+      const { error: switchError } = await supabase
+        .from('user_sessions')
+        .update({ tenant_id: tenantId, active_tenant_id: tenantId, last_seen_at: nowIso })
+        .eq('id', session.id);
+
+      if (switchError) {
+        return res.status(500).json({ success: false, error: switchError.message || 'Falha ao trocar tenant ativo' });
+      }
+
+      const tenant = await getTenantById(tenantId);
+
+      return res.json({
+        success: true,
+        user: sanitizeUserRow(user),
+        tenant,
+        activeTenantId: tenantId,
+        session: { expiresAt: session.expires_at },
+      });
+    }
+
     return res.json({ success: true, user: sanitizeUserRow(user), session: { expiresAt: session.expires_at } });
   } catch (err) {
     console.error('❌ Erro em /api/session:', err.message);
     return res.status(500).json({ success: false, error: 'Erro ao processar sessão' });
+  }
+});
+
+/**
+ * POST /api/super-user-access
+ * Body: { action: 'list_users'|'get_user_tenants'|'grant_access'|'revoke_access'|'list_audit', userId?, tenantId?, reason?, limit? }
+ * Requer sessão válida e role super_user.
+ */
+const SUPER_USER_ACCESS_ACTIONS = new Set(['list_users', 'get_user_tenants', 'grant_access', 'revoke_access', 'list_audit']);
+
+function isAllowedSuperUserAccessAction(action) {
+  return typeof action === 'string' && SUPER_USER_ACCESS_ACTIONS.has(action);
+}
+
+async function fetchSuperUserActor(sessionUserId) {
+  const { data: actor, error: actorError } = await supabase
+    .from('users')
+    .select('id,email,name,role,status,tenant_id')
+    .eq('id', sessionUserId)
+    .single();
+
+  if (actorError || !actor) {
+    return { ok: false, status: 500, error: actorError?.message || 'Ator não encontrado' };
+  }
+
+  if (!isSuperUserRole(actor.role)) {
+    return { ok: false, status: 403, error: 'Apenas super usuário pode operar este endpoint' };
+  }
+
+  return { ok: true, actor };
+}
+
+async function fetchLocalSuperUsers() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id,email,name,role,status,tenant_id')
+    .eq('role', 'super_user')
+    .order('name', { ascending: true });
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message };
+  }
+
+  return { ok: true, users: data || [] };
+}
+
+async function fetchLocalAuditRows(body) {
+  const requestedUserId = body?.userId == null ? null : Number(body.userId);
+  const limitRaw = Number(body?.limit);
+  const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(limitRaw, 100)) : 30;
+
+  let query = supabase
+    .from('super_user_audit_log')
+    .select('id,created_at,actor_user_id,actor_role,action,target_tenant_id,target_resource,target_resource_id,reason,success')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (Number.isFinite(requestedUserId)) {
+    query = query
+      .eq('target_resource', 'user_tenant_access')
+      .like('target_resource_id', `${requestedUserId}:%`);
+  }
+
+  const { data: rows, error } = await query;
+  if (error) {
+    return { ok: false, status: 500, error: error.message };
+  }
+
+  return { ok: true, logs: rows || [] };
+}
+
+async function fetchTargetLocalSuperUser(targetUserId) {
+  const { data: targetUser, error: targetUserError } = await supabase
+    .from('users')
+    .select('id,email,name,role,status,tenant_id')
+    .eq('id', targetUserId)
+    .single();
+
+  if (targetUserError || !targetUser) {
+    return { ok: false, status: 404, error: 'Usuário alvo não encontrado' };
+  }
+
+  if (!isSuperUserRole(targetUser.role)) {
+    return { ok: false, status: 400, error: 'A gestão de acessos é permitida apenas para super_user' };
+  }
+
+  return { ok: true, targetUser };
+}
+
+async function fetchTargetLocalTenants(targetUserId, targetUser) {
+  const { data: mappings, error: mappingsError } = await supabase
+    .from('user_tenant_access')
+    .select('tenant_id,is_active,granted_reason,created_at,updated_at')
+    .eq('user_id', targetUserId)
+    .order('created_at', { ascending: false });
+
+  if (mappingsError) {
+    return { ok: false, status: 500, error: mappingsError.message };
+  }
+
+  const tenantIds = new Set();
+  if (targetUser.tenant_id) {
+    tenantIds.add(String(targetUser.tenant_id));
+  }
+
+  for (const item of mappings || []) {
+    if (item?.tenant_id) tenantIds.add(String(item.tenant_id));
+  }
+
+  const { data: tenants, error: tenantsError } = await supabase
+    .from('tenants')
+    .select('id,name,slug,subdomain,status')
+    .in('id', Array.from(tenantIds))
+    .order('name', { ascending: true });
+
+  if (tenantsError) {
+    return { ok: false, status: 500, error: tenantsError.message };
+  }
+
+  return { ok: true, payload: { user: targetUser, tenants: tenants || [], mappings: mappings || [] } };
+}
+
+async function applyLocalGrantAccess(actor, targetUserId, tenantId, reason, nowIso) {
+  const { error } = await supabase
+    .from('user_tenant_access')
+    .upsert({
+      user_id: targetUserId,
+      tenant_id: tenantId,
+      is_active: true,
+      granted_by: actor.id,
+      granted_reason: reason,
+      updated_at: nowIso,
+    }, { onConflict: 'user_id,tenant_id' });
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message };
+  }
+
+  return { ok: true };
+}
+
+async function readLocalUserTenantAccessRow(targetUserId, tenantId) {
+  const { data: row, error } = await supabase
+    .from('user_tenant_access')
+    .select('user_id,tenant_id,is_active,granted_reason,updated_at')
+    .eq('user_id', targetUserId)
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message };
+  }
+
+  return { ok: true, row: row || null };
+}
+
+async function applyLocalRevokeAccess(targetUserId, tenantId, reason, nowIso) {
+  const beforeResult = await readLocalUserTenantAccessRow(targetUserId, tenantId);
+  if (!beforeResult.ok) {
+    return beforeResult;
+  }
+
+  const beforeRow = beforeResult.row;
+  const { error } = await supabase
+    .from('user_tenant_access')
+    .update({ is_active: false, updated_at: nowIso, granted_reason: reason || beforeRow?.granted_reason || null })
+    .eq('user_id', targetUserId)
+    .eq('tenant_id', tenantId);
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message };
+  }
+
+  return { ok: true, beforeRow };
+}
+
+async function resolveLocalTenant(tenantId) {
+  const { data: tenant, error } = await supabase
+    .from('tenants')
+    .select('id,name,slug,subdomain,status')
+    .eq('id', tenantId)
+    .single();
+
+  if (error || !tenant) {
+    return null;
+  }
+
+  return tenant;
+}
+
+async function writeLocalSuperUserAudit(payload) {
+  const { error } = await supabase
+    .from('super_user_audit_log')
+    .insert(payload);
+
+  if (error) {
+    console.warn('⚠️ Falha ao gravar auditoria super_user local:', error.message || error);
+  }
+}
+
+function formatActionError(status, error) {
+  return { status, payload: { success: false, error } };
+}
+
+function formatActionSuccess(payload) {
+  return { status: 200, payload: { success: true, ...payload } };
+}
+
+async function handleSuperUserListAction(action, body) {
+  if (action === 'list_users') {
+    const superUsersResult = await fetchLocalSuperUsers();
+    if (!superUsersResult.ok) {
+      return formatActionError(superUsersResult.status, superUsersResult.error);
+    }
+    return formatActionSuccess({ users: superUsersResult.users });
+  }
+
+  if (action === 'list_audit') {
+    const auditResult = await fetchLocalAuditRows(body || {});
+    if (!auditResult.ok) {
+      return formatActionError(auditResult.status, auditResult.error);
+    }
+    return formatActionSuccess({ logs: auditResult.logs });
+  }
+
+  return null;
+}
+
+async function resolveSuperUserTargetContext(body) {
+  const targetUserId = Number(body?.userId);
+  if (!Number.isFinite(targetUserId)) {
+    return { ok: false, result: formatActionError(400, 'userId inválido') };
+  }
+
+  const targetUserResult = await fetchTargetLocalSuperUser(targetUserId);
+  if (!targetUserResult.ok) {
+    return { ok: false, result: formatActionError(targetUserResult.status, targetUserResult.error) };
+  }
+
+  return {
+    ok: true,
+    targetUserId,
+    targetUser: targetUserResult.targetUser,
+  };
+}
+
+async function handleSuperUserTargetAction({ action, body, actor, nowIso, targetUserId, targetUser, req }) {
+  if (action === 'get_user_tenants') {
+    const tenantResult = await fetchTargetLocalTenants(targetUserId, targetUser);
+    if (!tenantResult.ok) {
+      return formatActionError(tenantResult.status, tenantResult.error);
+    }
+    return formatActionSuccess(tenantResult.payload);
+  }
+
+  const tenantId = String(body?.tenantId || '').trim();
+  const reason = String(body?.reason || '').trim() || null;
+
+  if (!tenantId) {
+    return formatActionError(400, 'tenantId é obrigatório');
+  }
+
+  const tenant = await resolveLocalTenant(tenantId);
+  if (!tenant) {
+    return formatActionError(404, 'Tenant não encontrado');
+  }
+
+  if (action === 'grant_access') {
+    const grantResult = await applyLocalGrantAccess(actor, targetUserId, tenantId, reason, nowIso);
+    if (!grantResult.ok) {
+      return formatActionError(grantResult.status, grantResult.error);
+    }
+
+    await writeLocalSuperUserAudit({
+      actor_user_id: actor.id,
+      actor_role: actor.role,
+      action: 'grant_tenant_access',
+      target_tenant_id: tenantId,
+      target_resource: 'user_tenant_access',
+      target_resource_id: `${targetUserId}:${tenantId}`,
+      request_path: req.originalUrl || req.path || '/api/super-user-access',
+      request_method: req.method || 'POST',
+      ip_address: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || null,
+      user_agent: req.headers?.['user-agent'] || null,
+      reason,
+      before_state: null,
+      after_state: { user_id: targetUserId, tenant_id: tenantId, is_active: true },
+      success: true,
+    });
+
+    return formatActionSuccess({});
+  }
+
+  const revokeResult = await applyLocalRevokeAccess(targetUserId, tenantId, reason, nowIso);
+  if (!revokeResult.ok) {
+    return formatActionError(revokeResult.status, revokeResult.error);
+  }
+
+  await writeLocalSuperUserAudit({
+    actor_user_id: actor.id,
+    actor_role: actor.role,
+    action: 'revoke_tenant_access',
+    target_tenant_id: tenantId,
+    target_resource: 'user_tenant_access',
+    target_resource_id: `${targetUserId}:${tenantId}`,
+    request_path: req.originalUrl || req.path || '/api/super-user-access',
+    request_method: req.method || 'POST',
+    ip_address: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || null,
+    user_agent: req.headers?.['user-agent'] || null,
+    reason,
+    before_state: revokeResult.beforeRow || null,
+    after_state: { user_id: targetUserId, tenant_id: tenantId, is_active: false },
+    success: true,
+  });
+
+  return formatActionSuccess({});
+}
+
+async function handleSuperUserAccessAction({ action, body, actor, nowIso, req }) {
+  const listActionResult = await handleSuperUserListAction(action, body);
+  if (listActionResult) {
+    return listActionResult;
+  }
+
+  const context = await resolveSuperUserTargetContext(body);
+  if (!context.ok) {
+    return context.result;
+  }
+
+  return handleSuperUserTargetAction({
+    action,
+    body,
+    actor,
+    nowIso,
+    targetUserId: context.targetUserId,
+    targetUser: context.targetUser,
+    req,
+  });
+}
+
+app.post('/api/super-user-access', async (req, res) => {
+  try {
+    const session = await requireValidSession(req);
+    const action = req.body?.action;
+    const nowIso = new Date().toISOString();
+
+    if (!isAllowedSuperUserAccessAction(action)) {
+      return res.status(400).json({ success: false, error: 'Ação inválida' });
+    }
+
+    const actorResult = await fetchSuperUserActor(session.user_id);
+    if (!actorResult.ok) {
+      return res.status(actorResult.status).json({ success: false, error: actorResult.error });
+    }
+    const actor = actorResult.actor;
+
+    const result = await handleSuperUserAccessAction({
+      action,
+      body: req.body,
+      actor,
+      nowIso,
+      req,
+    });
+
+    return res.status(result.status).json(result.payload);
+  } catch (err) {
+    const status = err.statusCode || 500;
+    console.error('❌ Erro em /api/super-user-access:', err.message);
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao gerir acesso de super usuário' });
   }
 });
 
@@ -530,6 +1062,7 @@ app.post('/api/register', async (req, res) => {
       'client',
       'professional',
       'admin',
+      'super_user',
       'almoxarife',
       'secretario',
       'professional_almoxarife',

@@ -13,7 +13,7 @@ import {
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 
 // Services
-import { AuthService } from "./services/auth.service";
+import { AccessibleTenant, AuthService } from "./services/auth.service";
 import { DataService } from "./services/data.service";
 import { NotificationService } from "./services/notification.service";
 import { InAppNotificationService } from "./services/in-app-notification.service";
@@ -23,6 +23,7 @@ import { PushNotificationService } from "./services/push-notification.service";
 import { UiStateService } from "./services/ui-state.service";
 import { ThemeService } from "./services/theme.service";
 import { AlertService } from "./services/alert.service";
+import { TenantContextService } from "./services/tenant-context.service";
 
 // Models
 import {
@@ -124,6 +125,7 @@ export class AppComponent implements OnInit {
   readonly inAppNotificationService = inject(InAppNotificationService);
   readonly i18n = inject(I18nService);
   readonly themeService = inject(ThemeService);
+  readonly tenantContext = inject(TenantContextService);
   private readonly alertService = inject(AlertService);
   private readonly workflowService = inject(WorkflowServiceSimplified);
   private readonly pushNotificationService = inject(PushNotificationService);
@@ -159,6 +161,22 @@ export class AppComponent implements OnInit {
   pendingEmailConfirmation = this.authService.pendingEmailConfirmation;
   emailForVerification = signal("");
   emailForPasswordReset = signal("");
+  accessibleTenants = signal<AccessibleTenant[]>([]);
+  isSwitchingTenant = signal(false);
+  superUserTenantChoice = signal("");
+  selectedTenantId = computed(() => this.tenantContext.tenant()?.id ?? "");
+  shouldShowSuperUserTenantModal = computed(() => {
+    if (this.view() !== "app") {
+      return false;
+    }
+
+    const user = this.currentUser();
+    if (user?.role !== "super_user") {
+      return false;
+    }
+
+    return !this.selectedTenantId();
+  });
 
   // Component References
   @ViewChild(LoginComponent) loginComponent?: LoginComponent;
@@ -174,7 +192,7 @@ export class AppComponent implements OnInit {
     const currentUser = this.currentUser();
     const role = currentUser?.role;
 
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'super_user';
     const isProfessional = role === 'professional' || role === 'professional_almoxarife';
     const canUseStock = role === 'almoxarife' || role === 'professional_almoxarife' || role === 'secretario';
     const isSecretary = role === 'secretario';
@@ -288,6 +306,7 @@ export class AppComponent implements OnInit {
   private getDefaultNavForRole(role: UserRole): Nav {
     switch (role) {
       case 'admin':
+      case 'super_user':
         return 'overview';
       case 'secretario':
         return 'agenda';
@@ -303,6 +322,7 @@ export class AppComponent implements OnInit {
   // Track last loaded user to prevent infinite loops
   private lastLoadedUserId: number | undefined = undefined;
   private lastAlertSyncUserId: number | undefined = undefined;
+  private lastLoadedTenantListUserId: number | undefined = undefined;
 
   // Persistência de navegação (profissional): permite dar refresh em "Detalhes" sem voltar para Visão Geral.
   private readonly pendingDetailsRequestId = signal<number | null>(null);
@@ -397,6 +417,7 @@ export class AppComponent implements OnInit {
   }
   navigate(nav: Nav) {
     const user = this.currentUser();
+    const isAdminLike = user?.role === 'admin' || user?.role === 'super_user';
     console.log('[AppComponent] Navigate chamado:', {
       nav,
       userRole: user?.role,
@@ -414,7 +435,7 @@ export class AppComponent implements OnInit {
     } else if (nav === 'requests' && user?.role === 'secretario') {
       this.router.navigate(['/requests']);
     } else if (nav === 'stock-intake') {
-      if (user?.role === 'admin') {
+      if (isAdminLike) {
         this.router.navigate(['/admin/stock-intake']);
       } else {
         this.router.navigate(['/stock/intake']);
@@ -422,9 +443,9 @@ export class AppComponent implements OnInit {
     } else if (nav === 'profile') {
       // Profile is available for everyone
       this.router.navigate(['/']);
-    } else if (user?.role === 'admin') {
+    } else if (isAdminLike) {
       // Admin navigation
-      console.log('[AppComponent] Navegação de admin para:', nav);
+      console.log('[AppComponent] Navegação de admin/super_user para:', nav);
       this.router.navigate(['/admin', nav]);
     } else {
       // Professional navigation
@@ -495,6 +516,18 @@ export class AppComponent implements OnInit {
     this.ensureRoleRouteConsistency(user.role, currentUrl);
 
     this.currentNav.set(this.getDefaultNavForRole(user.role));
+
+    if (user.role === 'super_user') {
+      void this.loadSuperUserTenants();
+      if (!this.selectedTenantId()) {
+        this.lastLoadedUserId = undefined;
+        return;
+      }
+    } else {
+      this.accessibleTenants.set([]);
+      this.superUserTenantChoice.set("");
+      this.lastLoadedTenantListUserId = undefined;
+    }
 
     if (this.lastLoadedUserId === user.id) {
       console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
@@ -584,6 +617,7 @@ export class AppComponent implements OnInit {
 
     switch (role) {
       case 'admin':
+      case 'super_user':
         this.ensureAdminRouteConsistency(currentUrl);
         return;
       case 'secretario':
@@ -733,6 +767,9 @@ export class AppComponent implements OnInit {
       this.isClarificationModalOpen.set(false);
       this.selectedRequest.set(null);
       this.currentNav.set("dashboard");
+      this.accessibleTenants.set([]);
+      this.superUserTenantChoice.set("");
+      this.lastLoadedTenantListUserId = undefined;
       this.notificationService.addNotification(this.i18n.translate('logout_success'));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : this.i18n.translate('logout_error');
@@ -874,6 +911,118 @@ export class AppComponent implements OnInit {
         if (globalThis.window.innerWidth >= 768) this.isSidebarOpen.set(true);
         else this.isSidebarOpen.set(false);
       });
+    }
+  }
+
+  async onSuperUserTenantChange(event: Event): Promise<void> {
+    if (this.currentUser()?.role !== 'super_user') {
+      return;
+    }
+
+    const target = event.target as HTMLSelectElement | null;
+    const tenantId = String(target?.value || '').trim();
+    if (!tenantId || tenantId === this.selectedTenantId()) {
+      return;
+    }
+
+    this.isSwitchingTenant.set(true);
+    try {
+      const switched = await this.authService.switchActiveTenant(
+        tenantId,
+        'Troca de tenant pelo seletor global'
+      );
+
+      if (!switched) {
+        this.notificationService.addNotification('Falha ao trocar tenant ativo.');
+        return;
+      }
+
+      await this.loadSuperUserTenants(true);
+      await this.dataService.loadInitialData();
+      this.notificationService.addNotification('Tenant ativo atualizado com sucesso.');
+    } catch (error) {
+      console.error('[AppComponent] Erro ao trocar tenant ativo:', error);
+      this.notificationService.addNotification('Erro ao trocar tenant ativo.');
+    } finally {
+      this.isSwitchingTenant.set(false);
+    }
+  }
+
+  async confirmInitialSuperUserTenantSelection(): Promise<void> {
+    if (this.currentUser()?.role !== 'super_user') {
+      return;
+    }
+
+    const tenantId = String(this.superUserTenantChoice() || '').trim();
+    if (!tenantId) {
+      this.notificationService.addNotification('Selecione um tenant para continuar.');
+      return;
+    }
+
+    this.isSwitchingTenant.set(true);
+    try {
+      const switched = await this.authService.switchActiveTenant(
+        tenantId,
+        'Seleção inicial de tenant (super_user)'
+      );
+
+      if (!switched) {
+        this.notificationService.addNotification('Falha ao ativar tenant selecionado.');
+        return;
+      }
+
+      await this.loadSuperUserTenants(true);
+      await this.dataService.loadInitialData();
+
+      const user = this.currentUser();
+      if (user?.id) {
+        this.lastLoadedUserId = user.id;
+        this.initializeAlertMonitoring(user);
+      }
+
+      this.notificationService.addNotification('Tenant selecionado com sucesso.');
+    } catch (error) {
+      console.error('[AppComponent] Erro ao confirmar tenant inicial do super_user:', error);
+      this.notificationService.addNotification('Erro ao selecionar tenant inicial.');
+    } finally {
+      this.isSwitchingTenant.set(false);
+    }
+  }
+
+  private async loadSuperUserTenants(force = false): Promise<void> {
+    const user = this.currentUser();
+    if (user?.role !== 'super_user') {
+      this.accessibleTenants.set([]);
+      this.lastLoadedTenantListUserId = undefined;
+      return;
+    }
+
+    if (!force && this.lastLoadedTenantListUserId === user.id && this.accessibleTenants().length > 0) {
+      return;
+    }
+
+    try {
+      const tenants = await this.authService.listAccessibleTenants();
+      this.accessibleTenants.set(tenants);
+
+      const selectedTenantId = this.selectedTenantId();
+      if (selectedTenantId) {
+        this.superUserTenantChoice.set(selectedTenantId);
+      }
+
+      if (!selectedTenantId) {
+        const currentChoice = this.superUserTenantChoice();
+        const hasCurrentChoice = tenants.some((tenant) => tenant.id === currentChoice);
+        if (!hasCurrentChoice) {
+          this.superUserTenantChoice.set(tenants[0]?.id || '');
+        }
+      }
+
+      this.lastLoadedTenantListUserId = user.id;
+    } catch (error) {
+      console.error('[AppComponent] Erro ao carregar tenants acessíveis:', error);
+      this.accessibleTenants.set([]);
+      this.superUserTenantChoice.set('');
     }
   }
 }

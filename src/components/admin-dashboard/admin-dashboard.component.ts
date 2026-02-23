@@ -29,7 +29,9 @@ export class AdminDashboardComponent implements OnInit {
       status: currentUser?.status
     });
     
-    if (!currentUser || currentUser.role !== 'admin' || currentUser.status !== 'Active') {
+    const isAdminLike = currentUser?.role === 'admin' || currentUser?.role === 'super_user';
+
+    if (!currentUser || !isAdminLike || currentUser.status !== 'Active') {
       console.warn('[AdminDashboard] Acesso negado. Redirecionando para home.');
       this.router.navigate(['/']);
     }

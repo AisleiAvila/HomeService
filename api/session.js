@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { assertUserTenant, resolveTenantByRequest } from './_tenant.js';
+import { assertStrictUserTenant, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
 
 function parseJsonBody(req) {
   const body = req.body;
@@ -48,6 +48,74 @@ async function getPublicUserById(supabase, userId) {
   return data;
 }
 
+async function getTenantById(supabase, tenantId) {
+  if (!tenantId) return null;
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('id,slug,subdomain,status')
+    .eq('id', tenantId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || null;
+}
+
+async function getAccessibleTenantsForUser(supabase, user) {
+  if (isSuperUserRole(user?.role)) {
+    const { data: allTenants, error: allTenantsError } = await supabase
+      .from('tenants')
+      .select('id,slug,subdomain,status,name')
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+
+    if (allTenantsError) throw allTenantsError;
+    return allTenants || [];
+  }
+
+  const tenantIds = new Set();
+
+  if (user?.tenant_id) {
+    tenantIds.add(String(user.tenant_id));
+  }
+
+  const { data: mappedTenants, error: mappedError } = await supabase
+    .from('user_tenant_access')
+    .select('tenant_id,is_active')
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  if (mappedError) throw mappedError;
+
+  for (const row of mappedTenants || []) {
+    if (row?.tenant_id) {
+      tenantIds.add(String(row.tenant_id));
+    }
+  }
+
+  if (tenantIds.size === 0) return [];
+
+  const { data: tenants, error: tenantsError } = await supabase
+    .from('tenants')
+    .select('id,slug,subdomain,status,name')
+    .in('id', Array.from(tenantIds))
+    .eq('status', 'active')
+    .order('name', { ascending: true });
+
+  if (tenantsError) throw tenantsError;
+  return tenants || [];
+}
+
+async function writeSuperAuditLog(supabase, payload) {
+  const { error } = await supabase
+    .from('super_user_audit_log')
+    .insert(payload);
+
+  if (error) {
+    console.warn('[SESSION] Falha ao gravar auditoria super_user:', error?.message || error);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Método não permitido' });
@@ -65,7 +133,7 @@ export default async function handler(req, res) {
   const action = body.action;
   const token = body.token || getBearerToken(req);
 
-  if (!action || (action !== 'validate' && action !== 'revoke')) {
+  if (!action || (action !== 'validate' && action !== 'revoke' && action !== 'list_tenants' && action !== 'switch_tenant')) {
     return res.status(400).json({ success: false, error: 'Ação inválida' });
   }
 
@@ -101,7 +169,7 @@ export default async function handler(req, res) {
     // validate
     const { data: session, error: sessionError } = await supabase
       .from('user_sessions')
-      .select('id,user_id,expires_at,revoked_at,revoked_reason')
+      .select('id,user_id,expires_at,revoked_at,revoked_reason,tenant_id,active_tenant_id')
       .eq('token_hash', tokenHash)
       .maybeSingle();
 
@@ -146,7 +214,17 @@ export default async function handler(req, res) {
 
     const user = await getPublicUserById(supabase, session.user_id);
 
-    if (!assertUserTenant(user?.tenant_id, resolvedTenant)) {
+    const isSuperUser = isSuperUserRole(user?.role);
+
+    if (!isSuperUser && !resolvedTenant?.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Tenant não resolvido para este host/subdomínio',
+        serverNow: nowIso
+      });
+    }
+
+    if (!isSuperUser && !assertStrictUserTenant(user?.tenant_id, resolvedTenant)) {
       return res.status(403).json({
         success: false,
         error: 'Sessão não pertence ao tenant deste subdomínio',
@@ -154,11 +232,135 @@ export default async function handler(req, res) {
       });
     }
 
+    if (isSuperUser && action === 'list_tenants') {
+      const tenants = await getAccessibleTenantsForUser(supabase, user);
+      return res.status(200).json({
+        success: true,
+        user,
+        tenants,
+        activeTenantId: session.active_tenant_id || null,
+        serverNow: nowIso,
+      });
+    }
+
+    if (isSuperUser && action === 'switch_tenant') {
+      const targetTenantId = String(body.tenantId || '').trim();
+      const reason = String(body.reason || '').trim() || null;
+
+      if (!targetTenantId) {
+        return res.status(400).json({ success: false, error: 'tenantId é obrigatório', serverNow: nowIso });
+      }
+
+      const { data: canAccessTenant, error: accessError } = await supabase.rpc('user_can_access_tenant', {
+        p_user_id: user.id,
+        p_tenant_id: targetTenantId,
+      });
+
+      if (accessError) {
+        return res.status(500).json({ success: false, error: 'Erro ao validar acesso ao tenant', serverNow: nowIso });
+      }
+
+      if (!canAccessTenant) {
+        await writeSuperAuditLog(supabase, {
+          actor_user_id: user.id,
+          actor_role: user.role,
+          action: 'switch_tenant',
+          target_tenant_id: targetTenantId,
+          request_path: req.url || '/api/session',
+          request_method: req.method || 'POST',
+          ip_address: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || null,
+          user_agent: req.headers?.['user-agent'] || null,
+          reason,
+          before_state: { active_tenant_id: session.active_tenant_id || null },
+          after_state: null,
+          success: false,
+          error_message: 'Super usuário sem acesso ao tenant solicitado',
+        });
+
+        return res.status(403).json({ success: false, error: 'Sem acesso ao tenant solicitado', serverNow: nowIso });
+      }
+
+      const beforeState = {
+        active_tenant_id: session.active_tenant_id || null,
+        tenant_id: session.tenant_id || null,
+      };
+
+      const { error: switchError } = await supabase
+        .from('user_sessions')
+        .update({
+          active_tenant_id: targetTenantId,
+          tenant_id: targetTenantId,
+          last_seen_at: nowIso,
+        })
+        .eq('id', session.id);
+
+      if (switchError) {
+        return res.status(500).json({ success: false, error: 'Falha ao atualizar tenant ativo da sessão', serverNow: nowIso });
+      }
+
+      const tenant = await getTenantById(supabase, targetTenantId);
+
+      await writeSuperAuditLog(supabase, {
+        actor_user_id: user.id,
+        actor_role: user.role,
+        action: 'switch_tenant',
+        target_tenant_id: targetTenantId,
+        request_path: req.url || '/api/session',
+        request_method: req.method || 'POST',
+        ip_address: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || null,
+        user_agent: req.headers?.['user-agent'] || null,
+        reason,
+        before_state: beforeState,
+        after_state: { active_tenant_id: targetTenantId, tenant_id: targetTenantId },
+        success: true,
+      });
+
+      return res.status(200).json({
+        success: true,
+        user,
+        tenant,
+        activeTenantId: targetTenantId,
+        serverNow: nowIso,
+      });
+    }
+
+    let effectiveTenant = null;
+
+    if (isSuperUser) {
+      const requestedTenantId = resolvedTenant?.id || session.active_tenant_id || null;
+
+      if (requestedTenantId) {
+        const { data: canAccessTenant, error: accessError } = await supabase.rpc('user_can_access_tenant', {
+          p_user_id: user.id,
+          p_tenant_id: requestedTenantId,
+        });
+
+        if (accessError) {
+          return res.status(500).json({ success: false, error: 'Erro ao validar tenant ativo', serverNow: nowIso });
+        }
+
+        if (!canAccessTenant) {
+          return res.status(403).json({ success: false, error: 'Tenant ativo inválido para este super usuário', serverNow: nowIso });
+        }
+
+        if (String(session.active_tenant_id || '') !== String(requestedTenantId)) {
+          await supabase
+            .from('user_sessions')
+            .update({ active_tenant_id: requestedTenantId, tenant_id: requestedTenantId, last_seen_at: nowIso })
+            .eq('id', session.id);
+        }
+
+        effectiveTenant = await getTenantById(supabase, requestedTenantId);
+      }
+    } else {
+      effectiveTenant = resolvedTenant || null;
+    }
+
     return res.status(200).json({
       success: true,
       user,
       session: { expiresAt: session.expires_at },
-      tenant: resolvedTenant,
+      tenant: effectiveTenant,
       serverNow: nowIso
     });
   } catch (e) {
