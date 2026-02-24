@@ -13,6 +13,7 @@ export class AlertService {
   private readonly notificationService = inject(InAppNotificationService);
   private readonly authService = inject(AuthService);
   private readonly tenantContext = inject(TenantContextService);
+  private dailyAlertRpcDisabled = false;
 
   private getCurrentTenantId(): string | null {
     return this.tenantContext.tenant()?.id ?? this.authService.appUser()?.tenant_id ?? null;
@@ -588,6 +589,10 @@ export class AlertService {
     requestId: number,
     alertType: "deadline_warning" | "overdue_alert"
   ): Promise<boolean | null> {
+    if (this.dailyAlertRpcDisabled) {
+      return null;
+    }
+
     try {
       const { data, error } = await this.supabase.client.rpc(
         "mark_service_request_daily_alert_sent",
@@ -598,6 +603,21 @@ export class AlertService {
       );
 
       if (error) {
+        const code = (error as any)?.code;
+        const message = String((error as any)?.message || "");
+        const shouldDisableRpc =
+          code === "42804" ||
+          message.includes("COALESCE types jsonb and text[] cannot be matched");
+
+        if (shouldDisableRpc) {
+          this.dailyAlertRpcDisabled = true;
+          console.warn(
+            "[AlertService] RPC mark_service_request_daily_alert_sent desativada nesta sessão por incompatibilidade de schema; fallback ativo.",
+            error
+          );
+          return null;
+        }
+
         console.warn(
           "[AlertService] RPC mark_service_request_daily_alert_sent falhou (usando fallback):",
           error

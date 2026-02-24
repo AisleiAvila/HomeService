@@ -8,9 +8,6 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 const app = express();
 const PORT = process.env.AUTH_SERVER_PORT || 4002;
 
-// Middleware
-app.use(express.json());
-
 // CORS - Permitir localhost e URLs de desenvolvimento
 const corsOptions = {
   origin: [
@@ -27,6 +24,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Middleware
+app.use(express.json({ limit: '6mb' }));
+app.use(express.urlencoded({ limit: '6mb', extended: true }));
 
 // Configuração Supabase
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
@@ -352,6 +353,167 @@ function sanitizeUserRow(row) {
 
 function isSuperUserRole(role) {
   return String(role || '').toLowerCase() === 'super_user';
+}
+
+function isAdminRole(role) {
+  return String(role || '').toLowerCase() === 'admin';
+}
+
+function normalizeOptionalText(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+}
+
+function validateTenantEmail(email) {
+  if (!email) return true;
+  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email);
+}
+
+function validateTenantPostalCode(postalCode) {
+  if (!postalCode) return true;
+  return /^\d{4}-\d{3}$/.test(postalCode);
+}
+
+function validateTenantLogoImageData(logoImageData) {
+  if (!logoImageData) return true;
+  if (typeof logoImageData !== 'string') return false;
+
+  const matches = /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/.test(logoImageData);
+  if (!matches) {
+    return false;
+  }
+
+  return logoImageData.length <= 3_500_000;
+}
+
+function parseTenantUpdatePayload(rawData) {
+  const data = rawData && typeof rawData === 'object' ? rawData : {};
+
+  const candidate = {
+    name: normalizeOptionalText(data.name),
+    phone: normalizeOptionalText(data.phone),
+    contact_email: normalizeOptionalText(data.contact_email),
+    address: normalizeOptionalText(data.address),
+    locality: normalizeOptionalText(data.locality),
+    postal_code: normalizeOptionalText(data.postal_code),
+    logo_image_data: normalizeOptionalText(data.logo_image_data),
+    status: normalizeOptionalText(data.status),
+  };
+
+  if (!candidate.name) {
+    return { ok: false, error: 'Nome do tenant é obrigatório' };
+  }
+
+  if (candidate.status !== 'active' && candidate.status !== 'inactive') {
+    return { ok: false, error: 'Status do tenant inválido (use active/inactive)' };
+  }
+
+  if (!validateTenantEmail(candidate.contact_email)) {
+    return { ok: false, error: 'Email de contacto inválido' };
+  }
+
+  if (!validateTenantPostalCode(candidate.postal_code)) {
+    return { ok: false, error: 'Código postal inválido (formato esperado: XXXX-XXX)' };
+  }
+
+  if (!validateTenantLogoImageData(candidate.logo_image_data)) {
+    return { ok: false, error: 'Imagem do logo inválida (use PNG/JPG/WEBP em base64)' };
+  }
+
+  return { ok: true, updates: candidate };
+}
+
+async function readTenantProfileById(tenantId) {
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('id,name,slug,subdomain,status,phone,contact_email,address,locality,postal_code,logo_image_data,updated_at,updated_by')
+    .eq('id', tenantId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message || 'Erro ao carregar perfil do tenant' };
+  }
+
+  if (!data) {
+    return { ok: false, status: 404, error: 'Tenant não encontrado' };
+  }
+
+  return { ok: true, tenant: data };
+}
+
+async function updateTenantProfileById(tenantId, updates) {
+  const { data, error } = await supabase
+    .from('tenants')
+    .update(updates)
+    .eq('id', tenantId)
+    .select('id,name,slug,subdomain,status,phone,contact_email,address,locality,postal_code,logo_image_data,updated_at,updated_by')
+    .single();
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message || 'Erro ao atualizar perfil do tenant' };
+  }
+
+  return { ok: true, tenant: data };
+}
+
+function resolveTenantTargetForActor(actor, requestedTenantId) {
+  if (isSuperUserRole(actor?.role)) {
+    const tenantId = String(requestedTenantId || '').trim();
+    if (!tenantId) {
+      return { ok: false, status: 400, error: 'tenantId é obrigatório para super_user' };
+    }
+    return { ok: true, tenantId };
+  }
+
+  if (isAdminRole(actor?.role)) {
+    if (!actor?.tenant_id) {
+      return { ok: false, status: 400, error: 'Administrador sem tenant associado' };
+    }
+    return { ok: true, tenantId: String(actor.tenant_id) };
+  }
+
+  return { ok: false, status: 403, error: 'Apenas admin e super_user podem gerir tenant' };
+}
+
+async function assertTenantEditPermission(actor, tenantId) {
+  if (isAdminRole(actor?.role)) {
+    if (!actor?.tenant_id || String(actor.tenant_id) !== String(tenantId)) {
+      return { ok: false, status: 403, error: 'Sem permissão para editar este tenant' };
+    }
+    return { ok: true };
+  }
+
+  if (!isSuperUserRole(actor?.role)) {
+    return { ok: false, status: 403, error: 'Apenas admin e super_user podem gerir tenant' };
+  }
+
+  const { data: canEdit, error } = await supabase.rpc('user_can_edit_tenant', {
+    p_user_id: actor.id,
+    p_tenant_id: tenantId,
+  });
+
+  if (!error) {
+    if (!canEdit) {
+      return { ok: false, status: 403, error: 'Sem permissão para editar este tenant' };
+    }
+    return { ok: true };
+  }
+
+  const errorMessage = String(error.message || '');
+  const isMissingFunction =
+    errorMessage.includes('user_can_edit_tenant') &&
+    errorMessage.includes('does not exist');
+
+  if (isMissingFunction) {
+    const tenant = await getTenantById(tenantId);
+    if (!tenant) {
+      return { ok: false, status: 404, error: 'Tenant não encontrado' };
+    }
+    return { ok: true };
+  }
+
+  return { ok: false, status: 500, error: error.message || 'Erro ao validar acesso de edição do tenant' };
 }
 
 async function getTenantById(tenantId) {
@@ -1040,6 +1202,73 @@ app.post('/api/super-user-access', async (req, res) => {
     const status = err.statusCode || 500;
     console.error('❌ Erro em /api/super-user-access:', err.message);
     return res.status(status).json({ success: false, error: err.message || 'Erro ao gerir acesso de super usuário' });
+  }
+});
+
+/**
+ * POST /api/tenants
+ * Body: { action: 'get_profile' | 'update_profile', tenantId?: string, data?: {...} }
+ * Requer sessão válida e role admin/super_user.
+ */
+app.post('/api/tenants', async (req, res) => {
+  try {
+    const session = await requireValidSession(req);
+    const action = req.body?.action;
+    const nowIso = new Date().toISOString();
+
+    if (action !== 'get_profile' && action !== 'update_profile') {
+      return res.status(400).json({ success: false, error: 'Ação inválida' });
+    }
+
+    const { data: actor, error: actorError } = await supabase
+      .from('users')
+      .select('id,email,name,role,status,tenant_id')
+      .eq('id', session.user_id)
+      .single();
+
+    if (actorError || !actor) {
+      return res.status(500).json({ success: false, error: actorError?.message || 'Ator não encontrado' });
+    }
+
+    const target = resolveTenantTargetForActor(actor, req.body?.tenantId);
+    if (!target.ok) {
+      return res.status(target.status).json({ success: false, error: target.error });
+    }
+
+    const canEdit = await assertTenantEditPermission(actor, target.tenantId);
+    if (!canEdit.ok) {
+      return res.status(canEdit.status).json({ success: false, error: canEdit.error });
+    }
+
+    if (action === 'get_profile') {
+      const readResult = await readTenantProfileById(target.tenantId);
+      if (!readResult.ok) {
+        return res.status(readResult.status).json({ success: false, error: readResult.error });
+      }
+
+      return res.status(200).json({ success: true, tenant: readResult.tenant, serverNow: nowIso });
+    }
+
+    const payloadResult = parseTenantUpdatePayload(req.body?.data);
+    if (!payloadResult.ok) {
+      return res.status(400).json({ success: false, error: payloadResult.error });
+    }
+
+    const updateResult = await updateTenantProfileById(target.tenantId, {
+      ...payloadResult.updates,
+      updated_at: nowIso,
+      updated_by: actor.id,
+    });
+
+    if (!updateResult.ok) {
+      return res.status(updateResult.status).json({ success: false, error: updateResult.error });
+    }
+
+    return res.status(200).json({ success: true, tenant: updateResult.tenant, serverNow: nowIso });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    console.error('❌ Erro em /api/tenants:', err.message);
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao gerir tenant' });
   }
 });
 

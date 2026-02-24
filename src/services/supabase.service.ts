@@ -16,6 +16,22 @@ export class SupabaseService {
   private readonly supabase: SupabaseClient;
   private readonly _currentUser = signal<User | null>(null);
   private readonly tenantContext = inject(TenantContextService);
+  private readonly customSessionStorageKey = "natangeneralservice_session";
+
+  private readTenantIdFromCustomSession(): string | null {
+    try {
+      const raw = localStorage.getItem(this.customSessionStorageKey);
+      if (!raw) return null;
+
+      const parsed = JSON.parse(raw);
+      const tenantId = parsed?.user?.tenant_id;
+      if (!tenantId) return null;
+
+      return String(tenantId);
+    } catch {
+      return null;
+    }
+  }
 
   private detectSubdomainFromHost(): string | null {
     if (globalThis.window === undefined) {
@@ -40,11 +56,12 @@ export class SupabaseService {
       const headers = new Headers(init?.headers || {});
 
       const tenant = this.tenantContext.tenant();
+      const fallbackTenantId = this.readTenantIdFromCustomSession();
       const host = this.tenantContext.host();
       const subdomain = tenant?.subdomain || this.tenantContext.subdomain() || this.detectSubdomainFromHost();
 
-      if (tenant?.id) {
-        headers.set("x-tenant-id", String(tenant.id));
+      if (tenant?.id || fallbackTenantId) {
+        headers.set("x-tenant-id", String(tenant?.id || fallbackTenantId));
       }
 
       if (tenant?.slug) {

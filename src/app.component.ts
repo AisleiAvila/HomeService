@@ -77,6 +77,7 @@ type Nav =
   | "finances"
   | "stock-intake"
   | "clients"
+  | "tenants"
   | "categories"
   | "extra-services";
 
@@ -282,6 +283,11 @@ export class AppComponent implements OnInit {
           id: "clients",
           labelKey: "clients",
           icon: "fa-solid fa-user-friends",
+        },
+        {
+          id: "tenants",
+          labelKey: "tenants",
+          icon: "fa-solid fa-building",
         },
         {
           id: "categories",

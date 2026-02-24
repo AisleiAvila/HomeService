@@ -135,6 +135,7 @@ export const routes: Routes = [
       { path: 'stock-intake', loadComponent: () => import('../components/admin-dashboard/stock-intake/stock-intake.component').then(m => m.StockIntakeComponent) },
       { path: 'stock-register', loadComponent: () => import('./pages/stock-register/stock-register.page').then(m => m.StockRegisterPage) },
       { path: 'clients', loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
+      { path: 'tenants', loadComponent: () => import('../components/admin-dashboard/tenants-management/tenants-management.component').then(m => m.TenantsManagementComponent) },
       { path: 'categories', loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
       { path: 'extra-services',
         loadChildren: () => import('./pages/extra-services/extra-services.page.routes').then(m => m.EXTRA_SERVICES_ROUTES),

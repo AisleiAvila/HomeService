@@ -37,6 +37,33 @@ export interface SuperUserAuditEntry {
   success?: boolean | null;
 }
 
+export interface TenantProfile {
+  id: string;
+  name: string;
+  slug?: string | null;
+  subdomain?: string | null;
+  status: 'active' | 'inactive';
+  phone?: string | null;
+  contact_email?: string | null;
+  address?: string | null;
+  locality?: string | null;
+  postal_code?: string | null;
+  logo_image_data?: string | null;
+  updated_at?: string | null;
+  updated_by?: number | null;
+}
+
+export interface TenantProfileUpdatePayload {
+  name: string;
+  phone?: string | null;
+  contact_email?: string | null;
+  address?: string | null;
+  locality?: string | null;
+  postal_code?: string | null;
+  logo_image_data?: string | null;
+  status: 'active' | 'inactive';
+}
+
 @Injectable({
   providedIn: "root",
 })
@@ -1263,6 +1290,67 @@ export class AuthService {
     }
 
     return true;
+  }
+
+  async getTenantProfile(tenantId?: string): Promise<TenantProfile | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.tenantsApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'get_profile',
+        tenantId: tenantId || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !payload?.tenant) {
+      return null;
+    }
+
+    return payload.tenant as TenantProfile;
+  }
+
+  async updateTenantProfile(data: TenantProfileUpdatePayload, tenantId?: string): Promise<TenantProfile | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.tenantsApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'update_profile',
+        tenantId: tenantId || undefined,
+        data,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !payload?.tenant) {
+      return null;
+    }
+
+    return payload.tenant as TenantProfile;
   }
 
   async listSuperUsers(): Promise<SuperUserAccount[]> {

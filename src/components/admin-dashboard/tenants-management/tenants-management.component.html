@@ -1,0 +1,208 @@
+<div class="w-full mobile-safe relative p-4 sm:p-6 max-w-5xl mx-auto">
+  <div class="bg-linear-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-white border-opacity-20">
+      <h2 class="text-2xl font-bold text-white flex items-center">
+        <i class="fas fa-building mr-3"></i>
+        {{ 'tenants' | i18n }}
+      </h2>
+      <p class="text-white text-sm mt-1">{{ 'tenantManagementSubtitle' | i18n }}</p>
+    </div>
+
+    @if (isSuperUser()) {
+      <div class="p-6 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+        <label for="tenant-select" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <i class="fas fa-sitemap text-brand-primary-500 mr-2 text-xs"></i>
+          {{ 'selectTenant' | i18n }}
+        </label>
+        <select
+          id="tenant-select"
+          class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          [ngModel]="selectedTenantId()"
+          (ngModelChange)="onTenantSelectionChange($event)"
+        >
+          @for (tenant of availableTenants(); track tenant.id) {
+            <option [value]="tenant.id">{{ tenant.name || tenant.slug || tenant.id }}</option>
+          }
+        </select>
+
+        @if (availableTenants().length === 0) {
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ 'noTenantsAvailable' | i18n }}</p>
+        }
+      </div>
+    }
+
+    <div class="p-6 bg-white dark:bg-gray-800">
+      @if (isLoading()) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'loading' | i18n }}...</p>
+      } @else if (!profile()) {
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'tenantProfileNotFound' | i18n }}</p>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="tenant-name" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-signature text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'name' | i18n }}
+            </label>
+            <input
+              id="tenant-name"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formName()"
+              (ngModelChange)="formName.set($event)"
+              type="text"
+            />
+          </div>
+
+          <div>
+            <label for="tenant-phone" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-phone text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'phone' | i18n }}
+            </label>
+            <input
+              id="tenant-phone"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formPhone()"
+              (ngModelChange)="formPhone.set($event)"
+              type="text"
+            />
+          </div>
+
+          <div>
+            <label for="tenant-email" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-envelope text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'emailAddress' | i18n }}
+            </label>
+            <input
+              id="tenant-email"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formContactEmail()"
+              (ngModelChange)="formContactEmail.set($event)"
+              type="email"
+            />
+            @if (emailInvalid()) {
+              <p class="text-xs text-red-500 dark:text-red-400 mt-1">{{ 'invalidEmail' | i18n }}</p>
+            }
+          </div>
+
+          <div>
+            <label for="tenant-status" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-circle-check text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'status' | i18n }}
+            </label>
+            <select
+              id="tenant-status"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formStatus()"
+              (ngModelChange)="formStatus.set($event)"
+            >
+              <option value="active">{{ 'tenantStatusActive' | i18n }}</option>
+              <option value="inactive">{{ 'tenantStatusInactive' | i18n }}</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="tenant-address" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-location-dot text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'address' | i18n }}
+            </label>
+            <input
+              id="tenant-address"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formAddress()"
+              (ngModelChange)="formAddress.set($event)"
+              type="text"
+            />
+          </div>
+
+          <div>
+            <label for="tenant-locality" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-city text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'locality' | i18n }}
+            </label>
+            <input
+              id="tenant-locality"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formLocality()"
+              (ngModelChange)="formLocality.set($event)"
+              type="text"
+            />
+          </div>
+
+          <div>
+            <label for="tenant-postal-code" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-map-pin text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'postalCode' | i18n }}
+            </label>
+            <input
+              id="tenant-postal-code"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              [ngModel]="formPostalCode()"
+              (ngModelChange)="onPostalCodeInput($event)"
+              type="text"
+              maxlength="8"
+              placeholder="0000-000"
+            />
+            @if (postalCodeInvalid()) {
+              <p class="text-xs text-red-500 dark:text-red-400 mt-1">{{ 'postalCodeInvalidFormat' | i18n }}</p>
+            }
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="tenant-logo-image" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-image text-brand-primary-500 mr-2 text-xs"></i>
+              {{ 'tenantLogoImage' | i18n }}
+            </label>
+            <input
+              id="tenant-logo-image"
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              (change)="onLogoFileSelected($event)"
+            />
+
+            @if (logoImageInvalidType()) {
+              <p class="text-xs text-red-500 dark:text-red-400 mt-1">{{ 'tenantLogoInvalidType' | i18n }}</p>
+            }
+
+            @if (logoImageTooLarge()) {
+              <p class="text-xs text-red-500 dark:text-red-400 mt-1">{{ 'tenantLogoTooLarge' | i18n }}</p>
+            }
+
+            @if (logoPreviewUrl()) {
+              <div class="mt-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900">
+                <img
+                  [src]="logoPreviewUrl()!"
+                  [alt]="'tenantLogoPreviewAlt' | i18n"
+                  class="h-20 w-20 object-contain rounded-md border border-gray-200 dark:border-gray-700 bg-white"
+                />
+                <button
+                  type="button"
+                  class="mt-3 px-3 py-1.5 text-sm rounded-lg border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30 transition-all"
+                  (click)="removeLogoImage()"
+                >
+                  {{ 'removeImage' | i18n }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            class="px-6 py-2 bg-linear-to-r from-brand-primary-600 to-brand-primary-500 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold"
+            [disabled]="!canSave()"
+            (click)="save()"
+          >
+            @if (isSaving()) {
+              <i class="fas fa-spinner animate-spin mr-2"></i>
+              {{ 'saving' | i18n }}...
+            } @else {
+              <i class="fas fa-save mr-2"></i>
+              {{ 'saveChanges' | i18n }}
+            }
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>
