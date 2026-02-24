@@ -216,6 +216,17 @@ export default async function handler(req, res) {
 
     const isSuperUser = isSuperUserRole(user?.role);
 
+    if (!resolvedTenant?.id && !isSuperUser && user?.tenant_id) {
+      try {
+        resolvedTenant = await getTenantById(supabase, user.tenant_id);
+        if (resolvedTenant?.id) {
+          console.warn('[SESSION] Tenant resolvido por fallback do usuário (tenant_id).');
+        }
+      } catch (fallbackTenantError) {
+        console.warn('[SESSION] Falha no fallback de tenant por usuário:', fallbackTenantError?.message || fallbackTenantError);
+      }
+    }
+
     if (!isSuperUser && !resolvedTenant?.id) {
       return res.status(403).json({
         success: false,

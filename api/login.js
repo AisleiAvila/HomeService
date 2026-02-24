@@ -15,6 +15,19 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
+  async function getActiveTenantById(supabase, tenantId) {
+    if (!tenantId) return null;
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('id,slug,subdomain,status')
+      .eq('id', tenantId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || null;
+  }
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido' });
@@ -64,6 +77,17 @@ export default async function handler(req, res) {
     }
 
     const isSuperUser = isSuperUserRole(user?.role);
+
+    if (!resolvedTenant && !isSuperUser && user?.tenant_id) {
+      try {
+        resolvedTenant = await getActiveTenantById(supabase, user.tenant_id);
+        if (resolvedTenant) {
+          console.warn('[LOGIN] Tenant resolvido por fallback do usuário (tenant_id).');
+        }
+      } catch (fallbackTenantError) {
+        console.warn('[LOGIN] Falha no fallback de tenant por usuário:', fallbackTenantError?.message || fallbackTenantError);
+      }
+    }
 
     if (!resolvedTenant && !isSuperUser) {
       return res.status(403).json({
