@@ -26,7 +26,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Middleware
-app.use(express.json({ limit: '6mb' }));
+app.use(express.json({
+  limit: '6mb',
+  verify: (req, _res, buf) => {
+    if (req.headers?.['stripe-signature']) {
+      req.rawBody = buf?.toString('utf8') || '';
+    }
+  },
+}));
 app.use(express.urlencoded({ limit: '6mb', extended: true }));
 
 // Configuração Supabase
@@ -424,6 +431,79 @@ function parseTenantUpdatePayload(rawData) {
   return { ok: true, updates: candidate };
 }
 
+const LOCAL_TENANT_MENU_ROLES = new Set([
+  'admin',
+  'super_user',
+  'professional',
+  'professional_almoxarife',
+  'almoxarife',
+  'secretario',
+]);
+
+const LOCAL_TENANT_MENU_ITEMS = new Set([
+  'dashboard',
+  'schedule',
+  'agenda',
+  'profile',
+  'daily-mileage',
+  'mileage-report',
+  'details',
+  'create-service-request',
+  'admin-create-service-request',
+  'overview',
+  'requests',
+  'approvals',
+  'finances',
+  'stock-intake',
+  'clients',
+  'tenants',
+  'categories',
+  'extra-services',
+]);
+
+function normalizeLocalTenantMenuItems(items) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  const unique = new Set();
+  for (const rawItem of items) {
+    const item = String(rawItem || '').trim();
+    if (!item || !LOCAL_TENANT_MENU_ITEMS.has(item)) {
+      continue;
+    }
+    unique.add(item);
+  }
+
+  return Array.from(unique);
+}
+
+function parseLocalTenantMenuSettingsPayload(rawData) {
+  const data = rawData && typeof rawData === 'object' ? rawData : {};
+  const role = String(data.role || '').trim();
+
+  if (!LOCAL_TENANT_MENU_ROLES.has(role)) {
+    return { ok: false, error: 'Role inválida para configuração de menu' };
+  }
+
+  if (!Array.isArray(data.enabled_items)) {
+    return { ok: false, error: 'enabled_items deve ser uma lista' };
+  }
+
+  const enabledItems = normalizeLocalTenantMenuItems(data.enabled_items);
+  if (enabledItems.length === 0) {
+    return { ok: false, error: 'Selecione pelo menos um item de menu válido' };
+  }
+
+  return {
+    ok: true,
+    setting: {
+      role,
+      enabled_items: enabledItems,
+    },
+  };
+}
+
 async function readTenantProfileById(tenantId) {
   const { data, error } = await supabase
     .from('tenants')
@@ -455,6 +535,132 @@ async function updateTenantProfileById(tenantId, updates) {
   }
 
   return { ok: true, tenant: data };
+}
+
+async function readTenantMenuSettingsById(tenantId) {
+  const { data, error } = await supabase
+    .from('tenant_menu_settings')
+    .select('tenant_id,role,enabled_items,updated_at,updated_by')
+    .eq('tenant_id', tenantId)
+    .order('role', { ascending: true });
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message || 'Erro ao carregar configuração de menu do tenant' };
+  }
+
+  const settings = (data || [])
+    .filter((entry) => LOCAL_TENANT_MENU_ROLES.has(String(entry.role || '').trim()))
+    .map((entry) => ({
+      tenant_id: entry.tenant_id,
+      role: entry.role,
+      enabled_items: normalizeLocalTenantMenuItems(entry.enabled_items),
+      updated_at: entry.updated_at || null,
+      updated_by: entry.updated_by || null,
+    }));
+
+  return { ok: true, settings };
+}
+
+async function updateTenantMenuSettingsById(tenantId, setting, actorId, nowIso) {
+  const { data, error } = await supabase
+    .from('tenant_menu_settings')
+    .upsert({
+      tenant_id: tenantId,
+      role: setting.role,
+      enabled_items: setting.enabled_items,
+      updated_by: actorId,
+      updated_at: nowIso,
+    }, { onConflict: 'tenant_id,role' })
+    .select('tenant_id,role,enabled_items,updated_at,updated_by')
+    .single();
+
+  if (error) {
+    return { ok: false, status: 500, error: error.message || 'Erro ao atualizar configuração de menu do tenant' };
+  }
+
+  return {
+    ok: true,
+    setting: {
+      tenant_id: data.tenant_id,
+      role: data.role,
+      enabled_items: normalizeLocalTenantMenuItems(data.enabled_items),
+      updated_at: data.updated_at || null,
+      updated_by: data.updated_by || null,
+    },
+  };
+}
+
+async function processLocalTenantAction({ action, targetTenantId, actor, body, nowIso }) {
+  if (action === 'get_profile') {
+    const readResult = await readTenantProfileById(targetTenantId);
+    if (!readResult.ok) {
+      return { status: readResult.status, payload: { success: false, error: readResult.error } };
+    }
+
+    return { status: 200, payload: { success: true, tenant: readResult.tenant, serverNow: nowIso } };
+  }
+
+  if (action === 'get_menu_settings') {
+    const readResult = await readTenantMenuSettingsById(targetTenantId);
+    if (!readResult.ok) {
+      return { status: readResult.status, payload: { success: false, error: readResult.error } };
+    }
+
+    return {
+      status: 200,
+      payload: {
+        success: true,
+        tenantId: targetTenantId,
+        settings: readResult.settings,
+        serverNow: nowIso,
+      },
+    };
+  }
+
+  if (action === 'update_menu_settings') {
+    const payloadResult = parseLocalTenantMenuSettingsPayload(body?.data);
+    if (!payloadResult.ok) {
+      return { status: 400, payload: { success: false, error: payloadResult.error } };
+    }
+
+    const updateResult = await updateTenantMenuSettingsById(
+      targetTenantId,
+      payloadResult.setting,
+      actor.id,
+      nowIso,
+    );
+
+    if (!updateResult.ok) {
+      return { status: updateResult.status, payload: { success: false, error: updateResult.error } };
+    }
+
+    return {
+      status: 200,
+      payload: {
+        success: true,
+        tenantId: targetTenantId,
+        setting: updateResult.setting,
+        serverNow: nowIso,
+      },
+    };
+  }
+
+  const payloadResult = parseTenantUpdatePayload(body?.data);
+  if (!payloadResult.ok) {
+    return { status: 400, payload: { success: false, error: payloadResult.error } };
+  }
+
+  const updateResult = await updateTenantProfileById(targetTenantId, {
+    ...payloadResult.updates,
+    updated_at: nowIso,
+    updated_by: actor.id,
+  });
+
+  if (!updateResult.ok) {
+    return { status: updateResult.status, payload: { success: false, error: updateResult.error } };
+  }
+
+  return { status: 200, payload: { success: true, tenant: updateResult.tenant, serverNow: nowIso } };
 }
 
 function resolveTenantTargetForActor(actor, requestedTenantId) {
@@ -516,6 +722,737 @@ async function assertTenantEditPermission(actor, tenantId) {
   return { ok: false, status: 500, error: error.message || 'Erro ao validar acesso de edição do tenant' };
 }
 
+const BILLING_SUBSCRIPTION_STATUSES = new Set([
+  'trialing',
+  'active',
+  'past_due',
+  'unpaid',
+  'canceled',
+  'incomplete',
+  'incomplete_expired',
+]);
+
+const BILLING_INVOICE_STATUSES = new Set(['draft', 'open', 'paid', 'past_due', 'uncollectible', 'void']);
+
+function normalizeBillingStatus(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function normalizeBillingTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(String(value));
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
+}
+
+function normalizeBillingNumber(value, fallback = null) {
+  if (value == null || value === '') return fallback;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return fallback;
+  return Math.round(parsed);
+}
+
+function parseLocalSubscriptionPayload(rawData) {
+  const data = rawData && typeof rawData === 'object' ? rawData : {};
+  const status = normalizeBillingStatus(data.status);
+
+  if (!BILLING_SUBSCRIPTION_STATUSES.has(status)) {
+    return { ok: false, error: 'status de subscrição inválido' };
+  }
+
+  const currency = String(data.currency || 'EUR').trim().toUpperCase();
+  if (currency.length !== 3) {
+    return { ok: false, error: 'currency inválida (use código ISO de 3 letras)' };
+  }
+
+  const payload = {
+    status,
+    payment_status: normalizeOptionalText(data.payment_status || data.paymentStatus),
+    currency,
+    amount_cents: normalizeBillingNumber(data.amount_cents ?? data.amountCents, null),
+    quantity: normalizeBillingNumber(data.quantity, 1),
+    billing_plan_id: normalizeOptionalText(data.billing_plan_id || data.billingPlanId),
+    provider_subscription_id: normalizeOptionalText(data.provider_subscription_id || data.providerSubscriptionId),
+    trial_ends_at: normalizeBillingTimestamp(data.trial_ends_at || data.trialEndsAt),
+    current_period_start: normalizeBillingTimestamp(data.current_period_start || data.currentPeriodStart),
+    current_period_end: normalizeBillingTimestamp(data.current_period_end || data.currentPeriodEnd),
+    grace_until: normalizeBillingTimestamp(data.grace_until || data.graceUntil),
+    canceled_at: normalizeBillingTimestamp(data.canceled_at || data.canceledAt),
+    started_at: normalizeBillingTimestamp(data.started_at || data.startedAt),
+    ended_at: normalizeBillingTimestamp(data.ended_at || data.endedAt),
+    cancel_at_period_end: Boolean(data.cancel_at_period_end ?? data.cancelAtPeriodEnd),
+    metadata: data.metadata && typeof data.metadata === 'object' ? data.metadata : null,
+  };
+
+  return { ok: true, payload };
+}
+
+async function getLocalTenantBillingState(tenantId) {
+  const { data: stateData, error: stateError } = await supabase.rpc('tenant_billing_state', {
+    row_tenant_id: tenantId,
+  });
+
+  if (stateError) {
+    throw new Error(stateError.message || 'Erro ao consultar estado de billing');
+  }
+
+  const state = Array.isArray(stateData) ? stateData[0] : stateData;
+
+  const { data: subscription, error: subscriptionError } = await supabase
+    .from('tenant_subscriptions')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('current_period_end', { ascending: false, nullsFirst: false })
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (subscriptionError) {
+    throw new Error(subscriptionError.message || 'Erro ao carregar subscrição do tenant');
+  }
+
+  return {
+    state: state || null,
+    subscription: subscription || null,
+  };
+}
+
+async function listLocalTenantInvoices(tenantId, limit) {
+  const { data, error } = await supabase
+    .from('tenant_invoices')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message || 'Erro ao listar faturas do tenant');
+  }
+
+  return data || [];
+}
+
+async function upsertLocalTenantSubscription(tenantId, rawData, actor) {
+  const parsed = parseLocalSubscriptionPayload(rawData);
+  if (!parsed.ok) {
+    return { ok: false, status: 400, error: parsed.error };
+  }
+
+  const nowIso = new Date().toISOString();
+  const payload = {
+    tenant_id: tenantId,
+    ...parsed.payload,
+    updated_at: nowIso,
+  };
+
+  let result;
+  if (payload.provider_subscription_id) {
+    result = await supabase
+      .from('tenant_subscriptions')
+      .upsert(payload, { onConflict: 'provider_subscription_id' })
+      .select('*')
+      .limit(1);
+
+    if (result.error) {
+      return { ok: false, status: 500, error: result.error.message || 'Erro ao atualizar subscrição do tenant' };
+    }
+  } else {
+    const { data: existing, error: existingError } = await supabase
+      .from('tenant_subscriptions')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .order('current_period_end', { ascending: false, nullsFirst: false })
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) {
+      return { ok: false, status: 500, error: existingError.message || 'Erro ao localizar subscrição do tenant' };
+    }
+
+    if (existing?.id) {
+      result = await supabase
+        .from('tenant_subscriptions')
+        .update(payload)
+        .eq('id', existing.id)
+        .select('*')
+        .single();
+    } else {
+      result = await supabase
+        .from('tenant_subscriptions')
+        .insert(payload)
+        .select('*')
+        .single();
+    }
+
+    if (result.error) {
+      return { ok: false, status: 500, error: result.error.message || 'Erro ao guardar subscrição do tenant' };
+    }
+  }
+
+  await writeLocalSuperUserAudit({
+    actor_user_id: actor.id,
+    actor_role: actor.role,
+    action: 'upsert_tenant_subscription',
+    target_tenant_id: tenantId,
+    target_resource: 'tenant_subscriptions',
+    target_resource_id: result.data?.id || null,
+    request_path: '/api/billing',
+    request_method: 'POST',
+    success: true,
+    after_state: result.data || null,
+  });
+
+  return {
+    ok: true,
+    subscription: result.data || (Array.isArray(result.data) ? result.data[0] : null) || null,
+  };
+}
+
+function isValidLocalBillingWebhookSecret(req) {
+  const expected = process.env.BILLING_WEBHOOK_SECRET;
+  if (!expected) return false;
+
+  const provided =
+    req.headers?.['x-billing-webhook-secret'] ||
+    req.headers?.['x-webhook-secret'] ||
+    req.headers?.['x-signature-secret'];
+
+  return typeof provided === 'string' && provided === expected;
+}
+
+function parseLocalStripeSignatureHeader(signatureHeader) {
+  if (!signatureHeader || typeof signatureHeader !== 'string') {
+    return { timestamp: null, signatures: [] };
+  }
+
+  const parts = signatureHeader.split(',');
+  const signatures = [];
+  let timestamp = null;
+
+  for (const part of parts) {
+    const [key, value] = part.split('=');
+    if (!key || !value) continue;
+
+    if (key === 't') {
+      timestamp = value;
+      continue;
+    }
+
+    if (key === 'v1') {
+      signatures.push(value);
+    }
+  }
+
+  return { timestamp, signatures };
+}
+
+function safeCompareHex(a, b) {
+  try {
+    const aBuf = Buffer.from(a, 'hex');
+    const bBuf = Buffer.from(b, 'hex');
+
+    if (aBuf.length !== bBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(aBuf, bBuf);
+  } catch {
+    return false;
+  }
+}
+
+function verifyLocalStripeSignature(rawBody, signatureHeader, secret) {
+  const { timestamp, signatures } = parseLocalStripeSignatureHeader(signatureHeader);
+
+  if (!timestamp || signatures.length === 0) {
+    return false;
+  }
+
+  const timestampSec = Number(timestamp);
+  if (!Number.isFinite(timestampSec)) {
+    return false;
+  }
+
+  const toleranceSec = Number(process.env.STRIPE_WEBHOOK_TOLERANCE_SEC || 300);
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (Math.abs(nowSec - timestampSec) > toleranceSec) {
+    return false;
+  }
+
+  const signedPayload = `${timestamp}.${rawBody}`;
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(signedPayload, 'utf8')
+    .digest('hex');
+
+  return signatures.some((signature) => safeCompareHex(expected, signature));
+}
+
+function getLocalRawBody(req) {
+  if (typeof req.rawBody === 'string' && req.rawBody.length > 0) {
+    return req.rawBody;
+  }
+
+  if (typeof req.body === 'string') {
+    return req.body;
+  }
+
+  if (req.body && typeof req.body === 'object') {
+    return JSON.stringify(req.body);
+  }
+
+  return '';
+}
+
+function getLocalStripeDataObject(payload) {
+  if (payload?.data?.object && typeof payload.data.object === 'object') {
+    return payload.data.object;
+  }
+  return null;
+}
+
+function resolveLocalStripeTenantId(payload) {
+  const dataObject = getLocalStripeDataObject(payload);
+  const metadata = dataObject?.metadata && typeof dataObject.metadata === 'object' ? dataObject.metadata : null;
+
+  return normalizeOptionalText(
+    payload?.tenantId ||
+      payload?.tenant_id ||
+      dataObject?.tenant_id ||
+      dataObject?.tenantId ||
+      metadata?.tenant_id ||
+      metadata?.tenantId
+  );
+}
+
+function mapLocalStripeSubscriptionStatus(rawStatus, eventType) {
+  const normalizedStatus = normalizeBillingStatus(rawStatus);
+  if (BILLING_SUBSCRIPTION_STATUSES.has(normalizedStatus)) {
+    return normalizedStatus;
+  }
+
+  const normalizedEvent = normalizeBillingStatus(eventType);
+  if (normalizedEvent === 'invoice.payment_failed') return 'past_due';
+  if (normalizedEvent === 'invoice.payment_succeeded') return 'active';
+  if (normalizedEvent === 'customer.subscription.deleted') return 'canceled';
+
+  return null;
+}
+
+function mapLocalStripeSubscriptionPatch(eventType, payload) {
+  const dataObject = getLocalStripeDataObject(payload);
+  const status = mapLocalStripeSubscriptionStatus(
+    dataObject?.status || payload?.status || payload?.subscription_status,
+    eventType
+  );
+
+  if (!status) return null;
+
+  return {
+    status,
+    payment_status: normalizeOptionalText(dataObject?.payment_status || payload?.payment_status),
+    current_period_start: normalizeBillingTimestamp(dataObject?.current_period_start || payload?.current_period_start),
+    current_period_end: normalizeBillingTimestamp(dataObject?.current_period_end || payload?.current_period_end),
+    grace_until: normalizeBillingTimestamp(payload?.grace_until),
+    provider_subscription_id: normalizeOptionalText(dataObject?.subscription || dataObject?.id || payload?.subscription_id),
+    amount_cents: normalizeBillingNumber(dataObject?.plan?.amount || dataObject?.amount_due || payload?.amount_cents, null),
+    currency: String(dataObject?.currency || payload?.currency || 'EUR').toUpperCase(),
+    metadata: payload,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function upsertLocalTenantSubscriptionFromStripeEvent(tenantId, eventType, payload) {
+  const patch = mapLocalStripeSubscriptionPatch(eventType, payload);
+  if (!patch) return;
+
+  const upsertPayload = {
+    tenant_id: tenantId,
+    ...patch,
+  };
+
+  if (upsertPayload.provider_subscription_id) {
+    const result = await supabase
+      .from('tenant_subscriptions')
+      .upsert(upsertPayload, { onConflict: 'provider_subscription_id' });
+
+    if (result.error) {
+      throw new Error(result.error.message || 'Erro ao sincronizar subscrição Stripe');
+    }
+    return;
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from('tenant_subscriptions')
+    .select('id')
+    .eq('tenant_id', tenantId)
+    .order('current_period_end', { ascending: false, nullsFirst: false })
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message || 'Erro ao localizar subscrição para sincronização Stripe');
+  }
+
+  const result = existing?.id
+    ? await supabase
+      .from('tenant_subscriptions')
+      .update(upsertPayload)
+      .eq('id', existing.id)
+    : await supabase
+      .from('tenant_subscriptions')
+      .insert(upsertPayload);
+
+  if (result.error) {
+    throw new Error(result.error.message || 'Erro ao persistir subscrição Stripe');
+  }
+}
+
+async function upsertLocalTenantInvoiceFromStripeEvent(tenantId, payload) {
+  const dataObject = getLocalStripeDataObject(payload);
+  if (!dataObject) return;
+
+  const providerInvoiceId = normalizeOptionalText(dataObject.id || payload?.invoice_id || payload?.provider_invoice_id);
+  const invoiceStatus = normalizeBillingStatus(dataObject.status || payload?.status || payload?.invoice_status || 'open');
+
+  if (!providerInvoiceId || !BILLING_INVOICE_STATUSES.has(invoiceStatus)) {
+    return;
+  }
+
+  const upsertPayload = {
+    tenant_id: tenantId,
+    provider_invoice_id: providerInvoiceId,
+    invoice_number: normalizeOptionalText(dataObject.number || payload?.invoice_number),
+    status: invoiceStatus,
+    amount_due_cents: normalizeBillingNumber(dataObject.amount_due || payload?.amount_due_cents, 0),
+    amount_paid_cents: normalizeBillingNumber(dataObject.amount_paid || payload?.amount_paid_cents, 0),
+    amount_remaining_cents: normalizeBillingNumber(dataObject.amount_remaining || payload?.amount_remaining_cents, 0),
+    currency: String(dataObject.currency || payload?.currency || 'EUR').toUpperCase(),
+    due_at: normalizeBillingTimestamp(dataObject.due_date || payload?.due_at),
+    paid_at: normalizeBillingTimestamp(dataObject?.status_transitions?.paid_at || payload?.paid_at),
+    failed_at: normalizeBillingTimestamp(dataObject?.status_transitions?.marked_uncollectible_at || payload?.failed_at),
+    hosted_invoice_url: normalizeOptionalText(dataObject.hosted_invoice_url || payload?.hosted_invoice_url),
+    pdf_url: normalizeOptionalText(dataObject.invoice_pdf || payload?.pdf_url),
+    metadata: payload,
+    updated_at: new Date().toISOString(),
+  };
+
+  const result = await supabase
+    .from('tenant_invoices')
+    .upsert(upsertPayload, { onConflict: 'provider_invoice_id' });
+
+  if (result.error) {
+    throw new Error(result.error.message || 'Erro ao sincronizar fatura Stripe');
+  }
+}
+
+async function markLocalBillingWebhookProcessed(provider, eventId, processingError = null) {
+  await supabase
+    .from('billing_webhook_events')
+    .update({
+      processed_at: new Date().toISOString(),
+      processing_error: processingError,
+    })
+    .eq('provider', provider)
+    .eq('event_id', eventId);
+}
+
+async function handleLocalStripeWebhook(req) {
+  const webhookSecret = normalizeOptionalText(process.env.STRIPE_WEBHOOK_SECRET);
+  if (!webhookSecret) {
+    return { status: 500, payload: { success: false, error: 'Webhook Stripe não configurado (STRIPE_WEBHOOK_SECRET)' } };
+  }
+
+  const rawBody = getLocalRawBody(req);
+  const signature = req.headers?.['stripe-signature'] || req.headers?.['Stripe-Signature'];
+
+  if (!verifyLocalStripeSignature(rawBody, signature, webhookSecret)) {
+    return { status: 401, payload: { success: false, error: 'Assinatura Stripe inválida' } };
+  }
+
+  let event;
+  try {
+    event = rawBody ? JSON.parse(rawBody) : {};
+  } catch {
+    return { status: 400, payload: { success: false, error: 'Payload Stripe inválido (JSON)' } };
+  }
+
+  const eventId = normalizeOptionalText(event?.id);
+  const eventType = normalizeOptionalText(event?.type || 'unknown');
+
+  if (!eventId || !eventType) {
+    return { status: 400, payload: { success: false, error: 'Evento Stripe inválido' } };
+  }
+
+  const tenantId = resolveLocalStripeTenantId(event);
+  const receivedAt = new Date().toISOString();
+
+  const insertResult = await supabase
+    .from('billing_webhook_events')
+    .insert({
+      provider: 'stripe',
+      event_id: eventId,
+      event_type: eventType,
+      tenant_id: tenantId,
+      payload: event,
+      received_at: receivedAt,
+    });
+
+  if (insertResult.error) {
+    const message = String(insertResult.error?.message || '').toLowerCase();
+    const duplicate = message.includes('duplicate key') || message.includes('unique');
+    if (duplicate) {
+      return { status: 200, payload: { success: true, duplicate: true } };
+    }
+    return {
+      status: 500,
+      payload: {
+        success: false,
+        error: insertResult.error.message || 'Erro ao registrar evento Stripe',
+      },
+    };
+  }
+
+  try {
+    if (tenantId) {
+      await upsertLocalTenantSubscriptionFromStripeEvent(tenantId, eventType, event);
+      await upsertLocalTenantInvoiceFromStripeEvent(tenantId, event);
+    }
+
+    await markLocalBillingWebhookProcessed('stripe', eventId, null);
+    return { status: 200, payload: { success: true } };
+  } catch (error) {
+    const message = String(error?.message || error || 'Erro inesperado ao processar webhook Stripe');
+    await markLocalBillingWebhookProcessed('stripe', eventId, message);
+    return { status: 500, payload: { success: false, error: message } };
+  }
+}
+
+function getLocalAppBaseUrl(req) {
+  const configured = normalizeOptionalText(process.env.APP_BASE_URL || process.env.PUBLIC_APP_URL);
+  if (configured) return configured;
+
+  const host = req.headers?.['x-forwarded-host'] || req.headers?.host;
+  const proto = req.headers?.['x-forwarded-proto'] || 'http';
+  if (host && typeof host === 'string') {
+    return `${proto}://${host}`;
+  }
+
+  return 'http://localhost:4200';
+}
+
+function getLocalStripeSecretKey() {
+  return normalizeOptionalText(process.env.STRIPE_SECRET_KEY);
+}
+
+async function stripeLocalRequest(path, bodyParams) {
+  const secretKey = getLocalStripeSecretKey();
+  if (!secretKey) {
+    throw new Error('Stripe não configurado (STRIPE_SECRET_KEY)');
+  }
+
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secretKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: bodyParams,
+  });
+
+  const text = await response.text();
+  let payload = {};
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    payload = {};
+  }
+
+  if (!response.ok) {
+    const message = payload?.error?.message || `Stripe API error (${response.status})`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+async function ensureLocalTenantBillingProfile(tenantId) {
+  const { data: profile, error } = await supabase
+    .from('tenant_billing_profiles')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || 'Erro ao carregar perfil de billing');
+  }
+
+  if (profile) {
+    return profile;
+  }
+
+  const { data: inserted, error: insertError } = await supabase
+    .from('tenant_billing_profiles')
+    .insert({ tenant_id: tenantId, payment_provider: 'stripe' })
+    .select('*')
+    .single();
+
+  if (insertError) {
+    throw new Error(insertError.message || 'Erro ao criar perfil de billing');
+  }
+
+  return inserted;
+}
+
+async function resolveLocalStripePriceId(bodyData) {
+  const explicitPriceId = normalizeOptionalText(bodyData?.priceId || bodyData?.price_id);
+  if (explicitPriceId) return explicitPriceId;
+
+  const requestedPlanCode = normalizeOptionalText(bodyData?.planCode || bodyData?.plan_code);
+  if (requestedPlanCode) {
+    const { data: plan, error } = await supabase
+      .from('billing_plans')
+      .select('metadata')
+      .eq('code', requestedPlanCode)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message || 'Erro ao carregar plano de billing');
+    }
+
+    const priceFromPlan = normalizeOptionalText(plan?.metadata?.stripe_price_id);
+    if (priceFromPlan) return priceFromPlan;
+  }
+
+  return normalizeOptionalText(process.env.STRIPE_DEFAULT_PRICE_ID);
+}
+
+async function ensureLocalStripeCustomerForTenant({ tenantId, actor, tenantName }) {
+  const profile = await ensureLocalTenantBillingProfile(tenantId);
+  const existingCustomerId = normalizeOptionalText(profile?.provider_customer_id);
+
+  if (existingCustomerId) {
+    return existingCustomerId;
+  }
+
+  const params = new URLSearchParams();
+  params.append('name', tenantName || `Tenant ${tenantId}`);
+
+  const email = normalizeOptionalText(profile?.billing_email) || normalizeOptionalText(actor?.email);
+  if (email) {
+    params.append('email', email);
+  }
+
+  params.append('metadata[tenant_id]', tenantId);
+  if (actor?.id != null) {
+    params.append('metadata[actor_user_id]', String(actor.id));
+  }
+
+  const customer = await stripeLocalRequest('/customers', params);
+  const customerId = normalizeOptionalText(customer?.id);
+
+  if (!customerId) {
+    throw new Error('Falha ao criar customer no Stripe');
+  }
+
+  await supabase
+    .from('tenant_billing_profiles')
+    .upsert({
+      tenant_id: tenantId,
+      payment_provider: 'stripe',
+      provider_customer_id: customerId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'tenant_id' });
+
+  return customerId;
+}
+
+async function createLocalStripeCheckoutSession({ req, tenantId, actor, body }) {
+  const bodyData = body?.data && typeof body.data === 'object' ? body.data : {};
+
+  const tenant = await getTenantById(tenantId);
+  const tenantName = tenant?.name || tenant?.slug || `Tenant ${tenantId}`;
+  const customerId = await ensureLocalStripeCustomerForTenant({ tenantId, actor, tenantName });
+  const priceId = await resolveLocalStripePriceId(bodyData);
+
+  if (!priceId) {
+    return { ok: false, status: 400, error: 'Preço Stripe não configurado (priceId/planCode/STRIPE_DEFAULT_PRICE_ID)' };
+  }
+
+  const baseUrl = getLocalAppBaseUrl(req);
+  const successUrl = normalizeOptionalText(body?.successUrl || body?.success_url) || `${baseUrl}/?billing=success`;
+  const cancelUrl = normalizeOptionalText(body?.cancelUrl || body?.cancel_url) || `${baseUrl}/?billing=cancel`;
+  const quantity = Math.max(1, normalizeBillingNumber(bodyData?.quantity, 1) || 1);
+
+  const params = new URLSearchParams();
+  params.append('mode', 'subscription');
+  params.append('customer', customerId);
+  params.append('success_url', successUrl);
+  params.append('cancel_url', cancelUrl);
+  params.append('line_items[0][price]', priceId);
+  params.append('line_items[0][quantity]', String(quantity));
+  params.append('allow_promotion_codes', 'true');
+  params.append('billing_address_collection', 'auto');
+  params.append('metadata[tenant_id]', tenantId);
+  if (actor?.id != null) {
+    params.append('metadata[actor_user_id]', String(actor.id));
+  }
+  params.append('payment_method_types[0]', 'card');
+  params.append('payment_method_types[1]', 'mb_way');
+  params.append('payment_method_types[2]', 'multibanco');
+
+  try {
+    const session = await stripeLocalRequest('/checkout/sessions', params);
+    return {
+      ok: true,
+      status: 200,
+      payload: {
+        success: true,
+        provider: 'stripe',
+        tenantId,
+        customerId,
+        checkoutSessionId: session?.id || null,
+        checkoutUrl: session?.url || null,
+      },
+    };
+  } catch (error) {
+    return { ok: false, status: 500, error: String(error?.message || error || 'Falha ao criar sessão de checkout') };
+  }
+}
+
+async function createLocalStripeBillingPortalSession({ req, tenantId, actor, body }) {
+  const tenant = await getTenantById(tenantId);
+  const tenantName = tenant?.name || tenant?.slug || `Tenant ${tenantId}`;
+  const customerId = await ensureLocalStripeCustomerForTenant({ tenantId, actor, tenantName });
+
+  const baseUrl = getLocalAppBaseUrl(req);
+  const returnUrl = normalizeOptionalText(body?.returnUrl || body?.return_url) || `${baseUrl}/?billing=portal`;
+
+  const params = new URLSearchParams();
+  params.append('customer', customerId);
+  params.append('return_url', returnUrl);
+
+  try {
+    const session = await stripeLocalRequest('/billing_portal/sessions', params);
+    return {
+      ok: true,
+      status: 200,
+      payload: {
+        success: true,
+        provider: 'stripe',
+        tenantId,
+        customerId,
+        portalUrl: session?.url || null,
+      },
+    };
+  } catch (error) {
+    return { ok: false, status: 500, error: String(error?.message || error || 'Falha ao criar sessão de portal de cobrança') };
+  }
+}
+
 async function getTenantById(tenantId) {
   if (!tenantId) return null;
   const { data, error } = await supabase
@@ -531,6 +1468,20 @@ async function getTenantById(tenantId) {
 
   return data || null;
 }
+
+/**
+ * POST /api/stripe-webhook
+ * Endpoint dedicado de webhook Stripe para ambiente local
+ */
+app.post('/api/stripe-webhook', async (req, res) => {
+  try {
+    const result = await handleLocalStripeWebhook(req);
+    return res.status(result.status).json(result.payload);
+  } catch (err) {
+    console.error('❌ Erro em /api/stripe-webhook:', err.message);
+    return res.status(500).json({ success: false, error: err.message || 'Erro ao processar webhook Stripe' });
+  }
+});
 
 async function listAccessibleTenantsForUser(user) {
   if (isSuperUserRole(user?.role)) {
@@ -1207,7 +2158,7 @@ app.post('/api/super-user-access', async (req, res) => {
 
 /**
  * POST /api/tenants
- * Body: { action: 'get_profile' | 'update_profile', tenantId?: string, data?: {...} }
+ * Body: { action: 'get_profile' | 'update_profile' | 'get_menu_settings' | 'update_menu_settings', tenantId?: string, data?: {...} }
  * Requer sessão válida e role admin/super_user.
  */
 app.post('/api/tenants', async (req, res) => {
@@ -1216,7 +2167,12 @@ app.post('/api/tenants', async (req, res) => {
     const action = req.body?.action;
     const nowIso = new Date().toISOString();
 
-    if (action !== 'get_profile' && action !== 'update_profile') {
+    if (
+      action !== 'get_profile'
+      && action !== 'update_profile'
+      && action !== 'get_menu_settings'
+      && action !== 'update_menu_settings'
+    ) {
       return res.status(400).json({ success: false, error: 'Ação inválida' });
     }
 
@@ -1240,35 +2196,273 @@ app.post('/api/tenants', async (req, res) => {
       return res.status(canEdit.status).json({ success: false, error: canEdit.error });
     }
 
-    if (action === 'get_profile') {
-      const readResult = await readTenantProfileById(target.tenantId);
-      if (!readResult.ok) {
-        return res.status(readResult.status).json({ success: false, error: readResult.error });
-      }
-
-      return res.status(200).json({ success: true, tenant: readResult.tenant, serverNow: nowIso });
-    }
-
-    const payloadResult = parseTenantUpdatePayload(req.body?.data);
-    if (!payloadResult.ok) {
-      return res.status(400).json({ success: false, error: payloadResult.error });
-    }
-
-    const updateResult = await updateTenantProfileById(target.tenantId, {
-      ...payloadResult.updates,
-      updated_at: nowIso,
-      updated_by: actor.id,
+    const result = await processLocalTenantAction({
+      action,
+      targetTenantId: target.tenantId,
+      actor,
+      body: req.body,
+      nowIso,
     });
 
-    if (!updateResult.ok) {
-      return res.status(updateResult.status).json({ success: false, error: updateResult.error });
-    }
-
-    return res.status(200).json({ success: true, tenant: updateResult.tenant, serverNow: nowIso });
+    return res.status(result.status).json(result.payload);
   } catch (err) {
     const status = err.statusCode || 500;
     console.error('❌ Erro em /api/tenants:', err.message);
     return res.status(status).json({ success: false, error: err.message || 'Erro ao gerir tenant' });
+  }
+});
+
+const LOCAL_BILLING_ACTIONS = new Set([
+  'get_billing',
+  'list_invoices',
+  'upsert_subscription',
+  'create_checkout_session',
+  'create_billing_portal',
+  'ingest_webhook',
+]);
+
+function isAllowedLocalBillingAction(action) {
+  return LOCAL_BILLING_ACTIONS.has(action);
+}
+
+function parseLocalBillingWebhookBody(body) {
+  const provider = normalizeOptionalText(body?.provider || body?.source || 'unknown');
+  const eventId = normalizeOptionalText(body?.eventId || body?.event_id || body?.id);
+  const eventType = normalizeOptionalText(body?.eventType || body?.event_type || body?.type || 'unknown');
+  const tenantId = normalizeOptionalText(body?.tenantId || body?.tenant_id);
+  const payload = body?.payload && typeof body.payload === 'object' ? body.payload : body;
+
+  if (!provider || !eventId || !eventType) {
+    return {
+      ok: false,
+      status: 400,
+      payload: {
+        success: false,
+        error: 'Webhook inválido (provider, eventId e eventType são obrigatórios)',
+      },
+    };
+  }
+
+  return { ok: true, provider, eventId, eventType, tenantId, payload };
+}
+
+async function handleLocalBillingWebhookAction(req, nowIso) {
+  if (!isValidLocalBillingWebhookSecret(req)) {
+    return { status: 401, payload: { success: false, error: 'Webhook secret inválido' } };
+  }
+
+  const parsed = parseLocalBillingWebhookBody(req.body);
+  if (!parsed.ok) {
+    return { status: parsed.status, payload: parsed.payload };
+  }
+
+  const { error: insertError } = await supabase
+    .from('billing_webhook_events')
+    .insert({
+      provider: parsed.provider,
+      event_id: parsed.eventId,
+      event_type: parsed.eventType,
+      tenant_id: parsed.tenantId,
+      payload: parsed.payload,
+      received_at: nowIso,
+    });
+
+  if (insertError) {
+    const message = String(insertError?.message || '').toLowerCase();
+    const duplicate = message.includes('duplicate key') || message.includes('unique');
+    if (duplicate) {
+      return { status: 200, payload: { success: true, duplicate: true } };
+    }
+    return {
+      status: 500,
+      payload: { success: false, error: insertError.message || 'Erro ao registrar webhook de billing' },
+    };
+  }
+
+  await supabase
+    .from('billing_webhook_events')
+    .update({ processed_at: nowIso, processing_error: null })
+    .eq('provider', parsed.provider)
+    .eq('event_id', parsed.eventId);
+
+  return { status: 200, payload: { success: true } };
+}
+
+async function resolveLocalBillingActorContext(req, nowIso) {
+  const session = await requireValidSession(req);
+  const { data: actor, error: actorError } = await supabase
+    .from('users')
+    .select('id,email,name,role,status,tenant_id')
+    .eq('id', session.user_id)
+    .single();
+
+  if (actorError || !actor) {
+    return {
+      ok: false,
+      status: 500,
+      payload: { success: false, error: actorError?.message || 'Ator não encontrado' },
+    };
+  }
+
+  const target = resolveTenantTargetForActor(actor, req.body?.tenantId);
+  if (!target.ok) {
+    return {
+      ok: false,
+      status: target.status,
+      payload: { success: false, error: target.error, serverNow: nowIso },
+    };
+  }
+
+  return {
+    ok: true,
+    actor,
+    targetTenantId: target.tenantId,
+  };
+}
+
+async function handleLocalReadBillingAction(actor, targetTenantId, nowIso) {
+  const canEdit = await assertTenantEditPermission(actor, targetTenantId);
+  if (!canEdit.ok) {
+    return { status: canEdit.status, payload: { success: false, error: canEdit.error, serverNow: nowIso } };
+  }
+
+  const billing = await getLocalTenantBillingState(targetTenantId);
+  return { status: 200, payload: { success: true, tenantId: targetTenantId, ...billing, serverNow: nowIso } };
+}
+
+async function handleLocalListInvoicesAction(req, actor, targetTenantId, nowIso) {
+  const canEdit = await assertTenantEditPermission(actor, targetTenantId);
+  if (!canEdit.ok) {
+    return { status: canEdit.status, payload: { success: false, error: canEdit.error, serverNow: nowIso } };
+  }
+
+  const requestedLimit = normalizeBillingNumber(req.body?.limit, 20);
+  const limit = Math.max(1, Math.min(requestedLimit || 20, 100));
+  const invoices = await listLocalTenantInvoices(targetTenantId, limit);
+  return { status: 200, payload: { success: true, tenantId: targetTenantId, invoices, serverNow: nowIso } };
+}
+
+async function handleLocalCheckoutAction(req, actor, targetTenantId, nowIso) {
+  const canEdit = await assertTenantEditPermission(actor, targetTenantId);
+  if (!canEdit.ok) {
+    return { status: canEdit.status, payload: { success: false, error: canEdit.error, serverNow: nowIso } };
+  }
+
+  const checkoutResult = await createLocalStripeCheckoutSession({
+    req,
+    tenantId: targetTenantId,
+    actor,
+    body: req.body,
+  });
+
+  if (!checkoutResult.ok) {
+    return {
+      status: checkoutResult.status,
+      payload: { success: false, error: checkoutResult.error, serverNow: nowIso },
+    };
+  }
+
+  return { status: checkoutResult.status, payload: { ...checkoutResult.payload, serverNow: nowIso } };
+}
+
+async function handleLocalPortalAction(req, actor, targetTenantId, nowIso) {
+  const canEdit = await assertTenantEditPermission(actor, targetTenantId);
+  if (!canEdit.ok) {
+    return { status: canEdit.status, payload: { success: false, error: canEdit.error, serverNow: nowIso } };
+  }
+
+  const portalResult = await createLocalStripeBillingPortalSession({
+    req,
+    tenantId: targetTenantId,
+    actor,
+    body: req.body,
+  });
+
+  if (!portalResult.ok) {
+    return {
+      status: portalResult.status,
+      payload: { success: false, error: portalResult.error, serverNow: nowIso },
+    };
+  }
+
+  return { status: portalResult.status, payload: { ...portalResult.payload, serverNow: nowIso } };
+}
+
+async function handleLocalUpsertSubscriptionAction(req, actor, targetTenantId, nowIso) {
+  const canEdit = await assertTenantEditPermission(actor, targetTenantId);
+  if (!canEdit.ok) {
+    return { status: canEdit.status, payload: { success: false, error: canEdit.error, serverNow: nowIso } };
+  }
+
+  const updateResult = await upsertLocalTenantSubscription(targetTenantId, req.body?.data, actor);
+  if (!updateResult.ok) {
+    return { status: updateResult.status, payload: { success: false, error: updateResult.error, serverNow: nowIso } };
+  }
+
+  const billing = await getLocalTenantBillingState(targetTenantId);
+  return {
+    status: 200,
+    payload: {
+      success: true,
+      tenantId: targetTenantId,
+      subscription: updateResult.subscription,
+      ...billing,
+      serverNow: nowIso,
+    },
+  };
+}
+
+async function processLocalAuthenticatedBillingAction({ action, req, actor, targetTenantId, nowIso }) {
+  const handlers = {
+    get_billing: () => handleLocalReadBillingAction(actor, targetTenantId, nowIso),
+    list_invoices: () => handleLocalListInvoicesAction(req, actor, targetTenantId, nowIso),
+    create_checkout_session: () => handleLocalCheckoutAction(req, actor, targetTenantId, nowIso),
+    create_billing_portal: () => handleLocalPortalAction(req, actor, targetTenantId, nowIso),
+    upsert_subscription: () => handleLocalUpsertSubscriptionAction(req, actor, targetTenantId, nowIso),
+  };
+
+  const executor = handlers[action] || handlers.upsert_subscription;
+  return executor();
+}
+
+/**
+ * POST /api/billing
+ * Body:
+ * - { action: 'get_billing' | 'list_invoices' | 'upsert_subscription' | 'create_checkout_session' | 'create_billing_portal', tenantId?: string, data?: {...}, limit?: number }
+ * - { action: 'ingest_webhook', provider, eventId, eventType, tenantId?, payload? } + header x-billing-webhook-secret
+ */
+app.post('/api/billing', async (req, res) => {
+  try {
+    const action = req.body?.action;
+    const nowIso = new Date().toISOString();
+
+    if (!isAllowedLocalBillingAction(action)) {
+      return res.status(400).json({ success: false, error: 'Ação inválida' });
+    }
+
+    if (action === 'ingest_webhook') {
+      const webhookResult = await handleLocalBillingWebhookAction(req, nowIso);
+      return res.status(webhookResult.status).json(webhookResult.payload);
+    }
+
+    const context = await resolveLocalBillingActorContext(req, nowIso);
+    if (!context.ok) {
+      return res.status(context.status).json(context.payload);
+    }
+
+    const result = await processLocalAuthenticatedBillingAction({
+      action,
+      req,
+      actor: context.actor,
+      targetTenantId: context.targetTenantId,
+      nowIso,
+    });
+
+    return res.status(result.status).json(result.payload);
+  } catch (err) {
+    const status = err.statusCode || 500;
+    console.error('❌ Erro em /api/billing:', err.message);
+    return res.status(status).json({ success: false, error: err.message || 'Erro ao processar billing do tenant' });
   }
 });
 

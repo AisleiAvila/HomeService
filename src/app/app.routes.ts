@@ -7,6 +7,7 @@ import { AdminDashboardComponent } from '../components/admin-dashboard/admin-das
 import { adminGuard } from './guards/admin.guard';
 import { authGuard } from './guards/auth.guard';
 import { rolesGuard } from './guards/roles.guard';
+import { menuFeatureChildGuard, menuFeatureGuard } from './guards/menu-feature.guard';
 import { UiComponentsShowcaseComponent } from '../components/ui/ui-components-showcase.component';
 import { DesignSystemShowcaseComponent } from '../components/design-system-showcase.component';
 export const routes: Routes = [
@@ -56,8 +57,8 @@ export const routes: Routes = [
   // Solicitações (Secretário - somente leitura)
   {
     path: 'requests',
-    canActivate: [authGuard, rolesGuard],
-    data: { roles: ['secretario'] },
+    canActivate: [authGuard, rolesGuard, menuFeatureGuard],
+    data: { roles: ['secretario'], menuFeature: 'requests' },
     loadComponent: () =>
       import('../components/admin-dashboard/service-requests/service-requests.component').then(
         (m) => m.ServiceRequestsComponent
@@ -65,8 +66,8 @@ export const routes: Routes = [
   },
   {
     path: 'request-details/:id',
-    canActivate: [authGuard, rolesGuard],
-    data: { roles: ['secretario'] },
+    canActivate: [authGuard, rolesGuard, menuFeatureGuard],
+    data: { roles: ['secretario'], menuFeature: 'requests' },
     loadComponent: () =>
       import('../components/service-request-details/service-request-details.component').then(
         (m) => m.ServiceRequestDetailsComponent
@@ -74,8 +75,8 @@ export const routes: Routes = [
   },
   {
     path: 'service-request-edit/:id',
-    canActivate: [authGuard, rolesGuard],
-    data: { roles: ['admin', 'secretario'] },
+    canActivate: [authGuard, rolesGuard, menuFeatureGuard],
+    data: { roles: ['admin', 'secretario'], menuFeature: 'requests' },
     loadComponent: () =>
       import('../components/service-request-edit/service-request-edit.component').then(
         (m) => m.ServiceRequestEditComponent
@@ -85,8 +86,8 @@ export const routes: Routes = [
   // Estoque (Almoxarife e Profissional+Almoxarife)
   {
     path: 'stock',
-    canActivate: [authGuard, rolesGuard],
-    data: { roles: ['almoxarife', 'professional_almoxarife', 'secretario'] },
+    canActivate: [authGuard, rolesGuard, menuFeatureGuard],
+    data: { roles: ['almoxarife', 'professional_almoxarife', 'secretario'], menuFeature: 'stock-intake' },
     children: [
       { path: '', redirectTo: 'intake', pathMatch: 'full' },
       {
@@ -109,8 +110,8 @@ export const routes: Routes = [
   // Agenda (Secretário)
   {
     path: 'agenda',
-    canActivate: [authGuard, rolesGuard],
-    data: { roles: ['secretario'] },
+    canActivate: [authGuard, rolesGuard, menuFeatureGuard],
+    data: { roles: ['secretario'], menuFeature: 'agenda' },
     loadComponent: () =>
       import('./pages/secretary-agenda/secretary-agenda.page').then(
         (m) => m.SecretaryAgendaPage
@@ -122,24 +123,25 @@ export const routes: Routes = [
     path: 'admin',
     component: AdminDashboardComponent,
     canActivate: [adminGuard],
+    canActivateChild: [menuFeatureChildGuard],
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
-      { path: 'overview', loadComponent: () => import('../components/admin-dashboard/admin-overview/admin-overview.component').then(m => m.AdminOverviewComponent) },
-      { path: 'requests', loadComponent: () => import('../components/admin-dashboard/service-requests/service-requests.component').then(m => m.ServiceRequestsComponent) },
-      { path: 'requests/:id/geolocation', loadComponent: () => import('./pages/service-request-geolocation/service-request-geolocation.component').then(m => m.ServiceRequestGeolocationComponent) },
-      { path: 'request-details/:id', loadComponent: () => import('../components/service-request-details/service-request-details.component').then(m => m.ServiceRequestDetailsComponent) },
-      { path: 'service-request-edit/:id', loadComponent: () => import('../components/service-request-edit/service-request-edit.component').then(m => m.ServiceRequestEditComponent) },
-      { path: 'approvals', loadComponent: () => import('../components/admin-dashboard/pending-approvals/pending-approvals.component').then(m => m.PendingApprovalsComponent) },
-      { path: 'finances', loadComponent: () => import('../components/admin-dashboard/financial-reports/financial-reports.component').then(m => m.FinancialReportsComponent) },
-      { path: 'daily-mileage', loadComponent: () => import('../components/mileage/daily-mileage.component').then(m => m.DailyMileageComponent) },
-      { path: 'stock-intake', loadComponent: () => import('../components/admin-dashboard/stock-intake/stock-intake.component').then(m => m.StockIntakeComponent) },
-      { path: 'stock-register', loadComponent: () => import('./pages/stock-register/stock-register.page').then(m => m.StockRegisterPage) },
-      { path: 'clients', loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
-      { path: 'tenants', loadComponent: () => import('../components/admin-dashboard/tenants-management/tenants-management.component').then(m => m.TenantsManagementComponent) },
-      { path: 'categories', loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
+      { path: 'overview', data: { menuFeature: 'overview' }, loadComponent: () => import('../components/admin-dashboard/admin-overview/admin-overview.component').then(m => m.AdminOverviewComponent) },
+      { path: 'requests', data: { menuFeature: 'requests' }, loadComponent: () => import('../components/admin-dashboard/service-requests/service-requests.component').then(m => m.ServiceRequestsComponent) },
+      { path: 'requests/:id/geolocation', data: { menuFeature: 'requests' }, loadComponent: () => import('./pages/service-request-geolocation/service-request-geolocation.component').then(m => m.ServiceRequestGeolocationComponent) },
+      { path: 'request-details/:id', data: { menuFeature: 'requests' }, loadComponent: () => import('../components/service-request-details/service-request-details.component').then(m => m.ServiceRequestDetailsComponent) },
+      { path: 'service-request-edit/:id', data: { menuFeature: 'requests' }, loadComponent: () => import('../components/service-request-edit/service-request-edit.component').then(m => m.ServiceRequestEditComponent) },
+      { path: 'approvals', data: { menuFeature: 'approvals' }, loadComponent: () => import('../components/admin-dashboard/pending-approvals/pending-approvals.component').then(m => m.PendingApprovalsComponent) },
+      { path: 'finances', data: { menuFeature: 'finances' }, loadComponent: () => import('../components/admin-dashboard/financial-reports/financial-reports.component').then(m => m.FinancialReportsComponent) },
+      { path: 'daily-mileage', data: { menuFeature: 'daily-mileage' }, loadComponent: () => import('../components/mileage/daily-mileage.component').then(m => m.DailyMileageComponent) },
+      { path: 'stock-intake', data: { menuFeature: 'stock-intake' }, loadComponent: () => import('../components/admin-dashboard/stock-intake/stock-intake.component').then(m => m.StockIntakeComponent) },
+      { path: 'stock-register', data: { menuFeature: 'stock-intake' }, loadComponent: () => import('./pages/stock-register/stock-register.page').then(m => m.StockRegisterPage) },
+      { path: 'clients', data: { menuFeature: 'clients' }, loadComponent: () => import('../components/admin-dashboard/users-management/users-management.component').then(m => m.UsersManagementComponent) },
+      { path: 'tenants', data: { menuFeature: 'tenants' }, loadComponent: () => import('../components/admin-dashboard/tenants-management/tenants-management.component').then(m => m.TenantsManagementComponent) },
+      { path: 'categories', data: { menuFeature: 'categories' }, loadComponent: () => import('../components/category-management/category-management.component').then(m => m.CategoryManagementComponent) },
       { path: 'extra-services',
         loadChildren: () => import('./pages/extra-services/extra-services.page.routes').then(m => m.EXTRA_SERVICES_ROUTES),
-        data: { title: 'Serviços Extras', roles: ['admin'] }
+        data: { title: 'Serviços Extras', roles: ['admin'], menuFeature: 'extra-services' }
       },
     ]
   },

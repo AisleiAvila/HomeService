@@ -8,6 +8,7 @@ export const environment = {
   sessionApiUrl: "/api/session",
   superUserAccessApiUrl: "/api/super-user-access",
   tenantsApiUrl: "/api/tenants",
+  billingApiUrl: "/api/billing",
   confirmEmailApiUrl: "/api/confirm-email",
   emailServiceUrl: "/api/send-email", // Em produção, usar endpoint Vercel
 

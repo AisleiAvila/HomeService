@@ -1,7 +1,7 @@
 // Vercel Function para autenticação customizada
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { assertStrictUserTenant, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
+import { assertStrictUserTenant, getTenantBillingState, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://uqrvenlkquheajuveggv.supabase.co';
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -122,6 +122,19 @@ export default async function handler(req, res) {
       }
     }
 
+    let tenantBilling = null;
+    if (resolvedTenant?.id && !isSuperUser) {
+      tenantBilling = await getTenantBillingState(supabase, resolvedTenant.id);
+
+      if (!tenantBilling.access_allowed) {
+        return res.status(403).json({
+          success: false,
+          error: 'Acesso do tenant bloqueado por pendência de pagamento',
+          billing: tenantBilling,
+        });
+      }
+    }
+
     // Validar senha (ajuste conforme sua lógica: texto puro ou hash)
     if (user.password_hash) {
       // Calcular hash SHA-256 da senha recebida
@@ -203,7 +216,8 @@ export default async function handler(req, res) {
       success: true,
       user: safeUser,
       session: { token, expiresAt },
-      tenant: resolvedTenant || null
+      tenant: resolvedTenant || null,
+      billing: tenantBilling,
     });
   } catch (e) {
     console.error('[LOGIN] Unhandled error:', e);

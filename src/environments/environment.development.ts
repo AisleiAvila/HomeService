@@ -8,6 +8,7 @@ export const environment = {
   sessionApiUrl: "http://localhost:4002/api/session",
   superUserAccessApiUrl: "http://localhost:4002/api/super-user-access",
   tenantsApiUrl: "http://localhost:4002/api/tenants",
+  billingApiUrl: "http://localhost:4002/api/billing",
   confirmEmailApiUrl: "http://localhost:4001/api/confirm-email",
   emailServiceUrl: "http://localhost:4001/api/send-email", // Servidor de e-mail local
 

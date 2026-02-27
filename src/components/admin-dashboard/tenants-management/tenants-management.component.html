@@ -1,6 +1,5 @@
-<div class="w-full mobile-safe relative p-4 sm:p-6 max-w-5xl mx-auto">
-  <div class="bg-linear-to-r from-brand-primary-600 to-brand-primary-500 rounded-lg shadow-md overflow-hidden">
-    <div class="px-6 py-4 border-b border-white border-opacity-20">
+<div class="bg-linear-to-r from-brand-primary-500 to-brand-primary-600 rounded-lg shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
       <h2 class="text-2xl font-bold text-white flex items-center">
         <i class="fas fa-building mr-3"></i>
         {{ 'tenants' | i18n }}
@@ -202,7 +201,275 @@
             }
           </button>
         </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center">
+              <i class="fas fa-list-check text-brand-primary-500 mr-2"></i>
+              Itens de menu por perfil
+            </h3>
+          </div>
+
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Selecione os itens de menu habilitados para cada perfil deste tenant.
+          </p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            @for (role of menuRoles; track role) {
+              <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+                <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">{{ getRoleLabel(role) }}</h4>
+
+                <div class="space-y-2">
+                  @for (item of availableMenuItems; track item.id) {
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <input
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-gray-300 text-brand-primary-600 focus:ring-brand-primary-500"
+                        [checked]="isRoleMenuItemEnabled(role, item.id)"
+                        (change)="onMenuItemToggle(role, item.id, $any($event.target).checked)"
+                      />
+                      <span>{{ item.labelKey | i18n }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="flex justify-end mt-4">
+            <button
+              type="button"
+              class="px-6 py-2 bg-linear-to-r from-brand-primary-600 to-brand-primary-500 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold"
+              [disabled]="!canSaveMenuSettings()"
+              (click)="saveMenuSettings()"
+            >
+              @if (isSavingMenuSettings()) {
+                <i class="fas fa-spinner animate-spin mr-2"></i>
+                {{ 'saving' | i18n }}...
+              } @else {
+                <i class="fas fa-save mr-2"></i>
+                Salvar menu
+              }
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center">
+              <i class="fas fa-credit-card text-brand-primary-500 mr-2"></i>
+              {{ 'tenantBillingTitle' | i18n }}
+            </h3>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="px-3 py-1.5 text-sm rounded-lg border border-brand-primary-300 dark:border-brand-primary-700 text-brand-primary-700 dark:text-brand-primary-300 hover:bg-brand-primary-50 dark:hover:bg-brand-primary-900/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!canOpenBillingCheckout()"
+                (click)="openBillingCheckout()"
+              >
+                <i class="fas fa-cart-shopping mr-1"></i>
+                {{ 'tenantBillingOpenCheckout' | i18n }}
+              </button>
+
+              <button
+                type="button"
+                class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!canOpenBillingPortal()"
+                (click)="openBillingPortal()"
+              >
+                <i class="fas fa-arrow-up-right-from-square mr-1"></i>
+                {{ 'tenantBillingOpenPortal' | i18n }}
+              </button>
+
+              <button
+                type="button"
+                class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                [disabled]="isLoadingBilling()"
+                (click)="refreshBilling()"
+              >
+                <i class="fas fa-rotate mr-1"></i>
+                {{ 'refresh' | i18n }}
+              </button>
+            </div>
+          </div>
+
+          @if (isLoadingBilling()) {
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'loading' | i18n }}...</p>
+          } @else {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'tenantBillingAccessLabel' | i18n }}</p>
+                <p class="mt-1 text-sm font-semibold" [ngClass]="billingState()?.access_allowed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                  {{ billingState()?.access_allowed ? ('tenantBillingAccessAllowed' | i18n) : ('tenantBillingAccessBlocked' | i18n) }}
+                </p>
+              </div>
+
+              <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'tenantBillingStatusLabel' | i18n }}</p>
+                <p class="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ formatBillingStatus(billingState()?.billing_status) }}</p>
+              </div>
+
+              <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'tenantBillingPeriodEndLabel' | i18n }}</p>
+                <p class="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ formatDateTime(billingState()?.current_period_end) }}</p>
+              </div>
+
+              <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ 'tenantBillingGraceLabel' | i18n }}</p>
+                <p class="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ formatDateTime(billingState()?.grace_until) }}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="billing-status" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <i class="fas fa-signal text-brand-primary-500 mr-2 text-xs"></i>
+                  {{ 'tenantBillingStatusLabel' | i18n }}
+                </label>
+                <select
+                  id="billing-status"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  [ngModel]="billingFormStatus()"
+                  (ngModelChange)="billingFormStatus.set($event)"
+                >
+                  <option value="trialing">trialing</option>
+                  <option value="active">active</option>
+                  <option value="past_due">past_due</option>
+                  <option value="unpaid">unpaid</option>
+                  <option value="canceled">canceled</option>
+                  <option value="incomplete">incomplete</option>
+                  <option value="incomplete_expired">incomplete_expired</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="billing-payment-status" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <i class="fas fa-receipt text-brand-primary-500 mr-2 text-xs"></i>
+                  {{ 'tenantBillingPaymentStatusLabel' | i18n }}
+                </label>
+                <input
+                  id="billing-payment-status"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  [ngModel]="billingFormPaymentStatus()"
+                  (ngModelChange)="billingFormPaymentStatus.set($event)"
+                  type="text"
+                />
+              </div>
+
+              <div>
+                <label for="billing-provider-subscription-id" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <i class="fas fa-link text-brand-primary-500 mr-2 text-xs"></i>
+                  {{ 'tenantBillingProviderSubscriptionLabel' | i18n }}
+                </label>
+                <input
+                  id="billing-provider-subscription-id"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  [ngModel]="billingFormProviderSubscriptionId()"
+                  (ngModelChange)="billingFormProviderSubscriptionId.set($event)"
+                  type="text"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="billing-currency" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{ 'currency' | i18n }}</label>
+                  <input
+                    id="billing-currency"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    [ngModel]="billingFormCurrency()"
+                    (ngModelChange)="billingFormCurrency.set($event)"
+                    type="text"
+                  />
+                </div>
+                <div>
+                  <label for="billing-amount-cents" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{ 'tenantBillingAmountCentsLabel' | i18n }}</label>
+                  <input
+                    id="billing-amount-cents"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    [ngModel]="billingFormAmountCents()"
+                    (ngModelChange)="billingFormAmountCents.set($event)"
+                    type="number"
+                    min="0"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="billing-period-end" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{ 'tenantBillingPeriodEndLabel' | i18n }}</label>
+                <input
+                  id="billing-period-end"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  [ngModel]="billingFormCurrentPeriodEnd()"
+                  (ngModelChange)="billingFormCurrentPeriodEnd.set($event)"
+                  type="datetime-local"
+                />
+              </div>
+
+              <div>
+                <label for="billing-grace-until" class="flex items-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{{ 'tenantBillingGraceLabel' | i18n }}</label>
+                <input
+                  id="billing-grace-until"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-primary-500 focus:border-brand-primary-500 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  [ngModel]="billingFormGraceUntil()"
+                  (ngModelChange)="billingFormGraceUntil.set($event)"
+                  type="datetime-local"
+                />
+              </div>
+            </div>
+
+            <div class="flex justify-end mt-4">
+              <button
+                type="button"
+                class="px-6 py-2 bg-linear-to-r from-brand-primary-600 to-brand-primary-500 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold"
+                [disabled]="!canSaveBilling()"
+                (click)="saveBilling()"
+              >
+                @if (isSavingBilling()) {
+                  <i class="fas fa-spinner animate-spin mr-2"></i>
+                  {{ 'saving' | i18n }}...
+                } @else {
+                  <i class="fas fa-pen-to-square mr-2"></i>
+                  {{ 'tenantBillingUpdateAction' | i18n }}
+                }
+              </button>
+            </div>
+
+            <div class="mt-6 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ 'tenantBillingInvoicesTitle' | i18n }}</h4>
+              </div>
+
+              @if (billingInvoices().length === 0) {
+                <p class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ 'tenantBillingNoInvoices' | i18n }}</p>
+              } @else {
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-900">
+                      <tr>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">{{ 'status' | i18n }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">{{ 'value' | i18n }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">{{ 'dueDate' | i18n }}</th>
+                        <th class="px-4 py-2 text-left font-semibold text-gray-600 dark:text-gray-300">{{ 'createdAt' | i18n }}</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                      @for (invoice of billingInvoices(); track invoice.id) {
+                        <tr>
+                          <td class="px-4 py-2 text-gray-800 dark:text-gray-100">{{ formatBillingStatus(invoice.status) }}</td>
+                          <td class="px-4 py-2 text-gray-800 dark:text-gray-100">{{ formatInvoiceAmount(invoice.amount_due_cents, invoice.currency) }}</td>
+                          <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ formatDateTime(invoice.due_at) }}</td>
+                          <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ formatDateTime(invoice.created_at) }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          }
+        </div>
       }
     </div>
-  </div>
 </div>

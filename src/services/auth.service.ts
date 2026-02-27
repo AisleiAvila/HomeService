@@ -37,6 +37,98 @@ export interface SuperUserAuditEntry {
   success?: boolean | null;
 }
 
+export interface TenantBillingState {
+  access_allowed: boolean;
+  billing_status: string;
+  grace_until?: string | null;
+  current_period_end?: string | null;
+  subscription_id?: string | null;
+}
+
+export interface TenantSubscription {
+  id: string;
+  tenant_id: string;
+  billing_plan_id?: string | null;
+  provider_subscription_id?: string | null;
+  status: string;
+  payment_status?: string | null;
+  currency?: string;
+  amount_cents?: number | null;
+  quantity?: number;
+  trial_ends_at?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  grace_until?: string | null;
+  canceled_at?: string | null;
+  cancel_at_period_end?: boolean;
+  started_at?: string | null;
+  ended_at?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TenantInvoice {
+  id: string;
+  tenant_id: string;
+  tenant_subscription_id?: string | null;
+  provider_invoice_id?: string | null;
+  invoice_number?: string | null;
+  status: string;
+  amount_due_cents: number;
+  amount_paid_cents: number;
+  amount_remaining_cents: number;
+  currency: string;
+  due_at?: string | null;
+  paid_at?: string | null;
+  failed_at?: string | null;
+  hosted_invoice_url?: string | null;
+  pdf_url?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TenantBillingSummary {
+  tenantId: string;
+  state: TenantBillingState | null;
+  subscription: TenantSubscription | null;
+}
+
+export interface TenantSubscriptionUpdatePayload {
+  status: 'trialing' | 'active' | 'past_due' | 'unpaid' | 'canceled' | 'incomplete' | 'incomplete_expired';
+  payment_status?: string | null;
+  currency?: string;
+  amount_cents?: number | null;
+  quantity?: number;
+  billing_plan_id?: string | null;
+  provider_subscription_id?: string | null;
+  trial_ends_at?: string | null;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  grace_until?: string | null;
+  canceled_at?: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
+  cancel_at_period_end?: boolean;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface TenantCheckoutSessionResult {
+  tenantId: string;
+  checkoutUrl: string;
+  checkoutSessionId?: string | null;
+  customerId?: string | null;
+  provider?: string;
+}
+
+export interface TenantBillingPortalResult {
+  tenantId: string;
+  portalUrl: string;
+  customerId?: string | null;
+  provider?: string;
+}
+
 export interface TenantProfile {
   id: string;
   name: string;
@@ -64,6 +156,72 @@ export interface TenantProfileUpdatePayload {
   status: 'active' | 'inactive';
 }
 
+export type TenantMenuRole =
+  | 'admin'
+  | 'super_user'
+  | 'professional'
+  | 'professional_almoxarife'
+  | 'almoxarife'
+  | 'secretario';
+
+export type TenantMenuItem =
+  | 'dashboard'
+  | 'schedule'
+  | 'agenda'
+  | 'profile'
+  | 'daily-mileage'
+  | 'mileage-report'
+  | 'details'
+  | 'create-service-request'
+  | 'admin-create-service-request'
+  | 'overview'
+  | 'requests'
+  | 'approvals'
+  | 'finances'
+  | 'stock-intake'
+  | 'clients'
+  | 'tenants'
+  | 'categories'
+  | 'extra-services';
+
+export interface TenantMenuSetting {
+  tenant_id: string;
+  role: TenantMenuRole;
+  enabled_items: TenantMenuItem[];
+  updated_at?: string | null;
+  updated_by?: number | null;
+}
+
+const TENANT_MENU_ITEM_SET = new Set<TenantMenuItem>([
+  'dashboard',
+  'schedule',
+  'agenda',
+  'profile',
+  'daily-mileage',
+  'mileage-report',
+  'details',
+  'create-service-request',
+  'admin-create-service-request',
+  'overview',
+  'requests',
+  'approvals',
+  'finances',
+  'stock-intake',
+  'clients',
+  'tenants',
+  'categories',
+  'extra-services',
+]);
+
+const TENANT_MENU_ROLES: TenantMenuRole[] = [
+  'admin',
+  'super_user',
+  'professional',
+  'professional_almoxarife',
+  'almoxarife',
+  'secretario',
+];
+
 @Injectable({
   providedIn: "root",
 })
@@ -74,6 +232,9 @@ export class AuthService {
     private readonly supabaseUser = this.supabase.currentUser;
     readonly appUser = signal<User | null>(null);
     readonly pendingEmailConfirmation = signal<string | null>(null);
+    readonly tenantBillingState = signal<TenantBillingState | null>(null);
+    readonly tenantMenuSettings = signal<Partial<Record<TenantMenuRole, TenantMenuItem[]>>>({});
+    readonly tenantMenuSettingsTenantId = signal<string | null>(null);
 
   private readonly lastSessionErrorStorageKey = "natangeneralservice_last_session_error";
 
@@ -188,6 +349,18 @@ export class AuthService {
     sessionStorage.removeItem(this.sessionStorageKey);
   }
 
+  private normalizeTenantBillingState(input: any): TenantBillingState | null {
+    if (!input || typeof input !== "object") return null;
+
+    return {
+      access_allowed: Boolean(input.access_allowed),
+      billing_status: String(input.billing_status || "unknown"),
+      grace_until: input.grace_until || null,
+      current_period_end: input.current_period_end || null,
+      subscription_id: input.subscription_id || null,
+    };
+  }
+
   getCustomSessionToken(): string | null {
     const stored = this.readStoredSession();
     return stored?.token || null;
@@ -275,6 +448,7 @@ export class AuthService {
 
         const user = json.user as User;
         const tenant = json.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
+        const billing = this.normalizeTenantBillingState(json.billing);
         const expiresAt = json.session?.expiresAt || stored.expiresAt;
 
         this.tenantContext.setResolvedTenant(tenant);
@@ -284,6 +458,7 @@ export class AuthService {
         }
 
         this.appUser.set(user);
+        this.tenantBillingState.set(billing);
         this.writeStoredSession({ token: stored.token, expiresAt, user });
         this.scheduleAutoLogout(expiresAt);
       } catch {
@@ -315,6 +490,7 @@ export class AuthService {
       const user = result.user as User | undefined;
       const session = result.session as { token: string; expiresAt: string } | undefined;
       const tenant = result.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
+      const billing = this.normalizeTenantBillingState(result.billing);
       if (res.ok && result.success && user && session?.token && session?.expiresAt) {
         this.tenantContext.setResolvedTenant(tenant);
 
@@ -323,6 +499,7 @@ export class AuthService {
         }
 
         this.appUser.set(user);
+        this.tenantBillingState.set(billing);
         this.writeStoredSession({ token: session.token, expiresAt: session.expiresAt, user });
         this.scheduleAutoLogout(session.expiresAt);
         this.startSessionHeartbeat();
@@ -334,6 +511,15 @@ export class AuthService {
         // 401/400: tratar como falha de autenticação (UI mostra credenciais inválidas)
         if (res.status === 401 || res.status === 400) {
           return null;
+        }
+
+        if (res.status === 403) {
+          if (billing?.access_allowed === false) {
+            this.tenantBillingState.set(billing);
+            throw new Error('tenantBillingBlocked');
+          }
+
+          throw new Error('authAccessDenied');
         }
 
         // Outros erros (ex.: 503/500): deixar UI tratar como erro do servidor
@@ -358,6 +544,7 @@ export class AuthService {
       if (!stored?.token || !stored?.expiresAt) {
         console.log("ℹ️ Nenhuma sessão encontrada no armazenamento");
         this.appUser.set(null);
+        this.tenantBillingState.set(null);
         return;
       }
 
@@ -365,6 +552,7 @@ export class AuthService {
         console.log("⏰ Sessão expirada (armazenamento)");
         this.clearStoredSession();
         this.appUser.set(null);
+        this.tenantBillingState.set(null);
         return;
       }
 
@@ -392,6 +580,7 @@ export class AuthService {
           });
           this.clearStoredSession();
           this.appUser.set(null);
+          this.tenantBillingState.set(null);
           return;
         }
 
@@ -399,12 +588,15 @@ export class AuthService {
         if (validateRes.ok && validateJson.success && validateJson.user) {
           user = validateJson.user as User;
           const tenant = validateJson.tenant as { id: string; slug: string; subdomain?: string | null; status?: string } | undefined;
+          const billing = this.normalizeTenantBillingState(validateJson.billing);
           expiresAt = validateJson.session?.expiresAt || stored.expiresAt;
 
           this.tenantContext.setResolvedTenant(tenant);
+          this.tenantBillingState.set(billing);
           if (!this.tenantContext.isTenantCompatible(user.tenant_id, user.role)) {
             this.clearStoredSession();
             this.appUser.set(null);
+            this.tenantBillingState.set(null);
             return;
           }
         }
@@ -415,6 +607,7 @@ export class AuthService {
       if (!user) {
         // No user info to restore.
         this.appUser.set(null);
+        this.tenantBillingState.set(null);
         return;
       }
 
@@ -436,6 +629,7 @@ export class AuthService {
       console.error("❌ Erro ao recuperar sessão do armazenamento:", err);
       this.clearStoredSession();
       this.appUser.set(null);
+      this.tenantBillingState.set(null);
     }
   }
   async confirmEmailCustom(email: string, token: string): Promise<boolean> {
@@ -1353,6 +1547,379 @@ export class AuthService {
     return payload.tenant as TenantProfile;
   }
 
+  async getTenantMenuSettings(tenantId?: string): Promise<TenantMenuSetting[]> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return [];
+    }
+
+    const response = await fetch(environment.tenantsApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'get_menu_settings',
+        tenantId: tenantId || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.settings)) {
+      return [];
+    }
+
+    return payload.settings
+      .filter((entry: any) => TENANT_MENU_ROLES.includes(entry?.role))
+      .map((entry: any) => ({
+        tenant_id: String(entry.tenant_id || payload.tenantId || tenantId || ''),
+        role: entry.role as TenantMenuRole,
+        enabled_items: this.normalizeTenantMenuItems(entry.enabled_items),
+        updated_at: entry.updated_at || null,
+        updated_by: Number.isFinite(entry.updated_by) ? Number(entry.updated_by) : null,
+      }));
+  }
+
+  async updateTenantMenuSettings(
+    role: TenantMenuRole,
+    enabledItems: TenantMenuItem[],
+    tenantId?: string,
+  ): Promise<TenantMenuSetting | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const normalizedItems = this.normalizeTenantMenuItems(enabledItems);
+    if (normalizedItems.length === 0) {
+      return null;
+    }
+
+    const response = await fetch(environment.tenantsApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'update_menu_settings',
+        tenantId: tenantId || undefined,
+        data: {
+          role,
+          enabled_items: normalizedItems,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !payload?.setting) {
+      return null;
+    }
+
+    const setting = payload.setting;
+    const normalizedSetting: TenantMenuSetting = {
+      tenant_id: String(setting.tenant_id || payload.tenantId || tenantId || ''),
+      role: String(setting.role || '') as TenantMenuRole,
+      enabled_items: this.normalizeTenantMenuItems(setting.enabled_items),
+      updated_at: setting.updated_at || null,
+      updated_by: Number.isFinite(setting.updated_by) ? Number(setting.updated_by) : null,
+    };
+
+    const effectiveTenantId = normalizedSetting.tenant_id || tenantId || this.tenantContext.tenant()?.id || null;
+    if (effectiveTenantId && this.tenantMenuSettingsTenantId() === effectiveTenantId) {
+      const current = this.tenantMenuSettings();
+      this.tenantMenuSettings.set({
+        ...current,
+        [normalizedSetting.role]: normalizedSetting.enabled_items,
+      });
+    }
+
+    return normalizedSetting;
+  }
+
+  async loadTenantMenuSettings(tenantId?: string): Promise<Partial<Record<TenantMenuRole, TenantMenuItem[]>>> {
+    const user = this.appUser();
+    if (!user) {
+      this.clearTenantMenuSettings();
+      return {};
+    }
+
+    const effectiveTenantId = String(tenantId || this.tenantContext.tenant()?.id || user.tenant_id || '').trim();
+    if (!effectiveTenantId) {
+      this.clearTenantMenuSettings();
+      return {};
+    }
+
+    const settings = await this.getTenantMenuSettings(effectiveTenantId);
+    const map: Partial<Record<TenantMenuRole, TenantMenuItem[]>> = {};
+
+    for (const role of TENANT_MENU_ROLES) {
+      const roleSetting = settings.find((entry) => entry.role === role);
+      if (!roleSetting) {
+        continue;
+      }
+      map[role] = this.normalizeTenantMenuItems(roleSetting.enabled_items);
+    }
+
+    this.tenantMenuSettings.set(map);
+    this.tenantMenuSettingsTenantId.set(effectiveTenantId);
+    return map;
+  }
+
+  clearTenantMenuSettings(): void {
+    this.tenantMenuSettings.set({});
+    this.tenantMenuSettingsTenantId.set(null);
+  }
+
+  isMenuItemEnabledForCurrentUser(item: TenantMenuItem): boolean {
+    const user = this.appUser();
+    if (!user) {
+      return false;
+    }
+
+    const role = user.role as TenantMenuRole;
+    const settings = this.tenantMenuSettings();
+    const roleItems = settings[role];
+    if (!roleItems || roleItems.length === 0) {
+      return true;
+    }
+
+    return roleItems.includes(item);
+  }
+
+  filterEnabledMenuItemsForRole(
+    role: TenantMenuRole,
+    items: TenantMenuItem[],
+  ): TenantMenuItem[] {
+    const roleItems = this.tenantMenuSettings()[role];
+    if (!roleItems || roleItems.length === 0) {
+      return items;
+    }
+
+    const allowed = new Set(roleItems);
+    return items.filter((item) => allowed.has(item));
+  }
+
+  private normalizeTenantMenuItems(input: unknown): TenantMenuItem[] {
+    if (!Array.isArray(input)) {
+      return [];
+    }
+
+    const unique = new Set<TenantMenuItem>();
+    for (const rawItem of input) {
+      const item = String(rawItem || '').trim() as TenantMenuItem;
+      if (!TENANT_MENU_ITEM_SET.has(item)) {
+        continue;
+      }
+      unique.add(item);
+    }
+
+    return Array.from(unique);
+  }
+
+  async getTenantBilling(tenantId?: string): Promise<TenantBillingSummary | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.billingApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'get_billing',
+        tenantId: tenantId || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success) {
+      return null;
+    }
+
+    const state = this.normalizeTenantBillingState(payload.state);
+    const appUser = this.appUser();
+    if (!tenantId && appUser?.role !== 'super_user') {
+      this.tenantBillingState.set(state);
+    }
+
+    return {
+      tenantId: String(payload.tenantId || tenantId || ''),
+      state,
+      subscription: (payload.subscription || null) as TenantSubscription | null,
+    };
+  }
+
+  async listTenantInvoices(tenantId?: string, limit = 20): Promise<TenantInvoice[]> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return [];
+    }
+
+    const response = await fetch(environment.billingApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'list_invoices',
+        tenantId: tenantId || undefined,
+        limit,
+      }),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !Array.isArray(payload?.invoices)) {
+      return [];
+    }
+
+    return payload.invoices as TenantInvoice[];
+  }
+
+  async updateTenantSubscription(data: TenantSubscriptionUpdatePayload, tenantId?: string): Promise<TenantBillingSummary | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.billingApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'upsert_subscription',
+        tenantId: tenantId || undefined,
+        data,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success) {
+      return null;
+    }
+
+    const state = this.normalizeTenantBillingState(payload.state);
+    const appUser = this.appUser();
+    if (!tenantId && appUser?.role !== 'super_user') {
+      this.tenantBillingState.set(state);
+    }
+
+    return {
+      tenantId: String(payload.tenantId || tenantId || ''),
+      state,
+      subscription: (payload.subscription || null) as TenantSubscription | null,
+    };
+  }
+
+  async createTenantCheckoutSession(
+    tenantId?: string,
+    data?: { planCode?: string; plan_code?: string; priceId?: string; price_id?: string; quantity?: number },
+    options?: { successUrl?: string; cancelUrl?: string }
+  ): Promise<TenantCheckoutSessionResult | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.billingApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'create_checkout_session',
+        tenantId: tenantId || undefined,
+        data: data || undefined,
+        successUrl: options?.successUrl,
+        cancelUrl: options?.cancelUrl,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !payload?.checkoutUrl) {
+      return null;
+    }
+
+    return {
+      tenantId: String(payload.tenantId || tenantId || ''),
+      checkoutUrl: String(payload.checkoutUrl),
+      checkoutSessionId: payload.checkoutSessionId || null,
+      customerId: payload.customerId || null,
+      provider: payload.provider || 'stripe',
+    };
+  }
+
+  async createTenantBillingPortalSession(
+    tenantId?: string,
+    options?: { returnUrl?: string }
+  ): Promise<TenantBillingPortalResult | null> {
+    const stored = this.readStoredSession();
+    if (!stored?.token) {
+      return null;
+    }
+
+    const response = await fetch(environment.billingApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${stored.token}`,
+      },
+      body: JSON.stringify({
+        action: 'create_billing_portal',
+        tenantId: tenantId || undefined,
+        returnUrl: options?.returnUrl,
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!payload?.success || !payload?.portalUrl) {
+      return null;
+    }
+
+    return {
+      tenantId: String(payload.tenantId || tenantId || ''),
+      portalUrl: String(payload.portalUrl),
+      customerId: payload.customerId || null,
+      provider: payload.provider || 'stripe',
+    };
+  }
+
   async listSuperUsers(): Promise<SuperUserAccount[]> {
     const stored = this.readStoredSession();
     if (!stored?.token) {
@@ -1505,6 +2072,8 @@ export class AuthService {
 
       // Sempre limpar o estado do usuário
       this.appUser.set(null);
+      this.tenantBillingState.set(null);
+      this.clearTenantMenuSettings();
       this.clearStoredSession();
 
       // Também limpar qualquer sessão Supabase local, se existir (defensivo)
@@ -1515,6 +2084,8 @@ export class AuthService {
       console.error("❌ Erro durante logout, limpando localmente:", error);
       this.stopSessionHeartbeat();
       this.appUser.set(null);
+      this.tenantBillingState.set(null);
+      this.clearTenantMenuSettings();
       this.clearStoredSession();
     }
   }

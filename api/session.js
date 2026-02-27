@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { assertStrictUserTenant, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
+import { assertStrictUserTenant, getTenantBillingState, isSuperUserRole, resolveTenantByRequest } from './_tenant.js';
 
 function parseJsonBody(req) {
   const body = req.body;
@@ -336,6 +336,7 @@ export default async function handler(req, res) {
     }
 
     let effectiveTenant = null;
+    let tenantBilling = null;
 
     if (isSuperUser) {
       const requestedTenantId = resolvedTenant?.id || session.active_tenant_id || null;
@@ -365,6 +366,18 @@ export default async function handler(req, res) {
       }
     } else {
       effectiveTenant = resolvedTenant || null;
+
+      if (effectiveTenant?.id) {
+        tenantBilling = await getTenantBillingState(supabase, effectiveTenant.id);
+        if (!tenantBilling.access_allowed) {
+          return res.status(403).json({
+            success: false,
+            error: 'Acesso do tenant bloqueado por pendência de pagamento',
+            billing: tenantBilling,
+            serverNow: nowIso,
+          });
+        }
+      }
     }
 
     return res.status(200).json({
@@ -372,6 +385,7 @@ export default async function handler(req, res) {
       user,
       session: { expiresAt: session.expires_at },
       tenant: effectiveTenant,
+      billing: tenantBilling,
       serverNow: nowIso
     });
   } catch (e) {

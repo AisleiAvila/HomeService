@@ -59,9 +59,38 @@ npm run smoke:super-user:write -- -TargetUserId 123 -TenantId "uuid-do-tenant"
 - Migration aplicada sem erro
 - Check pós-migração sem inconsistências
 - Smoke read-only concluído
+- Smoke pós-rotação de `SUPABASE_SERVICE_ROLE_KEY` concluído
 - Build da aplicação OK
 
-## 6) Rollback (se necessário)
+## 6) Validação pós-rotação de chave service role
+
+Após rotacionar `SUPABASE_SERVICE_ROLE_KEY`, execute:
+
+### Modo seguro (não revoga sessão ao final)
+
+```powershell
+npm run smoke:service-role:rotation:no-revoke
+```
+
+### Modo completo (revoga sessão ao final)
+
+```powershell
+npm run smoke:service-role:rotation
+```
+
+Script utilizado:
+
+- `scripts/smoke-service-role-rotation.ps1`
+
+Validações executadas:
+
+1. Login (`/api/login`)
+2. Sessão validate (`/api/session`)
+3. Listagem de tenants (`/api/session`, `action=list_tenants`)
+4. Billing state (`/api/billing`, `action=get_billing`)
+5. Faturas (`/api/billing`, `action=list_invoices`)
+
+## 7) Rollback (se necessário)
 
 A migration é aditiva (tabelas/coluna/função/índices). Em incidente:
 
@@ -71,7 +100,7 @@ A migration é aditiva (tabelas/coluna/função/índices). Em incidente:
 
 > Observação: rollback destrutivo de schema em produção deve ser avaliado com cuidado por impacto de dados/auditoria.
 
-## 7) Troubleshooting comum
+## 8) Troubleshooting comum
 
 ### Erro `users_role_check` ao promover para `super_user`
 

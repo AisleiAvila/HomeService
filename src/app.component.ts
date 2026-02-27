@@ -8,12 +8,13 @@ import {
   inject,
   OnInit,
   signal,
+  untracked,
   ViewChild
 } from "@angular/core";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
 
 // Services
-import { AccessibleTenant, AuthService } from "./services/auth.service";
+import { AccessibleTenant, AuthService, TenantMenuItem, TenantMenuRole } from "./services/auth.service";
 import { DataService } from "./services/data.service";
 import { NotificationService } from "./services/notification.service";
 import { InAppNotificationService } from "./services/in-app-notification.service";
@@ -61,25 +62,7 @@ type View =
   | "forgot-password"
   | "reset-password"
   | "app";
-type Nav =
-  | "dashboard"
-  | "schedule"
-  | "agenda"
-  | "profile"
-  | "daily-mileage"
-  | "mileage-report"
-  | "details"
-  | "create-service-request"
-  | "admin-create-service-request"
-  | "overview"
-  | "requests"
-  | "approvals"
-  | "finances"
-  | "stock-intake"
-  | "clients"
-  | "tenants"
-  | "categories"
-  | "extra-services";
+type Nav = TenantMenuItem;
 
 @Component({
   selector: "app-root",
@@ -193,13 +176,36 @@ export class AppComponent implements OnInit {
     const currentUser = this.currentUser();
     const role = currentUser?.role;
 
+    if (!role) {
+      return [] as { id: Nav; labelKey: string; icon: string }[];
+    }
+
+    const baseItems = this.getBaseNavItemsForRole(role);
+    if (!this.isTenantMenuRole(role)) {
+      return baseItems;
+    }
+
+    const enabledItems = this.authService.filterEnabledMenuItemsForRole(
+      role,
+      baseItems.map((item) => item.id),
+    );
+
+    if (enabledItems.length === 0) {
+      return baseItems;
+    }
+
+    const enabledSet = new Set(enabledItems);
+    return baseItems.filter((item) => enabledSet.has(item.id));
+  });
+
+  private getBaseNavItemsForRole(role: UserRole): { id: Nav; labelKey: string; icon: string }[] {
     const isAdmin = role === 'admin' || role === 'super_user';
     const isProfessional = role === 'professional' || role === 'professional_almoxarife';
     const canUseStock = role === 'almoxarife' || role === 'professional_almoxarife' || role === 'secretario';
     const isSecretary = role === 'secretario';
-    
+
     const items: { id: Nav; labelKey: string; icon: string }[] = [];
-    
+
     // Items for professionals (inclui perfil híbrido)
     if (isProfessional) {
       items.push(
@@ -305,11 +311,40 @@ export class AppComponent implements OnInit {
     
     // Profile item for everyone
     items.push({ id: 'profile', labelKey: 'profile', icon: 'fa-solid fa-user' });
-    
+
     return items;
-  });
+  }
+
+  private isTenantMenuRole(role: UserRole | undefined): role is TenantMenuRole {
+    return role === 'admin'
+      || role === 'super_user'
+      || role === 'professional'
+      || role === 'professional_almoxarife'
+      || role === 'almoxarife'
+      || role === 'secretario';
+  }
 
   private getDefaultNavForRole(role: UserRole): Nav {
+    const fallback = this.getRoleFallbackNav(role);
+    const navItemIds = this.getBaseNavItemsForRole(role).map((item) => item.id);
+
+    if (!this.isTenantMenuRole(role)) {
+      return fallback;
+    }
+
+    const enabledItems = this.authService.filterEnabledMenuItemsForRole(role, navItemIds);
+    if (enabledItems.length === 0) {
+      return fallback;
+    }
+
+    if (enabledItems.includes(fallback)) {
+      return fallback;
+    }
+
+    return enabledItems[0];
+  }
+
+  private getRoleFallbackNav(role: UserRole): Nav {
     switch (role) {
       case 'admin':
       case 'super_user':
@@ -323,6 +358,63 @@ export class AppComponent implements OnInit {
       default:
         return 'dashboard';
     }
+  }
+
+  private getAdminRouteForNav(nav: Nav): string | null {
+    switch (nav) {
+      case 'overview':
+      case 'requests':
+      case 'approvals':
+      case 'finances':
+      case 'stock-intake':
+      case 'daily-mileage':
+      case 'clients':
+      case 'tenants':
+      case 'categories':
+      case 'extra-services':
+        return `/admin/${nav}`;
+      default:
+        return null;
+    }
+  }
+
+  private hasTenantMenuSettingsLoadedForUser(user: User): boolean {
+    if (!this.isTenantMenuRole(user.role)) {
+      return true;
+    }
+
+    const tenantIdFromContext = String(this.tenantContext.tenant()?.id ?? '').trim();
+    const tenantIdFromUser = String(user.tenant_id ?? '').trim();
+    const targetTenantId = user.role === 'super_user'
+      ? this.selectedTenantId()
+      : (tenantIdFromContext || tenantIdFromUser);
+
+    if (!targetTenantId) {
+      return true;
+    }
+
+    return this.authService.tenantMenuSettingsTenantId() === targetTenantId;
+  }
+
+  private getAdminLandingRoute(user: User): string | null {
+    if (user.role !== 'admin' && user.role !== 'super_user') {
+      return null;
+    }
+
+    const baseNavItems = this.getBaseNavItemsForRole(user.role).map((item) => item.id);
+    const enabledNavItems = this.isTenantMenuRole(user.role)
+      ? this.authService.filterEnabledMenuItemsForRole(user.role, baseNavItems)
+      : baseNavItems;
+
+    const candidates = enabledNavItems.length > 0 ? enabledNavItems : baseNavItems;
+    for (const nav of candidates) {
+      const route = this.getAdminRouteForNav(nav);
+      if (route) {
+        return route;
+      }
+    }
+
+    return null;
   }
 
   // Track last loaded user to prevent infinite loops
@@ -377,7 +469,22 @@ export class AppComponent implements OnInit {
 
   private initializeSessionEffect(): void {
     effect(() => {
-      this.handleSessionState(this.currentUser(), this.pendingEmailConfirmation());
+      const user = this.currentUser();
+      const pendingEmail = this.pendingEmailConfirmation();
+      untracked(() => this.handleSessionState(user, pendingEmail));
+    });
+
+    effect(() => {
+      const visibleItems = this.navItems();
+      if (visibleItems.length === 0) {
+        return;
+      }
+
+      const current = this.currentNav();
+      const hasCurrent = visibleItems.some((item) => item.id === current);
+      if (!hasCurrent) {
+        this.currentNav.set(visibleItems[0].id);
+      }
     });
   }
 
@@ -526,6 +633,7 @@ export class AppComponent implements OnInit {
     if (user.role === 'super_user') {
       void this.loadSuperUserTenants();
       if (!this.selectedTenantId()) {
+        this.authService.clearTenantMenuSettings();
         this.lastLoadedUserId = undefined;
         return;
       }
@@ -534,6 +642,8 @@ export class AppComponent implements OnInit {
       this.superUserTenantChoice.set("");
       this.lastLoadedTenantListUserId = undefined;
     }
+
+    void this.loadTenantMenuSettingsForCurrentContext();
 
     if (this.lastLoadedUserId === user.id) {
       console.debug(`[AppComponent] Skipping data load - already loaded for user ${user.id}`);
@@ -564,15 +674,34 @@ export class AppComponent implements OnInit {
   }
 
   private ensureAdminRouteConsistency(currentUrl: string): void {
+    const user = this.currentUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_user')) {
+      return;
+    }
+
+    if (!this.hasTenantMenuSettingsLoadedForUser(user)) {
+      return;
+    }
+
+    const adminLandingRoute = this.getAdminLandingRoute(user);
+
     if (currentUrl === '/' || currentUrl.startsWith('/?')) {
-      console.log('[AppComponent] Admin na raiz, redirecionando para /admin');
-      this.router.navigate(['/admin']);
+      if (!adminLandingRoute) {
+        return;
+      }
+
+      console.log(`[AppComponent] Admin na raiz, redirecionando para ${adminLandingRoute}`);
+      this.router.navigateByUrl(adminLandingRoute);
       return;
     }
 
     if (!currentUrl.startsWith('/admin') && !this.isAdminAllowedOutsideAdminRoute(currentUrl)) {
-      console.log('[AppComponent] Admin detectado, redirecionando para /admin');
-      this.router.navigate(['/admin']);
+      if (!adminLandingRoute) {
+        return;
+      }
+
+      console.log(`[AppComponent] Admin detectado fora de rota permitida, redirecionando para ${adminLandingRoute}`);
+      this.router.navigateByUrl(adminLandingRoute);
     }
   }
 
@@ -944,6 +1073,7 @@ export class AppComponent implements OnInit {
       }
 
       await this.loadSuperUserTenants(true);
+      await this.loadTenantMenuSettingsForCurrentContext(true);
       await this.dataService.loadInitialData();
       this.notificationService.addNotification('Tenant ativo atualizado com sucesso.');
     } catch (error) {
@@ -978,6 +1108,7 @@ export class AppComponent implements OnInit {
       }
 
       await this.loadSuperUserTenants(true);
+      await this.loadTenantMenuSettingsForCurrentContext(true);
       await this.dataService.loadInitialData();
 
       const user = this.currentUser();
@@ -1030,5 +1161,38 @@ export class AppComponent implements OnInit {
       this.accessibleTenants.set([]);
       this.superUserTenantChoice.set('');
     }
+  }
+
+  private async loadTenantMenuSettingsForCurrentContext(force = false): Promise<void> {
+    const user = this.currentUser();
+    if (!user) {
+      this.authService.clearTenantMenuSettings();
+      return;
+    }
+
+    if (!this.isTenantMenuRole(user.role)) {
+      this.authService.clearTenantMenuSettings();
+      return;
+    }
+
+    const tenantIdFromContext = String(this.tenantContext.tenant()?.id ?? '').trim();
+    const tenantIdFromUser = user.tenant_id ? String(user.tenant_id).trim() : '';
+    const targetTenantId = user.role === 'super_user'
+      ? this.selectedTenantId()
+      : (tenantIdFromContext || tenantIdFromUser);
+
+    if (!targetTenantId) {
+      this.authService.clearTenantMenuSettings();
+      return;
+    }
+
+    if (!force && this.authService.tenantMenuSettingsTenantId() === targetTenantId) {
+      return;
+    }
+
+    await this.authService.loadTenantMenuSettings(targetTenantId);
+
+    const currentUrl = this.router.url || globalThis.window.location.pathname;
+    this.ensureRoleRouteConsistency(user.role, currentUrl);
   }
 }

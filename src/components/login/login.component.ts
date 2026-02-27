@@ -211,6 +211,23 @@ export class LoginComponent {
 
   readonly i18n = inject(I18nService);
 
+  private mapLoginErrorToI18nKey(error: unknown): string {
+    if (!(error instanceof Error)) {
+      return 'authServerError';
+    }
+
+    const key = String(error.message || '').trim();
+    if (key === 'tenantBillingBlocked') {
+      return 'tenantBillingBlocked';
+    }
+
+    if (key === 'authAccessDenied') {
+      return 'authAccessDenied';
+    }
+
+    return 'authServerError';
+  }
+
   login() {
     this.errorMessage.set(null);
     this.isLoading.set(true);
@@ -244,10 +261,10 @@ export class LoginComponent {
           this.setError('invalidCredentials');
         }
       })
-      .catch(() => {
+      .catch((error) => {
         // Registra tentativa
         this.attempts.set([...filteredAttempts, now]);
-        this.setError('authServerError');
+        this.setError(this.mapLoginErrorToI18nKey(error));
       })
       .finally(() => {
         this.isLoading.set(false);

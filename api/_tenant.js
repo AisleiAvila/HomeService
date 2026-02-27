@@ -106,3 +106,62 @@ export function assertStrictUserTenant(userTenantId, tenant) {
   if (!tenant?.id) return false;
   return String(userTenantId || '') === String(tenant.id || '');
 }
+
+export async function getTenantBillingState(supabase, tenantId) {
+  if (!tenantId) {
+    return {
+      access_allowed: false,
+      billing_status: 'invalid_tenant',
+      grace_until: null,
+      current_period_end: null,
+      subscription_id: null,
+    };
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('tenant_billing_state', {
+      row_tenant_id: tenantId,
+    });
+
+    if (error) {
+      const message = String(error?.message || '').toLowerCase();
+      const code = String(error?.code || '').toLowerCase();
+      const missingFunction =
+        message.includes('tenant_billing_state') && message.includes('does not exist');
+
+      if (missingFunction || code === '42883') {
+        return {
+          access_allowed: true,
+          billing_status: 'not_configured',
+          grace_until: null,
+          current_period_end: null,
+          subscription_id: null,
+        };
+      }
+
+      throw error;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return {
+        access_allowed: true,
+        billing_status: 'unknown',
+        grace_until: null,
+        current_period_end: null,
+        subscription_id: null,
+      };
+    }
+
+    return {
+      access_allowed: Boolean(row.access_allowed),
+      billing_status: row.billing_status || 'unknown',
+      grace_until: row.grace_until || null,
+      current_period_end: row.current_period_end || null,
+      subscription_id: row.subscription_id || null,
+    };
+  } catch (error) {
+    console.error('[TENANT] Erro ao consultar estado de billing do tenant:', error);
+    throw error;
+  }
+}
