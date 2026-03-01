@@ -1922,7 +1922,7 @@ export class FinancialReportsComponent implements OnInit, AfterViewInit, OnDestr
     <base href="${encodedBaseHref}" />
   <title>Relat+�rio Financeiro - ${new Date().toLocaleDateString("pt-PT")}</title>
     <style>
-    body { font-family: Arial, sans-serif; color: #111827; margin: 0; padding: 24px; background: #f7f7fb; }
+    body { font-family: Inter, Arial, sans-serif; color: #111827; margin: 0; padding: 24px; background: #f7f7fb; }
     h1 { color: #ec4899; margin-bottom: 8px; }
     h2 { color: #2563eb; margin-top: 32px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
     .brand-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }

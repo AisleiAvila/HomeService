@@ -74,7 +74,8 @@
   "scripts": {
     "sync-version": "node ./scripts/sync-version.cjs",
     "version": "node ./scripts/sync-version.cjs",
-    "dev": "ng serve",
+    "dev": "concurrently \"ng serve --configuration=development --port 4200\" \"node send-email.cjs\" \"node ./scripts/custom_auth_backend.cjs\"",
+    "dev:ng-only": "ng serve",
     "dev:full": "npm run start",
     "build": "ng build",
     "build:vercel": "ng build --configuration=production",

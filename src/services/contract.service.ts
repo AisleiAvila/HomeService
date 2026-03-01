@@ -211,7 +211,7 @@ export class ContractService {
         <meta charset="UTF-8">
         <title>Contrato de Serviço - ${data.title}</title>
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+          body { font-family: Inter, Arial, sans-serif; line-height: 1.6; margin: 40px; }
           .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
           .section { margin-bottom: 25px; }
           .section h3 { color: #333; border-bottom: 1px solid #ddd; padding-bottom: 5px; }

@@ -4,13 +4,13 @@ export const environment = {
   supabaseUrl: "https://uqrvenlkquheajuveggv.supabase.co",
   apiUrl: "https://your-backend-url.com",
   supabaseRestUrl: "https://uqrvenlkquheajuveggv.supabase.co/rest/v1",
-  loginApiUrl: "http://localhost:4002/api/login",
-  sessionApiUrl: "http://localhost:4002/api/session",
-  superUserAccessApiUrl: "http://localhost:4002/api/super-user-access",
-  tenantsApiUrl: "http://localhost:4002/api/tenants",
-  billingApiUrl: "http://localhost:4002/api/billing",
-  confirmEmailApiUrl: "http://localhost:4001/api/confirm-email",
-  emailServiceUrl: "http://localhost:4001/api/send-email", // Servidor de e-mail local
+  loginApiUrl: "/api/login",
+  sessionApiUrl: "/api/session",
+  superUserAccessApiUrl: "/api/super-user-access",
+  tenantsApiUrl: "/api/tenants",
+  billingApiUrl: "/api/billing",
+  confirmEmailApiUrl: "/api/confirm-email",
+  emailServiceUrl: "/api/send-email", // Servidor de e-mail local
 
   // Configurações de e-mail - Brevo (substitui MailerSend)
   emailProvider: "brevo",

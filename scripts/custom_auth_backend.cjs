@@ -2966,13 +2966,14 @@ app.post('/api/technical-reports/:reportId/submit-signature', async (req, res) =
   }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`✅ Servidor de autenticação rodando em http://localhost:${PORT}`);
-  console.log(`📝 POST http://localhost:${PORT}/api/login - Fazer login`);
-  console.log(`📝 POST http://localhost:${PORT}/api/register - Registar utilizador`);
-  console.log(`📝 POST http://localhost:${PORT}/api/change-password - Alterar senha`);
-  console.log(`🏥 GET http://localhost:${PORT}/health - Status do servidor`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅ Servidor de autenticação rodando em http://localhost:${PORT}`);
+    console.log(`📝 POST http://localhost:${PORT}/api/login - Fazer login`);
+    console.log(`📝 POST http://localhost:${PORT}/api/register - Registar utilizador`);
+    console.log(`📝 POST http://localhost:${PORT}/api/change-password - Alterar senha`);
+    console.log(`🏥 GET http://localhost:${PORT}/health - Status do servidor`);
+  });
+}
 
 module.exports = app;
